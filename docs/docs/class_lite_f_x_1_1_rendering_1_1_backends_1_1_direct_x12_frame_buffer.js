@@ -1,6 +1,7 @@
 var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_frame_buffer =
 [
     [ "DirectX12FrameBufferImpl", "class_direct_x12_frame_buffer_1_1_direct_x12_frame_buffer_impl.html", "class_direct_x12_frame_buffer_1_1_direct_x12_frame_buffer_impl" ],
+    [ "allocation_callback_type", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_frame_buffer.html#a3e6f71931712a0aa49f020eb65039771", null ],
     [ "~DirectX12FrameBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_frame_buffer.html#ad5fbfae421c11d00892e10b237075bc8", null ],
     [ "addImage", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_frame_buffer.html#a69ae30f1146acbeb02c44007d4f90ec9", null ],
     [ "addImage", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_frame_buffer.html#aba2c4d99b6476aebcf622d38ddc23645", null ],

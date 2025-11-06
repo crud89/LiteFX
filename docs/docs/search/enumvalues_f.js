@@ -102,10 +102,11 @@ var searchData=
   ['resolveread_99',['ResolveRead',['../namespace_lite_f_x_1_1_rendering.html#aeef4135fde82b432c3c9be79319224c5a39259427eafa0b50e55f2899dc7608fc',1,'LiteFX::Rendering']]],
   ['resolvesource_100',['ResolveSource',['../namespace_lite_f_x_1_1_rendering.html#a190ea10dd0d34250e0efc1b42ba3f85aa256ff6a4e48f8d0275e644fafd4dcb0d',1,'LiteFX::Rendering']]],
   ['resolvewrite_101',['ResolveWrite',['../namespace_lite_f_x_1_1_rendering.html#aeef4135fde82b432c3c9be79319224c5a1e4863fcdbc036ee0a22680d4181963e',1,'LiteFX::Rendering']]],
-  ['resource_102',['Resource',['../namespace_lite_f_x_1_1_rendering.html#aa9d1b33dd191db51b1aa8a122d333e9dabe8545ae7ab0276e15898aae7acfbd7a',1,'LiteFX::Rendering']]],
-  ['reversesubtract_103',['ReverseSubtract',['../namespace_lite_f_x_1_1_rendering.html#a52d74c475a55763969525f99a6698543abd5458190996e76988cb2f27a820c685',1,'LiteFX::Rendering']]],
-  ['rwbuffer_104',['RWBuffer',['../namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32eaa0ddea71ca80c90e2934d9c2207c5db5',1,'LiteFX::Rendering']]],
-  ['rwbyteaddressbuffer_105',['RWByteAddressBuffer',['../namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea7b195b157780c716c802e59bd9cd1e8e',1,'LiteFX::Rendering']]],
-  ['rwstructuredbuffer_106',['RWStructuredBuffer',['../namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea09c1b0822c7066d0c82d62cc524d2ed4',1,'LiteFX::Rendering']]],
-  ['rwtexture_107',['RWTexture',['../namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea908438103df127428cb9e87573bd996f',1,'LiteFX::Rendering']]]
+  ['resource_102',['Resource',['../namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320abe8545ae7ab0276e15898aae7acfbd7a',1,'LiteFX::Rendering::Resource'],['../namespace_lite_f_x_1_1_rendering.html#aa9d1b33dd191db51b1aa8a122d333e9dabe8545ae7ab0276e15898aae7acfbd7a',1,'LiteFX::Rendering::Resource']]],
+  ['resourcedescriptorheap_103',['ResourceDescriptorHeap',['../namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea6fd273b2c38bbbac18213aad964f8c83',1,'LiteFX::Rendering']]],
+  ['reversesubtract_104',['ReverseSubtract',['../namespace_lite_f_x_1_1_rendering.html#a52d74c475a55763969525f99a6698543abd5458190996e76988cb2f27a820c685',1,'LiteFX::Rendering']]],
+  ['rwbuffer_105',['RWBuffer',['../namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32eaa0ddea71ca80c90e2934d9c2207c5db5',1,'LiteFX::Rendering']]],
+  ['rwbyteaddressbuffer_106',['RWByteAddressBuffer',['../namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea7b195b157780c716c802e59bd9cd1e8e',1,'LiteFX::Rendering']]],
+  ['rwstructuredbuffer_107',['RWStructuredBuffer',['../namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea09c1b0822c7066d0c82d62cc524d2ed4',1,'LiteFX::Rendering']]],
+  ['rwtexture_108',['RWTexture',['../namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea908438103df127428cb9e87573bd996f',1,'LiteFX::Rendering']]]
 ];

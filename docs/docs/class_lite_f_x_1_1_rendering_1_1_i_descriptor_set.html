@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -118,9 +118,21 @@ $(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a91d809c2f16d74f24422e36e9a173b4f" id="r_a91d809c2f16d74f24422e36e9a173b4f"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a91d809c2f16d74f24422e36e9a173b4f">~IDescriptorSet</a> () noexcept=default</td></tr>
 <tr class="separator:a91d809c2f16d74f24422e36e9a173b4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57075731be38d0de7cad23f5af4e85fe" id="r_a57075731be38d0de7cad23f5af4e85fe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a57075731be38d0de7cad23f5af4e85fe">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer.html">IBuffer</a> &amp;buffer, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> bufferElement=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> elements=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstDescriptor=0) const</td></tr>
-<tr class="memdesc:a57075731be38d0de7cad23f5af4e85fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates one or more buffer descriptors within the current descriptor set.  <br /></td></tr>
-<tr class="separator:a57075731be38d0de7cad23f5af4e85fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3162bc84922bdf63af496572e6b3f20" id="r_af3162bc84922bdf63af496572e6b3f20"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_virtual_allocator_1_1_allocation.html">VirtualAllocator::Allocation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af3162bc84922bdf63af496572e6b3f20">globalHeapAllocation</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a> heapType) const noexcept=0</td></tr>
+<tr class="memdesc:af3162bc84922bdf63af496572e6b3f20"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the allocation information for the descriptor set in the global descriptor heap indicated by <em>heapType</em> .  <br /></td></tr>
+<tr class="separator:af3162bc84922bdf63af496572e6b3f20"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac633a45f78d5f32f50ce9d1b0ed78f87" id="r_ac633a45f78d5f32f50ce9d1b0ed78f87"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac633a45f78d5f32f50ce9d1b0ed78f87">bindToHeap</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a> bindingType, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer.html">IBuffer</a> &amp;buffer, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> bufferElement=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> elements=0, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a> texelFormat=<a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6ba6adf97f83acf6453d4a6a4b1070f3754">Format::None</a>) const</td></tr>
+<tr class="memdesc:ac633a45f78d5f32f50ce9d1b0ed78f87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a resource directly to a descriptor heap and returns the index that can be used to access it.  <br /></td></tr>
+<tr class="separator:ac633a45f78d5f32f50ce9d1b0ed78f87"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a965541afcb628f2863dd66f5ceb70d29" id="r_a965541afcb628f2863dd66f5ceb70d29"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a965541afcb628f2863dd66f5ceb70d29">bindToHeap</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a> bindingType, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html">IImage</a> &amp;image, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLevel=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> levels=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLayer=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> layers=0) const</td></tr>
+<tr class="memdesc:a965541afcb628f2863dd66f5ceb70d29"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a resource directly to a descriptor heap and returns the index that can be used to access it.  <br /></td></tr>
+<tr class="separator:a965541afcb628f2863dd66f5ceb70d29"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a19da2a13a72549c1bce2ffbbca25874f" id="r_a19da2a13a72549c1bce2ffbbca25874f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a19da2a13a72549c1bce2ffbbca25874f">bindToHeap</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_sampler.html">ISampler</a> &amp;sampler) const</td></tr>
+<tr class="memdesc:a19da2a13a72549c1bce2ffbbca25874f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a sampler directly to a descriptor heap and returns the index that can be used to access it.  <br /></td></tr>
+<tr class="separator:a19da2a13a72549c1bce2ffbbca25874f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace90eade506835d24ac499ceefe9fbfd" id="r_ace90eade506835d24ac499ceefe9fbfd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ace90eade506835d24ac499ceefe9fbfd">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer.html">IBuffer</a> &amp;buffer, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> bufferElement=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> elements=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstDescriptor=0, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a> texelFormat=<a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6ba6adf97f83acf6453d4a6a4b1070f3754">Format::None</a>) const</td></tr>
+<tr class="memdesc:ace90eade506835d24ac499ceefe9fbfd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates one or more buffer descriptors within the current descriptor set.  <br /></td></tr>
+<tr class="separator:ace90eade506835d24ac499ceefe9fbfd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab17fcb6b2b64d6111e9747265def32b4" id="r_ab17fcb6b2b64d6111e9747265def32b4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab17fcb6b2b64d6111e9747265def32b4">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html">IImage</a> &amp;texture, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLevel=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> levels=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLayer=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> layers=0) const</td></tr>
 <tr class="memdesc:ab17fcb6b2b64d6111e9747265def32b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates one or more texture descriptors within the current descriptor set.  <br /></td></tr>
 <tr class="separator:ab17fcb6b2b64d6111e9747265def32b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -248,6 +260,237 @@ Protected Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="ac633a45f78d5f32f50ce9d1b0ed78f87" name="ac633a45f78d5f32f50ce9d1b0ed78f87"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac633a45f78d5f32f50ce9d1b0ed78f87">&#9670;&#160;</a></span>bindToHeap() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> LiteFX::Rendering::IDescriptorSet::bindToHeap </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a></td>          <td class="paramname"><span class="paramname"><em>bindingType</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>descriptor</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer.html">IBuffer</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>buffer</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>bufferElement</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>elements</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a></td>          <td class="paramname"><span class="paramname"><em>texelFormat</em></span><span class="paramdefsep"> = </span><span class="paramdefval"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6ba6adf97f83acf6453d4a6a4b1070f3754">Format::None</a></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Binds a resource directly to a descriptor heap and returns the index that can be used to access it. </p>
+<p>This method is used with the GraphicsDeviceFeature::DynamicDescriptors feature and allows to bind a descriptor to the underlying descriptor heap directly by providing the corresponding resource type (indicated by <em>bindingType</em> ) at bind time. The method directly returns the global heap index of the resource, that can be used by the shader to access it using the <code>ResourceDescriptorHeap</code> syntax (in HLSL).</p>
+<p>If the descriptor set does not contain a descriptor of type <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea6fd273b2c38bbbac18213aad964f8c83" title="Special descriptor type, that can bind all resources besides constant buffers, acceleration structure...">DescriptorType::ResourceDescriptorHeap</a>, this method will throw an exception. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">bindingType</td><td>The type of the descriptor used to bind <em>buffer</em>  to the heap.</td></tr>
+    <tr><td class="paramname">descriptor</td><td>The index of the descriptor in the heap to bind <em>buffer</em>  to.</td></tr>
+    <tr><td class="paramname">buffer</td><td>The buffer to bind.</td></tr>
+    <tr><td class="paramname">bufferElement</td><td>The index of an element inside <em>buffer</em>  that should be bound.</td></tr>
+    <tr><td class="paramname">elements</td><td>The number of elements from the buffer to bind to the descriptor set. A value of <code>0</code> binds all available elements, starting at <em>bufferElement</em> .</td></tr>
+    <tr><td class="paramname">texelFormat</td><td>The format used to read a texel buffer. Required if <em>binding</em>  binds a texel buffer and ignored otherwise.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The global heap index that can be used to access the resource from the shader.</dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="class_lite_f_x_1_1_runtime_exception.html" title="An exception that is thrown, if a requested operation could not be executed.">RuntimeException</a></td><td>Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by <em>bindingType</em> .</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a965541afcb628f2863dd66f5ceb70d29" name="a965541afcb628f2863dd66f5ceb70d29"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a965541afcb628f2863dd66f5ceb70d29">&#9670;&#160;</a></span>bindToHeap() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> LiteFX::Rendering::IDescriptorSet::bindToHeap </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a></td>          <td class="paramname"><span class="paramname"><em>bindingType</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>descriptor</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html">IImage</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>image</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>firstLevel</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>levels</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>firstLayer</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>layers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Binds a resource directly to a descriptor heap and returns the index that can be used to access it. </p>
+<p>This method is used with the GraphicsDeviceFeature::DynamicDescriptors feature and allows to bind a descriptor to the underlying descriptor heap directly by providing the corresponding resource type (indicated by <em>bindingType</em> ) at bind time. The method directly returns the global heap index of the resource, that can be used by the shader to access it using the <code>ResourceDescriptorHeap</code> syntax (in HLSL).</p>
+<p>If the descriptor set does not contain a descriptor of type <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea6fd273b2c38bbbac18213aad964f8c83" title="Special descriptor type, that can bind all resources besides constant buffers, acceleration structure...">DescriptorType::ResourceDescriptorHeap</a>, this method will throw an exception. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">bindingType</td><td>The type of the descriptor used to bind <em>image</em>  to the heap.</td></tr>
+    <tr><td class="paramname">descriptor</td><td>The index of the descriptor in the heap to bind <em>image</em>  to.</td></tr>
+    <tr><td class="paramname">image</td><td>The image to bind.</td></tr>
+    <tr><td class="paramname">firstLevel</td><td>The index of the first mip-map level to bind.</td></tr>
+    <tr><td class="paramname">levels</td><td>The number of mip-map levels to bind. A value of <code>0</code> binds all available levels, starting at <em>firstLevel</em> .</td></tr>
+    <tr><td class="paramname">firstLayer</td><td>The index of the first layer to bind.</td></tr>
+    <tr><td class="paramname">layers</td><td>The number of layers to bind. A value of <code>0</code> binds all available layers, starting at <em>firstLayer</em> .</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The global heap index that can be used to access the resource from the shader.</dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="class_lite_f_x_1_1_runtime_exception.html" title="An exception that is thrown, if a requested operation could not be executed.">RuntimeException</a></td><td>Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by <em>bindingType</em> .</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a19da2a13a72549c1bce2ffbbca25874f" name="a19da2a13a72549c1bce2ffbbca25874f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a19da2a13a72549c1bce2ffbbca25874f">&#9670;&#160;</a></span>bindToHeap() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> LiteFX::Rendering::IDescriptorSet::bindToHeap </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>descriptor</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_sampler.html">ISampler</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>sampler</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Binds a sampler directly to a descriptor heap and returns the index that can be used to access it. </p>
+<p>This method is used with the GraphicsDeviceFeature::DynamicDescriptors feature and allows to bind a descriptor to the underlying descriptor heap directly. The method returns the global heap index of the sampler, that can be used by the shader to access it using the <code>SamplerDescriptorHeap</code> syntax (in HLSL).</p>
+<p>If the descriptor set does not contain a descriptor of type <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea23dbc164336b3de4f93f85647fa5cadb" title="A special descriptor type that allows indexed access to the a portion of the global sampler heap.">DescriptorType::SamplerDescriptorHeap</a>, this method will throw an exception. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">descriptor</td><td>The index of the descriptor in the heap to bind <em>sampler</em>  to.</td></tr>
+    <tr><td class="paramname">sampler</td><td>The sampler to bind.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The global heap index that can be used to access the sampler from the shader.</dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="class_lite_f_x_1_1_runtime_exception.html" title="An exception that is thrown, if a requested operation could not be executed.">RuntimeException</a></td><td>Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by <em>bindingType</em> .</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="af3162bc84922bdf63af496572e6b3f20" name="af3162bc84922bdf63af496572e6b3f20"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3162bc84922bdf63af496572e6b3f20">&#9670;&#160;</a></span>globalHeapAllocation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_virtual_allocator_1_1_allocation.html">VirtualAllocator::Allocation</a> LiteFX::Rendering::IDescriptorSet::globalHeapAllocation </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a></td>          <td class="paramname"><span class="paramname"><em>heapType</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the allocation information for the descriptor set in the global descriptor heap indicated by <em>heapType</em> . </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">heapType</td><td>The type of the descriptor heap for which to obtain the heap allocation.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The allocation for the descriptor set in the global descriptor heap.</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html#ae7a72c38ce496396fecd0836b24a8a25">LiteFX::Rendering::Backends::DirectX12DescriptorSet</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html#a48fbd03a1fb1290af20217775b400be1">LiteFX::Rendering::Backends::VulkanDescriptorSet</a>.</p>
+
+</div>
+</div>
 <a id="a3b62ead93f559637c5adcb1462a8c486" name="a3b62ead93f559637c5adcb1462a8c486"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3b62ead93f559637c5adcb1462a8c486">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
 
@@ -342,8 +585,8 @@ Protected Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a57075731be38d0de7cad23f5af4e85fe" name="a57075731be38d0de7cad23f5af4e85fe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a57075731be38d0de7cad23f5af4e85fe">&#9670;&#160;</a></span>update() <span class="overload">[2/4]</span></h2>
+<a id="ace90eade506835d24ac499ceefe9fbfd" name="ace90eade506835d24ac499ceefe9fbfd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ace90eade506835d24ac499ceefe9fbfd">&#9670;&#160;</a></span>update() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -374,7 +617,12 @@ Protected Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>firstDescriptor</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;) const</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>firstDescriptor</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a></td>          <td class="paramname"><span class="paramname"><em>texelFormat</em></span><span class="paramdefsep"> = </span><span class="paramdefval"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6ba6adf97f83acf6453d4a6a4b1070f3754">Format::None</a></span>&#160;) const</td>
         </tr>
       </table>
   </td>
@@ -392,6 +640,7 @@ Protected Member Functions</h2></td></tr>
     <tr><td class="paramname">bufferElement</td><td>The index of the first element in the buffer to bind to the descriptor set.</td></tr>
     <tr><td class="paramname">elements</td><td>The number of elements from the buffer to bind to the descriptor set. A value of <code>0</code> binds all available elements, starting at <em>bufferElement</em> .</td></tr>
     <tr><td class="paramname">firstDescriptor</td><td>The index of the first descriptor in the descriptor array to update.</td></tr>
+    <tr><td class="paramname">texelFormat</td><td>The format used to read a texel buffer. Required if <em>binding</em>  binds a texel buffer and ignored otherwise.</td></tr>
   </table>
   </dd>
 </dl>

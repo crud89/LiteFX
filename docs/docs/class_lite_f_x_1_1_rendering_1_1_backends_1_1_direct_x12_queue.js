@@ -6,6 +6,7 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue =
     [ "createCommandBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html#a769409eb5eddcf1808913f923c724d9c", null ],
     [ "currentFence", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html#ad7fe907c0a3987dcec37e099684588e8", null ],
     [ "device", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html#af11bbe855f00e08fcd01c5a0fb1914b7", null ],
+    [ "lastCompletedFence", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html#a352fb838dd4ecbd1e9a6c13e4eceb549", null ],
     [ "priority", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html#aed752d2eab6d0faa460aff6d6c8afbd1", null ],
     [ "submit", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html#ae49058eb65ca8233dc0efcb3e0949e06", null ],
     [ "submit", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html#a1bfcc88c6f282c867464ae7bdefc1976", null ],

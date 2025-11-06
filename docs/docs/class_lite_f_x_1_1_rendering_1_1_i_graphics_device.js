@@ -5,6 +5,9 @@ var class_lite_f_x_1_1_rendering_1_1_i_graphics_device =
     [ "IGraphicsDevice", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a2fd59dddbad3912ed54b528348f7103c", null ],
     [ "~IGraphicsDevice", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab6915ddf6ab441a154714b77420ffccf", null ],
     [ "adapter", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a49525e401842d3957ab50d0459034bdd", null ],
+    [ "allocateGlobalDescriptors", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab0e1c7678759935cfe4530714450a645", null ],
+    [ "bindDescriptorSet", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a6c710cf0856bf01d817a81500c45704d", null ],
+    [ "bindGlobalDescriptorHeaps", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a49c737165888b098da986ee8358ddb01", null ],
     [ "computeAccelerationStructureSizes", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a0ea4aab07440f194041726de0addb459", null ],
     [ "computeAccelerationStructureSizes", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ad6612c13e9dab344b1d2c1e8641ceb35", null ],
     [ "createQueue", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a8e3eeab88b21823e3e1998631d90e3a3", null ],
@@ -16,10 +19,12 @@ var class_lite_f_x_1_1_rendering_1_1_i_graphics_device =
     [ "maximumMultiSamplingLevel", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a8a55c9a6dc0287137bad2ee26d2e9c80", null ],
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a874c5d5b3c894a6c27c192fba708cbf7", null ],
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a16e0a2d045dcd28de0fed976fcaa8d27", null ],
+    [ "releaseGlobalDescriptors", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a7064ad5dfd8f07ff6bf4e172413f9b9c", null ],
     [ "state", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ad2b6108f3139212ee25223dfb1a02c26", null ],
     [ "surface", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a0f030572b7eea23a4a318b0c14e37754", null ],
     [ "swapChain", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#abcb9780dcce10b8e3c758cf70e304d10", null ],
     [ "swapChain", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a0ed71276112e987c1159b0f734383954", null ],
     [ "ticksPerMillisecond", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a8883c3369bb7e61ac7306d11841b5334", null ],
+    [ "updateGlobalDescriptors", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab0f56e17b373a23f3890e862b2f0f885", null ],
     [ "wait", "class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ac3cc5c49c78a4abd7d739b185f99889f", null ]
 ];

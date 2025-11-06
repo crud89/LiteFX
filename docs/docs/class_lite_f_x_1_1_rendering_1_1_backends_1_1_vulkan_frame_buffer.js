@@ -1,6 +1,7 @@
 var class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_frame_buffer =
 [
     [ "VulkanFrameBufferImpl", "class_vulkan_frame_buffer_1_1_vulkan_frame_buffer_impl.html", "class_vulkan_frame_buffer_1_1_vulkan_frame_buffer_impl" ],
+    [ "allocation_callback_type", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_frame_buffer.html#a3e6f71931712a0aa49f020eb65039771", null ],
     [ "~VulkanFrameBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_frame_buffer.html#adfc2f97b9ad514a99810a7ef5360d9f9", null ],
     [ "addImage", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_frame_buffer.html#aeb88d93807d15a97e493e8a0d4535e9a", null ],
     [ "addImage", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_frame_buffer.html#a52a75d370c68206381364918c2b4e7e2", null ],

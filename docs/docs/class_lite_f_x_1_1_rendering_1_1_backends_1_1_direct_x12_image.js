@@ -23,6 +23,7 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image =
     [ "size", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a825574574faf553cd1530ba10a210dc3", null ],
     [ "usage", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a70946065de77014f733c28fc9cab50f7", null ],
     [ "virtualAddress", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a8e654eae46a7e64a4c883171f40c962f", null ],
+    [ "DirectX12GraphicsFactory", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a08c5527aa1de76e870e9702f96ac014c", null ],
     [ "DirectX12SwapChain::DirectX12SwapChainImpl", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a0dac5411129a529d4b38d9c4fa6eeff5", null ],
     [ "SharedObject::Allocator< DirectX12Image >", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a7bf0c82958a5db45b37f133f3dd40e58", null ]
 ];

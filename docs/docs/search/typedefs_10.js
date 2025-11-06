@@ -15,5 +15,6 @@ var searchData=
   ['uint64vector2_12',['UInt64Vector2',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#aafb02c6f02179c875f3a4b76dbaa58af',1,'LiteFX::Math::Vectors']]],
   ['uint64vector3_13',['UInt64Vector3',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a3030b795ac9d83bf0db625eaee8e1e57',1,'LiteFX::Math::Vectors']]],
   ['uint64vector4_14',['UInt64Vector4',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a728f3fd9a28c26fb56dd8437d06beed4',1,'LiteFX::Math::Vectors']]],
-  ['uniqueptr_15',['UniquePtr',['../namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3',1,'LiteFX']]]
+  ['uint8_15',['UInt8',['../namespace_lite_f_x_1_1_math.html#a2a903ef57deca072a76ad57c88b8c324',1,'LiteFX::Math']]],
+  ['uniqueptr_16',['UniquePtr',['../namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3',1,'LiteFX']]]
 ];

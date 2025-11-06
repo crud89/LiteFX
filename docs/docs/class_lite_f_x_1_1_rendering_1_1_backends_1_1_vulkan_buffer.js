@@ -1,11 +1,13 @@
 var class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer =
 [
     [ "VulkanBufferImpl", "class_vulkan_buffer_1_1_vulkan_buffer_impl.html", "class_vulkan_buffer_1_1_vulkan_buffer_impl" ],
-    [ "VulkanBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#abc3947fe181b34a30c030c070230ced7", null ],
+    [ "VulkanBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a0f3ff51e7bebe07785f98df0e36a79e2", null ],
     [ "VulkanBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#acce3a8c3a37b3cccf6c5986ad98d7357", null ],
     [ "VulkanBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a9b833e54ec69d5389aa1ee11b62f2dcb", null ],
     [ "~VulkanBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a7c58571ae464ca2270239cbbb888b032", null ],
     [ "alignedElementSize", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a1ecd7ee6c24f4cefb02dce466a45840c", null ],
+    [ "allocationInfo", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a44444babe6c41a0f4a111f3fa0d2da2d", null ],
+    [ "allocator", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a954cb6048927c118f412337f3144ceed", null ],
     [ "elementAlignment", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#adbdcac31f8ae4a5b33f05dc718de36d1", null ],
     [ "elements", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a61ada4eba481aec695565d55aeb8a67e", null ],
     [ "elementSize", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a458617b7a58e8d9973735c9e70d829e4", null ],
@@ -15,9 +17,12 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer =
     [ "map", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#afb6b3324daab5c602aaa1e6596388ada", null ],
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#ae265dcd7dd7025fa68e37e793d4869c1", null ],
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a5ed2c0805eec39ec1ce3f305c36743cf", null ],
+    [ "read", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a2dbee2e159b74107b71a2667d88eda5d", null ],
     [ "size", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#aac06721d7ea1bff51269de9f216bbed4", null ],
     [ "type", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a59afc6e5a3c62ba274336797ea1a6903", null ],
     [ "usage", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a281ad9c79c2ba01ab3e277006db3c51f", null ],
     [ "virtualAddress", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a9c286d746cf7e2a6d22b43a02233c704", null ],
-    [ "SharedObject::Allocator< VulkanBuffer >", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a879ce5db5a43b14615798184efdfae14", null ]
+    [ "write", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#ad76a770fc02c63c4230640a002e9a29b", null ],
+    [ "SharedObject::Allocator< VulkanBuffer >", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a879ce5db5a43b14615798184efdfae14", null ],
+    [ "VulkanGraphicsFactory", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a432a849b9fa7498ad5ae4a3e59181c0b", null ]
 ];

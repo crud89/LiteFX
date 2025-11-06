@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -143,9 +143,17 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a3f93f2e6f056724840c9650196e8370b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the push constants layout, or <code>nullptr</code>, if the pipeline does not use any push constants.<dl class="section return"><dt>Returns</dt><dd>The push constants layout, or <code>nullptr</code>, if the pipeline does not use any push constants.</dd></dl>
   <br /></td></tr>
 <tr class="separator:a3f93f2e6f056724840c9650196e8370b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a32576a2caa5fefc4527539dfc3c08483" id="r_a32576a2caa5fefc4527539dfc3c08483"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a32576a2caa5fefc4527539dfc3c08483">rootParameterIndex</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;layout) const noexcept</td></tr>
-<tr class="memdesc:a32576a2caa5fefc4527539dfc3c08483"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the root parameter index for a descriptor set.  <br /></td></tr>
-<tr class="separator:a32576a2caa5fefc4527539dfc3c08483"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aadc3c6499a6ee94cfc56cc040bc5117b" id="r_aadc3c6499a6ee94cfc56cc040bc5117b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aadc3c6499a6ee94cfc56cc040bc5117b">dynamicResourceHeapAccess</a> () const override</td></tr>
+<tr class="memdesc:aadc3c6499a6ee94cfc56cc040bc5117b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the pipeline supports directly indexing into a resource heap and <code>false</code> otherwise.<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the pipeline supports directly indexing into a resource heap and <code>false</code> otherwise</dd></dl>
+  <br /></td></tr>
+<tr class="separator:aadc3c6499a6ee94cfc56cc040bc5117b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc21dabac5b0ccdb7978e51077e4aad9" id="r_adc21dabac5b0ccdb7978e51077e4aad9"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adc21dabac5b0ccdb7978e51077e4aad9">dynamicSamplerHeapAccess</a> () const override</td></tr>
+<tr class="memdesc:adc21dabac5b0ccdb7978e51077e4aad9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the pipeline supports directly indexing into a sampler heap and <code>false</code> otherwise.<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the pipeline supports directly indexing into a sampler heap and <code>false</code> otherwise</dd></dl>
+  <br /></td></tr>
+<tr class="separator:adc21dabac5b0ccdb7978e51077e4aad9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9c60b556dfce84553823ed179d4d594" id="r_aa9c60b556dfce84553823ed179d4d594"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa9c60b556dfce84553823ed179d4d594">rootParameterIndex</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;layout, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a> heapType) const noexcept</td></tr>
+<tr class="memdesc:aa9c60b556dfce84553823ed179d4d594"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the root parameter index for a descriptor set.  <br /></td></tr>
+<tr class="separator:aa9c60b556dfce84553823ed179d4d594"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd1114e21d1dab323ccd58c63ba8edd4" id="r_afd1114e21d1dab323ccd58c63ba8edd4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afd1114e21d1dab323ccd58c63ba8edd4">rootParameterIndex</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_push_constants_range.html">DirectX12PushConstantsRange</a> &amp;range) const noexcept</td></tr>
 <tr class="memdesc:afd1114e21d1dab323ccd58c63ba8edd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the root parameter index for a push constants range.  <br /></td></tr>
 <tr class="separator:afd1114e21d1dab323ccd58c63ba8edd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -438,6 +446,66 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="aadc3c6499a6ee94cfc56cc040bc5117b" name="aadc3c6499a6ee94cfc56cc040bc5117b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aadc3c6499a6ee94cfc56cc040bc5117b">&#9670;&#160;</a></span>dynamicResourceHeapAccess()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool DirectX12PipelineLayout::dynamicResourceHeapAccess </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns <code>true</code>, if the pipeline supports directly indexing into a resource heap and <code>false</code> otherwise.<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the pipeline supports directly indexing into a resource heap and <code>false</code> otherwise</dd></dl>
+ </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline_layout.html#a52e9aa9234887ddc8d84354c942d6a1a">LiteFX::Rendering::IPipelineLayout</a>.</p>
+
+</div>
+</div>
+<a id="adc21dabac5b0ccdb7978e51077e4aad9" name="adc21dabac5b0ccdb7978e51077e4aad9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc21dabac5b0ccdb7978e51077e4aad9">&#9670;&#160;</a></span>dynamicSamplerHeapAccess()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool DirectX12PipelineLayout::dynamicSamplerHeapAccess </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns <code>true</code>, if the pipeline supports directly indexing into a sampler heap and <code>false</code> otherwise.<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the pipeline supports directly indexing into a sampler heap and <code>false</code> otherwise</dd></dl>
+ </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline_layout.html#ac8b0701d432afa92cd00bc09938266b4">LiteFX::Rendering::IPipelineLayout</a>.</p>
+
+</div>
+</div>
 <a id="a3f93f2e6f056724840c9650196e8370b" name="a3f93f2e6f056724840c9650196e8370b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3f93f2e6f056724840c9650196e8370b">&#9670;&#160;</a></span>pushConstants()</h2>
 
@@ -468,8 +536,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a32576a2caa5fefc4527539dfc3c08483" name="a32576a2caa5fefc4527539dfc3c08483"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a32576a2caa5fefc4527539dfc3c08483">&#9670;&#160;</a></span>rootParameterIndex() <span class="overload">[1/2]</span></h2>
+<a id="aa9c60b556dfce84553823ed179d4d594" name="aa9c60b556dfce84553823ed179d4d594"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9c60b556dfce84553823ed179d4d594">&#9670;&#160;</a></span>rootParameterIndex() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -480,8 +548,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> &gt; DirectX12PipelineLayout::rootParameterIndex </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>layout</em></span></td><td>)</td>
-          <td> const</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>layout</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a></td>          <td class="paramname"><span class="paramname"><em>heapType</em></span>&#160;) const</td>
         </tr>
       </table>
   </td>
@@ -493,14 +565,16 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Returns the root parameter index for a descriptor set. </p>
 <p>Note that root parameter mapping is done by matching the descriptor set space. For example, providing any descriptor set layout for register space <code>1</code> will return the same root parameter index, even if a different descriptor set layout was provided for space <code>1</code> during pipeline layout construction. This allows for descriptor sets and layouts to be shared over multiple pipeline layouts, even if they are unrelated, as long as they are compatible. Compatibility must be ensured by the application.</p>
-<p>Only if no descriptor set layout was provided for register space <code>1</code> in the example above, this method will return <code>std::nullopt</code>. </p>
+<p>Only if no descriptor set layout was provided for register space <code>1</code> in the example above, this method will return <code>std::nullopt</code>.</p>
+<p>The <em>heapType</em>  determines the target descriptor heap, for which to obtain the root parameter index. This is required, as samplers bind to another descriptor heap as all other resources. If the descriptor set does not contain descriptors that bind to the desired descriptor heap, the method will also return <code>std::nullopt</code>. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">layout</td><td>The layout of the descriptor set.</td></tr>
+    <tr><td class="paramname">heapType</td><td>The type of the descriptor heap for which to obtain the root parameter index.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The root parameter index for the descriptor set layout, or <code>std::nullopt</code>, if the descriptor set is not part of the pipeline layout.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The root parameter index for the descriptor set layout, or <code>std::nullopt</code>, if the descriptor set is not part of the pipeline layout or does not contain descriptors that bind to <em>heapType</em> . </dd></dl>
 
 </div>
 </div>

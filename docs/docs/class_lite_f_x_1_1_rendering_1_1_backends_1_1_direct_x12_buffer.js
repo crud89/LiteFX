@@ -1,7 +1,7 @@
 var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer =
 [
     [ "DirectX12BufferImpl", "class_direct_x12_buffer_1_1_direct_x12_buffer_impl.html", "class_direct_x12_buffer_1_1_direct_x12_buffer_impl" ],
-    [ "DirectX12Buffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a70e15991ddcbda9eb258f031476982fb", null ],
+    [ "DirectX12Buffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#ac154409f9408ab8d8f7c1158e7668fb9", null ],
     [ "DirectX12Buffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a5cdc4f7b89c5face1e6f1b51a7aef8c1", null ],
     [ "DirectX12Buffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#aa9578c1528a64cf52387ee24c540d345", null ],
     [ "~DirectX12Buffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a22ff2c00d670f32283745814b54b9bec", null ],
@@ -17,9 +17,12 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer =
     [ "map", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#ac9622d8854934d3bc06712daad48cebb", null ],
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a47d15021fe1226a8f0886b1c6da5a57a", null ],
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a906966147eb6f04052bd4ad0d63a9f21", null ],
+    [ "read", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a628f36b6d0bc0fcef4a915474313270f", null ],
     [ "size", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a705925c8a4f36694986bd68b904742d6", null ],
     [ "type", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#add3b1e96a63c1dca963ae2739ffb43cf", null ],
     [ "usage", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#af91f89c4eec658f1212d8adb42414905", null ],
     [ "virtualAddress", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#acd725ff821aeb3049cf89a14ede9c492", null ],
+    [ "write", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a7e9f3cb96264b3e85b658933456b2311", null ],
+    [ "DirectX12GraphicsFactory", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a08c5527aa1de76e870e9702f96ac014c", null ],
     [ "SharedObject::Allocator< DirectX12Buffer >", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a0c24242f9441a44715339af27dd4def5", null ]
 ];

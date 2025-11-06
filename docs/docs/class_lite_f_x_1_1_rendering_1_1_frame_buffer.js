@@ -1,5 +1,6 @@
 var class_lite_f_x_1_1_rendering_1_1_frame_buffer =
 [
+    [ "allocation_callback_type", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#a3e6f71931712a0aa49f020eb65039771", null ],
     [ "image_type", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#a12d14be955cc2cef7f97c79578e38f07", null ],
     [ "FrameBuffer", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#a5f1a730df071ca7204632ec1f9f76516", null ],
     [ "FrameBuffer", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#ac1d6884bb2f4ff5b7e17a2e0d2f4ed35", null ],

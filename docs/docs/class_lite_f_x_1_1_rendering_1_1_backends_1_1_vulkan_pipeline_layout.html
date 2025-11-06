@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -143,6 +143,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a8f8567655675a3de412a56c87c2d7b9a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the push constants layout, or <code>nullptr</code>, if the pipeline does not use any push constants.<dl class="section return"><dt>Returns</dt><dd>The push constants layout, or <code>nullptr</code>, if the pipeline does not use any push constants.</dd></dl>
   <br /></td></tr>
 <tr class="separator:a8f8567655675a3de412a56c87c2d7b9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab389e790777a83a8950067cbb5b7bed1" id="r_ab389e790777a83a8950067cbb5b7bed1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab389e790777a83a8950067cbb5b7bed1">dynamicResourceHeapAccess</a> () const override</td></tr>
+<tr class="memdesc:ab389e790777a83a8950067cbb5b7bed1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the pipeline supports directly indexing into a resource heap and <code>false</code> otherwise.<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the pipeline supports directly indexing into a resource heap and <code>false</code> otherwise</dd></dl>
+  <br /></td></tr>
+<tr class="separator:ab389e790777a83a8950067cbb5b7bed1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7df827a002ac1b11911c5e8f3deadd52" id="r_a7df827a002ac1b11911c5e8f3deadd52"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7df827a002ac1b11911c5e8f3deadd52">dynamicSamplerHeapAccess</a> () const override</td></tr>
+<tr class="memdesc:a7df827a002ac1b11911c5e8f3deadd52"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the pipeline supports directly indexing into a sampler heap and <code>false</code> otherwise.<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the pipeline supports directly indexing into a sampler heap and <code>false</code> otherwise</dd></dl>
+  <br /></td></tr>
+<tr class="separator:a7df827a002ac1b11911c5e8f3deadd52"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_pipeline_layout"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_pipeline_layout')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_pipeline_layout.html">LiteFX::Rendering::PipelineLayout&lt; VulkanDescriptorSetLayout, VulkanPushConstantsLayout &gt;</a></td></tr>
 <tr class="memitem:ac6137483a658e11dee1f1a522069c855 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_pipeline_layout" id="r_ac6137483a658e11dee1f1a522069c855"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_pipeline_layout.html#ac6137483a658e11dee1f1a522069c855">~PipelineLayout</a> () noexcept override=default</td></tr>
 <tr class="separator:ac6137483a658e11dee1f1a522069c855 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_pipeline_layout"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -429,6 +437,66 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 
 <p></p>
+
+</div>
+</div>
+<a id="ab389e790777a83a8950067cbb5b7bed1" name="ab389e790777a83a8950067cbb5b7bed1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab389e790777a83a8950067cbb5b7bed1">&#9670;&#160;</a></span>dynamicResourceHeapAccess()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool VulkanPipelineLayout::dynamicResourceHeapAccess </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns <code>true</code>, if the pipeline supports directly indexing into a resource heap and <code>false</code> otherwise.<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the pipeline supports directly indexing into a resource heap and <code>false</code> otherwise</dd></dl>
+ </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline_layout.html#a52e9aa9234887ddc8d84354c942d6a1a">LiteFX::Rendering::IPipelineLayout</a>.</p>
+
+</div>
+</div>
+<a id="a7df827a002ac1b11911c5e8f3deadd52" name="a7df827a002ac1b11911c5e8f3deadd52"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7df827a002ac1b11911c5e8f3deadd52">&#9670;&#160;</a></span>dynamicSamplerHeapAccess()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool VulkanPipelineLayout::dynamicSamplerHeapAccess </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns <code>true</code>, if the pipeline supports directly indexing into a sampler heap and <code>false</code> otherwise.<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the pipeline supports directly indexing into a sampler heap and <code>false</code> otherwise</dd></dl>
+ </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline_layout.html#ac8b0701d432afa92cd00bc09938266b4">LiteFX::Rendering::IPipelineLayout</a>.</p>
 
 </div>
 </div>

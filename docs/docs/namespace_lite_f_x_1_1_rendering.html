@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -146,6 +146,9 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout.html">DescriptorSetLayout</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes the layout of a descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_detailed_memory_statistics.html">DetailedMemoryStatistics</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores extended memory statistics, that can be queried by calling <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#aeb952d557b620e86ed0d8566b61f30d5" title="Returns detailed memory statistics.">IGraphicsFactory::detailedMemoryStatistics</a>.  <a href="struct_lite_f_x_1_1_rendering_1_1_detailed_memory_statistics.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_device_state.html">DeviceState</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A class that can be used to manage the state of a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html" title="The interface for a graphics device that.">IGraphicsDevice</a>.  <a href="class_lite_f_x_1_1_rendering_1_1_device_state.html#details">More...</a><br /></td></tr>
@@ -297,8 +300,14 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_viewport.html">IViewport</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interface for a viewport.  <a href="class_lite_f_x_1_1_rendering_1_1_i_viewport.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_memory_heap_statistics.html">MemoryHeapStatistics</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores simple memory heap statistics, that can be quickly queried by calling <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#ac031a80b1ac9844a191f022957e6a140" title="Returns an array of objects, that contain information about the current memory usage and available me...">IGraphicsFactory::memoryStatistics</a>  <a href="struct_lite_f_x_1_1_rendering_1_1_memory_heap_statistics.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_pipeline.html">Pipeline</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a pipeline state.  <a href="class_lite_f_x_1_1_rendering_1_1_pipeline.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_pipeline_binding_hint.html">PipelineBindingHint</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A hint used during shader reflection to control the pipeline layout.  <a href="struct_lite_f_x_1_1_rendering_1_1_pipeline_binding_hint.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_pipeline_layout.html">PipelineLayout</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a the layout of a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline.html" title="Represents a graphics Pipeline.">RenderPipeline</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_compute_pipeline.html" title="Represents a compute Pipeline.">ComputePipeline</a> or <a class="el" href="class_lite_f_x_1_1_rendering_1_1_ray_tracing_pipeline.html" title="Represents a ray-tracing Pipeline.">RayTracingPipeline</a>.  <a href="class_lite_f_x_1_1_rendering_1_1_pipeline_layout.html#details">More...</a><br /></td></tr>
@@ -326,6 +335,12 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements a render target.  <a href="class_lite_f_x_1_1_rendering_1_1_render_target.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_resource_allocation_info.html">ResourceAllocationInfo</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains the parameters for a resource allocation.  <a href="struct_lite_f_x_1_1_rendering_1_1_resource_allocation_info.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_resource_allocation_result.html">ResourceAllocationResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores the result of a resource allocation.  <a href="struct_lite_f_x_1_1_rendering_1_1_resource_allocation_result.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_scissor.html">Scissor</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements a scissor.  <a href="class_lite_f_x_1_1_rendering_1_1_scissor.html#details">More...</a><br /></td></tr>
@@ -362,6 +377,9 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_viewport.html">Viewport</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements a viewport.  <a href="class_lite_f_x_1_1_rendering_1_1_viewport.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_virtual_allocator.html">VirtualAllocator</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a virtual allocator that manages memory distribution from a piece of raw memory.  <a href="class_lite_f_x_1_1_rendering_1_1_virtual_allocator.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
@@ -636,6 +654,7 @@ Enumerations</h2></td></tr>
 , <br />
 &#160;&#160;<a class="el" href="#a7b14fe87afb2f36127c802d137f1ad2ea541671cb1be09d76a84ba1a873ec3fc8">Tangent</a> = 0x00000009
 , <a class="el" href="#a7b14fe87afb2f36127c802d137f1ad2ead9dce789be4fbcd36294bd979e4af62a">TextureCoordinate</a> = 0x0000000A
+, <a class="el" href="#a7b14fe87afb2f36127c802d137f1ad2ea3c1fc46575f79b15fc8990642387d07f">Arbitrary</a> = 0x0000000B
 , <a class="el" href="#a7b14fe87afb2f36127c802d137f1ad2ea88183b946cc5f0e8c96b2e66e1c74a7e">Unknown</a> = 0x7FFFFFFF
 <br />
  }</td></tr>
@@ -656,10 +675,19 @@ Enumerations</h2></td></tr>
 , <a class="el" href="#a9b87c28294d95187f93b2d59f529d32ea67d088e13009f6f32d6b02c3d6f4b58c">ByteAddressBuffer</a> = 0x00000007
 , <a class="el" href="#a9b87c28294d95187f93b2d59f529d32ea7b195b157780c716c802e59bd9cd1e8e">RWByteAddressBuffer</a> = 0x00000017
 , <a class="el" href="#a9b87c28294d95187f93b2d59f529d32ea44b9fced3049ce58beb51494589782e0">AccelerationStructure</a> = 0x00000008
+, <br />
+&#160;&#160;<a class="el" href="#a9b87c28294d95187f93b2d59f529d32ea6fd273b2c38bbbac18213aad964f8c83">ResourceDescriptorHeap</a> = 0x00000009
+, <a class="el" href="#a9b87c28294d95187f93b2d59f529d32ea23dbc164336b3de4f93f85647fa5cadb">SamplerDescriptorHeap</a> = 0x0000000A
 <br />
  }</td></tr>
 <tr class="memdesc:a9b87c28294d95187f93b2d59f529d32e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes the type of a IDescriptor.  <a href="#a9b87c28294d95187f93b2d59f529d32e">More...</a><br /></td></tr>
 <tr class="separator:a9b87c28294d95187f93b2d59f529d32e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a067287371bfdb096c743f9791c12e320" id="r_a067287371bfdb096c743f9791c12e320"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a> { <a class="el" href="#a067287371bfdb096c743f9791c12e320a6adf97f83acf6453d4a6a4b1070f3754">None</a> = 0x00
+, <a class="el" href="#a067287371bfdb096c743f9791c12e320abe8545ae7ab0276e15898aae7acfbd7a">Resource</a> = 0x01
+, <a class="el" href="#a067287371bfdb096c743f9791c12e320a5bca2f066df1fe641b2b779db2a63c0a">Sampler</a> = 0x02
+ }</td></tr>
+<tr class="memdesc:a067287371bfdb096c743f9791c12e320"><td class="mdescLeft">&#160;</td><td class="mdescRight">The target heap type for a descriptor.  <a href="#a067287371bfdb096c743f9791c12e320">More...</a><br /></td></tr>
+<tr class="separator:a067287371bfdb096c743f9791c12e320"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a690119b85d2048a2d02e17da27b16cfa" id="r_a690119b85d2048a2d02e17da27b16cfa"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a690119b85d2048a2d02e17da27b16cfa">BufferType</a> { <br />
 &#160;&#160;<a class="el" href="#a690119b85d2048a2d02e17da27b16cfaab22b929ba52471a02d18bb3a4e4472e6">Vertex</a> = 0x00000001
 , <a class="el" href="#a690119b85d2048a2d02e17da27b16cfaa88fa71f0a6e0dfedbb46d91cc0b37a50">Index</a> = 0x00000002
@@ -676,10 +704,14 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="memdesc:a690119b85d2048a2d02e17da27b16cfa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes the type of a IBuffer.  <a href="#a690119b85d2048a2d02e17da27b16cfa">More...</a><br /></td></tr>
 <tr class="separator:a690119b85d2048a2d02e17da27b16cfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa9d1b33dd191db51b1aa8a122d333e9d" id="r_aa9d1b33dd191db51b1aa8a122d333e9d"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa9d1b33dd191db51b1aa8a122d333e9d">ResourceHeap</a> { <a class="el" href="#aa9d1b33dd191db51b1aa8a122d333e9da1bee0d8aaede29ac319901e96850adee">Staging</a> = 0x00000001
+<tr class="memitem:aa9d1b33dd191db51b1aa8a122d333e9d" id="r_aa9d1b33dd191db51b1aa8a122d333e9d"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa9d1b33dd191db51b1aa8a122d333e9d">ResourceHeap</a> { <br />
+&#160;&#160;<a class="el" href="#aa9d1b33dd191db51b1aa8a122d333e9da1bee0d8aaede29ac319901e96850adee">Staging</a> = 0x00000001
 , <a class="el" href="#aa9d1b33dd191db51b1aa8a122d333e9dabe8545ae7ab0276e15898aae7acfbd7a">Resource</a> = 0x00000002
 , <a class="el" href="#aa9d1b33dd191db51b1aa8a122d333e9da971fd8cc345d8bd9f92e9f7d88fdf20c">Dynamic</a> = 0x00000010
 , <a class="el" href="#aa9d1b33dd191db51b1aa8a122d333e9dac99f8222cb93c13ac08c48a6cbb7b0ae">Readback</a> = 0x00000100
+, <br />
+&#160;&#160;<a class="el" href="#aa9d1b33dd191db51b1aa8a122d333e9dad2f4c513dd5319d2f89fbeb81f84407a">GPUUpload</a> = 0x00001000
+<br />
  }</td></tr>
 <tr class="memdesc:aa9d1b33dd191db51b1aa8a122d333e9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines where a resource (buffer or image) memory is located and from where it can be accessed.  <a href="#aa9d1b33dd191db51b1aa8a122d333e9d">More...</a><br /></td></tr>
 <tr class="separator:aa9d1b33dd191db51b1aa8a122d333e9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -693,15 +725,44 @@ Enumerations</h2></td></tr>
 , <a class="el" href="#a85e85c2c13e89d1aaadc8dcfad380951aaa53636c22fa306015bbe94599fc74c5">AccelerationStructureBuildInput</a> = 0x0100
 , <a class="el" href="#a85e85c2c13e89d1aaadc8dcfad380951a7a1920d61156abc05a60135aefe8bc67">Default</a> = TransferSource | TransferDestination
 , <a class="el" href="#a85e85c2c13e89d1aaadc8dcfad380951a3c8a55e8ffb3f5057a93138b32cb746f">FrameBufferImage</a> = TransferSource | RenderTarget
+, <br />
+&#160;&#160;<a class="el" href="#a85e85c2c13e89d1aaadc8dcfad380951a3e3af98b6b48c7e593d8d18863e3333b">Volatile</a> = 0x1000
 <br />
  }</td></tr>
 <tr class="memdesc:a85e85c2c13e89d1aaadc8dcfad380951"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes the intended usage for a resource.  <a href="#a85e85c2c13e89d1aaadc8dcfad380951">More...</a><br /></td></tr>
 <tr class="separator:a85e85c2c13e89d1aaadc8dcfad380951"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abed15e7a2e5c084be01bcbb34b187006" id="r_abed15e7a2e5c084be01bcbb34b187006"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abed15e7a2e5c084be01bcbb34b187006">AllocationBehavior</a> : UInt32 { <a class="el" href="#abed15e7a2e5c084be01bcbb34b187006a7a1920d61156abc05a60135aefe8bc67">Default</a> = 0x00
+, <a class="el" href="#abed15e7a2e5c084be01bcbb34b187006adeec37947e11ed59ba21eecffd59912c">StayWithinBudget</a> = 0x01
+, <a class="el" href="#abed15e7a2e5c084be01bcbb34b187006acc2a0af8367a2ab3e29c61c7ef94b9d2">DontExpandCache</a> = 0x02
+ }</td></tr>
+<tr class="memdesc:abed15e7a2e5c084be01bcbb34b187006"><td class="mdescLeft">&#160;</td><td class="mdescRight">Controls the allocation behavior of IGraphicsFactory.  <a href="#abed15e7a2e5c084be01bcbb34b187006">More...</a><br /></td></tr>
+<tr class="separator:abed15e7a2e5c084be01bcbb34b187006"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93342e92b065b4812c4df0e84c40f32a" id="r_a93342e92b065b4812c4df0e84c40f32a"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a93342e92b065b4812c4df0e84c40f32a">AllocationAlgorithm</a> : UInt32 { <a class="el" href="#a93342e92b065b4812c4df0e84c40f32aa7a1920d61156abc05a60135aefe8bc67">Default</a> = 0x01
+, <a class="el" href="#a93342e92b065b4812c4df0e84c40f32aa32a843da6ea40ab3b17a3421ccdf671b">Linear</a> = 0x02
+ }</td></tr>
+<tr class="memdesc:a93342e92b065b4812c4df0e84c40f32a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The allocation algorithm used by VirtualAllocators.  <a href="#a93342e92b065b4812c4df0e84c40f32a">More...</a><br /></td></tr>
+<tr class="separator:a93342e92b065b4812c4df0e84c40f32a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c63c6473965a667812b94806e0ff737" id="r_a9c63c6473965a667812b94806e0ff737"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9c63c6473965a667812b94806e0ff737">AllocationStrategy</a> : UInt32 { <a class="el" href="#a9c63c6473965a667812b94806e0ff737ab2bf1154589f575bf0b7bec2dec76e19">OptimizePacking</a> = 0x01
+, <a class="el" href="#a9c63c6473965a667812b94806e0ff737a5191cef8b655d615fed7c1ab2101c841">OptimizeTime</a> = 0x02
+ }</td></tr>
+<tr class="memdesc:a9c63c6473965a667812b94806e0ff737"><td class="mdescLeft">&#160;</td><td class="mdescRight">The allocation strategy used by allocators (IGraphicsFactory and VirtualAllocator) when allocating new chunks of memory.  <a href="#a9c63c6473965a667812b94806e0ff737">More...</a><br /></td></tr>
+<tr class="separator:a9c63c6473965a667812b94806e0ff737"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72caef5fec10db3d55ad7dd2f3f0ae5b" id="r_a72caef5fec10db3d55ad7dd2f3f0ae5b"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a72caef5fec10db3d55ad7dd2f3f0ae5b">DefragmentationStrategy</a> : UInt32 { <a class="el" href="#a72caef5fec10db3d55ad7dd2f3f0ae5bae16b5b7f26f54214445cbe38d72c2828">Fast</a> = 0x01
+, <a class="el" href="#a72caef5fec10db3d55ad7dd2f3f0ae5bac6589f5236c0c434d0c63dc5f9a856f2">Balanced</a> = 0x02
+, <a class="el" href="#a72caef5fec10db3d55ad7dd2f3f0ae5babbd47109890259c0127154db1af26c75">Full</a> = 0x03
+ }</td></tr>
+<tr class="memdesc:a72caef5fec10db3d55ad7dd2f3f0ae5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The strategy to apply to a defragmentation pass.  <a href="#a72caef5fec10db3d55ad7dd2f3f0ae5b">More...</a><br /></td></tr>
+<tr class="separator:a72caef5fec10db3d55ad7dd2f3f0ae5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a55e5c1269733f538032bc6b1948ae837" id="r_a55e5c1269733f538032bc6b1948ae837"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a55e5c1269733f538032bc6b1948ae837">IndexType</a> : UInt32 { <a class="el" href="#a55e5c1269733f538032bc6b1948ae837a8bd950a9d7779b83f5c30046c9aaf1cf">UInt16</a> = 0x00000010
 , <a class="el" href="#a55e5c1269733f538032bc6b1948ae837ae7956ed7be1c5025a27ed3cb42a396bd">UInt32</a> = 0x00000020
  }</td></tr>
 <tr class="memdesc:a55e5c1269733f538032bc6b1948ae837"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes the element type of an index buffer.  <a href="#a55e5c1269733f538032bc6b1948ae837">More...</a><br /></td></tr>
 <tr class="separator:a55e5c1269733f538032bc6b1948ae837"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acef186a02bb2529aa875f8c42f1963ba" id="r_acef186a02bb2529aa875f8c42f1963ba"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acef186a02bb2529aa875f8c42f1963ba">VertexBufferInputRate</a> : UInt32 { <a class="el" href="#acef186a02bb2529aa875f8c42f1963baab22b929ba52471a02d18bb3a4e4472e6">Vertex</a> = 0
+, <a class="el" href="#acef186a02bb2529aa875f8c42f1963baad9a17c1c9e8ef6866e4dbeef41c741b2">Instance</a> = 1
+ }</td></tr>
+<tr class="memdesc:acef186a02bb2529aa875f8c42f1963ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">The rate at which a vertex buffer of a certain IVertexBufferLayout is made available for vertex shaders.  <a href="#acef186a02bb2529aa875f8c42f1963ba">More...</a><br /></td></tr>
+<tr class="separator:acef186a02bb2529aa875f8c42f1963ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a56f3426c9668cad760c0e710c7396809" id="r_a56f3426c9668cad760c0e710c7396809"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a56f3426c9668cad760c0e710c7396809">PrimitiveTopology</a> { <br />
 &#160;&#160;<a class="el" href="#a56f3426c9668cad760c0e710c7396809a1a18ff71b3df3e362a2489eef4b30003">PointList</a> = 0x00010001
 , <a class="el" href="#a56f3426c9668cad760c0e710c7396809a596e1b7afe8925f3f578c716d5af8fef">LineList</a> = 0x00020001
@@ -1108,6 +1169,98 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a93342e92b065b4812c4df0e84c40f32a" name="a93342e92b065b4812c4df0e84c40f32a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a93342e92b065b4812c4df0e84c40f32a">&#9670;&#160;</a></span>AllocationAlgorithm</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#a93342e92b065b4812c4df0e84c40f32a">LiteFX::Rendering::AllocationAlgorithm</a> : <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The allocation algorithm used by <a class="el" href="class_lite_f_x_1_1_rendering_1_1_virtual_allocator.html" title="Represents a virtual allocator that manages memory distribution from a piece of raw memory.">VirtualAllocator</a>s. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a93342e92b065b4812c4df0e84c40f32aa7a1920d61156abc05a60135aefe8bc67" name="a93342e92b065b4812c4df0e84c40f32aa7a1920d61156abc05a60135aefe8bc67"></a>Default&#160;</td><td class="fielddoc"><p>The default algorithm without any constraints on the memory layout. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a93342e92b065b4812c4df0e84c40f32aa32a843da6ea40ab3b17a3421ccdf671b" name="a93342e92b065b4812c4df0e84c40f32aa32a843da6ea40ab3b17a3421ccdf671b"></a>Linear&#160;</td><td class="fielddoc"><p>A linear allocation algorithm, that allocates memory blocks sequentially. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a id="abed15e7a2e5c084be01bcbb34b187006" name="abed15e7a2e5c084be01bcbb34b187006"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abed15e7a2e5c084be01bcbb34b187006">&#9670;&#160;</a></span>AllocationBehavior</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#abed15e7a2e5c084be01bcbb34b187006">LiteFX::Rendering::AllocationBehavior</a> : <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Controls the allocation behavior of <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html" title="The interface for a graphics factory.">IGraphicsFactory</a>. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="abed15e7a2e5c084be01bcbb34b187006a7a1920d61156abc05a60135aefe8bc67" name="abed15e7a2e5c084be01bcbb34b187006a7a1920d61156abc05a60135aefe8bc67"></a>Default&#160;</td><td class="fielddoc"><p>Represents the default behavior, which might fall back to slower memory types, if required. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="abed15e7a2e5c084be01bcbb34b187006adeec37947e11ed59ba21eecffd59912c" name="abed15e7a2e5c084be01bcbb34b187006adeec37947e11ed59ba21eecffd59912c"></a>StayWithinBudget&#160;</td><td class="fielddoc"><p>Stays within heap budgets. If the desired resource heap is out of memory, allocation will fail. Use this behavior for resources that are not required to prevent them from being allocated in potentially slower memory heaps. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="abed15e7a2e5c084be01bcbb34b187006acc2a0af8367a2ab3e29c61c7ef94b9d2" name="abed15e7a2e5c084be01bcbb34b187006acc2a0af8367a2ab3e29c61c7ef94b9d2"></a>DontExpandCache&#160;</td><td class="fielddoc"><p>Does not resize heap cache, if no more pre-allocated memory is available and will fail, if available memory is exceeded. Use this in situations, where you can potentially delay an allocation to a less time-critical point. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a id="a9c63c6473965a667812b94806e0ff737" name="a9c63c6473965a667812b94806e0ff737"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c63c6473965a667812b94806e0ff737">&#9670;&#160;</a></span>AllocationStrategy</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#a9c63c6473965a667812b94806e0ff737">LiteFX::Rendering::AllocationStrategy</a> : <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The allocation strategy used by allocators (<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html" title="The interface for a graphics factory.">IGraphicsFactory</a> and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_virtual_allocator.html" title="Represents a virtual allocator that manages memory distribution from a piece of raw memory.">VirtualAllocator</a>) when allocating new chunks of memory. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a9c63c6473965a667812b94806e0ff737ab2bf1154589f575bf0b7bec2dec76e19" name="a9c63c6473965a667812b94806e0ff737ab2bf1154589f575bf0b7bec2dec76e19"></a>OptimizePacking&#160;</td><td class="fielddoc"><p>Prefers good packing over allocation time and reduces fragmentation. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a9c63c6473965a667812b94806e0ff737a5191cef8b655d615fed7c1ab2101c841" name="a9c63c6473965a667812b94806e0ff737a5191cef8b655d615fed7c1ab2101c841"></a>OptimizeTime&#160;</td><td class="fielddoc"><p>Prefers allocation time over packing. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
 <a id="a7b14fe87afb2f36127c802d137f1ad2e" name="a7b14fe87afb2f36127c802d137f1ad2e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7b14fe87afb2f36127c802d137f1ad2e">&#9670;&#160;</a></span>AttributeSemantic</h2>
 
@@ -1150,6 +1303,8 @@ Variables</h2></td></tr>
 <tr><td class="fieldname"><a id="a7b14fe87afb2f36127c802d137f1ad2ea541671cb1be09d76a84ba1a873ec3fc8" name="a7b14fe87afb2f36127c802d137f1ad2ea541671cb1be09d76a84ba1a873ec3fc8"></a>Tangent&#160;</td><td class="fielddoc"><p>The attribute contains a tangent vector. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a7b14fe87afb2f36127c802d137f1ad2ead9dce789be4fbcd36294bd979e4af62a" name="a7b14fe87afb2f36127c802d137f1ad2ead9dce789be4fbcd36294bd979e4af62a"></a>TextureCoordinate&#160;</td><td class="fielddoc"><p>The attribute contains a texture coordinate. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a7b14fe87afb2f36127c802d137f1ad2ea3c1fc46575f79b15fc8990642387d07f" name="a7b14fe87afb2f36127c802d137f1ad2ea3c1fc46575f79b15fc8990642387d07f"></a>Arbitrary&#160;</td><td class="fielddoc"><p>The attribute contains arbitrary data, that does not have any semantic associated with it. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a7b14fe87afb2f36127c802d137f1ad2ea88183b946cc5f0e8c96b2e66e1c74a7e" name="a7b14fe87afb2f36127c802d137f1ad2ea88183b946cc5f0e8c96b2e66e1c74a7e"></a>Unknown&#160;</td><td class="fielddoc"><p>The attribute is a generic, unknown semantic. </p>
 </td></tr>
@@ -1485,6 +1640,71 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a72caef5fec10db3d55ad7dd2f3f0ae5b" name="a72caef5fec10db3d55ad7dd2f3f0ae5b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72caef5fec10db3d55ad7dd2f3f0ae5b">&#9670;&#160;</a></span>DefragmentationStrategy</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#a72caef5fec10db3d55ad7dd2f3f0ae5b">LiteFX::Rendering::DefragmentationStrategy</a> : <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The strategy to apply to a defragmentation pass. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#ab3e3c505412529c8e78f0f9910e728ba" title="Starts a defragmentation process for the resources allocated from the factory.">IGraphicsFactory::beginDefragmentation</a>, IGraphicsFactory::defragment</dd></dl>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a72caef5fec10db3d55ad7dd2f3f0ae5bae16b5b7f26f54214445cbe38d72c2828" name="a72caef5fec10db3d55ad7dd2f3f0ae5bae16b5b7f26f54214445cbe38d72c2828"></a>Fast&#160;</td><td class="fielddoc"><p>Provides fast fragment computation, but potentially suboptimal packing. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a72caef5fec10db3d55ad7dd2f3f0ae5bac6589f5236c0c434d0c63dc5f9a856f2" name="a72caef5fec10db3d55ad7dd2f3f0ae5bac6589f5236c0c434d0c63dc5f9a856f2"></a>Balanced&#160;</td><td class="fielddoc"><p>Provides a balance between fragment computation time and packing efficiency. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a72caef5fec10db3d55ad7dd2f3f0ae5babbd47109890259c0127154db1af26c75" name="a72caef5fec10db3d55ad7dd2f3f0ae5babbd47109890259c0127154db1af26c75"></a>Full&#160;</td><td class="fielddoc"><p>Provides optimal packing at the cost of potentially more copies. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a id="a067287371bfdb096c743f9791c12e320" name="a067287371bfdb096c743f9791c12e320"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a067287371bfdb096c743f9791c12e320">&#9670;&#160;</a></span>DescriptorHeapType</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#a067287371bfdb096c743f9791c12e320">LiteFX::Rendering::DescriptorHeapType</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The target heap type for a descriptor. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a067287371bfdb096c743f9791c12e320a6adf97f83acf6453d4a6a4b1070f3754" name="a067287371bfdb096c743f9791c12e320a6adf97f83acf6453d4a6a4b1070f3754"></a>None&#160;</td><td class="fielddoc"><p>Indicates an invalid heap. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a067287371bfdb096c743f9791c12e320abe8545ae7ab0276e15898aae7acfbd7a" name="a067287371bfdb096c743f9791c12e320abe8545ae7ab0276e15898aae7acfbd7a"></a>Resource&#160;</td><td class="fielddoc"><p>Binds all non-sampler resource views. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a067287371bfdb096c743f9791c12e320a5bca2f066df1fe641b2b779db2a63c0a" name="a067287371bfdb096c743f9791c12e320a5bca2f066df1fe641b2b779db2a63c0a"></a>Sampler&#160;</td><td class="fielddoc"><p>Binds all sampler states. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
 <a id="a9b87c28294d95187f93b2d59f529d32e" name="a9b87c28294d95187f93b2d59f529d32e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9b87c28294d95187f93b2d59f529d32e">&#9670;&#160;</a></span>DescriptorType</h2>
 
@@ -1542,6 +1762,15 @@ Variables</h2></td></tr>
 <p>In GLSL, use the <code>buffer</code> keyword to access byte address buffers. In HLSL, use the <code>RWByteAddressBuffer</code> keyword. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a9b87c28294d95187f93b2d59f529d32ea44b9fced3049ce58beb51494589782e0" name="a9b87c28294d95187f93b2d59f529d32ea44b9fced3049ce58beb51494589782e0"></a>AccelerationStructure&#160;</td><td class="fielddoc"><p>Represents a ray-tracing acceleration structure. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a9b87c28294d95187f93b2d59f529d32ea6fd273b2c38bbbac18213aad964f8c83" name="a9b87c28294d95187f93b2d59f529d32ea6fd273b2c38bbbac18213aad964f8c83"></a>ResourceDescriptorHeap&#160;</td><td class="fielddoc"><p>Special descriptor type, that can bind all resources besides constant buffers, acceleration structures and samplers, which then can be directly indexed from the global resource heap. </p>
+<p>This descriptor type does not directly map to an underlying resource type and instead denotes a descriptor binding, that accepts any resource descriptor besides constant buffers and acceleration structures. Samplers are also disallowed, as they need to be bound to a descriptor of the GlobalSamplerHeap type. The existence of such a descriptor as a part of a descriptor set, indicates that the pipeline layout uses direct descriptor indexing (see IPipelineLayout::directlyIndexResources). A descriptor set containing a descriptor of this type does not allocate any space on the respective global descriptor heap. Instead, it acts as a proxy set, that binds any of the aforementioned buffers. When binding to this descriptor, a single uncached descriptor address will be allocated for the resource on the global descriptor heap. On the shader side, this descriptor can be retrieved by calling the <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#ac633a45f78d5f32f50ce9d1b0ed78f87" title="Binds a resource directly to a descriptor heap and returns the index that can be used to access it.">IDescriptorSet::bindToHeap</a> method.</p>
+<p>As there's no underlying descriptor set or binding when using this descriptor type, you should only ever have on descriptor of this type in a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline_layout.html" title="The interface for a pipeline layout.">IPipelineLayout</a>. In the DirectX 12 backend, it is sufficient to have a descriptor of this type in a pipeline to access any descriptor on the global resource heap. In Vulkan, this descriptor type creates a descriptor set containing an unbounded runtime array to emulate this behavior. This array is special, as it uses the <code>VK_EXT_mutable_descriptor_type</code> extension to bind arbitrary resources to a descriptor. However, this is only allowed for descriptors created this way, so indexing only works within the range of the proxy descriptor set. It is therefore good practice not to use indices obtained outside a binding created from the proxy descriptor sets. Furthermore, the use of mutable descriptor types is considered less efficient than the traditional binding procedure, as it might prevent certain fast paths. For this reason, consider alternative approaches, like multiple unbounded descriptor arrays first. Directly indexing into the global descriptor heap this way can be beneficial, if it allows you to re-use the same pipeline state where you would otherwise have to switch between multiple states, however, especially in combination with indirect drawing. </p>
+<dl class="section see"><dt>See also</dt><dd>DescriptorType::GlobalSamplerHeap, GraphicsDeviceFeature::DynamicDescriptors</dd></dl>
+</td></tr>
+<tr><td class="fieldname"><a id="a9b87c28294d95187f93b2d59f529d32ea23dbc164336b3de4f93f85647fa5cadb" name="a9b87c28294d95187f93b2d59f529d32ea23dbc164336b3de4f93f85647fa5cadb"></a>SamplerDescriptorHeap&#160;</td><td class="fielddoc"><p>A special descriptor type that allows indexed access to the a portion of the global sampler heap. </p>
+<p>This descriptor type is equivalent to DescriptorType::GlobalResourceHeap, except that it enables access to the global sampler heap instead. The same conceptual design as for the resource heap applies here, with the same limitations, listed in the remarks for the <code>GlobalResourceHeap</code> descriptor type. </p>
+<dl class="section see"><dt>See also</dt><dd>DescriptorType::GlobalResourceHeap, GraphicsDeviceFeature::DynamicDescriptors</dd></dl>
 </td></tr>
 </table>
 
@@ -2492,6 +2721,9 @@ Variables</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a id="aa9d1b33dd191db51b1aa8a122d333e9dac99f8222cb93c13ac08c48a6cbb7b0ae" name="aa9d1b33dd191db51b1aa8a122d333e9dac99f8222cb93c13ac08c48a6cbb7b0ae"></a>Readback&#160;</td><td class="fielddoc"><p>Creates a buffer that can be written on the GPU and read by the CPU. </p>
 </td></tr>
+<tr><td class="fieldname"><a id="aa9d1b33dd191db51b1aa8a122d333e9dad2f4c513dd5319d2f89fbeb81f84407a" name="aa9d1b33dd191db51b1aa8a122d333e9dad2f4c513dd5319d2f89fbeb81f84407a"></a>GPUUpload&#160;</td><td class="fielddoc"><p>Creates a buffer that is directly allocated in GPU memory, but that can be efficiently written from the CPU. </p>
+<p>This heap uses the resizable base address register (ReBAR) of the GPU to create the buffer. However, this is only possible, if the GPU supports it. To check support for it, you can query <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a9d842fd05b7a90e8f2bae41067464ba6" title="Returns true, if the GPU supports resizable base address register (ReBAR) and false otherwise.">IGraphicsFactory::supportsResizableBaseAddressRegister</a>. In case this feature is not supported, you may want to fall back to a <a class="el" href="#aa9d1b33dd191db51b1aa8a122d333e9da971fd8cc345d8bd9f92e9f7d88fdf20c" title="Creates a resource that can be mapped from the CPU and read by the GPU.">Dynamic</a> resource. </p>
+</td></tr>
 </table>
 
 </div>
@@ -2523,7 +2755,7 @@ Variables</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a id="a85e85c2c13e89d1aaadc8dcfad380951ae7d6b84a941365f7620f0bf555fae586" name="a85e85c2c13e89d1aaadc8dcfad380951ae7d6b84a941365f7620f0bf555fae586"></a>AllowWrite&#160;</td><td class="fielddoc"><p>Allows the resource to be written to. </p>
 <p>This flag is not allowed for vertex buffers (<a class="el" href="#a690119b85d2048a2d02e17da27b16cfaab22b929ba52471a02d18bb3a4e4472e6" title="Describes a vertex buffer.">BufferType::Vertex</a>), index buffers (<a class="el" href="#a690119b85d2048a2d02e17da27b16cfaa88fa71f0a6e0dfedbb46d91cc0b37a50" title="Describes an index buffer.">BufferType::Index</a>) and uniform buffers (<a class="el" href="#a690119b85d2048a2d02e17da27b16cfaaf19516d11f2946f894070e92fcb56b6d" title="Describes an uniform buffer object (Vulkan) or constant buffer view (DirectX).">BufferType::Uniform</a>). </p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a91ef4540e80ac4ad0d42f3005b8aa0f8" title="Returns true, if the resource can be bound to a read/write descriptor.">IDeviceMemory::writable</a></dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a8cec9d7f1ee29d0f088d16b31cd3bb3e" title="Returns true, if the resource can be bound to a read/write descriptor.">IDeviceMemory::writable</a></dd></dl>
 </td></tr>
 <tr><td class="fieldname"><a id="a85e85c2c13e89d1aaadc8dcfad380951a8c4df84c9e73cf86122034f85efac361" name="a85e85c2c13e89d1aaadc8dcfad380951a8c4df84c9e73cf86122034f85efac361"></a>TransferSource&#160;</td><td class="fielddoc"><p>Allows the resource data to be copied into another resource. </p>
 <p>This flag is implicitly set for resources created with <a class="el" href="#aa9d1b33dd191db51b1aa8a122d333e9da1bee0d8aaede29ac319901e96850adee" title="Creates a resource that can be mapped from the CPU in order to be transferred to the GPU later.">ResourceHeap::Staging</a> and for render target images (attachments). </p>
@@ -2541,6 +2773,9 @@ Variables</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a id="a85e85c2c13e89d1aaadc8dcfad380951a3c8a55e8ffb3f5057a93138b32cb746f" name="a85e85c2c13e89d1aaadc8dcfad380951a3c8a55e8ffb3f5057a93138b32cb746f"></a>FrameBufferImage&#160;</td><td class="fielddoc"><p>Default usage for frame buffer images. </p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html" title="The interface for a frame buffer.">IFrameBuffer</a></dd></dl>
+</td></tr>
+<tr><td class="fieldname"><a id="a85e85c2c13e89d1aaadc8dcfad380951a3e3af98b6b48c7e593d8d18863e3333b" name="a85e85c2c13e89d1aaadc8dcfad380951a3e3af98b6b48c7e593d8d18863e3333b"></a>Volatile&#160;</td><td class="fielddoc"><p>Causes the contents of the resource to not be copied during defragmentation. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#ab3e3c505412529c8e78f0f9910e728ba" title="Starts a defragmentation process for the resources allocated from the factory.">IGraphicsFactory::beginDefragmentation</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a91f22c38dfa49a8fa39a55ca0feb38cb" title="Returns true, if the contents of the resource should not be copied during a move.">IDeviceMemory::volatileMove</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#af0e56fb490b2ff583d559e5099af5916" title="An event that gets invoked before a resource is copied during a move.">IDeviceMemory::moving</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#ae935df7a7d5ecaff70e7fbc7b974b477" title="An event that gets invoked, after the resource has been moved to a different location,...">IDeviceMemory::moved</a></dd></dl>
 </td></tr>
 </table>
 
@@ -2725,6 +2960,37 @@ Variables</h2></td></tr>
 <tr><td class="fieldname"><a id="aadcfd6839d84bb316d2083e31ea9e779aaa91cb7f033b90dec9582dc5e9611732" name="aadcfd6839d84bb316d2083e31ea9e779aaa91cb7f033b90dec9582dc5e9611732"></a>IncrementWrap&#160;</td><td class="fielddoc"><p>Increment the current stencil value and wrap it, if it goes out of bounds. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="aadcfd6839d84bb316d2083e31ea9e779a6ec565c329385c8d59333abc6a1003d1" name="aadcfd6839d84bb316d2083e31ea9e779a6ec565c329385c8d59333abc6a1003d1"></a>DecrementWrap&#160;</td><td class="fielddoc"><p>Decrement the current stencil value and wrap it, if it goes out of bounds. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a id="acef186a02bb2529aa875f8c42f1963ba" name="acef186a02bb2529aa875f8c42f1963ba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acef186a02bb2529aa875f8c42f1963ba">&#9670;&#160;</a></span>VertexBufferInputRate</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#acef186a02bb2529aa875f8c42f1963ba">LiteFX::Rendering::VertexBufferInputRate</a> : <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The rate at which a vertex buffer of a certain <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer_layout.html" title="Describes a vertex buffer layout.">IVertexBufferLayout</a> is made available for vertex shaders. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer_layout.html" title="Describes a vertex buffer layout.">IVertexBufferLayout</a></dd></dl>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="acef186a02bb2529aa875f8c42f1963baab22b929ba52471a02d18bb3a4e4472e6" name="acef186a02bb2529aa875f8c42f1963baab22b929ba52471a02d18bb3a4e4472e6"></a>Vertex&#160;</td><td class="fielddoc"><p>The vertex buffer layout describes data that is made available per individual vertex. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="acef186a02bb2529aa875f8c42f1963baad9a17c1c9e8ef6866e4dbeef41c741b2" name="acef186a02bb2529aa875f8c42f1963baad9a17c1c9e8ef6866e4dbeef41c741b2"></a>Instance&#160;</td><td class="fielddoc"><p>The vertex buffer layout describes data that is made available per instance. </p>
 </td></tr>
 </table>
 

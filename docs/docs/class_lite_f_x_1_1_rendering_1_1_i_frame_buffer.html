@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -101,6 +101,7 @@ $(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html',
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#pro-methods">Protected Member Functions</a> &#124;
@@ -126,6 +127,13 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_i_frame_buffer_1_1_resize_event_args.html">ResizeEventArgs</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_lite_f_x_1_1_event.html" title="A class that is used to declare an event, which a number of listeners can subscribe to.">Event</a> arguments that are published to subscribers when a frame buffer gets resized.  <a href="struct_lite_f_x_1_1_rendering_1_1_i_frame_buffer_1_1_resize_event_args.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:aad8878f3d144d11591264e93df7a4353" id="r_aad8878f3d144d11591264e93df7a4353"><td class="memTemplParams" colspan="2">template&lt;typename TImage &gt; </td></tr>
+<tr class="memitem:aad8878f3d144d11591264e93df7a4353"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#aad8878f3d144d11591264e93df7a4353">allocation_callback_type</a> = std::function&lt;<a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt;const TImage&gt;(<a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt;<a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a>&gt;, <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a>, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951">ResourceUsage</a>, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a>, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#af59b1119db2dc23323a193706a311528">MultiSamplingLevel</a>, const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a>&amp;)&gt;</td></tr>
+<tr class="memdesc:aad8878f3d144d11591264e93df7a4353"><td class="mdescLeft">&#160;</td><td class="mdescRight">A function that gets invoked as a callback, if the frame buffer needs to allocate an image.  <br /></td></tr>
+<tr class="separator:aad8878f3d144d11591264e93df7a4353"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -237,8 +245,11 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
+<tr class="memitem:a65d04b31dabad3de64809b385677d641" id="r_a65d04b31dabad3de64809b385677d641"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_lite_f_x_1_1_event.html">Event</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_i_frame_buffer_1_1_resize_event_args.html">ResizeEventArgs</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a65d04b31dabad3de64809b385677d641">resizing</a></td></tr>
+<tr class="memdesc:a65d04b31dabad3de64809b385677d641"><td class="mdescLeft">&#160;</td><td class="mdescRight">Invoked if the frame buffer gets resized.  <br /></td></tr>
+<tr class="separator:a65d04b31dabad3de64809b385677d641"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a04144daf36df81eefb01b7e1df5d4bb5" id="r_a04144daf36df81eefb01b7e1df5d4bb5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_lite_f_x_1_1_event.html">Event</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_i_frame_buffer_1_1_resize_event_args.html">ResizeEventArgs</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a04144daf36df81eefb01b7e1df5d4bb5">resized</a></td></tr>
-<tr class="memdesc:a04144daf36df81eefb01b7e1df5d4bb5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Invoked when the frame buffer gets resized.  <br /></td></tr>
+<tr class="memdesc:a04144daf36df81eefb01b7e1df5d4bb5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Invoked after the frame buffer has been resized.  <br /></td></tr>
 <tr class="separator:a04144daf36df81eefb01b7e1df5d4bb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad73fafbce63254f28ad86beea49f1902" id="r_ad73fafbce63254f28ad86beea49f1902"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_lite_f_x_1_1_event.html">Event</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_i_frame_buffer_1_1_released_event_args.html">ReleasedEventArgs</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad73fafbce63254f28ad86beea49f1902">released</a></td></tr>
 <tr class="memdesc:ad73fafbce63254f28ad86beea49f1902"><td class="mdescLeft">&#160;</td><td class="mdescRight">Invoked when the frame buffer gets released.  <br /></td></tr>
@@ -290,8 +301,33 @@ Additional Inherited Members</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The interface for a frame buffer. </p>
-<p>A frame buffer is a set of images of equal size, that are used by render targets and/or input attachments in a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html" title="The interface for a render pass.">IRenderPass</a>. When creating a new frame buffer, it is empty by default and needs images to be added into it. When beginning a render pass during rendering, a frame buffer instance needs to be passed to it. The render pass then tries to obtain an image for each render target from the frame buffer. It does this by resolving it's render targets (<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ab70b3345baa498c86349c0e812b9a9f5" title="Returns the list of render targets, the render pass renders into.">IRenderPass::renderTargets</a>). A render target stores a unique identifier (<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_target.html#ac1de88ecc8d7e161af46dfec65d6d94d" title="A unique identifier for the render target.">IRenderTarget::identifier</a>), that is used to obtain the image. Before this resolution process can be successful, the render targets must first be mapped to the images in the frame buffer by calling <a class="el" href="#a23388c812ae0a270faeb01e61f97cc79" title="Maps a render target to a frame buffer image.">IFrameBuffer::mapRenderTarget</a>. Calling this method multiple times will overwrite the mapping. It is also possible to remove a render target mapping by calling <a class="el" href="#ab9ebe1cf007e5cc287b75d598156b107" title="Removes a mapping between a render target and an image in the frame buffer.">IFrameBuffer::unmapRenderTarget</a>. This will result in future attempts to resolve this render target using the frame buffer instance to fail. </p>
-</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<p>A frame buffer is a set of images of equal size, that are used by render targets and/or input attachments in a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html" title="The interface for a render pass.">IRenderPass</a>. When creating a new frame buffer, it is empty by default and needs images to be added into it. When beginning a render pass during rendering, a frame buffer instance needs to be passed to it. The render pass then tries to obtain an image for each render target from the frame buffer. It does this by resolving it's render targets (<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ab70b3345baa498c86349c0e812b9a9f5" title="Returns the list of render targets, the render pass renders into.">IRenderPass::renderTargets</a>). A render target stores a unique identifier (<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_target.html#ac1de88ecc8d7e161af46dfec65d6d94d" title="A unique identifier for the render target.">IRenderTarget::identifier</a>), that is used to obtain the image. Before this resolution process can be successful, the render targets must first be mapped to the images in the frame buffer by calling <a class="el" href="#a23388c812ae0a270faeb01e61f97cc79" title="Maps a render target to a frame buffer image.">IFrameBuffer::mapRenderTarget</a>. Calling this method multiple times will overwrite the mapping. It is also possible to remove a render target mapping by calling <a class="el" href="#ab9ebe1cf007e5cc287b75d598156b107" title="Removes a mapping between a render target and an image in the frame buffer.">IFrameBuffer::unmapRenderTarget</a>. This will result in future attempts to resolve this render target using the frame buffer instance to fail.</p>
+<p>The images in the frame buffer can be resized by calling <a class="el" href="#a2a66c16c36ff580bc3d7e0c15f38c66f" title="Causes the frame buffer to be invalidated and recreated with a new size.">IFrameBuffer::resize</a>. As this involves re-creating the images, it is important to properly synchronize resizing with rendering, i.e., resizing while a frame is still being rendered is not allowed. Calling <a class="el" href="#a2a66c16c36ff580bc3d7e0c15f38c66f" title="Causes the frame buffer to be invalidated and recreated with a new size.">IFrameBuffer::resize</a> invokes two events, <a class="el" href="#a65d04b31dabad3de64809b385677d641" title="Invoked if the frame buffer gets resized.">IFrameBuffer::resizing</a> before the actual resize occurs and <a class="el" href="#a04144daf36df81eefb01b7e1df5d4bb5" title="Invoked after the frame buffer has been resized.">IFrameBuffer::resized</a> afterwards.</p>
+<p>The main purpose of those events is to provide convenient points for manually controlling image allocation for the frame buffer. Whenever the frame buffer needs to create a new image instance, it checks, if a <a class="el" href="#aad8878f3d144d11591264e93df7a4353" title="A function that gets invoked as a callback, if the frame buffer needs to allocate an image.">IFrameBuffer::allocation_callback_type</a> has been provided during initialization. If provided, this callback is invoked instead of directly creating the image. Only if the callback returns <code>nullptr</code>, the frame buffer will proceed with the default behavior of allocating the image itself. This way, it is possible to selectively deviate from the default image allocation behavior, for example to allocate a fixed-size image or to provide pre-allocated images, which can be helpful if render targets should be aliased. </p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
+<a id="aad8878f3d144d11591264e93df7a4353" name="aad8878f3d144d11591264e93df7a4353"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad8878f3d144d11591264e93df7a4353">&#9670;&#160;</a></span>allocation_callback_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TImage &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#aad8878f3d144d11591264e93df7a4353">LiteFX::Rendering::IFrameBuffer::allocation_callback_type</a> = std::function&lt;<a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt;const TImage&gt;(<a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt;<a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a>&gt;, <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a>, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951">ResourceUsage</a>, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a>, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#af59b1119db2dc23323a193706a311528">MultiSamplingLevel</a>, const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a>&amp;)&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A function that gets invoked as a callback, if the frame buffer needs to allocate an image. </p>
+<p>A frame buffer may allocate image resources, during it's initialization stage, as well as during resize events. The default behavior, if no callback is provided, is to re-create the image resource with the same parameters as it has been initialized with, except a different resolution. The resolution in this case is always equal to the frame buffer extent.</p>
+<p>Defining render-targets that render at a different resolution is possible by providing an allocation callback that creates the resource externally. Another use case for this callback is to re-use images from a pool of potentially aliasing image resources. Only in case this callback returns <code>nullptr</code> the default behavior gets invoked.</p>
+<p>auto callback = [this](Optional&lt;UInt64&gt; renderTargetId, Size2d size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String&amp; name) { return m_device-&gt;factory().createTexture(name, format, size, ImageDimensions::DIM_2, 1u, 1u, samples, usage); // Emulates the default behavior. }; </p>
+<p><a class="el" href="#a2a66c16c36ff580bc3d7e0c15f38c66f" title="Causes the frame buffer to be invalidated and recreated with a new size.">resize</a> </p>
+
+</div>
+</div>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a4b0ab5ac6f8c2c09e793211e71fa938e" name="a4b0ab5ac6f8c2c09e793211e71fa938e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4b0ab5ac6f8c2c09e793211e71fa938e">&#9670;&#160;</a></span>IFrameBuffer() <span class="overload">[1/3]</span></h2>
 
@@ -1463,6 +1499,7 @@ template&lt;typename TSelf &gt; </div>
   </table>
   </dd>
 </dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="#a65d04b31dabad3de64809b385677d641" title="Invoked if the frame buffer gets resized.">resizing</a>, <a class="el" href="#a04144daf36df81eefb01b7e1df5d4bb5" title="Invoked after the frame buffer has been resized.">resized</a></dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_frame_buffer.html#a8d53c606e980562ebe12943f43cdd8ab">LiteFX::Rendering::Backends::DirectX12FrameBuffer</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_frame_buffer.html#a7de4b9ff84fe7d167c4dabaaab9b38b4">LiteFX::Rendering::Backends::VulkanFrameBuffer</a>.</p>
 
@@ -1626,8 +1663,33 @@ template&lt;typename TSelf &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Invoked when the frame buffer gets resized. </p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="#a2a66c16c36ff580bc3d7e0c15f38c66f" title="Causes the frame buffer to be invalidated and recreated with a new size.">resize</a></dd></dl>
+<p>Invoked after the frame buffer has been resized. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="#a2a66c16c36ff580bc3d7e0c15f38c66f" title="Causes the frame buffer to be invalidated and recreated with a new size.">resize</a>, <a class="el" href="#a65d04b31dabad3de64809b385677d641" title="Invoked if the frame buffer gets resized.">resizing</a></dd></dl>
+
+</div>
+</div>
+<a id="a65d04b31dabad3de64809b385677d641" name="a65d04b31dabad3de64809b385677d641"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a65d04b31dabad3de64809b385677d641">&#9670;&#160;</a></span>resizing</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_lite_f_x_1_1_event.html">Event</a>&lt;<a class="el" href="struct_lite_f_x_1_1_rendering_1_1_i_frame_buffer_1_1_resize_event_args.html">ResizeEventArgs</a>&gt; LiteFX::Rendering::IFrameBuffer::resizing</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">mutable</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Invoked if the frame buffer gets resized. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="#a2a66c16c36ff580bc3d7e0c15f38c66f" title="Causes the frame buffer to be invalidated and recreated with a new size.">resize</a>, <a class="el" href="#a04144daf36df81eefb01b7e1df5d4bb5" title="Invoked after the frame buffer has been resized.">resized</a></dd></dl>
 
 </div>
 </div>

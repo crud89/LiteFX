@@ -20,6 +20,7 @@ var class_lite_f_x_1_1_rendering_1_1_i_render_pass =
     [ "renderTarget", "class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ad963f1d63ab398c32b8b60ab9f98a95a", null ],
     [ "renderTargets", "class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ab70b3345baa498c86349c0e812b9a9f5", null ],
     [ "secondaryCommandBuffers", "class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#af2adebb38d77cdb5f3d6d01eb11da44c", null ],
+    [ "viewMask", "class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ae799b0e8df54351a9218c21a8c88a6ff", null ],
     [ "beginning", "class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ab071f972efa201c2f0fdfecb8a2ec453", null ],
     [ "ending", "class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ae559ccb26b515cdc320506b6a1390cde", null ]
 ];

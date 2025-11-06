@@ -3,8 +3,8 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image =
     [ "VulkanImageImpl", "class_vulkan_image_1_1_vulkan_image_impl.html", "class_vulkan_image_1_1_vulkan_image_impl" ],
     [ "~VulkanImage", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#a94b7b843792ef83725ae895e31e499ce", null ],
     [ "alignedElementSize", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#a66589675180f4a5e803a469617a46d45", null ],
-    [ "allocationInfo", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#a0579c6d1c505d1ef04bd1c327073dc41", null ],
-    [ "allocator", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#ae5bfc3dfbb99b1f34403ca934c17f6df", null ],
+    [ "allocationInfo", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#a1df2d2f51d516a3073631d344de31d4e", null ],
+    [ "allocator", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#a1b490945e186417f3d111c46b19b7bbe", null ],
     [ "aspectMask", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#a77d3ebae3492e2ba32f7b028f7678406", null ],
     [ "aspectMask", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#a79b470499749712797ca59596da5bdb3", null ],
     [ "dimensions", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#afb1976fa33b164668cf3b18d29010512", null ],
@@ -22,5 +22,6 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image =
     [ "usage", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#ab9ac5fa964afae6a2cf958684609763d", null ],
     [ "virtualAddress", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#a8d464b547c7b46447ab47b34b9820b5c", null ],
     [ "SharedObject::Allocator< VulkanImage >", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#ab12ce66a8135f0df78924383f6999d33", null ],
+    [ "VulkanGraphicsFactory", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#a432a849b9fa7498ad5ae4a3e59181c0b", null ],
     [ "VulkanSwapChain::VulkanSwapChainImpl", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#a350d51ef93ad2531299d2e893ba294db", null ]
 ];

@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -137,7 +137,7 @@ Public Member Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;typename TResult, typename... TArgs&gt;<br />
 class LiteFX::Delegate&lt; TResult, TArgs &gt;</div><p>Represents a handler for an <a class="el" href="class_lite_f_x_1_1_event.html" title="A class that is used to declare an event, which a number of listeners can subscribe to.">Event</a>, that is assigned a unique token when created, so that it can be identified later. </p>
-<p>Since a <code>std::function</code> or callable us not comparable, it is not possible to identify and remove event handlers from an event, after registering them. To support this functionality, the event handler will be encapsulated in a delegate, which gets assigned with a token. This token is unique for the event, the delegate has been registered to. </p>
+<p>Since a <code>std::function</code> or callable is non-comparable, it is not possible to identify and remove event handlers from an event, after registering them. To support this functionality, the event handler will be encapsulated in a delegate, which gets assigned with a token. This token is unique for the event, the delegate has been registered to. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">TResult</td><td>The result of the delegate function.</td></tr>

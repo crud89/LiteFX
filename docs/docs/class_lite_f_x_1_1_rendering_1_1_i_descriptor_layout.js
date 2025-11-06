@@ -8,5 +8,6 @@ var class_lite_f_x_1_1_rendering_1_1_i_descriptor_layout =
     [ "descriptorType", "class_lite_f_x_1_1_rendering_1_1_i_descriptor_layout.html#a51981a77c41b05bffcd43a6f9297f014", null ],
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_i_descriptor_layout.html#ad93c287df0e6528764a1e1d48332546c", null ],
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_i_descriptor_layout.html#aea4c00d0e97b244db93b26b612ece081", null ],
-    [ "staticSampler", "class_lite_f_x_1_1_rendering_1_1_i_descriptor_layout.html#a79ffa83aab953ac6988def1ae0f23610", null ]
+    [ "staticSampler", "class_lite_f_x_1_1_rendering_1_1_i_descriptor_layout.html#a79ffa83aab953ac6988def1ae0f23610", null ],
+    [ "unbounded", "class_lite_f_x_1_1_rendering_1_1_i_descriptor_layout.html#ab10efc063959eb956a40f2edda89a3c6", null ]
 ];
