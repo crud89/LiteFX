@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -125,12 +125,56 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ac033ef8839fbd9caf823cf90782be5bb" id="r_ac033ef8839fbd9caf823cf90782be5bb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac033ef8839fbd9caf823cf90782be5bb">DrawIndirect</a> { false }</td></tr>
 <tr class="memdesc:ac033ef8839fbd9caf823cf90782be5bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enables or disables support for indirect draw.  <br /></td></tr>
 <tr class="separator:ac033ef8839fbd9caf823cf90782be5bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afad9724834040bdc6de1864500bbfc90" id="r_afad9724834040bdc6de1864500bbfc90"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afad9724834040bdc6de1864500bbfc90">DynamicDescriptors</a> { false }</td></tr>
+<tr class="memdesc:afad9724834040bdc6de1864500bbfc90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enables or disables support for dynamic descriptor types (<a href="https://microsoft.github.io/DirectX-Specs/d3d/HLSL_SM_6_6_DynamicResources.html">SM 6.6 dynamic resources</a> and <a href="https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_mutable_descriptor_type.html">VK_EXT_mutable_descriptor_type</a>).  <br /></td></tr>
+<tr class="separator:afad9724834040bdc6de1864500bbfc90"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86e94edc73501390c89a23aa66dc9fed" id="r_a86e94edc73501390c89a23aa66dc9fed"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a86e94edc73501390c89a23aa66dc9fed">DepthBoundsTest</a> { false }</td></tr>
+<tr class="memdesc:a86e94edc73501390c89a23aa66dc9fed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enables support for enabling depth bounds test on <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="The interface for a render pipeline.">IRenderPipeline</a> creation.  <br /></td></tr>
+<tr class="separator:a86e94edc73501390c89a23aa66dc9fed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca88b5ac3ad065fe80183bf035ab63c6" id="r_aca88b5ac3ad065fe80183bf035ab63c6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aca88b5ac3ad065fe80183bf035ab63c6">ConservativeRasterization</a> { false }</td></tr>
+<tr class="memdesc:aca88b5ac3ad065fe80183bf035ab63c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enables support for conservative rasterization.  <br /></td></tr>
+<tr class="separator:aca88b5ac3ad065fe80183bf035ab63c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2864e8562a91336ae4a9986ba36e892f" id="r_a2864e8562a91336ae4a9986ba36e892f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2864e8562a91336ae4a9986ba36e892f">ViewInstancing</a> { false }</td></tr>
+<tr class="memdesc:a2864e8562a91336ae4a9986ba36e892f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enables support for view instancing/multi-view.  <br /></td></tr>
+<tr class="separator:a2864e8562a91336ae4a9986ba36e892f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Describes optional features that can be supported by a device. </p>
 <p>Device features are evaluated when creating a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html" title="The interface for a graphics device that.">IGraphicsDevice</a>. If a feature is not supported by the device, an exception is raised.</p>
 <p>Note that feature support is not strictly enforced by the engine. For example, if you are calling any feature-related API, the call may succeed even if the feature is not enabled, if the GPU supports it. <a class="el" href="namespace_lite_f_x_1_1_graphics.html">Graphics</a> API validation may warn about it and the same program may fail on GPUs that do not support this feature. Enabling a feature through the settings in this structure makes the device check for support creation, resulting in a clear fail path, if a required extension is not supported by the system hardware. </p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
+<a id="aca88b5ac3ad065fe80183bf035ab63c6" name="aca88b5ac3ad065fe80183bf035ab63c6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca88b5ac3ad065fe80183bf035ab63c6">&#9670;&#160;</a></span>ConservativeRasterization</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool LiteFX::Rendering::GraphicsDeviceFeatures::ConservativeRasterization { false }</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Enables support for conservative rasterization. </p>
+
+</div>
+</div>
+<a id="a86e94edc73501390c89a23aa66dc9fed" name="a86e94edc73501390c89a23aa66dc9fed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86e94edc73501390c89a23aa66dc9fed">&#9670;&#160;</a></span>DepthBoundsTest</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool LiteFX::Rendering::GraphicsDeviceFeatures::DepthBoundsTest { false }</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Enables support for enabling depth bounds test on <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="The interface for a render pipeline.">IRenderPipeline</a> creation. </p>
+
+</div>
+</div>
 <a id="ac033ef8839fbd9caf823cf90782be5bb" name="ac033ef8839fbd9caf823cf90782be5bb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac033ef8839fbd9caf823cf90782be5bb">&#9670;&#160;</a></span>DrawIndirect</h2>
 
@@ -144,6 +188,25 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Enables or disables support for indirect draw. </p>
+
+</div>
+</div>
+<a id="afad9724834040bdc6de1864500bbfc90" name="afad9724834040bdc6de1864500bbfc90"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afad9724834040bdc6de1864500bbfc90">&#9670;&#160;</a></span>DynamicDescriptors</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool LiteFX::Rendering::GraphicsDeviceFeatures::DynamicDescriptors { false }</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Enables or disables support for dynamic descriptor types (<a href="https://microsoft.github.io/DirectX-Specs/d3d/HLSL_SM_6_6_DynamicResources.html">SM 6.6 dynamic resources</a> and <a href="https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_mutable_descriptor_type.html">VK_EXT_mutable_descriptor_type</a>). </p>
+<p>Note that support for this feature is limited in the engine. It's purpose is to bind resources of different <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e" title="Describes the type of a IDescriptor.">DescriptorType</a>s within a single descriptor array. However, you still have to allocate a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html" title="The interface for a descriptor set.">IDescriptorSet</a> to be able to bind resources and retrieve resource indices by calling <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#ac633a45f78d5f32f50ce9d1b0ed78f87" title="Binds a resource directly to a descriptor heap and returns the index that can be used to access it.">IDescriptorSet::bindToHeap</a>.</p>
+<p>If you are only using the DirectX 12 backend, you can generally index any bound resource this way. However, in the Vulkan backend, only resources within the descriptor set can be indexed. Descriptor sets that contain descriptors of <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea6fd273b2c38bbbac18213aad964f8c83" title="Special descriptor type, that can bind all resources besides constant buffers, acceleration structure...">DescriptorType::ResourceDescriptorHeap</a> or <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea23dbc164336b3de4f93f85647fa5cadb" title="A special descriptor type that allows indexed access to the a portion of the global sampler heap.">DescriptorType::SamplerDescriptorHeap</a> can be used to bind those descriptors. Such descriptor sets are called proxy sets, because they do not actually occur in the shader. Instead they are directly accessed using the <code>ResourceDescriptorHeap</code> or <code>SamplerDescriptorHeap</code> syntax. In order to acquire a resource from those heaps, you need to provide the index, that can be retrieved as described above.</p>
+<p>Be aware that dynamic descriptors (aka mutable descriptors) are considered inefficient in Vulkan. You should not use them, if you could instead use multiple descriptor sets containing unbounded descriptor arrays. They can, however, be more efficient if you can replace multiple pipeline layouts with a single one that relies on mutable type descriptors. </p>
 
 </div>
 </div>
@@ -192,6 +255,22 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Enables or disables ray-tracing support. </p>
+
+</div>
+</div>
+<a id="a2864e8562a91336ae4a9986ba36e892f" name="a2864e8562a91336ae4a9986ba36e892f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2864e8562a91336ae4a9986ba36e892f">&#9670;&#160;</a></span>ViewInstancing</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool LiteFX::Rendering::GraphicsDeviceFeatures::ViewInstancing { false }</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Enables support for view instancing/multi-view. </p>
 
 </div>
 </div>

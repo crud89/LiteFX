@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -109,8 +109,8 @@ $(function(){initNavTree('class_rasterizer_1_1_rasterizer_impl.html',''); initRe
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a6dd6243623c37c4444c559182a70ecde" id="r_a6dd6243623c37c4444c559182a70ecde"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6dd6243623c37c4444c559182a70ecde">RasterizerImpl</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a65b3696fc8d50c9eae80950e5cbab2e7">PolygonMode</a> polygonMode, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a244e97b48a2d14fe152c4a104b0ee25d">CullMode</a> cullMode, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a03ee857b58c08bda2e0ab6956dfd8510">CullOrder</a> cullOrder, <a class="el" href="namespace_lite_f_x_1_1_math.html#a7272a8e096481053b319d7658c1c5484">Float</a> lineWidth, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_depth_stencil_state.html">DepthStencilState</a> depthStencilState)</td></tr>
-<tr class="separator:a6dd6243623c37c4444c559182a70ecde"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a57804e3121ce6418ae71027bb82e6c24" id="r_a57804e3121ce6418ae71027bb82e6c24"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a57804e3121ce6418ae71027bb82e6c24">RasterizerImpl</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a65b3696fc8d50c9eae80950e5cbab2e7">PolygonMode</a> polygonMode, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a244e97b48a2d14fe152c4a104b0ee25d">CullMode</a> cullMode, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a03ee857b58c08bda2e0ab6956dfd8510">CullOrder</a> cullOrder, <a class="el" href="namespace_lite_f_x_1_1_math.html#a7272a8e096481053b319d7658c1c5484">Float</a> lineWidth, bool depthClip, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_depth_stencil_state.html">DepthStencilState</a> depthStencilState, bool conservativeRasterization)</td></tr>
+<tr class="separator:a57804e3121ce6418ae71027bb82e6c24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
@@ -118,8 +118,8 @@ Friends</h2></td></tr>
 <tr class="separator:a0d4601bf6ac71097ade7989c0a262167"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a6dd6243623c37c4444c559182a70ecde" name="a6dd6243623c37c4444c559182a70ecde"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6dd6243623c37c4444c559182a70ecde">&#9670;&#160;</a></span>RasterizerImpl()</h2>
+<a id="a57804e3121ce6418ae71027bb82e6c24" name="a57804e3121ce6418ae71027bb82e6c24"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a57804e3121ce6418ae71027bb82e6c24">&#9670;&#160;</a></span>RasterizerImpl()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -150,7 +150,17 @@ Friends</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_depth_stencil_state.html">DepthStencilState</a></td>          <td class="paramname"><span class="paramname"><em>depthStencilState</em></span>&#160;)</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>depthClip</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_depth_stencil_state.html">DepthStencilState</a></td>          <td class="paramname"><span class="paramname"><em>depthStencilState</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>conservativeRasterization</em></span>&#160;)</td>
         </tr>
       </table>
   </td>

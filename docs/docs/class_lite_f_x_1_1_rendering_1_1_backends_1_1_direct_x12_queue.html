@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -161,9 +161,14 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af3ebae5ad7a5acafb18e9b0b8677d992"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad7fe907c0a3987dcec37e099684588e8" id="r_ad7fe907c0a3987dcec37e099684588e8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad7fe907c0a3987dcec37e099684588e8">currentFence</a> () const noexcept override</td></tr>
 <tr class="memdesc:ad7fe907c0a3987dcec37e099684588e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the value of the latest fence inserted into the queue.<dl class="section return"><dt>Returns</dt><dd>The value of the latest fence inserted into the queue.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a4655e9d124a112a31e6c2b5bcac8be53" title="Lets the CPU wait for a certain fence value to complete on the command queue.">waitFor</a></dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a4655e9d124a112a31e6c2b5bcac8be53" title="Lets the CPU wait for a certain fence value to complete on the command queue.">waitFor</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a01933d7b2b50003647bef6a530dff290" title="Returns the last fence that was completed on the queue.">lastCompletedFence</a></dd></dl>
   <br /></td></tr>
 <tr class="separator:ad7fe907c0a3987dcec37e099684588e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a352fb838dd4ecbd1e9a6c13e4eceb549" id="r_a352fb838dd4ecbd1e9a6c13e4eceb549"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a352fb838dd4ecbd1e9a6c13e4eceb549">lastCompletedFence</a> () const noexcept override</td></tr>
+<tr class="memdesc:a352fb838dd4ecbd1e9a6c13e4eceb549"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the last fence that was completed on the queue.<dl class="section return"><dt>Returns</dt><dd>The last fence that was completed on the queue.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a46159f8ced178e93698477af42cf4412" title="Returns the value of the latest fence inserted into the queue.">currentFence</a></dd></dl>
+  <br /></td></tr>
+<tr class="separator:a352fb838dd4ecbd1e9a6c13e4eceb549"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_command_queue"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_command_queue')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_command_queue.html">LiteFX::Rendering::CommandQueue&lt; DirectX12CommandBuffer &gt;</a></td></tr>
 <tr class="memitem:afc1ee6c903514431f0e6aa88c8aee86e inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_command_queue" id="r_afc1ee6c903514431f0e6aa88c8aee86e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_command_queue.html#afc1ee6c903514431f0e6aa88c8aee86e">~CommandQueue</a> () noexcept override=default</td></tr>
 <tr class="separator:afc1ee6c903514431f0e6aa88c8aee86e inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_command_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -185,13 +190,13 @@ Public Member Functions</h2></td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html">LiteFX::Rendering::ICommandQueue</a></td></tr>
 <tr class="memitem:a8ccd0156424b90915839de835ef6c1d9 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue" id="r_a8ccd0156424b90915839de835ef6c1d9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a8ccd0156424b90915839de835ef6c1d9">~ICommandQueue</a> () noexcept override=default</td></tr>
 <tr class="separator:a8ccd0156424b90915839de835ef6c1d9 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4e2d75449e4e5a50edc29707eaa6d76f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue" id="r_a4e2d75449e4e5a50edc29707eaa6d76f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a4e2d75449e4e5a50edc29707eaa6d76f">beginDebugRegion</a> (const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &amp;label, const <a class="el" href="namespace_lite_f_x_1_1_math_1_1_vectors.html#ad09fac376a435bcbf048b0b24d9864bc">Vectors::ByteVector3</a> &amp;color=<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#af68dd4e0abe7480ffd1e9f5c18d311b1">DEFAULT_DEBUG_COLOR</a>) const noexcept</td></tr>
+<tr class="memitem:a4e2d75449e4e5a50edc29707eaa6d76f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue" id="r_a4e2d75449e4e5a50edc29707eaa6d76f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a4e2d75449e4e5a50edc29707eaa6d76f">beginDebugRegion</a> (const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &amp;label, const <a class="el" href="namespace_lite_f_x_1_1_math_1_1_vectors.html#ad64e79ae7c627802bd33cb062e89b8a0">Vectors::ByteVector3</a> &amp;color=<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#af68dd4e0abe7480ffd1e9f5c18d311b1">DEFAULT_DEBUG_COLOR</a>) const noexcept</td></tr>
 <tr class="memdesc:a4e2d75449e4e5a50edc29707eaa6d76f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts a new debug region.  <br /></td></tr>
 <tr class="separator:a4e2d75449e4e5a50edc29707eaa6d76f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad080d3eb2c882b90d076c31314838f45 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue" id="r_ad080d3eb2c882b90d076c31314838f45"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#ad080d3eb2c882b90d076c31314838f45">endDebugRegion</a> () const noexcept</td></tr>
 <tr class="memdesc:ad080d3eb2c882b90d076c31314838f45 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ends the current debug region.  <br /></td></tr>
 <tr class="separator:ad080d3eb2c882b90d076c31314838f45 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78eee6cf5e80ce34c4e571cca636fd90 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue" id="r_a78eee6cf5e80ce34c4e571cca636fd90"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a78eee6cf5e80ce34c4e571cca636fd90">setDebugMarker</a> (const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &amp;label, const <a class="el" href="namespace_lite_f_x_1_1_math_1_1_vectors.html#ad09fac376a435bcbf048b0b24d9864bc">Vectors::ByteVector3</a> &amp;color=<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#af68dd4e0abe7480ffd1e9f5c18d311b1">DEFAULT_DEBUG_COLOR</a>) const noexcept</td></tr>
+<tr class="memitem:a78eee6cf5e80ce34c4e571cca636fd90 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue" id="r_a78eee6cf5e80ce34c4e571cca636fd90"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a78eee6cf5e80ce34c4e571cca636fd90">setDebugMarker</a> (const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &amp;label, const <a class="el" href="namespace_lite_f_x_1_1_math_1_1_vectors.html#ad64e79ae7c627802bd33cb062e89b8a0">Vectors::ByteVector3</a> &amp;color=<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#af68dd4e0abe7480ffd1e9f5c18d311b1">DEFAULT_DEBUG_COLOR</a>) const noexcept</td></tr>
 <tr class="memdesc:a78eee6cf5e80ce34c4e571cca636fd90 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts a debug marker.  <br /></td></tr>
 <tr class="separator:a78eee6cf5e80ce34c4e571cca636fd90 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6f6f50abfd1f611a119fd6409ceb6b3c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue" id="r_a6f6f50abfd1f611a119fd6409ceb6b3c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">ICommandBuffer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a6f6f50abfd1f611a119fd6409ceb6b3c">createCommandBuffer</a> (bool beginRecording=false, bool secondary=false) const</td></tr>
@@ -253,7 +258,7 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memdesc:a2f4084c75a4ddb7804df1167943faeaf inherit pub_attribs_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="mdescLeft">&#160;</td><td class="mdescRight">Invoked, after one or more command buffers have been submitted to the queue.  <br /></td></tr>
 <tr class="separator:a2f4084c75a4ddb7804df1167943faeaf inherit pub_attribs_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_static_attribs_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_static_attribs_class_lite_f_x_1_1_rendering_1_1_i_command_queue')"><img src="closed.png" alt="-"/>&#160;Static Public Attributes inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html">LiteFX::Rendering::ICommandQueue</a></td></tr>
-<tr class="memitem:af68dd4e0abe7480ffd1e9f5c18d311b1 inherit pub_static_attribs_class_lite_f_x_1_1_rendering_1_1_i_command_queue" id="r_af68dd4e0abe7480ffd1e9f5c18d311b1"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="namespace_lite_f_x_1_1_math_1_1_vectors.html#ad09fac376a435bcbf048b0b24d9864bc">Vectors::ByteVector3</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#af68dd4e0abe7480ffd1e9f5c18d311b1">DEFAULT_DEBUG_COLOR</a> = { 128_b, 128_b, 128_b }</td></tr>
+<tr class="memitem:af68dd4e0abe7480ffd1e9f5c18d311b1 inherit pub_static_attribs_class_lite_f_x_1_1_rendering_1_1_i_command_queue" id="r_af68dd4e0abe7480ffd1e9f5c18d311b1"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="namespace_lite_f_x_1_1_math_1_1_vectors.html#ad64e79ae7c627802bd33cb062e89b8a0">Vectors::ByteVector3</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#af68dd4e0abe7480ffd1e9f5c18d311b1">DEFAULT_DEBUG_COLOR</a> = { 128_ui8, 128_ui8, 128_ui8 }</td></tr>
 <tr class="memdesc:af68dd4e0abe7480ffd1e9f5c18d311b1 inherit pub_static_attribs_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default color value for a debug region or marker, if no other has been specified.  <br /></td></tr>
 <tr class="separator:af68dd4e0abe7480ffd1e9f5c18d311b1 inherit pub_static_attribs_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_methods_class_lite_f_x_1_1_rendering_1_1_command_queue"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_methods_class_lite_f_x_1_1_rendering_1_1_command_queue')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_command_queue.html">LiteFX::Rendering::CommandQueue&lt; DirectX12CommandBuffer &gt;</a></td></tr>
@@ -474,7 +479,7 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Returns the value of the latest fence inserted into the queue.<dl class="section return"><dt>Returns</dt><dd>The value of the latest fence inserted into the queue.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a4655e9d124a112a31e6c2b5bcac8be53" title="Lets the CPU wait for a certain fence value to complete on the command queue.">waitFor</a></dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a4655e9d124a112a31e6c2b5bcac8be53" title="Lets the CPU wait for a certain fence value to complete on the command queue.">waitFor</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a01933d7b2b50003647bef6a530dff290" title="Returns the last fence that was completed on the queue.">lastCompletedFence</a></dd></dl>
  </p>
 
 <p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a46159f8ced178e93698477af42cf4412">LiteFX::Rendering::ICommandQueue</a>.</p>
@@ -506,6 +511,37 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Returns a pointer to the device that provides this queue or <code>nullptr</code>, if the device has already been released. </p>
 <dl class="section return"><dt>Returns</dt><dd>A reference to the queue's parent device or <code>nullptr</code>, if the device has already been released.</dd></dl>
+
+</div>
+</div>
+<a id="a352fb838dd4ecbd1e9a6c13e4eceb549" name="a352fb838dd4ecbd1e9a6c13e4eceb549"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a352fb838dd4ecbd1e9a6c13e4eceb549">&#9670;&#160;</a></span>lastCompletedFence()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> DirectX12Queue::lastCompletedFence </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the last fence that was completed on the queue.<dl class="section return"><dt>Returns</dt><dd>The last fence that was completed on the queue.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a46159f8ced178e93698477af42cf4412" title="Returns the value of the latest fence inserted into the queue.">currentFence</a></dd></dl>
+ </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a01933d7b2b50003647bef6a530dff290">LiteFX::Rendering::ICommandQueue</a>.</p>
 
 </div>
 </div>

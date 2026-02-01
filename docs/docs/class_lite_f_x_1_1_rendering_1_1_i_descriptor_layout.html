@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -124,8 +124,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a51981a77c41b05bffcd43a6f9297f014"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the type of the descriptor.  <br /></td></tr>
 <tr class="separator:a51981a77c41b05bffcd43a6f9297f014"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae137c152ccef02a9738acd3055896060" id="r_ae137c152ccef02a9738acd3055896060"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae137c152ccef02a9738acd3055896060">descriptors</a> () const noexcept=0</td></tr>
-<tr class="memdesc:ae137c152ccef02a9738acd3055896060"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of descriptors in the descriptor array, or <code>-1</code> if the array is unbounded.  <br /></td></tr>
+<tr class="memdesc:ae137c152ccef02a9738acd3055896060"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of descriptors in the descriptor array.  <br /></td></tr>
 <tr class="separator:ae137c152ccef02a9738acd3055896060"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab10efc063959eb956a40f2edda89a3c6" id="r_ab10efc063959eb956a40f2edda89a3c6"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab10efc063959eb956a40f2edda89a3c6">unbounded</a> () const noexcept=0</td></tr>
+<tr class="memdesc:ab10efc063959eb956a40f2edda89a3c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the descriptor defines an unbounded descriptor array.  <br /></td></tr>
+<tr class="separator:ab10efc063959eb956a40f2edda89a3c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a79ffa83aab953ac6988def1ae0f23610" id="r_a79ffa83aab953ac6988def1ae0f23610"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_sampler.html">ISampler</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a79ffa83aab953ac6988def1ae0f23610">staticSampler</a> () const noexcept=0</td></tr>
 <tr class="memdesc:a79ffa83aab953ac6988def1ae0f23610"><td class="mdescLeft">&#160;</td><td class="mdescRight">If the descriptor describes a static sampler, this method returns the state of the sampler. Otherwise, it returns <code>nullptr</code>.  <br /></td></tr>
 <tr class="separator:a79ffa83aab953ac6988def1ae0f23610"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -169,8 +172,8 @@ Protected Member Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Describes a the layout of a single descriptor within a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html" title="Defines a set of descriptors.">DescriptorSet</a>. </p>
 <p>A common metaphor for a descriptor to think of it as a "pointer for the GPU". Basically, a descriptor points to a buffer in a shader. A descriptor can have different types and sizes. The types a descriptor can have are described by the <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e" title="Describes the type of a IDescriptor.">DescriptorType</a>.</p>
-<p>If the descriptor is a sampler, it can either be a dynamic or static sampler. A dynamic sampler needs to be bound during runtime just like any other descriptor by calling <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#a57075731be38d0de7cad23f5af4e85fe" title="Updates one or more buffer descriptors within the current descriptor set.">IDescriptorSet::update</a>. A static sampler is defined alongside the descriptor layout and is automatically set when the pipeline that uses the descriptor layout gets bound. In this case, the descriptor must not be updated with another sampler. If a descriptor layout describes a static sampler, the <a class="el" href="#a79ffa83aab953ac6988def1ae0f23610" title="If the descriptor describes a static sampler, this method returns the state of the sampler....">IDescriptorLayout::staticSampler</a> returns a pointer to the static sampler state.</p>
-<p>Typically, a descriptor "points" to a singular buffer, i.e. a scalar. However, a descriptor can also resemble an array. In this case, <a class="el" href="#ae137c152ccef02a9738acd3055896060" title="Returns the number of descriptors in the descriptor array, or -1 if the array is unbounded.">IDescriptorLayout::descriptors</a> returns the number of elements in the array. If it returns <code>-1</code> (or <code>0xFFFFFFFF</code>), the descriptor array is called <code>unbounded</code>. In this case, the number of descriptors in the array can be specified when allocating the descriptor set. Unbounded descriptor arrays behave different to normal descriptor arrays in different ways. They are typically used for bindless descriptors. If a descriptor represents an unbounded array, it must be the only descriptor in this descriptor set. Furthermore, unbounded arrays are not cached by the descriptor set layout. Descriptors within unbounded arrays may be updated after binding them to a command buffer. However, this must be done with special care, to prevent descriptors that are in use to be overwritten. For more information on how to manage unbounded arrays, refer to <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#ae9e6aef0970a1bfad4f3e81ae8c1b3ba" title="Allocates a new descriptor set or returns an instance of an unused descriptor set.">IDescriptorSetLayout::allocate</a>. </p>
+<p>If the descriptor is a sampler, it can either be a dynamic or static sampler. A dynamic sampler needs to be bound during runtime just like any other descriptor by calling <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#ace90eade506835d24ac499ceefe9fbfd" title="Updates one or more buffer descriptors within the current descriptor set.">IDescriptorSet::update</a>. A static sampler is defined alongside the descriptor layout and is automatically set when the pipeline that uses the descriptor layout gets bound. In this case, the descriptor must not be updated with another sampler. If a descriptor layout describes a static sampler, the <a class="el" href="#a79ffa83aab953ac6988def1ae0f23610" title="If the descriptor describes a static sampler, this method returns the state of the sampler....">IDescriptorLayout::staticSampler</a> returns a pointer to the static sampler state.</p>
+<p>Typically, a descriptor "points" to a singular buffer, i.e. a scalar. However, a descriptor can also resemble an array. In this case, <a class="el" href="#ae137c152ccef02a9738acd3055896060" title="Returns the number of descriptors in the descriptor array.">IDescriptorLayout::descriptors</a> returns the number of elements in the array. If the size of the array is not known beforehand, the descriptor can be defined as unbounded, causing the <a class="el" href="#ab10efc063959eb956a40f2edda89a3c6" title="Returns true, if the descriptor defines an unbounded descriptor array.">IDescriptorLayout::unbounded</a> property to return <code>true</code>. In this case, the number of descriptors defines the upper limit for the actual descriptor count that can be allocated for the array when calling <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#ae9e6aef0970a1bfad4f3e81ae8c1b3ba" title="Allocates a new descriptor set or returns an instance of an unused descriptor set.">IDescriptorSetLayout::allocate</a>. </p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout.html" title="Describes the layout of a descriptor set.">DescriptorSetLayout</a></dd></dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a70b825ad9f4bfc8dbc4d076923f9ab09" name="a70b825ad9f4bfc8dbc4d076923f9ab09"></a>
@@ -297,9 +300,9 @@ Protected Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Returns the number of descriptors in the descriptor array, or <code>-1</code> if the array is unbounded. </p>
-<p>If the number of descriptors is <code>-1</code> (or <code>0xFFFFFFFF</code>), the descriptor array is unbounded. In that case, the size of the array must be specified, when allocating the descriptor set. This can be done by specifying the <code>descriptors</code> parameter when calling <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#ae9e6aef0970a1bfad4f3e81ae8c1b3ba" title="Allocates a new descriptor set or returns an instance of an unused descriptor set.">IDescriptorSetLayout::allocate</a>. </p>
-<dl class="section return"><dt>Returns</dt><dd>The number of descriptors in the descriptor array, or <code>-1</code> if the array is unbounded.</dd></dl>
+<p>Returns the number of descriptors in the descriptor array. </p>
+<p>If <a class="el" href="#ab10efc063959eb956a40f2edda89a3c6" title="Returns true, if the descriptor defines an unbounded descriptor array.">unbounded</a> is set to <code>true</code>, the descriptor count defines the upper limit for the number of descriptors that can be allocated for in the array. </p>
+<dl class="section return"><dt>Returns</dt><dd>The number of descriptors in the descriptor array.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_layout.html" title="Describes a the layout of a single descriptor within a DescriptorSet.">IDescriptorLayout</a></dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html#a68edf27f62c4b8aa3245a5f0384d9d46">LiteFX::Rendering::Backends::DirectX12DescriptorLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout.html#ae11dac7ac7144bab1c1af5687abba1eb">LiteFX::Rendering::Backends::VulkanDescriptorLayout</a>.</p>
@@ -414,6 +417,37 @@ Protected Member Functions</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>The state of the static sampler, or <code>nullptr</code>, if the descriptor is not a static sampler.</dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html#ac9ac2649d24d43d42978f0a31c838c08">LiteFX::Rendering::Backends::DirectX12DescriptorLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout.html#aeb5e7222b01ecd806e093ea0d8b4d292">LiteFX::Rendering::Backends::VulkanDescriptorLayout</a>.</p>
+
+</div>
+</div>
+<a id="ab10efc063959eb956a40f2edda89a3c6" name="ab10efc063959eb956a40f2edda89a3c6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab10efc063959eb956a40f2edda89a3c6">&#9670;&#160;</a></span>unbounded()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool LiteFX::Rendering::IDescriptorLayout::unbounded </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns <code>true</code>, if the descriptor defines an unbounded descriptor array. </p>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the descriptor defines an unbounded descriptor array, <code>false</code> otherwise.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="#ae137c152ccef02a9738acd3055896060" title="Returns the number of descriptors in the descriptor array.">descriptors</a></dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html#a0f934ce22ccf366e7fd9ce1dfa934e08">LiteFX::Rendering::Backends::DirectX12DescriptorLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout.html#a2e08e1e4ff2e80dc694ad6e57e37bc37">LiteFX::Rendering::Backends::VulkanDescriptorLayout</a>.</p>
 
 </div>
 </div>

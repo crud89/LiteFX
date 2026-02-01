@@ -1,5 +1,8 @@
 var annotated_dup =
 [
+    [ "DirectX12GraphicsFactory", null, [
+      [ "DirectX12GraphicsFactoryImpl", "class_direct_x12_graphics_factory_1_1_direct_x12_graphics_factory_impl.html", "class_direct_x12_graphics_factory_1_1_direct_x12_graphics_factory_impl" ]
+    ] ],
     [ "LiteFX", "namespace_lite_f_x.html", [
       [ "Graphics", "namespace_lite_f_x_1_1_graphics.html", [
         [ "Blitter", "class_lite_f_x_1_1_graphics_1_1_blitter.html", "class_lite_f_x_1_1_graphics_1_1_blitter" ],
@@ -90,6 +93,7 @@ var annotated_dup =
           [ "IVulkanIndexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_index_buffer.html", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_index_buffer" ],
           [ "IVulkanSampler", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_sampler.html", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_sampler" ],
           [ "IVulkanVertexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_vertex_buffer.html", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_vertex_buffer" ],
+          [ "VmaAllocationDeleter", "struct_lite_f_x_1_1_rendering_1_1_backends_1_1_vma_allocation_deleter.html", "struct_lite_f_x_1_1_rendering_1_1_backends_1_1_vma_allocation_deleter" ],
           [ "VulkanBackend", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend" ],
           [ "VulkanBarrier", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_barrier.html", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_barrier" ],
           [ "VulkanBottomLevelAccelerationStructure", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_bottom_level_acceleration_structure.html", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_bottom_level_acceleration_structure" ],
@@ -136,6 +140,7 @@ var annotated_dup =
         [ "DescriptorBindingPoint", "struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html", "struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point" ],
         [ "DescriptorSet", "class_lite_f_x_1_1_rendering_1_1_descriptor_set.html", "class_lite_f_x_1_1_rendering_1_1_descriptor_set" ],
         [ "DescriptorSetLayout", "class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout.html", "class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout" ],
+        [ "DetailedMemoryStatistics", "struct_lite_f_x_1_1_rendering_1_1_detailed_memory_statistics.html", "struct_lite_f_x_1_1_rendering_1_1_detailed_memory_statistics" ],
         [ "DeviceState", "class_lite_f_x_1_1_rendering_1_1_device_state.html", "class_lite_f_x_1_1_rendering_1_1_device_state" ],
         [ "FrameBuffer", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html", "class_lite_f_x_1_1_rendering_1_1_frame_buffer" ],
         [ "GraphicsDevice", "class_lite_f_x_1_1_rendering_1_1_graphics_device.html", "class_lite_f_x_1_1_rendering_1_1_graphics_device" ],
@@ -186,7 +191,9 @@ var annotated_dup =
         [ "IVertexBuffer", "class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html", "class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer" ],
         [ "IVertexBufferLayout", "class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer_layout.html", "class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer_layout" ],
         [ "IViewport", "class_lite_f_x_1_1_rendering_1_1_i_viewport.html", "class_lite_f_x_1_1_rendering_1_1_i_viewport" ],
+        [ "MemoryHeapStatistics", "struct_lite_f_x_1_1_rendering_1_1_memory_heap_statistics.html", "struct_lite_f_x_1_1_rendering_1_1_memory_heap_statistics" ],
         [ "Pipeline", "class_lite_f_x_1_1_rendering_1_1_pipeline.html", "class_lite_f_x_1_1_rendering_1_1_pipeline" ],
+        [ "PipelineBindingHint", "struct_lite_f_x_1_1_rendering_1_1_pipeline_binding_hint.html", "struct_lite_f_x_1_1_rendering_1_1_pipeline_binding_hint" ],
         [ "PipelineLayout", "class_lite_f_x_1_1_rendering_1_1_pipeline_layout.html", "class_lite_f_x_1_1_rendering_1_1_pipeline_layout" ],
         [ "PushConstantsLayout", "class_lite_f_x_1_1_rendering_1_1_push_constants_layout.html", "class_lite_f_x_1_1_rendering_1_1_push_constants_layout" ],
         [ "Rasterizer", "class_lite_f_x_1_1_rendering_1_1_rasterizer.html", "class_lite_f_x_1_1_rendering_1_1_rasterizer" ],
@@ -196,6 +203,8 @@ var annotated_dup =
         [ "RenderPassDependency", "class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html", "class_lite_f_x_1_1_rendering_1_1_render_pass_dependency" ],
         [ "RenderPipeline", "class_lite_f_x_1_1_rendering_1_1_render_pipeline.html", "class_lite_f_x_1_1_rendering_1_1_render_pipeline" ],
         [ "RenderTarget", "class_lite_f_x_1_1_rendering_1_1_render_target.html", "class_lite_f_x_1_1_rendering_1_1_render_target" ],
+        [ "ResourceAllocationInfo", "struct_lite_f_x_1_1_rendering_1_1_resource_allocation_info.html", "struct_lite_f_x_1_1_rendering_1_1_resource_allocation_info" ],
+        [ "ResourceAllocationResult", "struct_lite_f_x_1_1_rendering_1_1_resource_allocation_result.html", "struct_lite_f_x_1_1_rendering_1_1_resource_allocation_result" ],
         [ "Scissor", "class_lite_f_x_1_1_rendering_1_1_scissor.html", "class_lite_f_x_1_1_rendering_1_1_scissor" ],
         [ "ShaderBindingTableOffsets", "struct_lite_f_x_1_1_rendering_1_1_shader_binding_table_offsets.html", "struct_lite_f_x_1_1_rendering_1_1_shader_binding_table_offsets" ],
         [ "ShaderProgram", "class_lite_f_x_1_1_rendering_1_1_shader_program.html", "class_lite_f_x_1_1_rendering_1_1_shader_program" ],
@@ -207,7 +216,8 @@ var annotated_dup =
         [ "SwapChain", "class_lite_f_x_1_1_rendering_1_1_swap_chain.html", "class_lite_f_x_1_1_rendering_1_1_swap_chain" ],
         [ "TimingEvent", "class_lite_f_x_1_1_rendering_1_1_timing_event.html", "class_lite_f_x_1_1_rendering_1_1_timing_event" ],
         [ "VertexBuffer", "class_lite_f_x_1_1_rendering_1_1_vertex_buffer.html", "class_lite_f_x_1_1_rendering_1_1_vertex_buffer" ],
-        [ "Viewport", "class_lite_f_x_1_1_rendering_1_1_viewport.html", "class_lite_f_x_1_1_rendering_1_1_viewport" ]
+        [ "Viewport", "class_lite_f_x_1_1_rendering_1_1_viewport.html", "class_lite_f_x_1_1_rendering_1_1_viewport" ],
+        [ "VirtualAllocator", "class_lite_f_x_1_1_rendering_1_1_virtual_allocator.html", "class_lite_f_x_1_1_rendering_1_1_virtual_allocator" ]
       ] ],
       [ "App", "class_lite_f_x_1_1_app.html", "class_lite_f_x_1_1_app" ],
       [ "AppBuilder", "class_lite_f_x_1_1_app_builder.html", "class_lite_f_x_1_1_app_builder" ],
@@ -243,6 +253,7 @@ var annotated_dup =
       [ "formatter< D3D12_MESSAGE_ID >", "structstd_1_1formatter_3_01_d3_d12___m_e_s_s_a_g_e___i_d_01_4.html", "structstd_1_1formatter_3_01_d3_d12___m_e_s_s_a_g_e___i_d_01_4" ],
       [ "formatter< D3D12_ROOT_PARAMETER_TYPE >", "structstd_1_1formatter_3_01_d3_d12___r_o_o_t___p_a_r_a_m_e_t_e_r___t_y_p_e_01_4.html", "structstd_1_1formatter_3_01_d3_d12___r_o_o_t___p_a_r_a_m_e_t_e_r___t_y_p_e_01_4" ],
       [ "formatter< D3D_SHADER_INPUT_TYPE >", "structstd_1_1formatter_3_01_d3_d___s_h_a_d_e_r___i_n_p_u_t___t_y_p_e_01_4.html", "structstd_1_1formatter_3_01_d3_d___s_h_a_d_e_r___i_n_p_u_t___t_y_p_e_01_4" ],
+      [ "formatter< DescriptorHeapType >", "structstd_1_1formatter_3_01_descriptor_heap_type_01_4.html", "structstd_1_1formatter_3_01_descriptor_heap_type_01_4" ],
       [ "formatter< DescriptorType >", "structstd_1_1formatter_3_01_descriptor_type_01_4.html", "structstd_1_1formatter_3_01_descriptor_type_01_4" ],
       [ "formatter< FilterMode >", "structstd_1_1formatter_3_01_filter_mode_01_4.html", "structstd_1_1formatter_3_01_filter_mode_01_4" ],
       [ "formatter< Format >", "structstd_1_1formatter_3_01_format_01_4.html", "structstd_1_1formatter_3_01_format_01_4" ],
@@ -267,6 +278,11 @@ var annotated_dup =
       [ "formatter< VkResult >", "structstd_1_1formatter_3_01_vk_result_01_4.html", "structstd_1_1formatter_3_01_vk_result_01_4" ],
       [ "hash< LocalDescriptorBindingPoint >", "structstd_1_1hash_3_01_local_descriptor_binding_point_01_4.html", "structstd_1_1hash_3_01_local_descriptor_binding_point_01_4" ]
     ] ],
+    [ "VirtualAllocator", null, [
+      [ "AllocatorImpl< DirectX12Backend >", "struct_virtual_allocator_1_1_allocator_impl_3_01_direct_x12_backend_01_4.html", "struct_virtual_allocator_1_1_allocator_impl_3_01_direct_x12_backend_01_4" ],
+      [ "AllocatorImpl< VulkanBackend >", "struct_virtual_allocator_1_1_allocator_impl_3_01_vulkan_backend_01_4.html", "struct_virtual_allocator_1_1_allocator_impl_3_01_vulkan_backend_01_4" ]
+    ] ],
+    [ "Allocation", "struct_allocation.html", "struct_allocation" ],
     [ "Bar", "class_bar.html", "class_bar" ],
     [ "Base", "class_base.html", "class_base" ],
     [ "DrawData", "struct_draw_data.html", "struct_draw_data" ],
@@ -276,6 +292,7 @@ var annotated_dup =
     [ "GeometryData", "struct_geometry_data.html", "struct_geometry_data" ],
     [ "GlfwWindowDeleter", "struct_glfw_window_deleter.html", "struct_glfw_window_deleter" ],
     [ "IFactory", "class_i_factory.html", "class_i_factory" ],
+    [ "Instance", "struct_instance.html", "struct_instance" ],
     [ "InstanceBuffer", "struct_instance_buffer.html", "struct_instance_buffer" ],
     [ "LightBuffer", "struct_light_buffer.html", "struct_light_buffer" ],
     [ "LocalDescriptorBindingPoint", "struct_local_descriptor_binding_point.html", "struct_local_descriptor_binding_point" ],

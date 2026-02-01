@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -129,6 +129,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ae4c34119cf21141d42fbc2ff13428a71"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the vertex buffer attributes.<dl class="section return"><dt>Returns</dt><dd>The vertex buffer attributes.</dd></dl>
   <br /></td></tr>
 <tr class="separator:ae4c34119cf21141d42fbc2ff13428a71"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af1d2c9b3c8db4a160372bafaba52d17f" id="r_af1d2c9b3c8db4a160372bafaba52d17f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#acef186a02bb2529aa875f8c42f1963ba">VertexBufferInputRate</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af1d2c9b3c8db4a160372bafaba52d17f">inputRate</a> () const noexcept override</td></tr>
+<tr class="memdesc:af1d2c9b3c8db4a160372bafaba52d17f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the vertex buffer input rate that describes how the data is made available to the vertex shader.<dl class="section return"><dt>Returns</dt><dd>The vertex buffer input rate setting.</dd></dl>
+  <br /></td></tr>
+<tr class="separator:af1d2c9b3c8db4a160372bafaba52d17f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a56486cca4c6c30c6983cfd76e5f7adc6" id="r_a56486cca4c6c30c6983cfd76e5f7adc6"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a56486cca4c6c30c6983cfd76e5f7adc6">elementSize</a> () const noexcept override</td></tr>
 <tr class="memdesc:a56486cca4c6c30c6983cfd76e5f7adc6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the size of a single element within the buffer.<dl class="section return"><dt>Returns</dt><dd>The size of a single element within the buffer.</dd></dl>
   <br /></td></tr>
@@ -161,12 +165,12 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:adfef7806351d6cc37cc3079dd406bdfb" id="r_adfef7806351d6cc37cc3079dd406bdfb"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adfef7806351d6cc37cc3079dd406bdfb">create</a> (size_t vertexSize, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a7f3796cfcf0eef240797c708e6297e28">binding</a>=0)</td></tr>
-<tr class="memdesc:adfef7806351d6cc37cc3079dd406bdfb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new vertex buffer layout.  <br /></td></tr>
-<tr class="separator:adfef7806351d6cc37cc3079dd406bdfb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a684c708ebb68c185464830763f4f9817" id="r_a684c708ebb68c185464830763f4f9817"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a684c708ebb68c185464830763f4f9817">create</a> (size_t vertexSize, const <a class="el" href="struct_lite_f_x_1_1_enumerable.html">Enumerable</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_buffer_attribute.html">BufferAttribute</a> &gt; &amp;<a class="el" href="#ae4c34119cf21141d42fbc2ff13428a71">attributes</a>, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a7f3796cfcf0eef240797c708e6297e28">binding</a>=0)</td></tr>
-<tr class="memdesc:a684c708ebb68c185464830763f4f9817"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new vertex buffer layout.  <br /></td></tr>
-<tr class="separator:a684c708ebb68c185464830763f4f9817"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9aa8e9d752a531ee0319b779dc72b02d" id="r_a9aa8e9d752a531ee0319b779dc72b02d"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9aa8e9d752a531ee0319b779dc72b02d">create</a> (size_t vertexSize, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a7f3796cfcf0eef240797c708e6297e28">binding</a>=0, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#acef186a02bb2529aa875f8c42f1963ba">VertexBufferInputRate</a> <a class="el" href="#af1d2c9b3c8db4a160372bafaba52d17f">inputRate</a>=<a class="el" href="namespace_lite_f_x_1_1_rendering.html#acef186a02bb2529aa875f8c42f1963baab22b929ba52471a02d18bb3a4e4472e6">VertexBufferInputRate::Vertex</a>)</td></tr>
+<tr class="memdesc:a9aa8e9d752a531ee0319b779dc72b02d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new vertex buffer layout.  <br /></td></tr>
+<tr class="separator:a9aa8e9d752a531ee0319b779dc72b02d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a003f5b9b7393aba087a30c105a2435e1" id="r_a003f5b9b7393aba087a30c105a2435e1"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a003f5b9b7393aba087a30c105a2435e1">create</a> (size_t vertexSize, const <a class="el" href="struct_lite_f_x_1_1_enumerable.html">Enumerable</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_buffer_attribute.html">BufferAttribute</a> &gt; &amp;<a class="el" href="#ae4c34119cf21141d42fbc2ff13428a71">attributes</a>, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a7f3796cfcf0eef240797c708e6297e28">binding</a>=0, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#acef186a02bb2529aa875f8c42f1963ba">VertexBufferInputRate</a> <a class="el" href="#af1d2c9b3c8db4a160372bafaba52d17f">inputRate</a>=<a class="el" href="namespace_lite_f_x_1_1_rendering.html#acef186a02bb2529aa875f8c42f1963baab22b929ba52471a02d18bb3a4e4472e6">VertexBufferInputRate::Vertex</a>)</td></tr>
+<tr class="memdesc:a003f5b9b7393aba087a30c105a2435e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new vertex buffer layout.  <br /></td></tr>
+<tr class="separator:a003f5b9b7393aba087a30c105a2435e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a112ed0b5ed9033975dfe0e9e9688d22f" id="r_a112ed0b5ed9033975dfe0e9e9688d22f"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a112ed0b5ed9033975dfe0e9e9688d22f">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_vertex_buffer_layout.html">DirectX12VertexBufferLayout</a> &amp;other)</td></tr>
 <tr class="memdesc:a112ed0b5ed9033975dfe0e9e9688d22f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a copy of a vertex buffer layout.  <br /></td></tr>
 <tr class="separator:a112ed0b5ed9033975dfe0e9e9688d22f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -343,8 +347,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a684c708ebb68c185464830763f4f9817" name="a684c708ebb68c185464830763f4f9817"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a684c708ebb68c185464830763f4f9817">&#9670;&#160;</a></span>create() <span class="overload">[2/3]</span></h2>
+<a id="a003f5b9b7393aba087a30c105a2435e1" name="a003f5b9b7393aba087a30c105a2435e1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a003f5b9b7393aba087a30c105a2435e1">&#9670;&#160;</a></span>create() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -365,7 +369,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>binding</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>binding</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#acef186a02bb2529aa875f8c42f1963ba">VertexBufferInputRate</a></td>          <td class="paramname"><span class="paramname"><em>inputRate</em></span><span class="paramdefsep"> = </span><span class="paramdefval"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#acef186a02bb2529aa875f8c42f1963baab22b929ba52471a02d18bb3a4e4472e6">VertexBufferInputRate::Vertex</a></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -381,6 +390,7 @@ Additional Inherited Members</h2></td></tr>
     <tr><td class="paramname">vertexSize</td><td>The overall size of a single vertex.</td></tr>
     <tr><td class="paramname">attributes</td><td>The vertex attributes.</td></tr>
     <tr><td class="paramname">binding</td><td>The binding point of the vertex buffers using this layout.</td></tr>
+    <tr><td class="paramname">inputRate</td><td>The rate at which the vertex buffer is made available to the vertex shader.</td></tr>
   </table>
   </dd>
 </dl>
@@ -388,8 +398,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="adfef7806351d6cc37cc3079dd406bdfb" name="adfef7806351d6cc37cc3079dd406bdfb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adfef7806351d6cc37cc3079dd406bdfb">&#9670;&#160;</a></span>create() <span class="overload">[3/3]</span></h2>
+<a id="a9aa8e9d752a531ee0319b779dc72b02d" name="a9aa8e9d752a531ee0319b779dc72b02d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9aa8e9d752a531ee0319b779dc72b02d">&#9670;&#160;</a></span>create() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -405,7 +415,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>binding</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>binding</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#acef186a02bb2529aa875f8c42f1963ba">VertexBufferInputRate</a></td>          <td class="paramname"><span class="paramname"><em>inputRate</em></span><span class="paramdefsep"> = </span><span class="paramdefval"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#acef186a02bb2529aa875f8c42f1963baab22b929ba52471a02d18bb3a4e4472e6">VertexBufferInputRate::Vertex</a></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -420,6 +435,7 @@ Additional Inherited Members</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">vertexSize</td><td>The overall size of a single vertex.</td></tr>
     <tr><td class="paramname">binding</td><td>The binding point of the vertex buffers using this layout.</td></tr>
+    <tr><td class="paramname">inputRate</td><td>The rate at which the vertex buffer is made available to the vertex shader.</td></tr>
   </table>
   </dd>
 </dl>
@@ -454,6 +470,36 @@ Additional Inherited Members</h2></td></tr>
  </p>
 
 <p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer_layout.html#ad1a2889ed3bccbc9ca111e913acd312b">LiteFX::Rendering::IBufferLayout</a>.</p>
+
+</div>
+</div>
+<a id="af1d2c9b3c8db4a160372bafaba52d17f" name="af1d2c9b3c8db4a160372bafaba52d17f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af1d2c9b3c8db4a160372bafaba52d17f">&#9670;&#160;</a></span>inputRate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#acef186a02bb2529aa875f8c42f1963ba">VertexBufferInputRate</a> DirectX12VertexBufferLayout::inputRate </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the vertex buffer input rate that describes how the data is made available to the vertex shader.<dl class="section return"><dt>Returns</dt><dd>The vertex buffer input rate setting.</dd></dl>
+ </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer_layout.html#acc34370ee69a217c953933d4d8110e43">LiteFX::Rendering::IVertexBufferLayout</a>.</p>
 
 </div>
 </div>

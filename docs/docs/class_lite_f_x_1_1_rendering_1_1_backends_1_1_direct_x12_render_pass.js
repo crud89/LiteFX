@@ -17,5 +17,6 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass =
     [ "renderTarget", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html#a770ba3c047e5b5889a0c5e7435726464", null ],
     [ "renderTargets", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html#ab85c695431df5c95251cd924cb3736ba", null ],
     [ "secondaryCommandBuffers", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html#afb313fd2c1549901d90526127d95a591", null ],
+    [ "viewMask", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html#a171ebc7ecd0f56a0ff84c01b804966d0", null ],
     [ "SharedObject::Allocator< DirectX12RenderPass >", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html#a78b5cbd44663352ef79727c51ac30eaf", null ]
 ];

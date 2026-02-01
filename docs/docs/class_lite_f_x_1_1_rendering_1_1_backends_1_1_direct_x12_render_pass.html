@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -193,6 +193,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:afa78f98a02a1faa9291de57aab04da22" id="r_afa78f98a02a1faa9291de57aab04da22"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afa78f98a02a1faa9291de57aab04da22">end</a> () const override</td></tr>
 <tr class="memdesc:afa78f98a02a1faa9291de57aab04da22"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ends the render pass.If the frame buffer has a present render target, this causes the render pass to synchronize with the swap chain and issue a present command.   <br /></td></tr>
 <tr class="separator:afa78f98a02a1faa9291de57aab04da22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a171ebc7ecd0f56a0ff84c01b804966d0" id="r_a171ebc7ecd0f56a0ff84c01b804966d0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a171ebc7ecd0f56a0ff84c01b804966d0">viewMask</a> () const noexcept override</td></tr>
+<tr class="memdesc:a171ebc7ecd0f56a0ff84c01b804966d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the mask that identifies the views that are enabled during rendering.<dl class="section return"><dt>Returns</dt><dd>A mask that identifies the views that are enabled during rendering.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_graphics_device_features.html#a2864e8562a91336ae4a9986ba36e892f" title="Enables support for view instancing/multi-view.">GraphicsDeviceFeatures::ViewInstancing</a></dd></dl>
+  <br /></td></tr>
+<tr class="separator:a171ebc7ecd0f56a0ff84c01b804966d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_render_pass"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_render_pass')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass.html">LiteFX::Rendering::RenderPass&lt; DirectX12Queue, DirectX12FrameBuffer &gt;</a></td></tr>
 <tr class="memitem:a0a0a98469fa112fe3126e054f023751e inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_render_pass" id="r_a0a0a98469fa112fe3126e054f023751e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass.html#a0a0a98469fa112fe3126e054f023751e">~RenderPass</a> () noexcept override=default</td></tr>
 <tr class="separator:a0a0a98469fa112fe3126e054f023751e inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_render_pass"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -243,18 +248,18 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a1a873b8e418f38aceb59f735231f7084" id="r_a1a873b8e418f38aceb59f735231f7084"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html">DirectX12RenderPass</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1a873b8e418f38aceb59f735231f7084">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &amp;<a class="el" href="#a8e2ab7a055f8dd912737709847220798">device</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt; <a class="el" href="#ab85c695431df5c95251cd924cb3736ba">renderTargets</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html">RenderPassDependency</a> &gt; <a class="el" href="#a57fcc545ab503d1a82256dbf854b3ea1">inputAttachments</a>={ }, <a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &gt; <a class="el" href="#ae547fac53cf13d45110e438db84cbd19">inputAttachmentSamplerBinding</a>=std::nullopt, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#afb313fd2c1549901d90526127d95a591">secondaryCommandBuffers</a>=1u)</td></tr>
-<tr class="memdesc:a1a873b8e418f38aceb59f735231f7084"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and initializes a new DirectX 12 render pass instance that executes on the default graphics queue.  <br /></td></tr>
-<tr class="separator:a1a873b8e418f38aceb59f735231f7084"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a003ad399afcc649fbad7f3eb90a2e957" id="r_a003ad399afcc649fbad7f3eb90a2e957"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html">DirectX12RenderPass</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a003ad399afcc649fbad7f3eb90a2e957">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &amp;<a class="el" href="#a8e2ab7a055f8dd912737709847220798">device</a>, const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_state_resource.html#a7980c73f4b612142114a4a39c4b9305e">name</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt; <a class="el" href="#ab85c695431df5c95251cd924cb3736ba">renderTargets</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html">RenderPassDependency</a> &gt; <a class="el" href="#a57fcc545ab503d1a82256dbf854b3ea1">inputAttachments</a>={ }, <a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &gt; <a class="el" href="#ae547fac53cf13d45110e438db84cbd19">inputAttachmentSamplerBinding</a>=std::nullopt, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#afb313fd2c1549901d90526127d95a591">secondaryCommandBuffers</a>=1u)</td></tr>
-<tr class="memdesc:a003ad399afcc649fbad7f3eb90a2e957"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and initializes a new DirectX 12 render pass instance that executes on the default graphics queue.  <br /></td></tr>
-<tr class="separator:a003ad399afcc649fbad7f3eb90a2e957"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2cfdcae77b41b9e9c7a3443f3fb80888" id="r_a2cfdcae77b41b9e9c7a3443f3fb80888"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html">DirectX12RenderPass</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2cfdcae77b41b9e9c7a3443f3fb80888">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &amp;<a class="el" href="#a8e2ab7a055f8dd912737709847220798">device</a>, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html">DirectX12Queue</a> &amp;queue, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt; <a class="el" href="#ab85c695431df5c95251cd924cb3736ba">renderTargets</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html">RenderPassDependency</a> &gt; <a class="el" href="#a57fcc545ab503d1a82256dbf854b3ea1">inputAttachments</a>={ }, <a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &gt; <a class="el" href="#ae547fac53cf13d45110e438db84cbd19">inputAttachmentSamplerBinding</a>=std::nullopt, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#afb313fd2c1549901d90526127d95a591">secondaryCommandBuffers</a>=1u)</td></tr>
-<tr class="memdesc:a2cfdcae77b41b9e9c7a3443f3fb80888"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and initializes a new DirectX 12 render pass instance.  <br /></td></tr>
-<tr class="separator:a2cfdcae77b41b9e9c7a3443f3fb80888"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a34efa2adb25c09ce3b870d93a7bb7212" id="r_a34efa2adb25c09ce3b870d93a7bb7212"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html">DirectX12RenderPass</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a34efa2adb25c09ce3b870d93a7bb7212">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &amp;<a class="el" href="#a8e2ab7a055f8dd912737709847220798">device</a>, const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_state_resource.html#a7980c73f4b612142114a4a39c4b9305e">name</a>, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html">DirectX12Queue</a> &amp;queue, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt; <a class="el" href="#ab85c695431df5c95251cd924cb3736ba">renderTargets</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html">RenderPassDependency</a> &gt; <a class="el" href="#a57fcc545ab503d1a82256dbf854b3ea1">inputAttachments</a>={ }, <a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &gt; <a class="el" href="#ae547fac53cf13d45110e438db84cbd19">inputAttachmentSamplerBinding</a>=std::nullopt, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#afb313fd2c1549901d90526127d95a591">secondaryCommandBuffers</a>=1u)</td></tr>
-<tr class="memdesc:a34efa2adb25c09ce3b870d93a7bb7212"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and initializes a new DirectX 12 render pass instance.  <br /></td></tr>
-<tr class="separator:a34efa2adb25c09ce3b870d93a7bb7212"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ebea0c9c74f0cf8222cd3f29a897cfe" id="r_a5ebea0c9c74f0cf8222cd3f29a897cfe"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html">DirectX12RenderPass</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5ebea0c9c74f0cf8222cd3f29a897cfe">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &amp;<a class="el" href="#a8e2ab7a055f8dd912737709847220798">device</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt; <a class="el" href="#ab85c695431df5c95251cd924cb3736ba">renderTargets</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html">RenderPassDependency</a> &gt; <a class="el" href="#a57fcc545ab503d1a82256dbf854b3ea1">inputAttachments</a>={ }, <a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &gt; <a class="el" href="#ae547fac53cf13d45110e438db84cbd19">inputAttachmentSamplerBinding</a>=std::nullopt, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#afb313fd2c1549901d90526127d95a591">secondaryCommandBuffers</a>=1u, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a171ebc7ecd0f56a0ff84c01b804966d0">viewMask</a>=0b0000)</td></tr>
+<tr class="memdesc:a5ebea0c9c74f0cf8222cd3f29a897cfe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and initializes a new DirectX 12 render pass instance that executes on the default graphics queue.  <br /></td></tr>
+<tr class="separator:a5ebea0c9c74f0cf8222cd3f29a897cfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a496853f23bd578352f2f6c61c8aa8397" id="r_a496853f23bd578352f2f6c61c8aa8397"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html">DirectX12RenderPass</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a496853f23bd578352f2f6c61c8aa8397">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &amp;<a class="el" href="#a8e2ab7a055f8dd912737709847220798">device</a>, const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_state_resource.html#a7980c73f4b612142114a4a39c4b9305e">name</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt; <a class="el" href="#ab85c695431df5c95251cd924cb3736ba">renderTargets</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html">RenderPassDependency</a> &gt; <a class="el" href="#a57fcc545ab503d1a82256dbf854b3ea1">inputAttachments</a>={ }, <a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &gt; <a class="el" href="#ae547fac53cf13d45110e438db84cbd19">inputAttachmentSamplerBinding</a>=std::nullopt, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#afb313fd2c1549901d90526127d95a591">secondaryCommandBuffers</a>=1u, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a171ebc7ecd0f56a0ff84c01b804966d0">viewMask</a>=0b0000)</td></tr>
+<tr class="memdesc:a496853f23bd578352f2f6c61c8aa8397"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and initializes a new DirectX 12 render pass instance that executes on the default graphics queue.  <br /></td></tr>
+<tr class="separator:a496853f23bd578352f2f6c61c8aa8397"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acc39b5f61e366906c859f590a80dff68" id="r_acc39b5f61e366906c859f590a80dff68"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html">DirectX12RenderPass</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acc39b5f61e366906c859f590a80dff68">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &amp;<a class="el" href="#a8e2ab7a055f8dd912737709847220798">device</a>, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html">DirectX12Queue</a> &amp;queue, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt; <a class="el" href="#ab85c695431df5c95251cd924cb3736ba">renderTargets</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html">RenderPassDependency</a> &gt; <a class="el" href="#a57fcc545ab503d1a82256dbf854b3ea1">inputAttachments</a>={ }, <a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &gt; <a class="el" href="#ae547fac53cf13d45110e438db84cbd19">inputAttachmentSamplerBinding</a>=std::nullopt, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#afb313fd2c1549901d90526127d95a591">secondaryCommandBuffers</a>=1u, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a171ebc7ecd0f56a0ff84c01b804966d0">viewMask</a>=0b0000)</td></tr>
+<tr class="memdesc:acc39b5f61e366906c859f590a80dff68"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and initializes a new DirectX 12 render pass instance.  <br /></td></tr>
+<tr class="separator:acc39b5f61e366906c859f590a80dff68"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a179ad32cc5bd71f5389310629a727913" id="r_a179ad32cc5bd71f5389310629a727913"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html">DirectX12RenderPass</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a179ad32cc5bd71f5389310629a727913">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &amp;<a class="el" href="#a8e2ab7a055f8dd912737709847220798">device</a>, const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_state_resource.html#a7980c73f4b612142114a4a39c4b9305e">name</a>, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html">DirectX12Queue</a> &amp;queue, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt; <a class="el" href="#ab85c695431df5c95251cd924cb3736ba">renderTargets</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html">RenderPassDependency</a> &gt; <a class="el" href="#a57fcc545ab503d1a82256dbf854b3ea1">inputAttachments</a>={ }, <a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &gt; <a class="el" href="#ae547fac53cf13d45110e438db84cbd19">inputAttachmentSamplerBinding</a>=std::nullopt, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#afb313fd2c1549901d90526127d95a591">secondaryCommandBuffers</a>=1u, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a171ebc7ecd0f56a0ff84c01b804966d0">viewMask</a>=0b0000)</td></tr>
+<tr class="memdesc:a179ad32cc5bd71f5389310629a727913"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and initializes a new DirectX 12 render pass instance.  <br /></td></tr>
+<tr class="separator:a179ad32cc5bd71f5389310629a727913"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
@@ -528,8 +533,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a2cfdcae77b41b9e9c7a3443f3fb80888" name="a2cfdcae77b41b9e9c7a3443f3fb80888"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2cfdcae77b41b9e9c7a3443f3fb80888">&#9670;&#160;</a></span>create() <span class="overload">[1/4]</span></h2>
+<a id="acc39b5f61e366906c859f590a80dff68" name="acc39b5f61e366906c859f590a80dff68"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acc39b5f61e366906c859f590a80dff68">&#9670;&#160;</a></span>create() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -565,7 +570,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>secondaryCommandBuffers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1u</span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>secondaryCommandBuffers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1u</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>viewMask</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0b0000</span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -585,6 +595,7 @@ Additional Inherited Members</h2></td></tr>
     <tr><td class="paramname">inputAttachments</td><td>The input attachments that are read by the render pass.</td></tr>
     <tr><td class="paramname">inputAttachmentSamplerBinding</td><td>The binding point for the input attachment sampler.</td></tr>
     <tr><td class="paramname">secondaryCommandBuffers</td><td>The number of command buffers that can be used for recording multi-threaded commands during the render pass.</td></tr>
+    <tr><td class="paramname">viewMask</td><td>A mask that identifies the enabled view instances for this render pass.</td></tr>
   </table>
   </dd>
 </dl>
@@ -592,8 +603,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a34efa2adb25c09ce3b870d93a7bb7212" name="a34efa2adb25c09ce3b870d93a7bb7212"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a34efa2adb25c09ce3b870d93a7bb7212">&#9670;&#160;</a></span>create() <span class="overload">[2/4]</span></h2>
+<a id="a179ad32cc5bd71f5389310629a727913" name="a179ad32cc5bd71f5389310629a727913"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a179ad32cc5bd71f5389310629a727913">&#9670;&#160;</a></span>create() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -634,7 +645,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>secondaryCommandBuffers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1u</span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>secondaryCommandBuffers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1u</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>viewMask</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0b0000</span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -655,6 +671,7 @@ Additional Inherited Members</h2></td></tr>
     <tr><td class="paramname">inputAttachments</td><td>The input attachments that are read by the render pass.</td></tr>
     <tr><td class="paramname">inputAttachmentSamplerBinding</td><td>The binding point for the input attachment sampler.</td></tr>
     <tr><td class="paramname">secondaryCommandBuffers</td><td>The number of command buffers that can be used for recording multi-threaded commands during the render pass.</td></tr>
+    <tr><td class="paramname">viewMask</td><td>A mask that identifies the enabled view instances for this render pass.</td></tr>
   </table>
   </dd>
 </dl>
@@ -662,8 +679,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a003ad399afcc649fbad7f3eb90a2e957" name="a003ad399afcc649fbad7f3eb90a2e957"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a003ad399afcc649fbad7f3eb90a2e957">&#9670;&#160;</a></span>create() <span class="overload">[3/4]</span></h2>
+<a id="a496853f23bd578352f2f6c61c8aa8397" name="a496853f23bd578352f2f6c61c8aa8397"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a496853f23bd578352f2f6c61c8aa8397">&#9670;&#160;</a></span>create() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -699,7 +716,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>secondaryCommandBuffers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1u</span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>secondaryCommandBuffers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1u</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>viewMask</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0b0000</span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -719,6 +741,7 @@ Additional Inherited Members</h2></td></tr>
     <tr><td class="paramname">inputAttachments</td><td>The input attachments that are read by the render pass.</td></tr>
     <tr><td class="paramname">inputAttachmentSamplerBinding</td><td>The binding point for the input attachment sampler.</td></tr>
     <tr><td class="paramname">secondaryCommandBuffers</td><td>The number of command buffers that can be used for recording multi-threaded commands during the render pass.</td></tr>
+    <tr><td class="paramname">viewMask</td><td>A mask that identifies the enabled view instances for this render pass.</td></tr>
   </table>
   </dd>
 </dl>
@@ -726,8 +749,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a1a873b8e418f38aceb59f735231f7084" name="a1a873b8e418f38aceb59f735231f7084"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1a873b8e418f38aceb59f735231f7084">&#9670;&#160;</a></span>create() <span class="overload">[4/4]</span></h2>
+<a id="a5ebea0c9c74f0cf8222cd3f29a897cfe" name="a5ebea0c9c74f0cf8222cd3f29a897cfe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ebea0c9c74f0cf8222cd3f29a897cfe">&#9670;&#160;</a></span>create() <span class="overload">[4/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -758,7 +781,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>secondaryCommandBuffers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1u</span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>secondaryCommandBuffers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1u</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>viewMask</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0b0000</span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -777,6 +805,7 @@ Additional Inherited Members</h2></td></tr>
     <tr><td class="paramname">inputAttachments</td><td>The input attachments that are read by the render pass.</td></tr>
     <tr><td class="paramname">inputAttachmentSamplerBinding</td><td>The binding point for the input attachment sampler.</td></tr>
     <tr><td class="paramname">secondaryCommandBuffers</td><td>The number of command buffers that can be used for recording multi-threaded commands during the render pass.</td></tr>
+    <tr><td class="paramname">viewMask</td><td>A mask that identifies the enabled view instances for this render pass.</td></tr>
   </table>
   </dd>
 </dl>
@@ -1059,6 +1088,37 @@ Additional Inherited Members</h2></td></tr>
  </p>
 
 <p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#af2adebb38d77cdb5f3d6d01eb11da44c">LiteFX::Rendering::IRenderPass</a>.</p>
+
+</div>
+</div>
+<a id="a171ebc7ecd0f56a0ff84c01b804966d0" name="a171ebc7ecd0f56a0ff84c01b804966d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a171ebc7ecd0f56a0ff84c01b804966d0">&#9670;&#160;</a></span>viewMask()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> DirectX12RenderPass::viewMask </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the mask that identifies the views that are enabled during rendering.<dl class="section return"><dt>Returns</dt><dd>A mask that identifies the views that are enabled during rendering.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_graphics_device_features.html#a2864e8562a91336ae4a9986ba36e892f" title="Enables support for view instancing/multi-view.">GraphicsDeviceFeatures::ViewInstancing</a></dd></dl>
+ </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ae799b0e8df54351a9218c21a8c88a6ff">LiteFX::Rendering::IRenderPass</a>.</p>
 
 </div>
 </div>

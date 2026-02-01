@@ -1,5 +1,6 @@
 var class_lite_f_x_1_1_rendering_1_1_i_swap_chain =
 [
+    [ "BackBufferSwapEventArgs", "struct_lite_f_x_1_1_rendering_1_1_i_swap_chain_1_1_back_buffer_swap_event_args.html", "struct_lite_f_x_1_1_rendering_1_1_i_swap_chain_1_1_back_buffer_swap_event_args" ],
     [ "ResetEventArgs", "struct_lite_f_x_1_1_rendering_1_1_i_swap_chain_1_1_reset_event_args.html", "struct_lite_f_x_1_1_rendering_1_1_i_swap_chain_1_1_reset_event_args" ],
     [ "ISwapChain", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#aa65de9a795d45cfc754e0595b729e915", null ],
     [ "ISwapChain", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#afb3480277242a471812529f1f5d86f95", null ],
@@ -25,5 +26,5 @@ var class_lite_f_x_1_1_rendering_1_1_i_swap_chain =
     [ "timingEvents", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#ad0c2de631eb5003fb9d76a70622cdd73", null ],
     [ "verticalSynchronization", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#aa3e08e9e612953b2205980dd83fc4284", null ],
     [ "reseted", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a80f0b972e54692cbd3e03097fc176664", null ],
-    [ "swapped", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#abc329ae843591573e64fdcbd1edd6fef", null ]
+    [ "swapped", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a94b034904f8d53b6c6e7f0dc8d34de5f", null ]
 ];

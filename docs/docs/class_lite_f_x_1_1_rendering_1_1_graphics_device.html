@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -127,6 +127,10 @@ Public Types</h2></td></tr>
 <tr class="separator:af9bb537bd60c60afcfd0bf597978be74"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa519ef5e52fadeee3c632b314106f6fa" id="r_aa519ef5e52fadeee3c632b314106f6fa"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa519ef5e52fadeee3c632b314106f6fa">command_buffer_type</a> = command_queue_type::command_buffer_type</td></tr>
 <tr class="separator:aa519ef5e52fadeee3c632b314106f6fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8d6848dd85b033a29a20f06b4d9f5f1" id="r_af8d6848dd85b033a29a20f06b4d9f5f1"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af8d6848dd85b033a29a20f06b4d9f5f1">descriptor_set_type</a> = command_buffer_type::descriptor_set_type</td></tr>
+<tr class="separator:af8d6848dd85b033a29a20f06b4d9f5f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07b2d8c6fd534ca9a5d8def8c3c8ccb0" id="r_a07b2d8c6fd534ca9a5d8def8c3c8ccb0"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a07b2d8c6fd534ca9a5d8def8c3c8ccb0">pipeline_type</a> = command_buffer_type::pipeline_type</td></tr>
+<tr class="separator:a07b2d8c6fd534ca9a5d8def8c3c8ccb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d03fe802c2a4c8a4a44fdadd768b097" id="r_a0d03fe802c2a4c8a4a44fdadd768b097"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0d03fe802c2a4c8a4a44fdadd768b097">factory_type</a> = TFactory</td></tr>
 <tr class="separator:a0d03fe802c2a4c8a4a44fdadd768b097"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a86770d5c965f5628f59f3e74e5f087a2" id="r_a86770d5c965f5628f59f3e74e5f087a2"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a86770d5c965f5628f59f3e74e5f087a2">barrier_type</a> = TBarrier</td></tr>
@@ -198,12 +202,26 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af25d9a0f1d72d70155ad340713b0549b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a990544d68238423be8d9242c0372da7f" id="r_a990544d68238423be8d9242c0372da7f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="#ab7c64d69afe01a6a82d695b09b36349e">frame_buffer_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a990544d68238423be8d9242c0372da7f">makeFrameBuffer</a> (const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;renderArea) const</td></tr>
 <tr class="separator:a990544d68238423be8d9242c0372da7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a368a3dea4812ceb3e504a56dab2d43aa" id="r_a368a3dea4812ceb3e504a56dab2d43aa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="#ab7c64d69afe01a6a82d695b09b36349e">frame_buffer_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a368a3dea4812ceb3e504a56dab2d43aa">makeFrameBuffer</a> (const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;renderArea, frame_buffer_type::allocation_callback_type allocationCallback) const</td></tr>
+<tr class="separator:a368a3dea4812ceb3e504a56dab2d43aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a99ce410c1927ca95ebb3ab94b1c266ef" id="r_a99ce410c1927ca95ebb3ab94b1c266ef"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="#ab7c64d69afe01a6a82d695b09b36349e">frame_buffer_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a99ce410c1927ca95ebb3ab94b1c266ef">makeFrameBuffer</a> (<a class="el" href="namespace_lite_f_x.html#a8f67ef1b66d8e11201ba89c9db51c0c8">StringView</a> name, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;renderArea) const =0</td></tr>
 <tr class="separator:a99ce410c1927ca95ebb3ab94b1c266ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af44e8b515aef0be7e8335515db9b33ee" id="r_af44e8b515aef0be7e8335515db9b33ee"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="#ab7c64d69afe01a6a82d695b09b36349e">frame_buffer_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af44e8b515aef0be7e8335515db9b33ee">makeFrameBuffer</a> (<a class="el" href="namespace_lite_f_x.html#a8f67ef1b66d8e11201ba89c9db51c0c8">StringView</a> name, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;renderArea, frame_buffer_type::allocation_callback_type allocationCallback) const =0</td></tr>
+<tr class="separator:af44e8b515aef0be7e8335515db9b33ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1d30af705c1f0f869c1bd10d0556a2ef" id="r_a1d30af705c1f0f869c1bd10d0556a2ef"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1d30af705c1f0f869c1bd10d0556a2ef">computeAccelerationStructureSizes</a> (const <a class="el" href="#a7b26eba342567305c0e5d189d7e37589">bottom_level_acceleration_structure_type</a> &amp;blas, <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> &amp;bufferSize, <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> &amp;scratchSize, bool forUpdate=false) const =0</td></tr>
 <tr class="separator:a1d30af705c1f0f869c1bd10d0556a2ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae1b2224dfaf48189973f484ef2683ca" id="r_aae1b2224dfaf48189973f484ef2683ca"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aae1b2224dfaf48189973f484ef2683ca">computeAccelerationStructureSizes</a> (const <a class="el" href="#a0e4e49fda80199f43e633b82992a09d4">top_level_acceleration_structure_type</a> &amp;tlas, <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> &amp;bufferSize, <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> &amp;scratchSize, bool forUpdate=false) const =0</td></tr>
 <tr class="separator:aae1b2224dfaf48189973f484ef2683ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af34054845f253e063ecfb641dc3a71a6" id="r_af34054845f253e063ecfb641dc3a71a6"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_virtual_allocator_1_1_allocation.html">VirtualAllocator::Allocation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af34054845f253e063ecfb641dc3a71a6">allocateGlobalDescriptors</a> (const <a class="el" href="#af8d6848dd85b033a29a20f06b4d9f5f1">descriptor_set_type</a> &amp;descriptorSet, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a> heapType) const =0</td></tr>
+<tr class="separator:af34054845f253e063ecfb641dc3a71a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96adf992573d47d7240ef8697a8ee6ab" id="r_a96adf992573d47d7240ef8697a8ee6ab"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a96adf992573d47d7240ef8697a8ee6ab">releaseGlobalDescriptors</a> (const <a class="el" href="#af8d6848dd85b033a29a20f06b4d9f5f1">descriptor_set_type</a> &amp;descriptorSet) const =0</td></tr>
+<tr class="separator:a96adf992573d47d7240ef8697a8ee6ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c17902e9322c15077c68472138d33c9" id="r_a5c17902e9322c15077c68472138d33c9"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5c17902e9322c15077c68472138d33c9">updateGlobalDescriptors</a> (const <a class="el" href="#af8d6848dd85b033a29a20f06b4d9f5f1">descriptor_set_type</a> &amp;descriptorSet, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> offset, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptors) const =0</td></tr>
+<tr class="separator:a5c17902e9322c15077c68472138d33c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af63cc97eeb7052b67e9dafeaeef12ec8" id="r_af63cc97eeb7052b67e9dafeaeef12ec8"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af63cc97eeb7052b67e9dafeaeef12ec8">bindDescriptorSet</a> (const <a class="el" href="#aa519ef5e52fadeee3c632b314106f6fa">command_buffer_type</a> &amp;commandBuffer, const <a class="el" href="#af8d6848dd85b033a29a20f06b4d9f5f1">descriptor_set_type</a> &amp;descriptorSet, const <a class="el" href="#a07b2d8c6fd534ca9a5d8def8c3c8ccb0">pipeline_type</a> &amp;pipeline) const noexcept=0</td></tr>
+<tr class="separator:af63cc97eeb7052b67e9dafeaeef12ec8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae99071fb074a9f65fc57f88414ec0d4d" id="r_ae99071fb074a9f65fc57f88414ec0d4d"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae99071fb074a9f65fc57f88414ec0d4d">bindGlobalDescriptorHeaps</a> (const <a class="el" href="#aa519ef5e52fadeee3c632b314106f6fa">command_buffer_type</a> &amp;commandBuffer) const noexcept=0</td></tr>
+<tr class="separator:ae99071fb074a9f65fc57f88414ec0d4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a></td></tr>
 <tr class="memitem:ab6915ddf6ab441a154714b77420ffccf inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device" id="r_ab6915ddf6ab441a154714b77420ffccf"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab6915ddf6ab441a154714b77420ffccf">~IGraphicsDevice</a> () noexcept override=default</td></tr>
 <tr class="separator:ab6915ddf6ab441a154714b77420ffccf inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -237,6 +255,21 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad6612c13e9dab344b1d2c1e8641ceb35 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device" id="r_ad6612c13e9dab344b1d2c1e8641ceb35"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ad6612c13e9dab344b1d2c1e8641ceb35">computeAccelerationStructureSizes</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_top_level_acceleration_structure.html">ITopLevelAccelerationStructure</a> &amp;tlas, <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> &amp;bufferSize, <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> &amp;scratchSize, bool forUpdate=false) const</td></tr>
 <tr class="memdesc:ad6612c13e9dab344b1d2c1e8641ceb35 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes the required amount of device memory for an <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_top_level_acceleration_structure.html" title="A structure that stores the instance data for a IBottomLevelAccelerationStructure.">ITopLevelAccelerationStructure</a>.  <br /></td></tr>
 <tr class="separator:ad6612c13e9dab344b1d2c1e8641ceb35 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0e1c7678759935cfe4530714450a645 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device" id="r_ab0e1c7678759935cfe4530714450a645"><td class="memItemLeft" align="right" valign="top"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_virtual_allocator_1_1_allocation.html">VirtualAllocator::Allocation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab0e1c7678759935cfe4530714450a645">allocateGlobalDescriptors</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &amp;descriptorSet, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a> heapType) const</td></tr>
+<tr class="memdesc:ab0e1c7678759935cfe4530714450a645 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a range of descriptors in the global descriptor heaps for the provided <em>descriptorSet</em> .  <br /></td></tr>
+<tr class="separator:ab0e1c7678759935cfe4530714450a645 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7064ad5dfd8f07ff6bf4e172413f9b9c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device" id="r_a7064ad5dfd8f07ff6bf4e172413f9b9c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a7064ad5dfd8f07ff6bf4e172413f9b9c">releaseGlobalDescriptors</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &amp;descriptorSet) const</td></tr>
+<tr class="memdesc:a7064ad5dfd8f07ff6bf4e172413f9b9c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="mdescLeft">&#160;</td><td class="mdescRight">Releases a range of descriptors from the global descriptor heaps.  <br /></td></tr>
+<tr class="separator:a7064ad5dfd8f07ff6bf4e172413f9b9c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0f56e17b373a23f3890e862b2f0f885 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device" id="r_ab0f56e17b373a23f3890e862b2f0f885"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab0f56e17b373a23f3890e862b2f0f885">updateGlobalDescriptors</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &amp;descriptorSet, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> offset, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptors) const</td></tr>
+<tr class="memdesc:ab0f56e17b373a23f3890e862b2f0f885 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates a range of descriptors in the global buffer descriptor heap with the descriptors from <em>descriptorSet</em> .  <br /></td></tr>
+<tr class="separator:ab0f56e17b373a23f3890e862b2f0f885 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c710cf0856bf01d817a81500c45704d inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device" id="r_a6c710cf0856bf01d817a81500c45704d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a6c710cf0856bf01d817a81500c45704d">bindDescriptorSet</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">ICommandBuffer</a> &amp;commandBuffer, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &amp;descriptorSet, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html">IPipeline</a> &amp;pipeline) const noexcept</td></tr>
+<tr class="memdesc:a6c710cf0856bf01d817a81500c45704d inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds the descriptors of the descriptor set to the global descriptor heaps.  <br /></td></tr>
+<tr class="separator:a6c710cf0856bf01d817a81500c45704d inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49c737165888b098da986ee8358ddb01 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device" id="r_a49c737165888b098da986ee8358ddb01"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a49c737165888b098da986ee8358ddb01">bindGlobalDescriptorHeaps</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">ICommandBuffer</a> &amp;commandBuffer) const noexcept</td></tr>
+<tr class="memdesc:a49c737165888b098da986ee8358ddb01 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds the global descriptor heap.  <br /></td></tr>
+<tr class="separator:a49c737165888b098da986ee8358ddb01 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac3cc5c49c78a4abd7d739b185f99889f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device" id="r_ac3cc5c49c78a4abd7d739b185f99889f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ac3cc5c49c78a4abd7d739b185f99889f">wait</a> () const =0</td></tr>
 <tr class="memdesc:ac3cc5c49c78a4abd7d739b185f99889f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="mdescLeft">&#160;</td><td class="mdescRight">Waits until all queues allocated from the device have finished the work issued prior to this point.  <br /></td></tr>
 <tr class="separator:ac3cc5c49c78a4abd7d739b185f99889f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -446,6 +479,22 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
 
 </div>
 </div>
+<a id="af8d6848dd85b033a29a20f06b4d9f5f1" name="af8d6848dd85b033a29a20f06b4d9f5f1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af8d6848dd85b033a29a20f06b4d9f5f1">&#9670;&#160;</a></span>descriptor_set_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TRenderPipeline , typename TComputePipeline , typename TRayTracingPipeline , typename TBarrier &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html">LiteFX::Rendering::GraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TRenderPipeline, TComputePipeline, TRayTracingPipeline, TBarrier &gt;::descriptor_set_type = command_buffer_type::descriptor_set_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a0d03fe802c2a4c8a4a44fdadd768b097" name="a0d03fe802c2a4c8a4a44fdadd768b097"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0d03fe802c2a4c8a4a44fdadd768b097">&#9670;&#160;</a></span>factory_type</h2>
 
@@ -536,6 +585,22 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
       <table class="memname">
         <tr>
           <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html">LiteFX::Rendering::GraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TRenderPipeline, TComputePipeline, TRayTracingPipeline, TBarrier &gt;::pipeline_layout_type = render_pipeline_type::pipeline_layout_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a07b2d8c6fd534ca9a5d8def8c3c8ccb0" name="a07b2d8c6fd534ca9a5d8def8c3c8ccb0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a07b2d8c6fd534ca9a5d8def8c3c8ccb0">&#9670;&#160;</a></span>pipeline_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TRenderPipeline , typename TComputePipeline , typename TRayTracingPipeline , typename TBarrier &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html">LiteFX::Rendering::GraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TRenderPipeline, TComputePipeline, TRayTracingPipeline, TBarrier &gt;::pipeline_type = command_buffer_type::pipeline_type</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -846,6 +911,106 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
 
 </div>
 </div>
+<a id="af34054845f253e063ecfb641dc3a71a6" name="af34054845f253e063ecfb641dc3a71a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af34054845f253e063ecfb641dc3a71a6">&#9670;&#160;</a></span>allocateGlobalDescriptors()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TRenderPipeline , typename TComputePipeline , typename TRayTracingPipeline , typename TBarrier &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_virtual_allocator_1_1_allocation.html">VirtualAllocator::Allocation</a> <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html">LiteFX::Rendering::GraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TRenderPipeline, TComputePipeline, TRayTracingPipeline, TBarrier &gt;::allocateGlobalDescriptors </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="#af8d6848dd85b033a29a20f06b4d9f5f1">descriptor_set_type</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>descriptorSet</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a></td>          <td class="paramname"><span class="paramname"><em>heapType</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">nodiscard</span><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="af63cc97eeb7052b67e9dafeaeef12ec8" name="af63cc97eeb7052b67e9dafeaeef12ec8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af63cc97eeb7052b67e9dafeaeef12ec8">&#9670;&#160;</a></span>bindDescriptorSet()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TRenderPipeline , typename TComputePipeline , typename TRayTracingPipeline , typename TBarrier &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html">LiteFX::Rendering::GraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TRenderPipeline, TComputePipeline, TRayTracingPipeline, TBarrier &gt;::bindDescriptorSet </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="#aa519ef5e52fadeee3c632b314106f6fa">command_buffer_type</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>commandBuffer</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="#af8d6848dd85b033a29a20f06b4d9f5f1">descriptor_set_type</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>descriptorSet</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="#a07b2d8c6fd534ca9a5d8def8c3c8ccb0">pipeline_type</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>pipeline</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="ae99071fb074a9f65fc57f88414ec0d4d" name="ae99071fb074a9f65fc57f88414ec0d4d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae99071fb074a9f65fc57f88414ec0d4d">&#9670;&#160;</a></span>bindGlobalDescriptorHeaps()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TRenderPipeline , typename TComputePipeline , typename TRayTracingPipeline , typename TBarrier &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html">LiteFX::Rendering::GraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TRenderPipeline, TComputePipeline, TRayTracingPipeline, TBarrier &gt;::bindGlobalDescriptorHeaps </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="#aa519ef5e52fadeee3c632b314106f6fa">command_buffer_type</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>commandBuffer</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
 <a id="a1d30af705c1f0f869c1bd10d0556a2ef" name="a1d30af705c1f0f869c1bd10d0556a2ef"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1d30af705c1f0f869c1bd10d0556a2ef">&#9670;&#160;</a></span>computeAccelerationStructureSizes() <span class="overload">[1/2]</span></h2>
 
@@ -1068,7 +1233,7 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
 </div>
 </div>
 <a id="a990544d68238423be8d9242c0372da7f" name="a990544d68238423be8d9242c0372da7f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a990544d68238423be8d9242c0372da7f">&#9670;&#160;</a></span>makeFrameBuffer() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a990544d68238423be8d9242c0372da7f">&#9670;&#160;</a></span>makeFrameBuffer() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1096,8 +1261,45 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
 
 </div>
 </div>
+<a id="a368a3dea4812ceb3e504a56dab2d43aa" name="a368a3dea4812ceb3e504a56dab2d43aa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a368a3dea4812ceb3e504a56dab2d43aa">&#9670;&#160;</a></span>makeFrameBuffer() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TRenderPipeline , typename TComputePipeline , typename TRayTracingPipeline , typename TBarrier &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="#ab7c64d69afe01a6a82d695b09b36349e">frame_buffer_type</a> &gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html">LiteFX::Rendering::GraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TRenderPipeline, TComputePipeline, TRayTracingPipeline, TBarrier &gt;::makeFrameBuffer </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>renderArea</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">frame_buffer_type::allocation_callback_type</td>          <td class="paramname"><span class="paramname"><em>allocationCallback</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">nodiscard</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">allocationCallback</td><td>A callback that gets invoked, when the frame buffer allocates a new image.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="a99ce410c1927ca95ebb3ab94b1c266ef" name="a99ce410c1927ca95ebb3ab94b1c266ef"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a99ce410c1927ca95ebb3ab94b1c266ef">&#9670;&#160;</a></span>makeFrameBuffer() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a99ce410c1927ca95ebb3ab94b1c266ef">&#9670;&#160;</a></span>makeFrameBuffer() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1128,6 +1330,48 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
 <p></p>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html#a3dfabb4d40dddfe37e07d24e62f0102f">LiteFX::Rendering::Backends::DirectX12Device</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html#a014a7f190aa23da570a559c1a5ed6b6a">LiteFX::Rendering::Backends::VulkanDevice</a>.</p>
+
+</div>
+</div>
+<a id="af44e8b515aef0be7e8335515db9b33ee" name="af44e8b515aef0be7e8335515db9b33ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af44e8b515aef0be7e8335515db9b33ee">&#9670;&#160;</a></span>makeFrameBuffer() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TRenderPipeline , typename TComputePipeline , typename TRayTracingPipeline , typename TBarrier &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="#ab7c64d69afe01a6a82d695b09b36349e">frame_buffer_type</a> &gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html">LiteFX::Rendering::GraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TRenderPipeline, TComputePipeline, TRayTracingPipeline, TBarrier &gt;::makeFrameBuffer </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#a8f67ef1b66d8e11201ba89c9db51c0c8">StringView</a></td>          <td class="paramname"><span class="paramname"><em>name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>renderArea</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">frame_buffer_type::allocation_callback_type</td>          <td class="paramname"><span class="paramname"><em>allocationCallback</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">nodiscard</span><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">allocationCallback</td><td>A callback that gets invoked, when the frame buffer allocates a new image.</td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -1182,6 +1426,35 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a96adf992573d47d7240ef8697a8ee6ab" name="a96adf992573d47d7240ef8697a8ee6ab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96adf992573d47d7240ef8697a8ee6ab">&#9670;&#160;</a></span>releaseGlobalDescriptors()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TRenderPipeline , typename TComputePipeline , typename TRayTracingPipeline , typename TBarrier &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html">LiteFX::Rendering::GraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TRenderPipeline, TComputePipeline, TRayTracingPipeline, TBarrier &gt;::releaseGlobalDescriptors </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="#af8d6848dd85b033a29a20f06b4d9f5f1">descriptor_set_type</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>descriptorSet</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
 
 </div>
 </div>
@@ -1284,6 +1557,49 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
 <p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a0ed71276112e987c1159b0f734383954">LiteFX::Rendering::IGraphicsDevice</a>.</p>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html#a16fccfb885685d0c9784b116a58a10b0">LiteFX::Rendering::Backends::DirectX12Device</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html#acb063ba9341d8822861406fb2e5b2577">LiteFX::Rendering::Backends::VulkanDevice</a>.</p>
+
+</div>
+</div>
+<a id="a5c17902e9322c15077c68472138d33c9" name="a5c17902e9322c15077c68472138d33c9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5c17902e9322c15077c68472138d33c9">&#9670;&#160;</a></span>updateGlobalDescriptors()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TRenderPipeline , typename TComputePipeline , typename TRayTracingPipeline , typename TBarrier &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html">LiteFX::Rendering::GraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TRenderPipeline, TComputePipeline, TRayTracingPipeline, TBarrier &gt;::updateGlobalDescriptors </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="#af8d6848dd85b033a29a20f06b4d9f5f1">descriptor_set_type</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>descriptorSet</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>binding</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>offset</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>descriptors</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
 
 </div>
 </div>

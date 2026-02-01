@@ -10,6 +10,7 @@ var class_lite_f_x_1_1_rendering_1_1_i_command_queue =
     [ "createCommandBuffer", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a6f6f50abfd1f611a119fd6409ceb6b3c", null ],
     [ "currentFence", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a46159f8ced178e93698477af42cf4412", null ],
     [ "endDebugRegion", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#ad080d3eb2c882b90d076c31314838f45", null ],
+    [ "lastCompletedFence", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a01933d7b2b50003647bef6a530dff290", null ],
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a9fbbea3d16d78ebad506fbbcd2b6eade", null ],
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a54778e0c213f097119c01789dce47bc9", null ],
     [ "priority", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#ace8eda10c817fa17c5e2a933d00f13a0", null ],

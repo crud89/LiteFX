@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -122,10 +122,31 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a753f47d13c87eae6e07ef932a9c3670c" id="r_a753f47d13c87eae6e07ef932a9c3670c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#a5225a0e751bc457ddf6c4a9bb7f94443">CompareOperation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a753f47d13c87eae6e07ef932a9c3670c">Operation</a> { <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a5225a0e751bc457ddf6c4a9bb7f94443a68eec46437c384d8dad18d5464ebc35c">CompareOperation::Always</a> }</td></tr>
 <tr class="memdesc:a753f47d13c87eae6e07ef932a9c3670c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The compare operation used to pass the depth test (default: <code><a class="el" href="namespace_lite_f_x_1_1_rendering.html#a5225a0e751bc457ddf6c4a9bb7f94443a68eec46437c384d8dad18d5464ebc35c" title="The test always succeeds.">CompareOperation::Always</a></code>).  <br /></td></tr>
 <tr class="separator:a753f47d13c87eae6e07ef932a9c3670c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9551ac5efbdaae4463b57948cd23503b" id="r_a9551ac5efbdaae4463b57948cd23503b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9551ac5efbdaae4463b57948cd23503b">DepthBoundsTestEnable</a> { false }</td></tr>
+<tr class="memdesc:a9551ac5efbdaae4463b57948cd23503b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enables the depth bounds test.  <br /></td></tr>
+<tr class="separator:a9551ac5efbdaae4463b57948cd23503b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Describes the rasterizer depth state. </p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
+<a id="a9551ac5efbdaae4463b57948cd23503b" name="a9551ac5efbdaae4463b57948cd23503b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9551ac5efbdaae4463b57948cd23503b">&#9670;&#160;</a></span>DepthBoundsTestEnable</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool LiteFX::Rendering::DepthStencilState::DepthState::DepthBoundsTestEnable { false }</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Enables the depth bounds test. </p>
+<p>Enabling the depth bounds test allows to supply a depth range to the command buffer by calling <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a4f63da9b8ac29e5d8231f0bd3cbcc13d" title="Sets the depth range for the depth bounds test.">ICommandBuffer::setDepthBounds</a>, which will cause an rasterization operation to exit early, if the resulting depth lies outside of the provided range. To use this test, the <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_graphics_device_features.html#a86e94edc73501390c89a23aa66dc9fed" title="Enables support for enabling depth bounds test on IRenderPipeline creation.">GraphicsDeviceFeatures::DepthBoundsTest</a> must be enabled on the device. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_graphics_device_features.html#a86e94edc73501390c89a23aa66dc9fed" title="Enables support for enabling depth bounds test on IRenderPipeline creation.">GraphicsDeviceFeatures::DepthBoundsTest</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a4f63da9b8ac29e5d8231f0bd3cbcc13d" title="Sets the depth range for the depth bounds test.">ICommandBuffer::setDepthBounds</a></dd></dl>
+
+</div>
+</div>
 <a id="a1b66f40929b12de490188d105b9d0c53" name="a1b66f40929b12de490188d105b9d0c53"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1b66f40929b12de490188d105b9d0c53">&#9670;&#160;</a></span>Enable</h2>
 

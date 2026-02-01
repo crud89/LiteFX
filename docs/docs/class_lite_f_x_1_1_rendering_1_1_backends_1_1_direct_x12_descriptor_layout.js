@@ -1,7 +1,7 @@
 var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout =
 [
     [ "DirectX12DescriptorLayoutImpl", "class_direct_x12_descriptor_layout_1_1_direct_x12_descriptor_layout_impl.html", "class_direct_x12_descriptor_layout_1_1_direct_x12_descriptor_layout_impl" ],
-    [ "DirectX12DescriptorLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html#af289e54fadcf6f30a46a844275d75ff5", null ],
+    [ "DirectX12DescriptorLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html#adcdbc7761c174b179d425c3a0ec34eeb", null ],
     [ "DirectX12DescriptorLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html#a47592c0292a3699a3645faa4fcb50cee", null ],
     [ "DirectX12DescriptorLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html#a23f96aeb09e9280f0d6ae75a2c13e75e", null ],
     [ "DirectX12DescriptorLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html#ac49da315c82cf53e9af221a2f76475a7", null ],
@@ -14,5 +14,6 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout =
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html#a9a0329fae42f01d221b5fef96bd0c098", null ],
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html#ad15b86050be802b3fd32b58c97f90ff7", null ],
     [ "staticSampler", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html#ac9ac2649d24d43d42978f0a31c838c08", null ],
-    [ "type", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html#acbffc4a17f2f89dfa5ed1a7ac6c6caaf", null ]
+    [ "type", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html#acbffc4a17f2f89dfa5ed1a7ac6c6caaf", null ],
+    [ "unbounded", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html#a0f934ce22ccf366e7fd9ce1dfa934e08", null ]
 ];

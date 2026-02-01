@@ -8,7 +8,7 @@ var searchData=
   ['debug_5',['Debug',['../namespace_lite_f_x_1_1_logging.html#acc8c01209124c287a3c2d38ce65a6bd4aa603905470e2a5b8c13e96b579ef0dba',1,'LiteFX::Logging']]],
   ['decrementclamp_6',['DecrementClamp',['../namespace_lite_f_x_1_1_rendering.html#aadcfd6839d84bb316d2083e31ea9e779a669ecd4a04c7b2cda3fbf54f62e180f1',1,'LiteFX::Rendering']]],
   ['decrementwrap_7',['DecrementWrap',['../namespace_lite_f_x_1_1_rendering.html#aadcfd6839d84bb316d2083e31ea9e779a6ec565c329385c8d59333abc6a1003d1',1,'LiteFX::Rendering']]],
-  ['default_8',['Default',['../namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951a7a1920d61156abc05a60135aefe8bc67',1,'LiteFX::Rendering']]],
+  ['default_8',['Default',['../namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951a7a1920d61156abc05a60135aefe8bc67',1,'LiteFX::Rendering::Default'],['../namespace_lite_f_x_1_1_rendering.html#abed15e7a2e5c084be01bcbb34b187006a7a1920d61156abc05a60135aefe8bc67',1,'LiteFX::Rendering::Default'],['../namespace_lite_f_x_1_1_rendering.html#a93342e92b065b4812c4df0e84c40f32aa7a1920d61156abc05a60135aefe8bc67',1,'LiteFX::Rendering::Default']]],
   ['depthread_9',['DepthRead',['../namespace_lite_f_x_1_1_rendering.html#a190ea10dd0d34250e0efc1b42ba3f85aa69c3a81edd67a72d6b689041da32bccf',1,'LiteFX::Rendering']]],
   ['depthstencil_10',['DepthStencil',['../namespace_lite_f_x_1_1_rendering.html#a39d63805121c43d3cace662f9715cc6ea2fa8076285272883c91e14402975a441',1,'LiteFX::Rendering::DepthStencil'],['../namespace_lite_f_x_1_1_rendering.html#ad0c4e431db149130a77cfbbbe1aa8235a2fa8076285272883c91e14402975a441',1,'LiteFX::Rendering::DepthStencil']]],
   ['depthstencilread_11',['DepthStencilRead',['../namespace_lite_f_x_1_1_rendering.html#aeef4135fde82b432c3c9be79319224c5aa7419f15f4d15322a98d29734b8e48b4',1,'LiteFX::Rendering']]],
@@ -21,6 +21,7 @@ var searchData=
   ['dim_5f3_18',['DIM_3',['../namespace_lite_f_x_1_1_rendering.html#a91a29252bc272695de3e5d3df842f722a4e65ff61a5ebc37871950c04c6e9fa33',1,'LiteFX::Rendering']]],
   ['disablecull_19',['DisableCull',['../namespace_lite_f_x_1_1_rendering.html#a79b3fdf6ee5d9aff32eac0ff82495f15a0a3d0892669ed820edd8d8917cc4206f',1,'LiteFX::Rendering']]],
   ['disabled_20',['Disabled',['../namespace_lite_f_x_1_1_rendering.html#a244e97b48a2d14fe152c4a104b0ee25dab9f5c797ebbf55adccdd8539a65a0241',1,'LiteFX::Rendering']]],
-  ['draw_21',['Draw',['../namespace_lite_f_x_1_1_rendering.html#ad0c4e431db149130a77cfbbbe1aa8235a2d03c2d5a7ec65ef4619e0582c272ec2',1,'LiteFX::Rendering']]],
-  ['dynamic_22',['Dynamic',['../namespace_lite_f_x_1_1_rendering.html#aa9d1b33dd191db51b1aa8a122d333e9da971fd8cc345d8bd9f92e9f7d88fdf20c',1,'LiteFX::Rendering']]]
+  ['dontexpandcache_21',['DontExpandCache',['../namespace_lite_f_x_1_1_rendering.html#abed15e7a2e5c084be01bcbb34b187006acc2a0af8367a2ab3e29c61c7ef94b9d2',1,'LiteFX::Rendering']]],
+  ['draw_22',['Draw',['../namespace_lite_f_x_1_1_rendering.html#ad0c4e431db149130a77cfbbbe1aa8235a2d03c2d5a7ec65ef4619e0582c272ec2',1,'LiteFX::Rendering']]],
+  ['dynamic_23',['Dynamic',['../namespace_lite_f_x_1_1_rendering.html#aa9d1b33dd191db51b1aa8a122d333e9da971fd8cc345d8bd9f92e9f7d88fdf20c',1,'LiteFX::Rendering']]]
 ];

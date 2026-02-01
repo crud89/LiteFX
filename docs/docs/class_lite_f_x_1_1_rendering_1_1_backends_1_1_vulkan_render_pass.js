@@ -17,5 +17,6 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass =
     [ "renderTarget", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html#a0898abaa5740d77866fd3f246c488d0a", null ],
     [ "renderTargets", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html#acf22d3a89ee345e11996496d97e9d9fa", null ],
     [ "secondaryCommandBuffers", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html#a25e3acc56388f3316176e9b23f0ce544", null ],
+    [ "viewMask", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html#a99c8608552badfa250ee1ae1b360d00d", null ],
     [ "SharedObject::Allocator< VulkanRenderPass >", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html#ad9f87fa8aaeb5d82c78a98b50625ae43", null ]
 ];
