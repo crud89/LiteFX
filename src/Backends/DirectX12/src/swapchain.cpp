@@ -26,7 +26,6 @@ private:
 	Array<UInt64> m_timestamps;
 	Array<ComPtr<ID3D12QueryHeap>> m_timingQueryHeaps;
 	Array<SharedPtr<IDirectX12Buffer>> m_timingQueryReadbackBuffers;
-	ID3D12QueryHeap* m_currentQueryHeap{};
 
 public:
 	DirectX12SwapChainImpl(const DirectX12Device& device) :
