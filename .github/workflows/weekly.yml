@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        profile: [ windows-x64-msvc, windows-x86-msvc, windows-x64-clang ]
+        profile: [windows-x64-msvc, windows-x86-msvc, windows-x64-clang, windows-x86-clang ]
         include:
           - profile: windows-x64-msvc
             compiler: msvc
@@ -40,7 +40,12 @@ jobs:
             triplet: x64-windows
             configuration: windows-clang-x64-release
             architecture: x64
-            
+          - profile: windows-x86-clang
+            compiler: clang
+            triplet: x86-windows
+            configuration: windows-clang-x86-release
+            architecture: x86
+
     env:
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}-rel
       VCPKG_FEATURE_FLAGS: 'manifests'
