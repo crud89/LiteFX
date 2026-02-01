@@ -499,7 +499,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [ windows-msvc-x64, windows-msvc-x64-static, windows-msvc-x86, windows-msvc-x86-static, windows-clang-x64, windows-clang-x64-static ]
+        name: [ windows-msvc-x64, windows-msvc-x64-static, windows-msvc-x86, windows-msvc-x86-static, windows-clang-x64, windows-clang-x64-static, windows-clang-x86, windows-clang-x86-static ]
         include:
           - name: windows-msvc-x64
             os: windows-latest
@@ -531,6 +531,16 @@ jobs:
             compiler: clang
             triplet: x64-windows
             configuration: windows-clang-x64-release-static
+          - name: windows-clang-x86
+            os: windows-latest
+            compiler: clang
+            triplet: x86-windows
+            configuration: windows-clang-x86-release
+          - name: windows-clang-x86-static
+            os: windows-latest
+            compiler: clang
+            triplet: x86-windows
+            configuration: windows-clang-x86-release-static
 
     env:
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}-rel
