@@ -13,7 +13,7 @@ on:
     - cron: '1 0 * * 1'         # Run every monday night at 00:01 AM (UTC).
     
 env:
-  vulkanSdkVersion: '1.3.268.0'
+  vulkanSdkVersion: '1.4.328.1'
   llvmVersion: '19.1.7'
 
 jobs:

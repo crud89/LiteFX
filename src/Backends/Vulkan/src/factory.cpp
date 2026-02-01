@@ -54,7 +54,7 @@ public:
 		allocatorInfo.instance = device.surface().instance();
 		allocatorInfo.device = device.handle();
 		allocatorInfo.flags = createFlags;
-		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_3;
+		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_4;
 
 		raiseIfFailed(::vmaCreateAllocator(&allocatorInfo, &m_allocator), "Unable to create Vulkan memory allocator.");
 

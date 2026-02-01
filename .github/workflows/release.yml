@@ -18,7 +18,7 @@ on:
         required: true
 
 env:
-  vulkanSdkVersion: '1.3.268.0'
+  vulkanSdkVersion: '1.4.328.1'
   llvmVersion: '19.1.7'
 
 jobs:
