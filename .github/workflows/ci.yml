@@ -126,7 +126,7 @@ jobs:
       
     steps:
       - name: Setup Vulkan SDK 
-        uses: jakoch/install-vulkan-sdk-action@v1.0.4
+        uses: jakoch/install-vulkan-sdk-action@v1
         with:
           vulkan_version: ${{ env.vulkanSdkVersion }}
           install_runtime: true
@@ -238,7 +238,7 @@ jobs:
           submodules: true
 
       - name: Setup Vulkan SDK 
-        uses: jakoch/install-vulkan-sdk-action@v1.0.4
+        uses: jakoch/install-vulkan-sdk-action@v1
         with:
           vulkan_version: ${{ env.vulkanSdkVersion }}
           install_runtime: true
@@ -428,7 +428,7 @@ jobs:
           submodules: true
 
       - name: Setup Vulkan SDK 
-        uses: jakoch/install-vulkan-sdk-action@v1.0.4
+        uses: jakoch/install-vulkan-sdk-action@v1
         with:
           vulkan_version: ${{ env.vulkanSdkVersion }}
           install_runtime: true
@@ -581,7 +581,7 @@ jobs:
           status: in_progress
           
       - name: Setup Vulkan SDK 
-        uses: jakoch/install-vulkan-sdk-action@v1.0.4
+        uses: jakoch/install-vulkan-sdk-action@v1
         with:
           vulkan_version: ${{ env.vulkanSdkVersion }}
           install_runtime: true
