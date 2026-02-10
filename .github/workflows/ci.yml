@@ -33,7 +33,7 @@ on:
 env:
   vulkanSdkVersion: '1.4.328.1'
   mesaDriverVersion: '24.1.1'
-  llvmVersion: '19.1.7'
+  llvmVersion: '20.1.8'
 
 # The following jobs are contained in this workflow:
 # - First, the `verify-permissions` job is executed. It checks if the comment user is a contributer or maintainer and if the comment refers to a pull request. It then parses the 
@@ -254,7 +254,7 @@ jobs:
 
       - name: Update LLVM
         if: ${{ matrix.compiler == 'clang' }}
-        uses: KyleMayes/install-llvm-action@v2.0.6
+        uses: KyleMayes/install-llvm-action@v2.0.9
         with:
           version: ${{ env.llvmVersion }}
 
@@ -437,7 +437,7 @@ jobs:
           
       - name: Update LLVM
         if: ${{ matrix.compiler == 'clang' }}
-        uses: KyleMayes/install-llvm-action@v2.0.6
+        uses: KyleMayes/install-llvm-action@v2.0.9
         with:
           version: ${{ env.llvmVersion }}
         
@@ -499,7 +499,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [ windows-msvc-x64, windows-msvc-x64-static, windows-msvc-x86, windows-msvc-x86-static, windows-clang-x64, windows-clang-x64-static ]
+        name: [ windows-msvc-x64, windows-msvc-x64-static, windows-msvc-x86, windows-msvc-x86-static, windows-clang-x64, windows-clang-x64-static, windows-clang-x86, windows-clang-x86-static ]
         include:
           - name: windows-msvc-x64
             os: windows-latest
@@ -531,6 +531,16 @@ jobs:
             compiler: clang
             triplet: x64-windows
             configuration: windows-clang-x64-release-static
+          - name: windows-clang-x86
+            os: windows-latest
+            compiler: clang
+            triplet: x86-windows
+            configuration: windows-clang-x86-release
+          - name: windows-clang-x86-static
+            os: windows-latest
+            compiler: clang
+            triplet: x86-windows
+            configuration: windows-clang-x86-release-static
 
     env:
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}-rel
@@ -598,7 +608,7 @@ jobs:
           
       - name: Update LLVM
         if: ${{ matrix.compiler == 'clang' }}
-        uses: KyleMayes/install-llvm-action@v2.0.6
+        uses: KyleMayes/install-llvm-action@v2.0.9
         with:
           version: ${{ env.llvmVersion }}
           

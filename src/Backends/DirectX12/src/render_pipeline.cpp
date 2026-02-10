@@ -19,7 +19,6 @@ private:
 	SharedPtr<DirectX12InputAssembler> m_inputAssembler;
 	SharedPtr<DirectX12Rasterizer> m_rasterizer;
 	Vector4f m_blendFactors{ 0.f, 0.f, 0.f, 0.f };
-	UInt32 m_stencilRef{ 0 };
 	bool m_alphaToCoverage{ false };
 	MultiSamplingLevel m_samples{ MultiSamplingLevel::x1 };
 	SharedPtr<IDirectX12Sampler> m_inputAttachmentSampler;

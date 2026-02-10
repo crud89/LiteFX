@@ -19,7 +19,7 @@ on:
 
 env:
   vulkanSdkVersion: '1.4.328.1'
-  llvmVersion: '19.1.7'
+  llvmVersion: '20.1.8'
 
 jobs:
   build:
@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        profile: [ windows-msvc-x64, windows-msvc-x86, windows-clang-x64 ]
+        profile: [ windows-msvc-x64, windows-msvc-x86, windows-clang-x64, windows-clang-x86 ]
         include:
           - profile: windows-msvc-x64
             triplet: x64-windows
@@ -45,7 +45,12 @@ jobs:
             compiler: clang
             architecture: x64
             artifact: win_x64_clang
-            
+          - profile: windows-clang-x86
+            triplet: x86-windows
+            compiler: clang
+            architecture: x86
+            artifact: win_x86_clang
+
     env:
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}-rel
       VCPKG_FEATURE_FLAGS: 'manifests'
@@ -67,7 +72,7 @@ jobs:
           
       - name: Update LLVM
         if: ${{ matrix.compiler == 'clang' }}
-        uses: KyleMayes/install-llvm-action@v2.0.6
+        uses: KyleMayes/install-llvm-action@v2.0.9
         with:
           version: ${{ env.llvmVersion }}
           
@@ -142,6 +147,12 @@ jobs:
           name: LiteFX_win_x64_clang
           path: ${{ github.workspace }}/../.artifacts/clang/x64/
 
+      - name: Download windows-clang-x86 artifacts...
+        uses: actions/download-artifact@v4
+        with:
+          name: LiteFX_win_x86_clang
+          path: ${{ github.workspace }}/../.artifacts/clang/x86/
+
       - run: |
          ls -R ${{ github.workspace }}/../.artifacts/
 
@@ -156,6 +167,9 @@ jobs:
 
       - run: zip -r ${{ github.workspace }}/../windows-x64-clang.zip .
         working-directory: ${{ github.workspace }}/../.artifacts/clang/x64/
+
+      - run: zip -r ${{ github.workspace }}/../windows-x86-clang.zip .
+        working-directory: ${{ github.workspace }}/../.artifacts/clang/x86/
 
       - run: |
          ls ${{ github.workspace }}/../*.zip
@@ -175,7 +189,12 @@ jobs:
         with:
           name: windows-x64-clang.zip
           path: ${{ github.workspace }}/windows-x64-clang.zip
-          
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x86-clang.zip
+          path: ${{ github.workspace }}/windows-x86-clang.zip
+
       - run: |
          ls ${{ github.workspace }}/../*.zip
 
