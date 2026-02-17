@@ -631,7 +631,7 @@ namespace LiteFX::Rendering::Backends {
         /// Returns the shader byte code.
         /// </summary>
         /// <returns>The shader byte code.</returns>
-        virtual const String& bytecode() const noexcept;
+        virtual const Array<UInt32>& bytecode() const noexcept;
 
         /// <summary>
         /// Returns the shader stage creation info for convenience.

@@ -212,7 +212,7 @@ public:
         std::ranges::for_each(m_modules, [&](auto& shaderModule) {
             // Read the file and initialize a reflection module.
             auto bytecode = shaderModule->bytecode();
-            spv_reflect::ShaderModule reflection(bytecode.size(), bytecode.c_str());
+            spv_reflect::ShaderModule reflection(bytecode.size() * sizeof(UInt32), bytecode.data());
             auto result = reflection.GetResult();
 
             if (result != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
