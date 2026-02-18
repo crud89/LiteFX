@@ -415,7 +415,7 @@ public:
                 auto space = it->second.space;
                 auto stage = it->second.stage;
 
-                auto descriptorLayouts = it->second.descriptors | std::views::transform([](const auto descriptor) -> VulkanDescriptorLayout {
+                auto descriptorLayouts = it->second.descriptors | std::views::transform([](const auto& descriptor) -> VulkanDescriptorLayout {
                         if (descriptor.type == DescriptorType::Sampler && descriptor.staticSampler != nullptr)
                             return { *descriptor.staticSampler, descriptor.location };
                         else if (descriptor.type == DescriptorType::InputAttachment)
