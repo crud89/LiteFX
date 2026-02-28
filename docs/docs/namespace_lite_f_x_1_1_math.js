@@ -1,10 +1,10 @@
 var namespace_lite_f_x_1_1_math =
 [
     [ "Vectors", "namespace_lite_f_x_1_1_math_1_1_vectors.html", [
-      [ "ByteVector1", "namespace_lite_f_x_1_1_math_1_1_vectors.html#a680434b8696eeca90c511b71c44b95e3", null ],
-      [ "ByteVector2", "namespace_lite_f_x_1_1_math_1_1_vectors.html#a9d87fbd728d66856f710a04936543bd7", null ],
-      [ "ByteVector3", "namespace_lite_f_x_1_1_math_1_1_vectors.html#ad09fac376a435bcbf048b0b24d9864bc", null ],
-      [ "ByteVector4", "namespace_lite_f_x_1_1_math_1_1_vectors.html#a50c57d6a21a196d29624a601fb5961a0", null ],
+      [ "ByteVector1", "namespace_lite_f_x_1_1_math_1_1_vectors.html#aba7ae6fd350d47d893b40b8b5a60c4ae", null ],
+      [ "ByteVector2", "namespace_lite_f_x_1_1_math_1_1_vectors.html#aaf281e3bd620e80e16d01c96118b805f", null ],
+      [ "ByteVector3", "namespace_lite_f_x_1_1_math_1_1_vectors.html#ad64e79ae7c627802bd33cb062e89b8a0", null ],
+      [ "ByteVector4", "namespace_lite_f_x_1_1_math_1_1_vectors.html#aaa5532e6124e841c34b131f15a8686e3", null ],
       [ "DoubleVector1", "namespace_lite_f_x_1_1_math_1_1_vectors.html#a5a50bbc16038fe2e1c599c9b163c8462", null ],
       [ "DoubleVector2", "namespace_lite_f_x_1_1_math_1_1_vectors.html#ae6df111b8771832fecbfe82165dc8283", null ],
       [ "DoubleVector3", "namespace_lite_f_x_1_1_math_1_1_vectors.html#a569a264791170c4cbb8d33e1afea039e", null ],
@@ -57,7 +57,7 @@ var namespace_lite_f_x_1_1_math =
     [ "Vector4f", "class_lite_f_x_1_1_math_1_1_vector4f.html", "class_lite_f_x_1_1_math_1_1_vector4f" ],
     [ "Vector4i", "class_lite_f_x_1_1_math_1_1_vector4i.html", "class_lite_f_x_1_1_math_1_1_vector4i" ],
     [ "Vector4u", "class_lite_f_x_1_1_math_1_1_vector4u.html", "class_lite_f_x_1_1_math_1_1_vector4u" ],
-    [ "Byte", "namespace_lite_f_x_1_1_math.html#ab46d26a46ab2aa6faff1f05ca3fbdd7a", null ],
+    [ "Byte", "namespace_lite_f_x_1_1_math.html#af4d738e23a21288ee6d8ad5ad979f2d7", null ],
     [ "Double", "namespace_lite_f_x_1_1_math.html#a8e42e4c769663ae275b8efe9ee1ea8b8", null ],
     [ "Float", "namespace_lite_f_x_1_1_math.html#a7272a8e096481053b319d7658c1c5484", null ],
     [ "Int16", "namespace_lite_f_x_1_1_math.html#ad11a8a9a4794ed3022a431c52da9c316", null ],
@@ -74,6 +74,7 @@ var namespace_lite_f_x_1_1_math =
     [ "UInt16", "namespace_lite_f_x_1_1_math.html#a280a3cad8edd7469a1ba5dd703d3176b", null ],
     [ "UInt32", "namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f", null ],
     [ "UInt64", "namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457", null ],
+    [ "UInt8", "namespace_lite_f_x_1_1_math.html#a2a903ef57deca072a76ad57c88b8c324", null ],
     [ "operator\"\"_b", "namespace_lite_f_x_1_1_math.html#ad96953227e8d2cc6235913beccc22689", null ],
     [ "operator\"\"_f32", "namespace_lite_f_x_1_1_math.html#ac214bb1fffa6a2c2614b45a3de833e5d", null ],
     [ "operator\"\"_f64", "namespace_lite_f_x_1_1_math.html#a41c53f161cf49e1628c260e5acc7bb7c", null ],
@@ -82,5 +83,6 @@ var namespace_lite_f_x_1_1_math =
     [ "operator\"\"_i64", "namespace_lite_f_x_1_1_math.html#ad33d34626d4f2bd1d3ab0bd0c1da97cf", null ],
     [ "operator\"\"_ui16", "namespace_lite_f_x_1_1_math.html#ab97d7790d60628e02264052e6c9e7df5", null ],
     [ "operator\"\"_ui32", "namespace_lite_f_x_1_1_math.html#a3e2ad0b70101835d82c78ca4eed71437", null ],
-    [ "operator\"\"_ui64", "namespace_lite_f_x_1_1_math.html#ac8d6c47a32c1e31e380dd83b3cfb675a", null ]
+    [ "operator\"\"_ui64", "namespace_lite_f_x_1_1_math.html#ac8d6c47a32c1e31e380dd83b3cfb675a", null ],
+    [ "operator\"\"_ui8", "namespace_lite_f_x_1_1_math.html#a3ac2b6c8830bb34c7a539cf6740a0f67", null ]
 ];

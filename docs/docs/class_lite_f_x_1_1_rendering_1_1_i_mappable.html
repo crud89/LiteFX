@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -124,12 +124,18 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a0c9b33716f0f9c64b46574545e7652dc" id="r_a0c9b33716f0f9c64b46574545e7652dc"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0c9b33716f0f9c64b46574545e7652dc">map</a> (<a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; const void *const &gt; data, size_t elementSize, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstElement=0)=0</td></tr>
 <tr class="memdesc:a0c9b33716f0f9c64b46574545e7652dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maps the memory blocks within <em>data</em>  to the internal memory of an array.  <br /></td></tr>
 <tr class="separator:a0c9b33716f0f9c64b46574545e7652dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abfb009ae0aa30302e2f51c4c38b002d7" id="r_abfb009ae0aa30302e2f51c4c38b002d7"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abfb009ae0aa30302e2f51c4c38b002d7">map</a> (void *data, size_t size, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> element=0, bool write=true)=0</td></tr>
+<tr class="memitem:abfb009ae0aa30302e2f51c4c38b002d7" id="r_abfb009ae0aa30302e2f51c4c38b002d7"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abfb009ae0aa30302e2f51c4c38b002d7">map</a> (void *data, size_t size, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> element=0, bool <a class="el" href="#a48900120fbca6d4d72fb5d02c125e539">write</a>=true)=0</td></tr>
 <tr class="memdesc:abfb009ae0aa30302e2f51c4c38b002d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maps the memory at <em>data</em>  to the internal memory of this object.  <br /></td></tr>
 <tr class="separator:abfb009ae0aa30302e2f51c4c38b002d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab9177c51643829bf083e4bcc98008673" id="r_ab9177c51643829bf083e4bcc98008673"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab9177c51643829bf083e4bcc98008673">map</a> (<a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; void * &gt; data, size_t elementSize, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstElement=0, bool write=true)=0</td></tr>
+<tr class="memitem:ab9177c51643829bf083e4bcc98008673" id="r_ab9177c51643829bf083e4bcc98008673"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab9177c51643829bf083e4bcc98008673">map</a> (<a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; void * &gt; data, size_t elementSize, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstElement=0, bool <a class="el" href="#a48900120fbca6d4d72fb5d02c125e539">write</a>=true)=0</td></tr>
 <tr class="memdesc:ab9177c51643829bf083e4bcc98008673"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maps the memory blocks within <em>data</em>  to the internal memory of an array.  <br /></td></tr>
 <tr class="separator:ab9177c51643829bf083e4bcc98008673"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48900120fbca6d4d72fb5d02c125e539" id="r_a48900120fbca6d4d72fb5d02c125e539"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a48900120fbca6d4d72fb5d02c125e539">write</a> (const void *const data, size_t size, size_t offset=0)=0</td></tr>
+<tr class="memdesc:a48900120fbca6d4d72fb5d02c125e539"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a span of memory in <em>data</em>  into the internal memory of this object, starting at <em>offset</em> .  <br /></td></tr>
+<tr class="separator:a48900120fbca6d4d72fb5d02c125e539"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7103ab3ed3d25899a29e12986e439529" id="r_a7103ab3ed3d25899a29e12986e439529"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7103ab3ed3d25899a29e12986e439529">read</a> (void *data, size_t size, size_t offset=0)=0</td></tr>
+<tr class="memdesc:a7103ab3ed3d25899a29e12986e439529"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a span of memory in <em>data</em>  into the internal memory of this object, starting at <em>offset</em> .  <br /></td></tr>
+<tr class="separator:a7103ab3ed3d25899a29e12986e439529"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -491,6 +497,98 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7103ab3ed3d25899a29e12986e439529" name="a7103ab3ed3d25899a29e12986e439529"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7103ab3ed3d25899a29e12986e439529">&#9670;&#160;</a></span>read()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void LiteFX::Rendering::IMappable::read </td>
+          <td>(</td>
+          <td class="paramtype">void *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>size</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>offset</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Writes a span of memory in <em>data</em>  into the internal memory of this object, starting at <em>offset</em> . </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">data</td><td>The span of bytes containing the data to write.</td></tr>
+    <tr><td class="paramname">size</td><td>The size of the memory block at <em>data</em> .</td></tr>
+    <tr><td class="paramname">offset</td><td>The offset at which to start writing.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a628f36b6d0bc0fcef4a915474313270f">LiteFX::Rendering::Backends::DirectX12Buffer</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a2dbee2e159b74107b71a2667d88eda5d">LiteFX::Rendering::Backends::VulkanBuffer</a>.</p>
+
+</div>
+</div>
+<a id="a48900120fbca6d4d72fb5d02c125e539" name="a48900120fbca6d4d72fb5d02c125e539"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a48900120fbca6d4d72fb5d02c125e539">&#9670;&#160;</a></span>write()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void LiteFX::Rendering::IMappable::write </td>
+          <td>(</td>
+          <td class="paramtype">const void *const</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>size</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>offset</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Writes a span of memory in <em>data</em>  into the internal memory of this object, starting at <em>offset</em> . </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">data</td><td>The span of bytes containing the data to write.</td></tr>
+    <tr><td class="paramname">size</td><td>The size of the memory block at <em>data</em> .</td></tr>
+    <tr><td class="paramname">offset</td><td>The offset at which to start writing.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a7e9f3cb96264b3e85b658933456b2311">LiteFX::Rendering::Backends::DirectX12Buffer</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#ad76a770fc02c63c4230640a002e9a29b">LiteFX::Rendering::Backends::VulkanBuffer</a>.</p>
 
 </div>
 </div>

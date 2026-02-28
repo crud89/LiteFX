@@ -16,10 +16,11 @@ private:
     Dictionary<UInt64, SharedPtr<const IVulkanImage>> m_mappedRenderTargets;
     WeakPtr<const VulkanDevice> m_device;
 	Size2d m_size;
+    Optional<allocation_callback_type> m_allocationCallback;
 
 public:
-    VulkanFrameBufferImpl(const VulkanDevice& device, Size2d renderArea) :
-        m_device(device.weak_from_this()), m_size(std::move(renderArea))
+    VulkanFrameBufferImpl(const VulkanDevice& device, Size2d renderArea, Optional<allocation_callback_type> allocationCallback = std::nullopt) :
+        m_device(device.weak_from_this()), m_size(std::move(renderArea)), m_allocationCallback(std::move(allocationCallback))
 	{
 	}
 
@@ -37,6 +38,19 @@ public:
             LITEFX_FATAL_ERROR(VULKAN_LOG, "Invalid attempt to release frame buffer after parent device.");
         else
             this->cleanup(*device);
+    }
+
+private:
+    inline SharedPtr<const IVulkanImage> createImage(const VulkanDevice& device, Optional<UInt64> renderTargetId, const Size2d& size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) const {
+        if (this->m_allocationCallback.has_value())
+        {
+            auto image = m_allocationCallback.value()(renderTargetId, size, usage, format, samples, name);
+
+            if (image != nullptr)
+                return image;
+        }
+
+        return device.factory().createTexture(name, format, size, ImageDimensions::DIM_2, 1u, 1u, samples, usage);
     }
 
 public:
@@ -119,15 +133,20 @@ public:
         m_size = renderArea;
 
         // Recreate all resources.
-        Dictionary<const IVulkanImage*, SharedPtr<IVulkanImage>> imageReplacements;
+        Dictionary<const IVulkanImage*, SharedPtr<const IVulkanImage>> imageReplacements;
         auto& queue = device->defaultQueue(QueueType::Graphics);
         auto commandBuffer = queue.createCommandBuffer(true);
         auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
 
-        auto images = m_images |
-            std::views::transform([&](const auto& image) { 
+        auto images = m_images 
+            | std::views::transform([&](const auto& image) {
+                Optional<UInt64> renderTargetId{};
+
+                if (auto renderTarget = std::ranges::find_if(m_mappedRenderTargets, [image](const auto& resource) { return std::get<1>(resource) == image; }); renderTarget != m_mappedRenderTargets.end())
+                    renderTargetId = renderTarget->first;
+
                 auto format = image->format();
-                auto newImage = device->factory().createTexture(image->name(), format, renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage()); 
+                auto newImage = this->createImage(*device, renderTargetId, renderArea, image->usage(), format, image->samples(), image->name());
                 imageReplacements[image.get()] = newImage;
 
                 if (::hasDepth(format) || ::hasStencil(format))
@@ -136,7 +155,9 @@ public:
                     barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::ShaderResource);
 
                 return newImage;
-            }) | std::views::as_rvalue | std::ranges::to<Array<SharedPtr<const IVulkanImage>>>();
+            }) 
+            | std::views::as_rvalue 
+            | std::ranges::to<Array<SharedPtr<const IVulkanImage>>>();
 
         // Transition the image layouts into their expected states.
         commandBuffer->barrier(*barrier);
@@ -162,6 +183,11 @@ public:
 
 VulkanFrameBuffer::VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea, StringView name) :
     StateResource(name), m_impl(device, renderArea)
+{
+}
+
+VulkanFrameBuffer::VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea, allocation_callback_type allocationCallback, StringView name) :
+    StateResource(name), m_impl(device, renderArea, allocationCallback)
 {
 }
 
@@ -278,16 +304,17 @@ void VulkanFrameBuffer::addImage(const String& name, Format format, MultiSamplin
         throw InvalidArgumentException("name", "Another image with the name {0} does already exist within the frame buffer.", name);
 
     // Add a new image...
-    m_impl->m_images.push_back(device->factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage));
+    auto newImage = m_impl->createImage(*device, nameHash, m_impl->m_size, usage, format, samples, name);
+    m_impl->m_images.push_back(newImage);
 
     // ... and make sure it is in the right layout.
     auto& queue = device->defaultQueue(QueueType::Graphics);
     auto commandBuffer = queue.createCommandBuffer(true);
     auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
     if (::hasDepth(format) || ::hasStencil(format))
-        barrier->transition(*m_impl->m_images.back(), ResourceAccess::None, ResourceAccess::None, ImageLayout::DepthRead);
+        barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::DepthRead);
     else
-        barrier->transition(*m_impl->m_images.back(), ResourceAccess::None, ResourceAccess::None, ImageLayout::ShaderResource);
+        barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::ShaderResource);
     commandBuffer->barrier(*barrier);
     auto fence = queue.submit(commandBuffer);
 
@@ -315,16 +342,17 @@ void VulkanFrameBuffer::addImage(const String& name, const RenderTarget& renderT
     // Add a new image...
     auto index = m_impl->m_images.size();
     auto format = renderTarget.format();
-    m_impl->m_images.push_back(device->factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage));
+    auto newImage = m_impl->createImage(*device, nameHash, m_impl->m_size, usage, format, samples, name);
+    m_impl->m_images.push_back(newImage);
 
     // ... and make sure it is in the right layout.
     auto& queue = device->defaultQueue(QueueType::Graphics);
     auto commandBuffer = queue.createCommandBuffer(true);
     auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
     if (::hasDepth(format) || ::hasStencil(format))
-        barrier->transition(*m_impl->m_images.back(), ResourceAccess::None, ResourceAccess::None, ImageLayout::DepthRead);
+        barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::DepthRead);
     else
-        barrier->transition(*m_impl->m_images.back(), ResourceAccess::None, ResourceAccess::None, ImageLayout::ShaderResource);
+        barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::ShaderResource);
     commandBuffer->barrier(*barrier);
     auto fence = queue.submit(commandBuffer);
 
@@ -340,7 +368,7 @@ void VulkanFrameBuffer::addImage(const String& name, const RenderTarget& renderT
 
 void VulkanFrameBuffer::resize(const Size2d& renderArea)
 {
-    // Reset the size and re-initialize the frame buffer.
+    this->resizing(this, { renderArea });
     m_impl->resize(renderArea);
     this->resized(this, { renderArea });
 }

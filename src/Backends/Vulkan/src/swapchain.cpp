@@ -166,7 +166,7 @@ public:
 		::vkGetSwapchainImagesKHR(device.handle(), swapChain, &images, imageChain.data());
 
 		m_presentImages = imageChain |
-			std::views::transform([&actualRenderArea, &selectedFormat](const VkImage& image) { return VulkanImage::create(image, Size3d{ actualRenderArea.width(), actualRenderArea.height(), 1 }, selectedFormat, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination); }) |
+			std::views::transform([&actualRenderArea, &selectedFormat](const VkImage& image) { return VulkanImage::create(image, Size3d{ actualRenderArea.width(), actualRenderArea.height(), 1 }, selectedFormat, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination, {}); }) |
 			std::ranges::to<Array<SharedPtr<IVulkanImage>>>();
 
 		// Store state variables.
@@ -447,7 +447,7 @@ public:
 		if (!m_supportsTiming)
 			LITEFX_WARNING(VULKAN_LOG, "Timestamp queries are not supported and will be disabled. Reading timestamps will always return 0.");
 
-		importSemaphoreWin32HandleKHR = std::bit_cast<PFN_vkImportSemaphoreWin32HandleKHR>(::vkGetDeviceProcAddr(device.handle(), "vkImportSemaphoreWin32HandleKHR"));
+		importSemaphoreWin32HandleKHR = reinterpret_cast<PFN_vkImportSemaphoreWin32HandleKHR>(::vkGetDeviceProcAddr(device.handle(), "vkImportSemaphoreWin32HandleKHR")); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
 		if (importSemaphoreWin32HandleKHR == nullptr) [[unlikely]]
 			throw RuntimeException("Semaphore importing is not available. Check if all required extensions are available.");
@@ -833,7 +833,7 @@ public:
 			m_imageResources[image].handle = resourceHandle;
 			m_imageResources[image].image = std::move(resource);
 
-			return VulkanImage::create(backBuffer, Size3d{imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth}, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
+			return VulkanImage::create(backBuffer, Size3d{ imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth }, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination, {});
 		});
 
 		// Store state variables.

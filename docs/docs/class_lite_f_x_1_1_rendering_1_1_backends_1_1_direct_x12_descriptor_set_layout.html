@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -104,7 +104,6 @@ $(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
-<a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="#friends">Friends</a> &#124;
 <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout Class Reference<span class="mlabels"><span class="mlabel">final</span></span></div></div>
@@ -137,9 +136,6 @@ Public Types</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:af78f94f5a6d4f7843bd81ab1b380c034" id="r_af78f94f5a6d4f7843bd81ab1b380c034"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af78f94f5a6d4f7843bd81ab1b380c034">~DirectX12DescriptorSetLayout</a> () noexcept override</td></tr>
 <tr class="separator:af78f94f5a6d4f7843bd81ab1b380c034"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4520c6504baebcae6a35fb8c17f2ee1c" id="r_a4520c6504baebcae6a35fb8c17f2ee1c"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4520c6504baebcae6a35fb8c17f2ee1c">descriptorOffsetForBinding</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding) const</td></tr>
-<tr class="memdesc:a4520c6504baebcae6a35fb8c17f2ee1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the index of the first descriptor for a certain binding. The offset is relative to the heap for the descriptor (i.e. sampler for sampler descriptors and CBV/SRV/UAV for other descriptors).  <br /></td></tr>
-<tr class="separator:a4520c6504baebcae6a35fb8c17f2ee1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aafbd39e058602b32cda06ea252f9362a" id="r_aafbd39e058602b32cda06ea252f9362a"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aafbd39e058602b32cda06ea252f9362a">device</a> () const noexcept</td></tr>
 <tr class="memdesc:aafbd39e058602b32cda06ea252f9362a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the parent device or <code>nullptr</code>, if it has been released.  <br /></td></tr>
 <tr class="separator:aafbd39e058602b32cda06ea252f9362a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -192,6 +188,28 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a4b2f6f265750c8e3db3e92bfddaa6f33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of input attachment descriptors within the descriptor set.<dl class="section return"><dt>Returns</dt><dd>The number of input attachment descriptors.</dd></dl>
   <br /></td></tr>
 <tr class="separator:a4b2f6f265750c8e3db3e92bfddaa6f33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2b1f50e6f0c25f0c18b9f69222e3f90" id="r_ae2b1f50e6f0c25f0c18b9f69222e3f90"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2b1f50e6f0c25f0c18b9f69222e3f90">containsUnboundedArray</a> () const noexcept override</td></tr>
+<tr class="memdesc:ae2b1f50e6f0c25f0c18b9f69222e3f90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the descriptor set layout contains an unbounded runtime array and <code>false</code> otherwise.<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the descriptor set layout contains an unbounded runtime array and <code>false</code> otherwise</dd></dl>
+  <br /></td></tr>
+<tr class="separator:ae2b1f50e6f0c25f0c18b9f69222e3f90"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70eb3c82683b79e69dbdf7e36bce38df" id="r_a70eb3c82683b79e69dbdf7e36bce38df"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a70eb3c82683b79e69dbdf7e36bce38df">getDescriptorOffset</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> element=0) const override</td></tr>
+<tr class="memdesc:a70eb3c82683b79e69dbdf7e36bce38df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the offset for a descriptor within a descriptor set of this layout.<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">binding</td><td>The binding point for the descriptor.</td></tr>
+    <tr><td class="paramname">element</td><td>The index of the array element of a descriptor array.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The offset from the beginning of the descriptor set.</dd></dl>
+  <br /></td></tr>
+<tr class="separator:a70eb3c82683b79e69dbdf7e36bce38df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a15f2007c38424a1c641cd5b4b2d1b3ed" id="r_a15f2007c38424a1c641cd5b4b2d1b3ed"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a15f2007c38424a1c641cd5b4b2d1b3ed">bindsResources</a> () const noexcept override</td></tr>
+<tr class="memdesc:a15f2007c38424a1c641cd5b4b2d1b3ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code> if the descriptor set layout contains bindings for resources (i.e., bindings that aren't samplers) and <code>false</code> otherwise.<dl class="section return"><dt>Returns</dt><dd><code>true</code> if the descriptor set layout contains bindings for resources and <code>false</code> otherwise.</dd></dl>
+  <br /></td></tr>
+<tr class="separator:a15f2007c38424a1c641cd5b4b2d1b3ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f315b237ef48f8cf4b37848640f2f4c" id="r_a1f315b237ef48f8cf4b37848640f2f4c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1f315b237ef48f8cf4b37848640f2f4c">bindsSamplers</a> () const noexcept override</td></tr>
+<tr class="memdesc:a1f315b237ef48f8cf4b37848640f2f4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code> if the descriptor set layout contains bindings for samplers and <code>false</code> otherwise.Note that this method only returns <code>true</code> if the layout binds samplers, that is, if they are not static/immutable.   <br /></td></tr>
+<tr class="separator:a1f315b237ef48f8cf4b37848640f2f4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6700cc8a40f20223f6f00d283ae681d6" id="r_a6700cc8a40f20223f6f00d283ae681d6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html">DirectX12DescriptorSet</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6700cc8a40f20223f6f00d283ae681d6">allocate</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a20a476a7051377d562a515a6abc03da6">descriptors</a>, std::initializer_list&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding.html">DescriptorBinding</a> &gt; bindings) const override</td></tr>
 <tr class="separator:a6700cc8a40f20223f6f00d283ae681d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b66bc88b4df5c42983e9c1a11d8e267" id="r_a7b66bc88b4df5c42983e9c1a11d8e267"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html">DirectX12DescriptorSet</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7b66bc88b4df5c42983e9c1a11d8e267">allocate</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a20a476a7051377d562a515a6abc03da6">descriptors</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding.html">DescriptorBinding</a> &gt; bindings) const override</td></tr>
@@ -280,11 +298,15 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memdesc:a8261557ec4d3a1ec18ac007528f6b621"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a copy of a DirectX 12 descriptor set layout.  <br /></td></tr>
 <tr class="separator:a8261557ec4d3a1ec18ac007528f6b621"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
-Protected Member Functions</h2></td></tr>
-<tr class="memitem:a751513156674939bf61da9c08a1c8d42" id="r_a751513156674939bf61da9c08a1c8d42"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a751513156674939bf61da9c08a1c8d42">isRuntimeArray</a> () const noexcept</td></tr>
-<tr class="memdesc:a751513156674939bf61da9c08a1c8d42"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the descriptor set contains an (unbounded) runtime array.  <br /></td></tr>
-<tr class="separator:a751513156674939bf61da9c08a1c8d42"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
+Friends</h2></td></tr>
+<tr class="memitem:a18721112542d4abdfc086d97825873fa" id="r_a18721112542d4abdfc086d97825873fa"><td class="memItemLeft" align="right" valign="top">class&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a18721112542d4abdfc086d97825873fa">DirectX12PipelineLayout</a></td></tr>
+<tr class="separator:a18721112542d4abdfc086d97825873fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa098108ea28adefc9957e6e0b7fd9e27" id="r_aa098108ea28adefc9957e6e0b7fd9e27"><td class="memItemLeft" align="right" valign="top">struct&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa098108ea28adefc9957e6e0b7fd9e27">SharedObject::Allocator&lt; DirectX12DescriptorSetLayout &gt;</a></td></tr>
+<tr class="separator:aa098108ea28adefc9957e6e0b7fd9e27"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
+Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pro_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout.html">LiteFX::Rendering::DescriptorSetLayout&lt; DirectX12DescriptorLayout, DirectX12DescriptorSet &gt;</a></td></tr>
 <tr class="memitem:ac29780b159cfc602363b842d6c40c2f3 inherit pro_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout" id="r_ac29780b159cfc602363b842d6c40c2f3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout.html#ac29780b159cfc602363b842d6c40c2f3">DescriptorSetLayout</a> () noexcept=default</td></tr>
 <tr class="separator:ac29780b159cfc602363b842d6c40c2f3 inherit pro_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -319,16 +341,6 @@ Protected Member Functions</h2></td></tr>
 <tr class="separator:aa787c88fc8797c0649e39a50212059b7 inherit pro_methods_class_lite_f_x_1_1_shared_object"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1e4efb35eb684f487c21db5e74667837 inherit pro_methods_class_lite_f_x_1_1_shared_object" id="r_a1e4efb35eb684f487c21db5e74667837"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_lite_f_x_1_1_shared_object.html">SharedObject</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_shared_object.html#a1e4efb35eb684f487c21db5e74667837">operator=</a> (const <a class="el" href="class_lite_f_x_1_1_shared_object.html">SharedObject</a> &amp;)=default</td></tr>
 <tr class="separator:a1e4efb35eb684f487c21db5e74667837 inherit pro_methods_class_lite_f_x_1_1_shared_object"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
-Friends</h2></td></tr>
-<tr class="memitem:a18721112542d4abdfc086d97825873fa" id="r_a18721112542d4abdfc086d97825873fa"><td class="memItemLeft" align="right" valign="top">class&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a18721112542d4abdfc086d97825873fa">DirectX12PipelineLayout</a></td></tr>
-<tr class="separator:a18721112542d4abdfc086d97825873fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa098108ea28adefc9957e6e0b7fd9e27" id="r_aa098108ea28adefc9957e6e0b7fd9e27"><td class="memItemLeft" align="right" valign="top">struct&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa098108ea28adefc9957e6e0b7fd9e27">SharedObject::Allocator&lt; DirectX12DescriptorSetLayout &gt;</a></td></tr>
-<tr class="separator:aa098108ea28adefc9957e6e0b7fd9e27"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
-Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pro_static_methods_class_lite_f_x_1_1_shared_object"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_static_methods_class_lite_f_x_1_1_shared_object')"><img src="closed.png" alt="-"/>&#160;Static Protected Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_shared_object.html">LiteFX::SharedObject</a></td></tr>
 <tr class="memitem:aad87cf7dce17bb1d48a65d8cc517e9e7 inherit pro_static_methods_class_lite_f_x_1_1_shared_object" id="r_aad87cf7dce17bb1d48a65d8cc517e9e7"><td class="memTemplParams" colspan="2">template&lt;typename T , typename... TArgs&gt; </td></tr>
 <tr class="memitem:aad87cf7dce17bb1d48a65d8cc517e9e7 inherit pro_static_methods_class_lite_f_x_1_1_shared_object"><td class="memTemplItemLeft" align="right" valign="top">static auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_shared_object.html#aad87cf7dce17bb1d48a65d8cc517e9e7">create</a> (TArgs &amp;&amp;... args) -&gt; <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; T &gt;</td></tr>
@@ -557,6 +569,65 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="a15f2007c38424a1c641cd5b4b2d1b3ed" name="a15f2007c38424a1c641cd5b4b2d1b3ed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a15f2007c38424a1c641cd5b4b2d1b3ed">&#9670;&#160;</a></span>bindsResources()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool DirectX12DescriptorSetLayout::bindsResources </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns <code>true</code> if the descriptor set layout contains bindings for resources (i.e., bindings that aren't samplers) and <code>false</code> otherwise.<dl class="section return"><dt>Returns</dt><dd><code>true</code> if the descriptor set layout contains bindings for resources and <code>false</code> otherwise.</dd></dl>
+ </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a34ed3d140c0726f4e51c769f5e859b3a">LiteFX::Rendering::IDescriptorSetLayout</a>.</p>
+
+</div>
+</div>
+<a id="a1f315b237ef48f8cf4b37848640f2f4c" name="a1f315b237ef48f8cf4b37848640f2f4c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1f315b237ef48f8cf4b37848640f2f4c">&#9670;&#160;</a></span>bindsSamplers()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool DirectX12DescriptorSetLayout::bindsSamplers </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns <code>true</code> if the descriptor set layout contains bindings for samplers and <code>false</code> otherwise.Note that this method only returns <code>true</code> if the layout binds samplers, that is, if they are not static/immutable.  </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#ae2fecb1e9428504bec74a7f1b2869ca7">LiteFX::Rendering::IDescriptorSetLayout</a>.</p>
+
+</div>
+</div>
 <a id="ac0300c4af3262e329073147717eb6faa" name="ac0300c4af3262e329073147717eb6faa"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac0300c4af3262e329073147717eb6faa">&#9670;&#160;</a></span>buffers()</h2>
 
@@ -584,6 +655,36 @@ Additional Inherited Members</h2></td></tr>
  </p>
 
 <p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a39edb36e36649825b650c261cddba3d8">LiteFX::Rendering::IDescriptorSetLayout</a>.</p>
+
+</div>
+</div>
+<a id="ae2b1f50e6f0c25f0c18b9f69222e3f90" name="ae2b1f50e6f0c25f0c18b9f69222e3f90"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2b1f50e6f0c25f0c18b9f69222e3f90">&#9670;&#160;</a></span>containsUnboundedArray()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool DirectX12DescriptorSetLayout::containsUnboundedArray </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns <code>true</code>, if the descriptor set layout contains an unbounded runtime array and <code>false</code> otherwise.<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the descriptor set layout contains an unbounded runtime array and <code>false</code> otherwise</dd></dl>
+ </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#acdfd1e78bc3f4d5c759a3ac339996aaa">LiteFX::Rendering::IDescriptorSetLayout</a>.</p>
 
 </div>
 </div>
@@ -708,46 +809,6 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a4520c6504baebcae6a35fb8c17f2ee1c" name="a4520c6504baebcae6a35fb8c17f2ee1c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4520c6504baebcae6a35fb8c17f2ee1c">&#9670;&#160;</a></span>descriptorOffsetForBinding()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> DirectX12DescriptorSetLayout::descriptorOffsetForBinding </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>binding</em></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Returns the index of the first descriptor for a certain binding. The offset is relative to the heap for the descriptor (i.e. sampler for sampler descriptors and CBV/SRV/UAV for other descriptors). </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">binding</td><td>The binding of the descriptor.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The index of the first descriptor for the binding.</dd></dl>
-<dl class="exception"><dt>Exceptions</dt><dd>
-  <table class="exception">
-    <tr><td class="paramname"><a class="el" href="class_lite_f_x_1_1_argument_out_of_range_exception.html" title="An exception that is thrown, if a provided argument is not within the expected range.">ArgumentOutOfRangeException</a></td><td>Thrown, if the descriptor set does not contain a descriptor bound to the binding point specified by <em>binding</em> .</td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a id="a20a476a7051377d562a515a6abc03da6" name="a20a476a7051377d562a515a6abc03da6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a20a476a7051377d562a515a6abc03da6">&#9670;&#160;</a></span>descriptors()</h2>
 
@@ -832,6 +893,47 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="a70eb3c82683b79e69dbdf7e36bce38df" name="a70eb3c82683b79e69dbdf7e36bce38df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a70eb3c82683b79e69dbdf7e36bce38df">&#9670;&#160;</a></span>getDescriptorOffset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> DirectX12DescriptorSetLayout::getDescriptorOffset </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>binding</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>element</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the offset for a descriptor within a descriptor set of this layout.<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">binding</td><td>The binding point for the descriptor.</td></tr>
+    <tr><td class="paramname">element</td><td>The index of the array element of a descriptor array.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The offset from the beginning of the descriptor set.</dd></dl>
+ </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#aa268d947f6767a94d0067db416a9573a">LiteFX::Rendering::IDescriptorSetLayout</a>.</p>
+
+</div>
+</div>
 <a id="aa410dc5b22dc92f0e51d365a371e4daf" name="aa410dc5b22dc92f0e51d365a371e4daf"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa410dc5b22dc92f0e51d365a371e4daf">&#9670;&#160;</a></span>images()</h2>
 
@@ -889,35 +991,6 @@ Additional Inherited Members</h2></td></tr>
  </p>
 
 <p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a26467809501225d79b14945ba769b58d">LiteFX::Rendering::IDescriptorSetLayout</a>.</p>
-
-</div>
-</div>
-<a id="a751513156674939bf61da9c08a1c8d42" name="a751513156674939bf61da9c08a1c8d42"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a751513156674939bf61da9c08a1c8d42">&#9670;&#160;</a></span>isRuntimeArray()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool DirectX12DescriptorSetLayout::isRuntimeArray </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Returns <code>true</code>, if the descriptor set contains an (unbounded) runtime array. </p>
-<p>A descriptor set is a runtime array, if it contains exactly one descriptor, which is an unbounded array, i.e. which has a descriptor count of <code>-1</code> (or <code>0xFFFFFFFF</code>). </p>
-<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the descriptor set contains an (unbounded) runtime array and <code>false</code> otherwise.</dd></dl>
 
 </div>
 </div>

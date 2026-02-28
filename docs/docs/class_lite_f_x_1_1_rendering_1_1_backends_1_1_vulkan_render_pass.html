@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -193,6 +193,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:af69d028764395db450e08f27746345e3" id="r_af69d028764395db450e08f27746345e3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af69d028764395db450e08f27746345e3">end</a> () const override</td></tr>
 <tr class="memdesc:af69d028764395db450e08f27746345e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ends the render pass.If the frame buffer has a present render target, this causes the render pass to synchronize with the swap chain and issue a present command.   <br /></td></tr>
 <tr class="separator:af69d028764395db450e08f27746345e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99c8608552badfa250ee1ae1b360d00d" id="r_a99c8608552badfa250ee1ae1b360d00d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a99c8608552badfa250ee1ae1b360d00d">viewMask</a> () const noexcept override</td></tr>
+<tr class="memdesc:a99c8608552badfa250ee1ae1b360d00d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the mask that identifies the views that are enabled during rendering.<dl class="section return"><dt>Returns</dt><dd>A mask that identifies the views that are enabled during rendering.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_graphics_device_features.html#a2864e8562a91336ae4a9986ba36e892f" title="Enables support for view instancing/multi-view.">GraphicsDeviceFeatures::ViewInstancing</a></dd></dl>
+  <br /></td></tr>
+<tr class="separator:a99c8608552badfa250ee1ae1b360d00d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_render_pass"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_render_pass')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass.html">LiteFX::Rendering::RenderPass&lt; VulkanQueue, VulkanFrameBuffer &gt;</a></td></tr>
 <tr class="memitem:a0a0a98469fa112fe3126e054f023751e inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_render_pass" id="r_a0a0a98469fa112fe3126e054f023751e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass.html#a0a0a98469fa112fe3126e054f023751e">~RenderPass</a> () noexcept override=default</td></tr>
 <tr class="separator:a0a0a98469fa112fe3126e054f023751e inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_render_pass"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -243,18 +248,18 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a0f4450fd65316abe242b0c9914385222" id="r_a0f4450fd65316abe242b0c9914385222"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html">VulkanRenderPass</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0f4450fd65316abe242b0c9914385222">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> &amp;<a class="el" href="#a6d76f48efca4536a32e5adacbc43de6e">device</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt; <a class="el" href="#acf22d3a89ee345e11996496d97e9d9fa">renderTargets</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html">RenderPassDependency</a> &gt; <a class="el" href="#ade8781e7c73e30dd2814b5040ebf5849">inputAttachments</a>={ }, <a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &gt; <a class="el" href="#a95038bae1c9ea480c3d43a0b98f8fcae">inputAttachmentSamplerBinding</a>=std::nullopt, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a25e3acc56388f3316176e9b23f0ce544">secondaryCommandBuffers</a>=1u)</td></tr>
-<tr class="memdesc:a0f4450fd65316abe242b0c9914385222"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and initializes a new Vulkan render pass instance that executes on the default graphics queue.  <br /></td></tr>
-<tr class="separator:a0f4450fd65316abe242b0c9914385222"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3aba7b74346537b8dcf7bee627f37ffa" id="r_a3aba7b74346537b8dcf7bee627f37ffa"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html">VulkanRenderPass</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3aba7b74346537b8dcf7bee627f37ffa">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> &amp;<a class="el" href="#a6d76f48efca4536a32e5adacbc43de6e">device</a>, const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_state_resource.html#a7980c73f4b612142114a4a39c4b9305e">name</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt; <a class="el" href="#acf22d3a89ee345e11996496d97e9d9fa">renderTargets</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html">RenderPassDependency</a> &gt; <a class="el" href="#ade8781e7c73e30dd2814b5040ebf5849">inputAttachments</a>={ }, <a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &gt; <a class="el" href="#a95038bae1c9ea480c3d43a0b98f8fcae">inputAttachmentSamplerBinding</a>=std::nullopt, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a25e3acc56388f3316176e9b23f0ce544">secondaryCommandBuffers</a>=1u)</td></tr>
-<tr class="memdesc:a3aba7b74346537b8dcf7bee627f37ffa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and initializes a new Vulkan render pass instance that executes on the default graphics queue.  <br /></td></tr>
-<tr class="separator:a3aba7b74346537b8dcf7bee627f37ffa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af2809b587417068c172bfdcf617ed72b" id="r_af2809b587417068c172bfdcf617ed72b"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html">VulkanRenderPass</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af2809b587417068c172bfdcf617ed72b">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> &amp;<a class="el" href="#a6d76f48efca4536a32e5adacbc43de6e">device</a>, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html">VulkanQueue</a> &amp;queue, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt; <a class="el" href="#acf22d3a89ee345e11996496d97e9d9fa">renderTargets</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html">RenderPassDependency</a> &gt; <a class="el" href="#ade8781e7c73e30dd2814b5040ebf5849">inputAttachments</a>={ }, <a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &gt; <a class="el" href="#a95038bae1c9ea480c3d43a0b98f8fcae">inputAttachmentSamplerBinding</a>=std::nullopt, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a25e3acc56388f3316176e9b23f0ce544">secondaryCommandBuffers</a>=1u)</td></tr>
-<tr class="memdesc:af2809b587417068c172bfdcf617ed72b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and initializes a new Vulkan render pass instance.  <br /></td></tr>
-<tr class="separator:af2809b587417068c172bfdcf617ed72b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa7faac92b12552c8d03c1282557633ee" id="r_aa7faac92b12552c8d03c1282557633ee"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html">VulkanRenderPass</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa7faac92b12552c8d03c1282557633ee">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> &amp;<a class="el" href="#a6d76f48efca4536a32e5adacbc43de6e">device</a>, const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_state_resource.html#a7980c73f4b612142114a4a39c4b9305e">name</a>, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html">VulkanQueue</a> &amp;queue, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt; <a class="el" href="#acf22d3a89ee345e11996496d97e9d9fa">renderTargets</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html">RenderPassDependency</a> &gt; <a class="el" href="#ade8781e7c73e30dd2814b5040ebf5849">inputAttachments</a>={ }, <a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &gt; <a class="el" href="#a95038bae1c9ea480c3d43a0b98f8fcae">inputAttachmentSamplerBinding</a>=std::nullopt, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a25e3acc56388f3316176e9b23f0ce544">secondaryCommandBuffers</a>=1u)</td></tr>
-<tr class="memdesc:aa7faac92b12552c8d03c1282557633ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and initializes a new Vulkan render pass instance.  <br /></td></tr>
-<tr class="separator:aa7faac92b12552c8d03c1282557633ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a15bb24c13a6cff6831408f0c25284dad" id="r_a15bb24c13a6cff6831408f0c25284dad"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html">VulkanRenderPass</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a15bb24c13a6cff6831408f0c25284dad">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> &amp;<a class="el" href="#a6d76f48efca4536a32e5adacbc43de6e">device</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt; <a class="el" href="#acf22d3a89ee345e11996496d97e9d9fa">renderTargets</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html">RenderPassDependency</a> &gt; <a class="el" href="#ade8781e7c73e30dd2814b5040ebf5849">inputAttachments</a>={ }, <a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &gt; <a class="el" href="#a95038bae1c9ea480c3d43a0b98f8fcae">inputAttachmentSamplerBinding</a>=std::nullopt, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a25e3acc56388f3316176e9b23f0ce544">secondaryCommandBuffers</a>=1u, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a99c8608552badfa250ee1ae1b360d00d">viewMask</a>=0b0000)</td></tr>
+<tr class="memdesc:a15bb24c13a6cff6831408f0c25284dad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and initializes a new Vulkan render pass instance that executes on the default graphics queue.  <br /></td></tr>
+<tr class="separator:a15bb24c13a6cff6831408f0c25284dad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a326ce3b9767285d5e915582bd02926f3" id="r_a326ce3b9767285d5e915582bd02926f3"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html">VulkanRenderPass</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a326ce3b9767285d5e915582bd02926f3">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> &amp;<a class="el" href="#a6d76f48efca4536a32e5adacbc43de6e">device</a>, const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_state_resource.html#a7980c73f4b612142114a4a39c4b9305e">name</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt; <a class="el" href="#acf22d3a89ee345e11996496d97e9d9fa">renderTargets</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html">RenderPassDependency</a> &gt; <a class="el" href="#ade8781e7c73e30dd2814b5040ebf5849">inputAttachments</a>={ }, <a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &gt; <a class="el" href="#a95038bae1c9ea480c3d43a0b98f8fcae">inputAttachmentSamplerBinding</a>=std::nullopt, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a25e3acc56388f3316176e9b23f0ce544">secondaryCommandBuffers</a>=1u, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a99c8608552badfa250ee1ae1b360d00d">viewMask</a>=0b0000)</td></tr>
+<tr class="memdesc:a326ce3b9767285d5e915582bd02926f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and initializes a new Vulkan render pass instance that executes on the default graphics queue.  <br /></td></tr>
+<tr class="separator:a326ce3b9767285d5e915582bd02926f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb221036ff1856c5507c6477776d6537" id="r_acb221036ff1856c5507c6477776d6537"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html">VulkanRenderPass</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acb221036ff1856c5507c6477776d6537">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> &amp;<a class="el" href="#a6d76f48efca4536a32e5adacbc43de6e">device</a>, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html">VulkanQueue</a> &amp;queue, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt; <a class="el" href="#acf22d3a89ee345e11996496d97e9d9fa">renderTargets</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html">RenderPassDependency</a> &gt; <a class="el" href="#ade8781e7c73e30dd2814b5040ebf5849">inputAttachments</a>={ }, <a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &gt; <a class="el" href="#a95038bae1c9ea480c3d43a0b98f8fcae">inputAttachmentSamplerBinding</a>=std::nullopt, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a25e3acc56388f3316176e9b23f0ce544">secondaryCommandBuffers</a>=1u, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a99c8608552badfa250ee1ae1b360d00d">viewMask</a>=0b0000)</td></tr>
+<tr class="memdesc:acb221036ff1856c5507c6477776d6537"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and initializes a new Vulkan render pass instance.  <br /></td></tr>
+<tr class="separator:acb221036ff1856c5507c6477776d6537"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7efa0ce398ceeb888c40e49c9cad9739" id="r_a7efa0ce398ceeb888c40e49c9cad9739"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html">VulkanRenderPass</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7efa0ce398ceeb888c40e49c9cad9739">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> &amp;<a class="el" href="#a6d76f48efca4536a32e5adacbc43de6e">device</a>, const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_state_resource.html#a7980c73f4b612142114a4a39c4b9305e">name</a>, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html">VulkanQueue</a> &amp;queue, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt; <a class="el" href="#acf22d3a89ee345e11996496d97e9d9fa">renderTargets</a>, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html">RenderPassDependency</a> &gt; <a class="el" href="#ade8781e7c73e30dd2814b5040ebf5849">inputAttachments</a>={ }, <a class="el" href="namespace_lite_f_x.html#a4d476c79a5aeb6ebe0f9d35bbc408d63">Optional</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &gt; <a class="el" href="#a95038bae1c9ea480c3d43a0b98f8fcae">inputAttachmentSamplerBinding</a>=std::nullopt, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a25e3acc56388f3316176e9b23f0ce544">secondaryCommandBuffers</a>=1u, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> <a class="el" href="#a99c8608552badfa250ee1ae1b360d00d">viewMask</a>=0b0000)</td></tr>
+<tr class="memdesc:a7efa0ce398ceeb888c40e49c9cad9739"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and initializes a new Vulkan render pass instance.  <br /></td></tr>
+<tr class="separator:a7efa0ce398ceeb888c40e49c9cad9739"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
@@ -528,8 +533,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="aa7faac92b12552c8d03c1282557633ee" name="aa7faac92b12552c8d03c1282557633ee"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa7faac92b12552c8d03c1282557633ee">&#9670;&#160;</a></span>create() <span class="overload">[1/4]</span></h2>
+<a id="a7efa0ce398ceeb888c40e49c9cad9739" name="a7efa0ce398ceeb888c40e49c9cad9739"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7efa0ce398ceeb888c40e49c9cad9739">&#9670;&#160;</a></span>create() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -570,7 +575,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>secondaryCommandBuffers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1u</span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>secondaryCommandBuffers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1u</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>viewMask</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0b0000</span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -590,6 +600,7 @@ Additional Inherited Members</h2></td></tr>
     <tr><td class="paramname">inputAttachments</td><td>The input attachments that are read by the render pass.</td></tr>
     <tr><td class="paramname">inputAttachmentSamplerBinding</td><td>The binding point for the input attachment sampler.</td></tr>
     <tr><td class="paramname">secondaryCommandBuffers</td><td>The number of command buffers that can be used for recording multi-threaded commands during the render pass.</td></tr>
+    <tr><td class="paramname">viewMask</td><td>A mask that identifies the enabled view instances for this render pass.</td></tr>
   </table>
   </dd>
 </dl>
@@ -597,8 +608,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a3aba7b74346537b8dcf7bee627f37ffa" name="a3aba7b74346537b8dcf7bee627f37ffa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3aba7b74346537b8dcf7bee627f37ffa">&#9670;&#160;</a></span>create() <span class="overload">[2/4]</span></h2>
+<a id="a326ce3b9767285d5e915582bd02926f3" name="a326ce3b9767285d5e915582bd02926f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a326ce3b9767285d5e915582bd02926f3">&#9670;&#160;</a></span>create() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -634,7 +645,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>secondaryCommandBuffers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1u</span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>secondaryCommandBuffers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1u</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>viewMask</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0b0000</span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -653,6 +669,7 @@ Additional Inherited Members</h2></td></tr>
     <tr><td class="paramname">inputAttachments</td><td>The input attachments that are read by the render pass.</td></tr>
     <tr><td class="paramname">inputAttachmentSamplerBinding</td><td>The binding point for the input attachment sampler.</td></tr>
     <tr><td class="paramname">secondaryCommandBuffers</td><td>The number of command buffers that can be used for recording multi-threaded commands during the render pass.</td></tr>
+    <tr><td class="paramname">viewMask</td><td>A mask that identifies the enabled view instances for this render pass.</td></tr>
   </table>
   </dd>
 </dl>
@@ -660,8 +677,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="af2809b587417068c172bfdcf617ed72b" name="af2809b587417068c172bfdcf617ed72b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af2809b587417068c172bfdcf617ed72b">&#9670;&#160;</a></span>create() <span class="overload">[3/4]</span></h2>
+<a id="acb221036ff1856c5507c6477776d6537" name="acb221036ff1856c5507c6477776d6537"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb221036ff1856c5507c6477776d6537">&#9670;&#160;</a></span>create() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -697,7 +714,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>secondaryCommandBuffers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1u</span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>secondaryCommandBuffers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1u</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>viewMask</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0b0000</span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -716,6 +738,7 @@ Additional Inherited Members</h2></td></tr>
     <tr><td class="paramname">inputAttachments</td><td>The input attachments that are read by the render pass.</td></tr>
     <tr><td class="paramname">inputAttachmentSamplerBinding</td><td>The binding point for the input attachment sampler.</td></tr>
     <tr><td class="paramname">secondaryCommandBuffers</td><td>The number of command buffers that can be used for recording multi-threaded commands during the render pass.</td></tr>
+    <tr><td class="paramname">viewMask</td><td>A mask that identifies the enabled view instances for this render pass.</td></tr>
   </table>
   </dd>
 </dl>
@@ -723,8 +746,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a0f4450fd65316abe242b0c9914385222" name="a0f4450fd65316abe242b0c9914385222"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0f4450fd65316abe242b0c9914385222">&#9670;&#160;</a></span>create() <span class="overload">[4/4]</span></h2>
+<a id="a15bb24c13a6cff6831408f0c25284dad" name="a15bb24c13a6cff6831408f0c25284dad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a15bb24c13a6cff6831408f0c25284dad">&#9670;&#160;</a></span>create() <span class="overload">[4/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -755,7 +778,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>secondaryCommandBuffers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1u</span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>secondaryCommandBuffers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1u</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>viewMask</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0b0000</span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -773,6 +801,7 @@ Additional Inherited Members</h2></td></tr>
     <tr><td class="paramname">inputAttachments</td><td>The input attachments that are read by the render pass.</td></tr>
     <tr><td class="paramname">inputAttachmentSamplerBinding</td><td>The binding point for the input attachment sampler.</td></tr>
     <tr><td class="paramname">secondaryCommandBuffers</td><td>The number of command buffers that can be used for recording multi-threaded commands during the render pass.</td></tr>
+    <tr><td class="paramname">viewMask</td><td>A mask that identifies the enabled view instances for this render pass.</td></tr>
   </table>
   </dd>
 </dl>
@@ -1055,6 +1084,37 @@ Additional Inherited Members</h2></td></tr>
  </p>
 
 <p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#af2adebb38d77cdb5f3d6d01eb11da44c">LiteFX::Rendering::IRenderPass</a>.</p>
+
+</div>
+</div>
+<a id="a99c8608552badfa250ee1ae1b360d00d" name="a99c8608552badfa250ee1ae1b360d00d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99c8608552badfa250ee1ae1b360d00d">&#9670;&#160;</a></span>viewMask()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> VulkanRenderPass::viewMask </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the mask that identifies the views that are enabled during rendering.<dl class="section return"><dt>Returns</dt><dd>A mask that identifies the views that are enabled during rendering.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_graphics_device_features.html#a2864e8562a91336ae4a9986ba36e892f" title="Enables support for view instancing/multi-view.">GraphicsDeviceFeatures::ViewInstancing</a></dd></dl>
+ </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ae799b0e8df54351a9218c21a8c88a6ff">LiteFX::Rendering::IRenderPass</a>.</p>
 
 </div>
 </div>

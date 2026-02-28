@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -165,6 +165,21 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad6612c13e9dab344b1d2c1e8641ceb35" id="r_ad6612c13e9dab344b1d2c1e8641ceb35"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad6612c13e9dab344b1d2c1e8641ceb35">computeAccelerationStructureSizes</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_top_level_acceleration_structure.html">ITopLevelAccelerationStructure</a> &amp;tlas, <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> &amp;bufferSize, <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> &amp;scratchSize, bool forUpdate=false) const</td></tr>
 <tr class="memdesc:ad6612c13e9dab344b1d2c1e8641ceb35"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes the required amount of device memory for an <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_top_level_acceleration_structure.html" title="A structure that stores the instance data for a IBottomLevelAccelerationStructure.">ITopLevelAccelerationStructure</a>.  <br /></td></tr>
 <tr class="separator:ad6612c13e9dab344b1d2c1e8641ceb35"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0e1c7678759935cfe4530714450a645" id="r_ab0e1c7678759935cfe4530714450a645"><td class="memItemLeft" align="right" valign="top"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_virtual_allocator_1_1_allocation.html">VirtualAllocator::Allocation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab0e1c7678759935cfe4530714450a645">allocateGlobalDescriptors</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &amp;descriptorSet, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a> heapType) const</td></tr>
+<tr class="memdesc:ab0e1c7678759935cfe4530714450a645"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a range of descriptors in the global descriptor heaps for the provided <em>descriptorSet</em> .  <br /></td></tr>
+<tr class="separator:ab0e1c7678759935cfe4530714450a645"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7064ad5dfd8f07ff6bf4e172413f9b9c" id="r_a7064ad5dfd8f07ff6bf4e172413f9b9c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7064ad5dfd8f07ff6bf4e172413f9b9c">releaseGlobalDescriptors</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &amp;descriptorSet) const</td></tr>
+<tr class="memdesc:a7064ad5dfd8f07ff6bf4e172413f9b9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Releases a range of descriptors from the global descriptor heaps.  <br /></td></tr>
+<tr class="separator:a7064ad5dfd8f07ff6bf4e172413f9b9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0f56e17b373a23f3890e862b2f0f885" id="r_ab0f56e17b373a23f3890e862b2f0f885"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab0f56e17b373a23f3890e862b2f0f885">updateGlobalDescriptors</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &amp;descriptorSet, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> offset, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptors) const</td></tr>
+<tr class="memdesc:ab0f56e17b373a23f3890e862b2f0f885"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates a range of descriptors in the global buffer descriptor heap with the descriptors from <em>descriptorSet</em> .  <br /></td></tr>
+<tr class="separator:ab0f56e17b373a23f3890e862b2f0f885"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c710cf0856bf01d817a81500c45704d" id="r_a6c710cf0856bf01d817a81500c45704d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6c710cf0856bf01d817a81500c45704d">bindDescriptorSet</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">ICommandBuffer</a> &amp;commandBuffer, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &amp;descriptorSet, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html">IPipeline</a> &amp;pipeline) const noexcept</td></tr>
+<tr class="memdesc:a6c710cf0856bf01d817a81500c45704d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds the descriptors of the descriptor set to the global descriptor heaps.  <br /></td></tr>
+<tr class="separator:a6c710cf0856bf01d817a81500c45704d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49c737165888b098da986ee8358ddb01" id="r_a49c737165888b098da986ee8358ddb01"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a49c737165888b098da986ee8358ddb01">bindGlobalDescriptorHeaps</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">ICommandBuffer</a> &amp;commandBuffer) const noexcept</td></tr>
+<tr class="memdesc:a49c737165888b098da986ee8358ddb01"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds the global descriptor heap.  <br /></td></tr>
+<tr class="separator:a49c737165888b098da986ee8358ddb01"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac3cc5c49c78a4abd7d739b185f99889f" id="r_ac3cc5c49c78a4abd7d739b185f99889f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac3cc5c49c78a4abd7d739b185f99889f">wait</a> () const =0</td></tr>
 <tr class="memdesc:ac3cc5c49c78a4abd7d739b185f99889f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Waits until all queues allocated from the device have finished the work issued prior to this point.  <br /></td></tr>
 <tr class="separator:ac3cc5c49c78a4abd7d739b185f99889f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -345,6 +360,123 @@ Additional Inherited Members</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>A reference of the graphics adapter, the device uses for drawing.</dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html#adef9a98591d08e41c45e513ca62b6fdc">LiteFX::Rendering::Backends::DirectX12Device</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html#a5cb0342b96b76c100809173b80e2514c">LiteFX::Rendering::Backends::VulkanDevice</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#ad30179ed41654b03699b1547c158c92d">LiteFX::Rendering::GraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TRenderPipeline, TComputePipeline, TRayTracingPipeline, TBarrier &gt;</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#ad30179ed41654b03699b1547c158c92d">LiteFX::Rendering::GraphicsDevice&lt; DirectX12GraphicsFactory, DirectX12Surface, DirectX12GraphicsAdapter, DirectX12SwapChain, DirectX12Queue, DirectX12RenderPass, DirectX12RenderPipeline, DirectX12ComputePipeline, DirectX12RayTracingPipeline, DirectX12Barrier &gt;</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#ad30179ed41654b03699b1547c158c92d">LiteFX::Rendering::GraphicsDevice&lt; VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanRenderPipeline, VulkanComputePipeline, VulkanRayTracingPipeline, VulkanBarrier &gt;</a>.</p>
+
+</div>
+</div>
+<a id="ab0e1c7678759935cfe4530714450a645" name="ab0e1c7678759935cfe4530714450a645"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab0e1c7678759935cfe4530714450a645">&#9670;&#160;</a></span>allocateGlobalDescriptors()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_virtual_allocator_1_1_allocation.html">VirtualAllocator::Allocation</a> LiteFX::Rendering::IGraphicsDevice::allocateGlobalDescriptors </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>descriptorSet</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a></td>          <td class="paramname"><span class="paramname"><em>heapType</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">nodiscard</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Allocates a range of descriptors in the global descriptor heaps for the provided <em>descriptorSet</em> . </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">descriptorSet</td><td>The descriptor set containing the descriptors to update.</td></tr>
+    <tr><td class="paramname">heapType</td><td>The type of the descriptor heap to allocate descriptors on.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The allocation for the descriptor set at the descriptor heap indicated by <em>heapType</em> .</dd></dl>
+
+</div>
+</div>
+<a id="a6c710cf0856bf01d817a81500c45704d" name="a6c710cf0856bf01d817a81500c45704d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c710cf0856bf01d817a81500c45704d">&#9670;&#160;</a></span>bindDescriptorSet()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void LiteFX::Rendering::IGraphicsDevice::bindDescriptorSet </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">ICommandBuffer</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>commandBuffer</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>descriptorSet</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html">IPipeline</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>pipeline</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Binds the descriptors of the descriptor set to the global descriptor heaps. </p>
+<p>Note that after binding the descriptor set, the descriptors must not be updated anymore, unless they are elements on unbounded descriptor arrays, in which case you have to ensure manually to not update them, as long as they may still be in use! </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">commandBuffer</td><td>The command buffer to bind the descriptor set on.</td></tr>
+    <tr><td class="paramname">descriptorSet</td><td>The descriptor set to bind.</td></tr>
+    <tr><td class="paramname">pipeline</td><td>The pipeline to bind the descriptor set to.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a49c737165888b098da986ee8358ddb01" name="a49c737165888b098da986ee8358ddb01"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a49c737165888b098da986ee8358ddb01">&#9670;&#160;</a></span>bindGlobalDescriptorHeaps()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void LiteFX::Rendering::IGraphicsDevice::bindGlobalDescriptorHeaps </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">ICommandBuffer</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>commandBuffer</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Binds the global descriptor heap. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">commandBuffer</td><td>The command buffer to issue the bind command on.</td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -766,6 +898,34 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="a7064ad5dfd8f07ff6bf4e172413f9b9c" name="a7064ad5dfd8f07ff6bf4e172413f9b9c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7064ad5dfd8f07ff6bf4e172413f9b9c">&#9670;&#160;</a></span>releaseGlobalDescriptors()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void LiteFX::Rendering::IGraphicsDevice::releaseGlobalDescriptors </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>descriptorSet</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Releases a range of descriptors from the global descriptor heaps. </p>
+<p>This is done, if a descriptor set layout is destroyed, of a descriptor set, which contains an unbounded array is freed. It will cause the global descriptor heaps to fragment, which may result in inefficient future descriptor allocations and should be avoided. Consider caching descriptor sets with unbounded arrays instead. Also avoid relying on creating and releasing pipeline layouts during runtime. Instead, it may be more efficient to write shaders that support multiple pipeline variations, that can be kept alive for the lifetime of the whole application. </p>
+
+</div>
+</div>
 <a id="ad2b6108f3139212ee25223dfb1a02c26" name="ad2b6108f3139212ee25223dfb1a02c26"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad2b6108f3139212ee25223dfb1a02c26">&#9670;&#160;</a></span>state()</h2>
 
@@ -914,6 +1074,56 @@ Additional Inherited Members</h2></td></tr>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_timing_event.html" title="An event that is used to measure timestamps in a command queue.">TimingEvent</a></dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html#af087b3e040373202d81ea50250673e68">LiteFX::Rendering::Backends::DirectX12Device</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html#ae9c60a8538eed932945f0954adb6da12">LiteFX::Rendering::Backends::VulkanDevice</a>.</p>
+
+</div>
+</div>
+<a id="ab0f56e17b373a23f3890e862b2f0f885" name="ab0f56e17b373a23f3890e862b2f0f885"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab0f56e17b373a23f3890e862b2f0f885">&#9670;&#160;</a></span>updateGlobalDescriptors()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void LiteFX::Rendering::IGraphicsDevice::updateGlobalDescriptors </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>descriptorSet</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>binding</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>offset</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>descriptors</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Updates a range of descriptors in the global buffer descriptor heap with the descriptors from <em>descriptorSet</em> . </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">descriptorSet</td><td>The descriptor set to copy the descriptors from.</td></tr>
+    <tr><td class="paramname">binding</td><td>The binding point for which to update the descriptors.</td></tr>
+    <tr><td class="paramname">offset</td><td>The index of the first descriptor in a descriptor array at the binding point.</td></tr>
+    <tr><td class="paramname">descriptors</td><td>The number of descriptors in a descriptor array to copy, starting at the offset.</td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

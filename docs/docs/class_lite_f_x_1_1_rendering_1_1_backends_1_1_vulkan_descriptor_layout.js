@@ -1,7 +1,7 @@
 var class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout =
 [
     [ "VulkanDescriptorLayoutImpl", "class_vulkan_descriptor_layout_1_1_vulkan_descriptor_layout_impl.html", "class_vulkan_descriptor_layout_1_1_vulkan_descriptor_layout_impl" ],
-    [ "VulkanDescriptorLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout.html#a166a732d2f8324158bf7488e35977db5", null ],
+    [ "VulkanDescriptorLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout.html#ab4ed1611ecb446c69a5bf04fd3495997", null ],
     [ "VulkanDescriptorLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout.html#a74013603a6a60dc055dcc6d7ed3932fb", null ],
     [ "VulkanDescriptorLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout.html#a723794ede3a1d0dc0314f9485816f65a", null ],
     [ "VulkanDescriptorLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout.html#a57b6f11bdda2b0861d8b725cbb4fbaec", null ],
@@ -15,5 +15,6 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout =
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout.html#ac97f56e3c825139604e8692047437ff0", null ],
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout.html#a32727d1211200ad22f8ee3863628b147", null ],
     [ "staticSampler", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout.html#aeb5e7222b01ecd806e093ea0d8b4d292", null ],
-    [ "type", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout.html#a1477bcf2939987d77f2eaa3522aa2c07", null ]
+    [ "type", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout.html#a1477bcf2939987d77f2eaa3522aa2c07", null ],
+    [ "unbounded", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout.html#a2e08e1e4ff2e80dc694ad6e57e37bc37", null ]
 ];

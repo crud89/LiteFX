@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -109,8 +109,8 @@ $(function(){initNavTree('class_vulkan_descriptor_layout_1_1_vulkan_descriptor_l
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a69a4fce2b47ca6921be4370bdfdcff26" id="r_a69a4fce2b47ca6921be4370bdfdcff26"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a69a4fce2b47ca6921be4370bdfdcff26">VulkanDescriptorLayoutImpl</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a> type, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, size_t elementSize, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptors)</td></tr>
-<tr class="separator:a69a4fce2b47ca6921be4370bdfdcff26"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56fa78d0db7e460730ed3232968161dc" id="r_a56fa78d0db7e460730ed3232968161dc"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a56fa78d0db7e460730ed3232968161dc">VulkanDescriptorLayoutImpl</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a> type, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, size_t elementSize, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptors, bool unbounded)</td></tr>
+<tr class="separator:a56fa78d0db7e460730ed3232968161dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a38717a24f36535513378337799b2e69d" id="r_a38717a24f36535513378337799b2e69d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a38717a24f36535513378337799b2e69d">VulkanDescriptorLayoutImpl</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_sampler.html">IVulkanSampler</a> &amp;staticSampler, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding)</td></tr>
 <tr class="separator:a38717a24f36535513378337799b2e69d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a29e492297f72166ab842671febf27e38" id="r_a29e492297f72166ab842671febf27e38"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a29e492297f72166ab842671febf27e38">VulkanDescriptorLayoutImpl</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> inputAttachmentIndex)</td></tr>
@@ -122,8 +122,8 @@ Friends</h2></td></tr>
 <tr class="separator:a46b15bbeee6db5e6c0ba0a60a6bc8e5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a69a4fce2b47ca6921be4370bdfdcff26" name="a69a4fce2b47ca6921be4370bdfdcff26"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a69a4fce2b47ca6921be4370bdfdcff26">&#9670;&#160;</a></span>VulkanDescriptorLayoutImpl() <span class="overload">[1/3]</span></h2>
+<a id="a56fa78d0db7e460730ed3232968161dc" name="a56fa78d0db7e460730ed3232968161dc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a56fa78d0db7e460730ed3232968161dc">&#9670;&#160;</a></span>VulkanDescriptorLayoutImpl() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -149,7 +149,12 @@ Friends</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>descriptors</em></span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>descriptors</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>unbounded</em></span>&#160;)</td>
         </tr>
       </table>
   </td>

@@ -14,7 +14,8 @@ public:
 private:
 	SharedPtr<const VulkanDevice> m_device;
 	ShaderStage m_type;
-	String m_fileName, m_entryPoint, m_bytecode;
+	String m_fileName, m_entryPoint;
+	Array<UInt32> m_bytecode;
 	Optional<DescriptorBindingPoint> m_shaderLocalDescriptor;
 
 public:
@@ -24,7 +25,7 @@ public:
 	}
 
 private:
-	String readFileContents(const String& fileName) 
+	Array<char> readFileContents(const String& fileName)
 	{
 		std::ifstream file(fileName, std::ios::in | std::ios::binary);
 		
@@ -34,7 +35,7 @@ private:
 		return this->readStreamContents(file);
 	}
 
-	String readStreamContents(std::istream& stream)
+	Array<char> readStreamContents(std::istream& stream)
 	{
 		return { std::istreambuf_iterator<char>(stream), {} };
 	}
@@ -50,12 +51,16 @@ public:
 		return this->initialize(this->readStreamContents(stream));
 	}
 
-	VkShaderModule initialize(const String& fileContents)
+	VkShaderModule initialize(const Array<char>& fileContents)
 	{
+		// TODO: We may be able to use std::start_lifetime_as here instead.
+		m_bytecode.resize(Math::align(fileContents.size(), sizeof(UInt32)) / sizeof(UInt32));
+		std::memcpy(m_bytecode.data(), fileContents.data(), fileContents.size());
+
 		VkShaderModuleCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		createInfo.codeSize = fileContents.size();
-		createInfo.pCode = std::bit_cast<const uint32_t*>(fileContents.c_str());
+		createInfo.pCode = m_bytecode.data();
 
 		VkShaderModule module{};
 
@@ -66,7 +71,6 @@ public:
 		m_device->setDebugName(module, VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, std::format("{0}: {1}", m_fileName, m_entryPoint));
 #endif
 
-		m_bytecode = fileContents;
 		return module;
 	}
 };
@@ -110,7 +114,7 @@ const String& VulkanShaderModule::entryPoint() const noexcept
 	return m_impl->m_entryPoint;
 }
 
-const String& VulkanShaderModule::bytecode() const noexcept
+const Array<UInt32>& VulkanShaderModule::bytecode() const noexcept
 {
 	return m_impl->m_bytecode;
 }

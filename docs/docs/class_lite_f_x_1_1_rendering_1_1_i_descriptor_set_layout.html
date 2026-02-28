@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -153,6 +153,18 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a26467809501225d79b14945ba769b58d" id="r_a26467809501225d79b14945ba769b58d"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a26467809501225d79b14945ba769b58d">inputAttachments</a> () const noexcept=0</td></tr>
 <tr class="memdesc:a26467809501225d79b14945ba769b58d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of input attachment descriptors within the descriptor set.  <br /></td></tr>
 <tr class="separator:a26467809501225d79b14945ba769b58d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acdfd1e78bc3f4d5c759a3ac339996aaa" id="r_acdfd1e78bc3f4d5c759a3ac339996aaa"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acdfd1e78bc3f4d5c759a3ac339996aaa">containsUnboundedArray</a> () const noexcept=0</td></tr>
+<tr class="memdesc:acdfd1e78bc3f4d5c759a3ac339996aaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the descriptor set layout contains an unbounded runtime array and <code>false</code> otherwise.  <br /></td></tr>
+<tr class="separator:acdfd1e78bc3f4d5c759a3ac339996aaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa268d947f6767a94d0067db416a9573a" id="r_aa268d947f6767a94d0067db416a9573a"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa268d947f6767a94d0067db416a9573a">getDescriptorOffset</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> element=0) const =0</td></tr>
+<tr class="memdesc:aa268d947f6767a94d0067db416a9573a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the offset for a descriptor within a descriptor set of this layout.  <br /></td></tr>
+<tr class="separator:aa268d947f6767a94d0067db416a9573a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a34ed3d140c0726f4e51c769f5e859b3a" id="r_a34ed3d140c0726f4e51c769f5e859b3a"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a34ed3d140c0726f4e51c769f5e859b3a">bindsResources</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a34ed3d140c0726f4e51c769f5e859b3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code> if the descriptor set layout contains bindings for resources (i.e., bindings that aren't samplers) and <code>false</code> otherwise.  <br /></td></tr>
+<tr class="separator:a34ed3d140c0726f4e51c769f5e859b3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2fecb1e9428504bec74a7f1b2869ca7" id="r_ae2fecb1e9428504bec74a7f1b2869ca7"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2fecb1e9428504bec74a7f1b2869ca7">bindsSamplers</a> () const noexcept=0</td></tr>
+<tr class="memdesc:ae2fecb1e9428504bec74a7f1b2869ca7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code> if the descriptor set layout contains bindings for samplers and <code>false</code> otherwise.  <br /></td></tr>
+<tr class="separator:ae2fecb1e9428504bec74a7f1b2869ca7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae9e6aef0970a1bfad4f3e81ae8c1b3ba" id="r_ae9e6aef0970a1bfad4f3e81ae8c1b3ba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae9e6aef0970a1bfad4f3e81ae8c1b3ba">allocate</a> (std::initializer_list&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding.html">DescriptorBinding</a> &gt; bindings={ }) const</td></tr>
 <tr class="memdesc:ae9e6aef0970a1bfad4f3e81ae8c1b3ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a new descriptor set or returns an instance of an unused descriptor set.  <br /></td></tr>
 <tr class="separator:ae9e6aef0970a1bfad4f3e81ae8c1b3ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -419,8 +431,9 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 <p>Allocating a new descriptor set may be an expensive operation. To improve performance, and prevent fragmentation, the descriptor set layout keeps track of created descriptor sets. It does this by never releasing them. Instead, when a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html" title="Defines a set of descriptors.">DescriptorSet</a> instance gets destroyed, it should call <a class="el" href="#a634164732daae7e785d17fb32a255b64" title="Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.">free</a> in order to mark itself (i.e. its handle) as not being used any longer.</p>
 <p>Before allocating a new descriptor set from a pool (which may even result in the creation of a new pool, if the existing pools are full), the layout tries to hand out descriptor sets that marked as unused. Descriptor sets are only deleted, if the whole layout instance and therefore the descriptor pools are deleted.</p>
-<p>The above does not apply to unbounded descriptor arrays. A unbounded descriptor array is one, for which <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_layout.html#ae137c152ccef02a9738acd3055896060" title="Returns the number of descriptors in the descriptor array, or -1 if the array is unbounded.">IDescriptorLayout::descriptors</a> returns <code>-1</code> (or <code>0xFFFFFFFF</code>). They must be allocated by specifying the <em>descriptors</em>  parameter. This parameter defines the number of descriptors to allocate in the array.</p>
-<p>Note that descriptor sets, that contain an unbounded descriptor array must only contain one single descriptor (the one that identifies this array). Such descriptor sets are never cached. Instead, they are released when calling <a class="el" href="#a634164732daae7e785d17fb32a255b64" title="Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.">free</a>. It is a good practice to cache such descriptor sets as global descriptor tables once and never release them. They provide more flexibility than regular descriptor arrays, since they may be updated, even after they have been bound to a command buffer or from different threads. However, you must ensure yourself not to overwrite any descriptors that are currently in use. Because unbounded arrays are not cached, freeing and re-allocating such descriptor sets may leave the descriptor heap fragmented, which might cause the allocation to fail, if the heap is full. </p>
+<p>The above does not apply to unbounded descriptor arrays. A unbounded descriptor array is one, for which <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_layout.html#ae137c152ccef02a9738acd3055896060" title="Returns the number of descriptors in the descriptor array.">IDescriptorLayout::descriptors</a> returns <code>-1</code> (or <code>0xFFFFFFFF</code>). They must be allocated by specifying the <em>descriptors</em>  parameter. This parameter defines the number of descriptors to allocate in the array.</p>
+<p>Note that descriptor sets, that contain an unbounded descriptor array must only contain one single descriptor (the one that identifies this array). Such descriptor sets are never cached. Instead, they are released when calling <a class="el" href="#a634164732daae7e785d17fb32a255b64" title="Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.">free</a>. It is a good practice to cache such descriptor sets as global descriptor tables once and never release them. They provide more flexibility than regular descriptor arrays, since they may be updated, even after they have been bound to a command buffer or from different threads. However, you must ensure yourself not to overwrite any descriptors that are currently in use. Because unbounded arrays are not cached, freeing and re-allocating such descriptor sets may leave the descriptor heap fragmented, which might cause the allocation to fail, if the heap is full.</p>
+<p>Note that providing bindings for descriptors of type <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea6fd273b2c38bbbac18213aad964f8c83" title="Special descriptor type, that can bind all resources besides constant buffers, acceleration structure...">DescriptorType::ResourceDescriptorHeap</a> or <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea23dbc164336b3de4f93f85647fa5cadb" title="A special descriptor type that allows indexed access to the a portion of the global sampler heap.">DescriptorType::SamplerDescriptorHeap</a> here is not supported and will cause an exception to be thrown. </p>
 <dl class="section return"><dt>Returns</dt><dd>The instance of the descriptor set.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_layout.html" title="Describes a the layout of a single descriptor within a DescriptorSet.">IDescriptorLayout</a></dd></dl>
 
@@ -709,6 +722,67 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="a34ed3d140c0726f4e51c769f5e859b3a" name="a34ed3d140c0726f4e51c769f5e859b3a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a34ed3d140c0726f4e51c769f5e859b3a">&#9670;&#160;</a></span>bindsResources()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool LiteFX::Rendering::IDescriptorSetLayout::bindsResources </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns <code>true</code> if the descriptor set layout contains bindings for resources (i.e., bindings that aren't samplers) and <code>false</code> otherwise. </p>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code> if the descriptor set layout contains bindings for resources and <code>false</code> otherwise.</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html#a15f2007c38424a1c641cd5b4b2d1b3ed">LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html#ab03505f494efae4e299e03ecb051ac27">LiteFX::Rendering::Backends::VulkanDescriptorSetLayout</a>.</p>
+
+</div>
+</div>
+<a id="ae2fecb1e9428504bec74a7f1b2869ca7" name="ae2fecb1e9428504bec74a7f1b2869ca7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2fecb1e9428504bec74a7f1b2869ca7">&#9670;&#160;</a></span>bindsSamplers()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool LiteFX::Rendering::IDescriptorSetLayout::bindsSamplers </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns <code>true</code> if the descriptor set layout contains bindings for samplers and <code>false</code> otherwise. </p>
+<p>Note that this method only returns <code>true</code> if the layout binds samplers, that is, if they are not static/immutable. </p>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code> if the descriptor set layout contains bindings for samplers and <code>false</code> otherwise.</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html#a1f315b237ef48f8cf4b37848640f2f4c">LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html#aef8520bf8f6202eba1a827da7b90f209">LiteFX::Rendering::Backends::VulkanDescriptorSetLayout</a>.</p>
+
+</div>
+</div>
 <a id="a39edb36e36649825b650c261cddba3d8" name="a39edb36e36649825b650c261cddba3d8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a39edb36e36649825b650c261cddba3d8">&#9670;&#160;</a></span>buffers()</h2>
 
@@ -736,6 +810,36 @@ Additional Inherited Members</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>The number of texel buffer descriptors.</dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html#ac0300c4af3262e329073147717eb6faa">LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html#a128dd2a8c723b9b117915c8a88858502">LiteFX::Rendering::Backends::VulkanDescriptorSetLayout</a>.</p>
+
+</div>
+</div>
+<a id="acdfd1e78bc3f4d5c759a3ac339996aaa" name="acdfd1e78bc3f4d5c759a3ac339996aaa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acdfd1e78bc3f4d5c759a3ac339996aaa">&#9670;&#160;</a></span>containsUnboundedArray()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool LiteFX::Rendering::IDescriptorSetLayout::containsUnboundedArray </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns <code>true</code>, if the descriptor set layout contains an unbounded runtime array and <code>false</code> otherwise. </p>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the descriptor set layout contains an unbounded runtime array and <code>false</code> otherwise</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html#ae2b1f50e6f0c25f0c18b9f69222e3f90">LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html#afd37da987df04de25af51562b0125782">LiteFX::Rendering::Backends::VulkanDescriptorSetLayout</a>.</p>
 
 </div>
 </div>
@@ -828,6 +932,47 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one. </p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="#ae9e6aef0970a1bfad4f3e81ae8c1b3ba" title="Allocates a new descriptor set or returns an instance of an unused descriptor set.">allocate</a></dd></dl>
+
+</div>
+</div>
+<a id="aa268d947f6767a94d0067db416a9573a" name="aa268d947f6767a94d0067db416a9573a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa268d947f6767a94d0067db416a9573a">&#9670;&#160;</a></span>getDescriptorOffset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> LiteFX::Rendering::IDescriptorSetLayout::getDescriptorOffset </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>binding</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>element</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the offset for a descriptor within a descriptor set of this layout. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">binding</td><td>The binding point for the descriptor.</td></tr>
+    <tr><td class="paramname">element</td><td>The index of the array element of a descriptor array.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The offset from the beginning of the descriptor set.</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html#a70eb3c82683b79e69dbdf7e36bce38df">LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html#a2236cbdc86464395241eb458046220f4">LiteFX::Rendering::Backends::VulkanDescriptorSetLayout</a>.</p>
 
 </div>
 </div>

@@ -86,7 +86,6 @@ public:
 private:
     Array<SharedPtr<VulkanVertexBufferLayout>> m_vertexBufferLayouts;
     SharedPtr<VulkanIndexBufferLayout> m_indexBufferLayout;
-    PrimitiveTopology m_primitiveTopology{ PrimitiveTopology::TriangleList };
 };
 
 // ------------------------------------------------------------------------------------------------

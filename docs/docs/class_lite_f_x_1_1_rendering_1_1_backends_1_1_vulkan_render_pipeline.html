@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -151,6 +151,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a4913e540ba3f586200e5285ec4d669cf" id="r_a4913e540ba3f586200e5285ec4d669cf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4913e540ba3f586200e5285ec4d669cf">updateSamples</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#af59b1119db2dc23323a193706a311528">MultiSamplingLevel</a> <a class="el" href="#a5d25e37979d1201988b3f10dd9814534">samples</a>) override</td></tr>
 <tr class="memdesc:a4913e540ba3f586200e5285ec4d669cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Changes the multi-sampling level of the pipeline.Changing the multi-sampling level of a pipeline causes it to be re-created, which is considered an expensive operation. Don't use this method to change samples frequently, for example when binding frame buffers with different sample levels. Instead, use multiple pipelines for this purpose.   <br /></td></tr>
 <tr class="separator:a4913e540ba3f586200e5285ec4d669cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abbece82bfc403def258f66a3dd261f79" id="r_abbece82bfc403def258f66a3dd261f79"><td class="memItemLeft" align="right" valign="top">VkPipelineBindPoint&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abbece82bfc403def258f66a3dd261f79">pipelineType</a> () const noexcept override</td></tr>
+<tr class="memdesc:abbece82bfc403def258f66a3dd261f79"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the type of the pipeline.<dl class="section return"><dt>Returns</dt><dd>The type of the pipeline.</dd></dl>
+  <br /></td></tr>
+<tr class="separator:abbece82bfc403def258f66a3dd261f79"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9ffe821b03c32b48fb0d30fadd6c2467" id="r_a9ffe821b03c32b48fb0d30fadd6c2467"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9ffe821b03c32b48fb0d30fadd6c2467">use</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &amp;commandBuffer) const override</td></tr>
 <tr class="memdesc:a9ffe821b03c32b48fb0d30fadd6c2467"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the current pipeline state on the <em>commandBuffer</em> .<dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -160,16 +164,6 @@ Public Member Functions</h2></td></tr>
 </dl>
   <br /></td></tr>
 <tr class="separator:a9ffe821b03c32b48fb0d30fadd6c2467"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27bd9c3320c7fec02bae118b933b2d54" id="r_a27bd9c3320c7fec02bae118b933b2d54"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a27bd9c3320c7fec02bae118b933b2d54">bind</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &amp;commandBuffer, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html">VulkanDescriptorSet</a> * &gt; descriptorSets) const override</td></tr>
-<tr class="memdesc:a27bd9c3320c7fec02bae118b933b2d54"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a descriptor set on a command buffer.<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">commandBuffer</td><td>The command buffer to issue the bind command on.</td></tr>
-    <tr><td class="paramname">descriptorSets</td><td>The descriptor sets to bind.</td></tr>
-  </table>
-  </dd>
-</dl>
-  <br /></td></tr>
-<tr class="separator:a27bd9c3320c7fec02bae118b933b2d54"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_state"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_state')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_state.html">LiteFX::Rendering::Backends::VulkanPipelineState</a></td></tr>
 <tr class="memitem:a0d1c21654aa1b1bd62b9e56de821c1da inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_state" id="r_a0d1c21654aa1b1bd62b9e56de821c1da"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_state.html#a0d1c21654aa1b1bd62b9e56de821c1da">~VulkanPipelineState</a> () noexcept override=default</td></tr>
 <tr class="separator:a0d1c21654aa1b1bd62b9e56de821c1da inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_state"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -533,46 +527,6 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a27bd9c3320c7fec02bae118b933b2d54" name="a27bd9c3320c7fec02bae118b933b2d54"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a27bd9c3320c7fec02bae118b933b2d54">&#9670;&#160;</a></span>bind()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void VulkanRenderPipeline::bind </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>commandBuffer</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html">VulkanDescriptorSet</a> * &gt;</td>          <td class="paramname"><span class="paramname"><em>descriptorSets</em></span>&#160;) const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Binds a descriptor set on a command buffer.<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">commandBuffer</td><td>The command buffer to issue the bind command on.</td></tr>
-    <tr><td class="paramname">descriptorSets</td><td>The descriptor sets to bind.</td></tr>
-  </table>
-  </dd>
-</dl>
- </p>
-
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_state.html#a69bd1309299ad503b53aef19d89e32c3">LiteFX::Rendering::Backends::VulkanPipelineState</a>.</p>
-
-</div>
-</div>
 <a id="abbcae21af291cac86c05ec053fb5da95" name="abbcae21af291cac86c05ec053fb5da95"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abbcae21af291cac86c05ec053fb5da95">&#9670;&#160;</a></span>inputAssembler()</h2>
 
@@ -682,6 +636,36 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 
 <p></p>
+
+</div>
+</div>
+<a id="abbece82bfc403def258f66a3dd261f79" name="abbece82bfc403def258f66a3dd261f79"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abbece82bfc403def258f66a3dd261f79">&#9670;&#160;</a></span>pipelineType()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">VkPipelineBindPoint VulkanRenderPipeline::pipelineType </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the type of the pipeline.<dl class="section return"><dt>Returns</dt><dd>The type of the pipeline.</dd></dl>
+ </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_state.html#ab39be6a723130bd13dcaa3c9d18948dc">LiteFX::Rendering::Backends::VulkanPipelineState</a>.</p>
 
 </div>
 </div>

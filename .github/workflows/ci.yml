@@ -31,9 +31,9 @@ on:
 
 # Environment variables control which version of dependent software to install.
 env:
-  vulkanSdkVersion: '1.3.283.0'
+  vulkanSdkVersion: '1.4.328.1'
   mesaDriverVersion: '24.1.1'
-  llvmVersion: '19.1.7'
+  llvmVersion: '20.1.8'
 
 # The following jobs are contained in this workflow:
 # - First, the `verify-permissions` job is executed. It checks if the comment user is a contributer or maintainer and if the comment refers to a pull request. It then parses the 
@@ -126,7 +126,7 @@ jobs:
       
     steps:
       - name: Setup Vulkan SDK 
-        uses: jakoch/install-vulkan-sdk-action@v1.0.4
+        uses: jakoch/install-vulkan-sdk-action@v1
         with:
           vulkan_version: ${{ env.vulkanSdkVersion }}
           install_runtime: true
@@ -238,7 +238,7 @@ jobs:
           submodules: true
 
       - name: Setup Vulkan SDK 
-        uses: jakoch/install-vulkan-sdk-action@v1.0.4
+        uses: jakoch/install-vulkan-sdk-action@v1
         with:
           vulkan_version: ${{ env.vulkanSdkVersion }}
           install_runtime: true
@@ -254,7 +254,7 @@ jobs:
 
       - name: Update LLVM
         if: ${{ matrix.compiler == 'clang' }}
-        uses: KyleMayes/install-llvm-action@v2.0.6
+        uses: KyleMayes/install-llvm-action@v2.0.9
         with:
           version: ${{ env.llvmVersion }}
 
@@ -428,7 +428,7 @@ jobs:
           submodules: true
 
       - name: Setup Vulkan SDK 
-        uses: jakoch/install-vulkan-sdk-action@v1.0.4
+        uses: jakoch/install-vulkan-sdk-action@v1
         with:
           vulkan_version: ${{ env.vulkanSdkVersion }}
           install_runtime: true
@@ -437,7 +437,7 @@ jobs:
           
       - name: Update LLVM
         if: ${{ matrix.compiler == 'clang' }}
-        uses: KyleMayes/install-llvm-action@v2.0.6
+        uses: KyleMayes/install-llvm-action@v2.0.9
         with:
           version: ${{ env.llvmVersion }}
         
@@ -581,7 +581,7 @@ jobs:
           status: in_progress
           
       - name: Setup Vulkan SDK 
-        uses: jakoch/install-vulkan-sdk-action@v1.0.4
+        uses: jakoch/install-vulkan-sdk-action@v1
         with:
           vulkan_version: ${{ env.vulkanSdkVersion }}
           install_runtime: true
@@ -598,7 +598,7 @@ jobs:
           
       - name: Update LLVM
         if: ${{ matrix.compiler == 'clang' }}
-        uses: KyleMayes/install-llvm-action@v2.0.6
+        uses: KyleMayes/install-llvm-action@v2.0.9
         with:
           version: ${{ env.llvmVersion }}
           

@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -204,6 +204,15 @@ Public Member Functions</h2></td></tr>
 <dl class="section see"><dt>See also</dt><dd>track(SharedPtr&amp;le;const IBuffer&amp;ge;)</dd></dl>
   <br /></td></tr>
 <tr class="separator:aa31a2831a18cfdc6d098127dd8ebe91d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa0bbd455de2c01ab7b5fdc79b9bf4395" id="r_aa0bbd455de2c01ab7b5fdc79b9bf4395"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa0bbd455de2c01ab7b5fdc79b9bf4395">track</a> (<a class="el" href="namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3">UniquePtr</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &gt; &amp;&amp;descriptorSet) const override</td></tr>
+<tr class="memdesc:aa0bbd455de2c01ab7b5fdc79b9bf4395"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets up tracking for a descriptor set, so that bindings aren't released until the command buffer has been executed.<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">descriptorSet</td><td>The descriptor set to track.</td></tr>
+  </table>
+  </dd>
+</dl>
+  <br /></td></tr>
+<tr class="separator:aa0bbd455de2c01ab7b5fdc79b9bf4395"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad82d529dd56df66ef9394e574230fc2d" id="r_ad82d529dd56df66ef9394e574230fc2d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad82d529dd56df66ef9394e574230fc2d">isSecondary</a> () const noexcept override</td></tr>
 <tr class="memdesc:ad82d529dd56df66ef9394e574230fc2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the command buffer is a secondary command buffer, or <code>false</code> otherwise.<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the command buffer is a secondary command buffer, or <code>false</code> otherwise.</dd></dl>
   <br /></td></tr>
@@ -256,6 +265,9 @@ Public Member Functions</h2></td></tr>
 </dl>
   <br /></td></tr>
 <tr class="separator:a8e76d09ce2815a6784b746edc63c0e1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed823a6e3f13aa93fc3d8b420371ecb0" id="r_aed823a6e3f13aa93fc3d8b420371ecb0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aed823a6e3f13aa93fc3d8b420371ecb0">setDepthBounds</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a7272a8e096481053b319d7658c1c5484">Float</a> minBounds, <a class="el" href="namespace_lite_f_x_1_1_math.html#a7272a8e096481053b319d7658c1c5484">Float</a> maxBounds) const noexcept override</td></tr>
+<tr class="memdesc:aed823a6e3f13aa93fc3d8b420371ecb0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the depth range for the depth bounds test.In order to use the depth bounds test, the currently bound render pipeline must have been created with the depth bounds test enabled, which requires the device to be created with the <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_graphics_device_features.html#a86e94edc73501390c89a23aa66dc9fed" title="Enables support for enabling depth bounds test on IRenderPipeline creation.">GraphicsDeviceFeatures::DepthBoundsTest</a> enabled.   <br /></td></tr>
+<tr class="separator:aed823a6e3f13aa93fc3d8b420371ecb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab1ed70526e30e1bfc209faea04673a00" id="r_ab1ed70526e30e1bfc209faea04673a00"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab1ed70526e30e1bfc209faea04673a00">submit</a> () const override</td></tr>
 <tr class="memdesc:ab1ed70526e30e1bfc209faea04673a00"><td class="mdescLeft">&#160;</td><td class="mdescRight">Submits the command buffer to parent command.<dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
@@ -2064,6 +2076,39 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="aed823a6e3f13aa93fc3d8b420371ecb0" name="aed823a6e3f13aa93fc3d8b420371ecb0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed823a6e3f13aa93fc3d8b420371ecb0">&#9670;&#160;</a></span>setDepthBounds()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DirectX12CommandBuffer::setDepthBounds </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a7272a8e096481053b319d7658c1c5484">Float</a></td>          <td class="paramname"><span class="paramname"><em>minBounds</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a7272a8e096481053b319d7658c1c5484">Float</a></td>          <td class="paramname"><span class="paramname"><em>maxBounds</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets the depth range for the depth bounds test.In order to use the depth bounds test, the currently bound render pipeline must have been created with the depth bounds test enabled, which requires the device to be created with the <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_graphics_device_features.html#a86e94edc73501390c89a23aa66dc9fed" title="Enables support for enabling depth bounds test on IRenderPipeline creation.">GraphicsDeviceFeatures::DepthBoundsTest</a> enabled.  </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a4f63da9b8ac29e5d8231f0bd3cbcc13d">LiteFX::Rendering::ICommandBuffer</a>.</p>
+
+</div>
+</div>
 <a id="a55f4d0d70a61d442f16d743473b0e216" name="a55f4d0d70a61d442f16d743473b0e216"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a55f4d0d70a61d442f16d743473b0e216">&#9670;&#160;</a></span>setScissors() <span class="overload">[1/2]</span></h2>
 
@@ -2336,7 +2381,7 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <a id="a5466a34a4a198c077cb6a89674a7a3a6" name="a5466a34a4a198c077cb6a89674a7a3a6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5466a34a4a198c077cb6a89674a7a3a6">&#9670;&#160;</a></span>track() <span class="overload">[1/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a5466a34a4a198c077cb6a89674a7a3a6">&#9670;&#160;</a></span>track() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2365,7 +2410,7 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <a id="a675c6022a31bb0efe69525f53e59e69c" name="a675c6022a31bb0efe69525f53e59e69c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a675c6022a31bb0efe69525f53e59e69c">&#9670;&#160;</a></span>track() <span class="overload">[2/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a675c6022a31bb0efe69525f53e59e69c">&#9670;&#160;</a></span>track() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2407,7 +2452,7 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <a id="aa31a2831a18cfdc6d098127dd8ebe91d" name="aa31a2831a18cfdc6d098127dd8ebe91d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa31a2831a18cfdc6d098127dd8ebe91d">&#9670;&#160;</a></span>track() <span class="overload">[3/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aa31a2831a18cfdc6d098127dd8ebe91d">&#9670;&#160;</a></span>track() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2445,6 +2490,41 @@ Additional Inherited Members</h2></td></tr>
  </p>
 
 <p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#aee6a49d3411bdd8767ab6a59828cb0f1">LiteFX::Rendering::ICommandBuffer</a>.</p>
+
+</div>
+</div>
+<a id="aa0bbd455de2c01ab7b5fdc79b9bf4395" name="aa0bbd455de2c01ab7b5fdc79b9bf4395"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa0bbd455de2c01ab7b5fdc79b9bf4395">&#9670;&#160;</a></span>track() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DirectX12CommandBuffer::track </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3">UniquePtr</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>descriptorSet</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets up tracking for a descriptor set, so that bindings aren't released until the command buffer has been executed.<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">descriptorSet</td><td>The descriptor set to track.</td></tr>
+  </table>
+  </dd>
+</dl>
+ </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#af27319144e27619bbc6385c5b43b5ca7">LiteFX::Rendering::ICommandBuffer</a>.</p>
 
 </div>
 </div>

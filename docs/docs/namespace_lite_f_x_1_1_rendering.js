@@ -11,6 +11,7 @@ var namespace_lite_f_x_1_1_rendering =
     [ "DescriptorBindingPoint", "struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html", "struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point" ],
     [ "DescriptorSet", "class_lite_f_x_1_1_rendering_1_1_descriptor_set.html", "class_lite_f_x_1_1_rendering_1_1_descriptor_set" ],
     [ "DescriptorSetLayout", "class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout.html", "class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout" ],
+    [ "DetailedMemoryStatistics", "struct_lite_f_x_1_1_rendering_1_1_detailed_memory_statistics.html", "struct_lite_f_x_1_1_rendering_1_1_detailed_memory_statistics" ],
     [ "DeviceState", "class_lite_f_x_1_1_rendering_1_1_device_state.html", "class_lite_f_x_1_1_rendering_1_1_device_state" ],
     [ "FrameBuffer", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html", "class_lite_f_x_1_1_rendering_1_1_frame_buffer" ],
     [ "GraphicsDevice", "class_lite_f_x_1_1_rendering_1_1_graphics_device.html", "class_lite_f_x_1_1_rendering_1_1_graphics_device" ],
@@ -61,7 +62,9 @@ var namespace_lite_f_x_1_1_rendering =
     [ "IVertexBuffer", "class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html", "class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer" ],
     [ "IVertexBufferLayout", "class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer_layout.html", "class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer_layout" ],
     [ "IViewport", "class_lite_f_x_1_1_rendering_1_1_i_viewport.html", "class_lite_f_x_1_1_rendering_1_1_i_viewport" ],
+    [ "MemoryHeapStatistics", "struct_lite_f_x_1_1_rendering_1_1_memory_heap_statistics.html", "struct_lite_f_x_1_1_rendering_1_1_memory_heap_statistics" ],
     [ "Pipeline", "class_lite_f_x_1_1_rendering_1_1_pipeline.html", "class_lite_f_x_1_1_rendering_1_1_pipeline" ],
+    [ "PipelineBindingHint", "struct_lite_f_x_1_1_rendering_1_1_pipeline_binding_hint.html", "struct_lite_f_x_1_1_rendering_1_1_pipeline_binding_hint" ],
     [ "PipelineLayout", "class_lite_f_x_1_1_rendering_1_1_pipeline_layout.html", "class_lite_f_x_1_1_rendering_1_1_pipeline_layout" ],
     [ "PushConstantsLayout", "class_lite_f_x_1_1_rendering_1_1_push_constants_layout.html", "class_lite_f_x_1_1_rendering_1_1_push_constants_layout" ],
     [ "Rasterizer", "class_lite_f_x_1_1_rendering_1_1_rasterizer.html", "class_lite_f_x_1_1_rendering_1_1_rasterizer" ],
@@ -71,6 +74,8 @@ var namespace_lite_f_x_1_1_rendering =
     [ "RenderPassDependency", "class_lite_f_x_1_1_rendering_1_1_render_pass_dependency.html", "class_lite_f_x_1_1_rendering_1_1_render_pass_dependency" ],
     [ "RenderPipeline", "class_lite_f_x_1_1_rendering_1_1_render_pipeline.html", "class_lite_f_x_1_1_rendering_1_1_render_pipeline" ],
     [ "RenderTarget", "class_lite_f_x_1_1_rendering_1_1_render_target.html", "class_lite_f_x_1_1_rendering_1_1_render_target" ],
+    [ "ResourceAllocationInfo", "struct_lite_f_x_1_1_rendering_1_1_resource_allocation_info.html", "struct_lite_f_x_1_1_rendering_1_1_resource_allocation_info" ],
+    [ "ResourceAllocationResult", "struct_lite_f_x_1_1_rendering_1_1_resource_allocation_result.html", "struct_lite_f_x_1_1_rendering_1_1_resource_allocation_result" ],
     [ "Scissor", "class_lite_f_x_1_1_rendering_1_1_scissor.html", "class_lite_f_x_1_1_rendering_1_1_scissor" ],
     [ "ShaderBindingTableOffsets", "struct_lite_f_x_1_1_rendering_1_1_shader_binding_table_offsets.html", "struct_lite_f_x_1_1_rendering_1_1_shader_binding_table_offsets" ],
     [ "ShaderProgram", "class_lite_f_x_1_1_rendering_1_1_shader_program.html", "class_lite_f_x_1_1_rendering_1_1_shader_program" ],
@@ -83,6 +88,7 @@ var namespace_lite_f_x_1_1_rendering =
     [ "TimingEvent", "class_lite_f_x_1_1_rendering_1_1_timing_event.html", "class_lite_f_x_1_1_rendering_1_1_timing_event" ],
     [ "VertexBuffer", "class_lite_f_x_1_1_rendering_1_1_vertex_buffer.html", "class_lite_f_x_1_1_rendering_1_1_vertex_buffer" ],
     [ "Viewport", "class_lite_f_x_1_1_rendering_1_1_viewport.html", "class_lite_f_x_1_1_rendering_1_1_viewport" ],
+    [ "VirtualAllocator", "class_lite_f_x_1_1_rendering_1_1_virtual_allocator.html", "class_lite_f_x_1_1_rendering_1_1_virtual_allocator" ],
     [ "render_backend", "concept_lite_f_x_1_1_rendering_1_1render__backend.html", null ],
     [ "AccelerationStructureFlags", "namespace_lite_f_x_1_1_rendering.html#ab1dd6805bb41d884ad8fc897f18ef641", [
       [ "None", "namespace_lite_f_x_1_1_rendering.html#ab1dd6805bb41d884ad8fc897f18ef641a6adf97f83acf6453d4a6a4b1070f3754", null ],
@@ -91,6 +97,19 @@ var namespace_lite_f_x_1_1_rendering =
       [ "PreferFastTrace", "namespace_lite_f_x_1_1_rendering.html#ab1dd6805bb41d884ad8fc897f18ef641a860dc783775ff96ea27fc5bac370dffb", null ],
       [ "PreferFastBuild", "namespace_lite_f_x_1_1_rendering.html#ab1dd6805bb41d884ad8fc897f18ef641a5a8b4bb923f6f67a8ec04c851929860d", null ],
       [ "MinimizeMemory", "namespace_lite_f_x_1_1_rendering.html#ab1dd6805bb41d884ad8fc897f18ef641a047361d74d8e948bd84af915b9341039", null ]
+    ] ],
+    [ "AllocationAlgorithm", "namespace_lite_f_x_1_1_rendering.html#a93342e92b065b4812c4df0e84c40f32a", [
+      [ "Default", "namespace_lite_f_x_1_1_rendering.html#a93342e92b065b4812c4df0e84c40f32aa7a1920d61156abc05a60135aefe8bc67", null ],
+      [ "Linear", "namespace_lite_f_x_1_1_rendering.html#a93342e92b065b4812c4df0e84c40f32aa32a843da6ea40ab3b17a3421ccdf671b", null ]
+    ] ],
+    [ "AllocationBehavior", "namespace_lite_f_x_1_1_rendering.html#abed15e7a2e5c084be01bcbb34b187006", [
+      [ "Default", "namespace_lite_f_x_1_1_rendering.html#abed15e7a2e5c084be01bcbb34b187006a7a1920d61156abc05a60135aefe8bc67", null ],
+      [ "StayWithinBudget", "namespace_lite_f_x_1_1_rendering.html#abed15e7a2e5c084be01bcbb34b187006adeec37947e11ed59ba21eecffd59912c", null ],
+      [ "DontExpandCache", "namespace_lite_f_x_1_1_rendering.html#abed15e7a2e5c084be01bcbb34b187006acc2a0af8367a2ab3e29c61c7ef94b9d2", null ]
+    ] ],
+    [ "AllocationStrategy", "namespace_lite_f_x_1_1_rendering.html#a9c63c6473965a667812b94806e0ff737", [
+      [ "OptimizePacking", "namespace_lite_f_x_1_1_rendering.html#a9c63c6473965a667812b94806e0ff737ab2bf1154589f575bf0b7bec2dec76e19", null ],
+      [ "OptimizeTime", "namespace_lite_f_x_1_1_rendering.html#a9c63c6473965a667812b94806e0ff737a5191cef8b655d615fed7c1ab2101c841", null ]
     ] ],
     [ "AttributeSemantic", "namespace_lite_f_x_1_1_rendering.html#a7b14fe87afb2f36127c802d137f1ad2e", [
       [ "Binormal", "namespace_lite_f_x_1_1_rendering.html#a7b14fe87afb2f36127c802d137f1ad2ea283c29d0adbe0d46bc7229f181c6e7da", null ],
@@ -103,6 +122,7 @@ var namespace_lite_f_x_1_1_rendering =
       [ "PointSize", "namespace_lite_f_x_1_1_rendering.html#a7b14fe87afb2f36127c802d137f1ad2ea1c93804fed70f0bf705d320ad4504ba0", null ],
       [ "Tangent", "namespace_lite_f_x_1_1_rendering.html#a7b14fe87afb2f36127c802d137f1ad2ea541671cb1be09d76a84ba1a873ec3fc8", null ],
       [ "TextureCoordinate", "namespace_lite_f_x_1_1_rendering.html#a7b14fe87afb2f36127c802d137f1ad2ead9dce789be4fbcd36294bd979e4af62a", null ],
+      [ "Arbitrary", "namespace_lite_f_x_1_1_rendering.html#a7b14fe87afb2f36127c802d137f1ad2ea3c1fc46575f79b15fc8990642387d07f", null ],
       [ "Unknown", "namespace_lite_f_x_1_1_rendering.html#a7b14fe87afb2f36127c802d137f1ad2ea88183b946cc5f0e8c96b2e66e1c74a7e", null ]
     ] ],
     [ "BlendFactor", "namespace_lite_f_x_1_1_rendering.html#a1be466b85553d7077fd3607e3dae3626", [
@@ -198,6 +218,16 @@ var namespace_lite_f_x_1_1_rendering =
       [ "ClockWise", "namespace_lite_f_x_1_1_rendering.html#a03ee857b58c08bda2e0ab6956dfd8510ad5a4d3410a83d1bcdf2ae918a53aabd6", null ],
       [ "CounterClockWise", "namespace_lite_f_x_1_1_rendering.html#a03ee857b58c08bda2e0ab6956dfd8510a5a8821d3fbf32174429e2b28bc3b031b", null ]
     ] ],
+    [ "DefragmentationStrategy", "namespace_lite_f_x_1_1_rendering.html#a72caef5fec10db3d55ad7dd2f3f0ae5b", [
+      [ "Fast", "namespace_lite_f_x_1_1_rendering.html#a72caef5fec10db3d55ad7dd2f3f0ae5bae16b5b7f26f54214445cbe38d72c2828", null ],
+      [ "Balanced", "namespace_lite_f_x_1_1_rendering.html#a72caef5fec10db3d55ad7dd2f3f0ae5bac6589f5236c0c434d0c63dc5f9a856f2", null ],
+      [ "Full", "namespace_lite_f_x_1_1_rendering.html#a72caef5fec10db3d55ad7dd2f3f0ae5babbd47109890259c0127154db1af26c75", null ]
+    ] ],
+    [ "DescriptorHeapType", "namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320", [
+      [ "None", "namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320a6adf97f83acf6453d4a6a4b1070f3754", null ],
+      [ "Resource", "namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320abe8545ae7ab0276e15898aae7acfbd7a", null ],
+      [ "Sampler", "namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320a5bca2f066df1fe641b2b779db2a63c0a", null ]
+    ] ],
     [ "DescriptorType", "namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e", [
       [ "ConstantBuffer", "namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32eaf09d0dd3c08eeabc5b432609f31d0a8c", null ],
       [ "StructuredBuffer", "namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32eab4c372f84a6f9b749ede9fbab15b27fd", null ],
@@ -210,7 +240,9 @@ var namespace_lite_f_x_1_1_rendering =
       [ "RWBuffer", "namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32eaa0ddea71ca80c90e2934d9c2207c5db5", null ],
       [ "ByteAddressBuffer", "namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea67d088e13009f6f32d6b02c3d6f4b58c", null ],
       [ "RWByteAddressBuffer", "namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea7b195b157780c716c802e59bd9cd1e8e", null ],
-      [ "AccelerationStructure", "namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea44b9fced3049ce58beb51494589782e0", null ]
+      [ "AccelerationStructure", "namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea44b9fced3049ce58beb51494589782e0", null ],
+      [ "ResourceDescriptorHeap", "namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea6fd273b2c38bbbac18213aad964f8c83", null ],
+      [ "SamplerDescriptorHeap", "namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32ea23dbc164336b3de4f93f85647fa5cadb", null ]
     ] ],
     [ "FilterMode", "namespace_lite_f_x_1_1_rendering.html#abe8141cd646ad8a0322b60525a5d34b3", [
       [ "Nearest", "namespace_lite_f_x_1_1_rendering.html#abe8141cd646ad8a0322b60525a5d34b3a60494f02d440f316319dd0fad40ad007", null ],
@@ -501,7 +533,8 @@ var namespace_lite_f_x_1_1_rendering =
       [ "Staging", "namespace_lite_f_x_1_1_rendering.html#aa9d1b33dd191db51b1aa8a122d333e9da1bee0d8aaede29ac319901e96850adee", null ],
       [ "Resource", "namespace_lite_f_x_1_1_rendering.html#aa9d1b33dd191db51b1aa8a122d333e9dabe8545ae7ab0276e15898aae7acfbd7a", null ],
       [ "Dynamic", "namespace_lite_f_x_1_1_rendering.html#aa9d1b33dd191db51b1aa8a122d333e9da971fd8cc345d8bd9f92e9f7d88fdf20c", null ],
-      [ "Readback", "namespace_lite_f_x_1_1_rendering.html#aa9d1b33dd191db51b1aa8a122d333e9dac99f8222cb93c13ac08c48a6cbb7b0ae", null ]
+      [ "Readback", "namespace_lite_f_x_1_1_rendering.html#aa9d1b33dd191db51b1aa8a122d333e9dac99f8222cb93c13ac08c48a6cbb7b0ae", null ],
+      [ "GPUUpload", "namespace_lite_f_x_1_1_rendering.html#aa9d1b33dd191db51b1aa8a122d333e9dad2f4c513dd5319d2f89fbeb81f84407a", null ]
     ] ],
     [ "ResourceUsage", "namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951", [
       [ "None", "namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951a6adf97f83acf6453d4a6a4b1070f3754", null ],
@@ -511,7 +544,8 @@ var namespace_lite_f_x_1_1_rendering =
       [ "RenderTarget", "namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951a9b0bffda4bcb312168c0d6537cb04b4d", null ],
       [ "AccelerationStructureBuildInput", "namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951aaa53636c22fa306015bbe94599fc74c5", null ],
       [ "Default", "namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951a7a1920d61156abc05a60135aefe8bc67", null ],
-      [ "FrameBufferImage", "namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951a3c8a55e8ffb3f5057a93138b32cb746f", null ]
+      [ "FrameBufferImage", "namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951a3c8a55e8ffb3f5057a93138b32cb746f", null ],
+      [ "Volatile", "namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951a3e3af98b6b48c7e593d8d18863e3333b", null ]
     ] ],
     [ "ShaderBindingGroup", "namespace_lite_f_x_1_1_rendering.html#a60388bd2428b8d6a7584b5dc04db9394", [
       [ "RayGeneration", "namespace_lite_f_x_1_1_rendering.html#a60388bd2428b8d6a7584b5dc04db9394acc0106c21ab5dc15b6189a28370a70b7", null ],
@@ -558,6 +592,10 @@ var namespace_lite_f_x_1_1_rendering =
       [ "Invert", "namespace_lite_f_x_1_1_rendering.html#aadcfd6839d84bb316d2083e31ea9e779a9b8958acb7be504bb5f55f17c0eea366", null ],
       [ "IncrementWrap", "namespace_lite_f_x_1_1_rendering.html#aadcfd6839d84bb316d2083e31ea9e779aaa91cb7f033b90dec9582dc5e9611732", null ],
       [ "DecrementWrap", "namespace_lite_f_x_1_1_rendering.html#aadcfd6839d84bb316d2083e31ea9e779a6ec565c329385c8d59333abc6a1003d1", null ]
+    ] ],
+    [ "VertexBufferInputRate", "namespace_lite_f_x_1_1_rendering.html#acef186a02bb2529aa875f8c42f1963ba", [
+      [ "Vertex", "namespace_lite_f_x_1_1_rendering.html#acef186a02bb2529aa875f8c42f1963baab22b929ba52471a02d18bb3a4e4472e6", null ],
+      [ "Instance", "namespace_lite_f_x_1_1_rendering.html#acef186a02bb2529aa875f8c42f1963baad9a17c1c9e8ef6866e4dbeef41c741b2", null ]
     ] ],
     [ "WriteMask", "namespace_lite_f_x_1_1_rendering.html#aef207c616d7b8ab4c94a3c7c5e09e26f", [
       [ "R", "namespace_lite_f_x_1_1_rendering.html#aef207c616d7b8ab4c94a3c7c5e09e26fae1e1d3d40573127e9ee0480caf1283d6", null ],

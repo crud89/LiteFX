@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -115,13 +115,27 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a4e3b8e13c5a63ed51b8458d1f462d975"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a838fe4c31cf1ccab30c14df32acc8076" id="r_a838fe4c31cf1ccab30c14df32acc8076"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a838fe4c31cf1ccab30c14df32acc8076">initialize</a> ()</td></tr>
 <tr class="separator:a838fe4c31cf1ccab30c14df32acc8076"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab238fb443b5ed3bfe29a24f8ab6258ae" id="r_ab238fb443b5ed3bfe29a24f8ab6258ae"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab238fb443b5ed3bfe29a24f8ab6258ae">tryAllocate</a> (ComPtr&lt; ID3D12DescriptorHeap &gt; &amp;bufferHeap, ComPtr&lt; ID3D12DescriptorHeap &gt; &amp;samplerHeap, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptorCount)</td></tr>
-<tr class="separator:ab238fb443b5ed3bfe29a24f8ab6258ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a55d9db3063afde9baadcbce41a101397" id="r_a55d9db3063afde9baadcbce41a101397"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a55d9db3063afde9baadcbce41a101397">allocate</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;layout, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptors)</td></tr>
-<tr class="separator:a55d9db3063afde9baadcbce41a101397"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a375e8b40030cfc4bf2ccd2fd6bb53bb4" id="r_a375e8b40030cfc4bf2ccd2fd6bb53bb4"><td class="memTemplParams" colspan="2">template&lt;typename TDescriptorBindings &gt; </td></tr>
-<tr class="memitem:a375e8b40030cfc4bf2ccd2fd6bb53bb4"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a375e8b40030cfc4bf2ccd2fd6bb53bb4">allocate</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;layout, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptors, TDescriptorBindings bindings)</td></tr>
-<tr class="separator:a375e8b40030cfc4bf2ccd2fd6bb53bb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02ceb3c3886590785f09ba35088584e1" id="r_a02ceb3c3886590785f09ba35088584e1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html">DirectX12DescriptorSet</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a02ceb3c3886590785f09ba35088584e1">doAllocate</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;parent, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptorCount)</td></tr>
+<tr class="separator:a02ceb3c3886590785f09ba35088584e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af291bc3c0d4919b049f593ec55e65d72" id="r_af291bc3c0d4919b049f593ec55e65d72"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af291bc3c0d4919b049f593ec55e65d72">allocate</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;parent, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptors)</td></tr>
+<tr class="separator:af291bc3c0d4919b049f593ec55e65d72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a753a44222924dbc801589626db94d706" id="r_a753a44222924dbc801589626db94d706"><td class="memTemplParams" colspan="2">template&lt;typename TDescriptorBindings &gt; </td></tr>
+<tr class="memitem:a753a44222924dbc801589626db94d706"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a753a44222924dbc801589626db94d706">allocate</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;parent, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptors, TDescriptorBindings bindings)</td></tr>
+<tr class="separator:a753a44222924dbc801589626db94d706"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a808d9160af91a75701820a8b980c475a" id="r_a808d9160af91a75701820a8b980c475a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a808d9160af91a75701820a8b980c475a">uniforms</a> () const noexcept</td></tr>
+<tr class="separator:a808d9160af91a75701820a8b980c475a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a01b2ce2cd7aeb572a8a1fd484c3bc72d" id="r_a01b2ce2cd7aeb572a8a1fd484c3bc72d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a01b2ce2cd7aeb572a8a1fd484c3bc72d">storages</a> () const noexcept</td></tr>
+<tr class="separator:a01b2ce2cd7aeb572a8a1fd484c3bc72d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca211d76111323a62f531f378f1e0e14" id="r_aca211d76111323a62f531f378f1e0e14"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aca211d76111323a62f531f378f1e0e14">buffers</a> () const noexcept</td></tr>
+<tr class="separator:aca211d76111323a62f531f378f1e0e14"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3c98bdd9b6cba989e5ba0ef36d7e9ae" id="r_af3c98bdd9b6cba989e5ba0ef36d7e9ae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af3c98bdd9b6cba989e5ba0ef36d7e9ae">images</a> () const noexcept</td></tr>
+<tr class="separator:af3c98bdd9b6cba989e5ba0ef36d7e9ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b32cc5ff66589d90f546236ffb84207" id="r_a4b32cc5ff66589d90f546236ffb84207"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4b32cc5ff66589d90f546236ffb84207">samplers</a> () const noexcept</td></tr>
+<tr class="separator:a4b32cc5ff66589d90f546236ffb84207"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab3b3ccb89da70df0164d224600c325ac" id="r_ab3b3ccb89da70df0164d224600c325ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab3b3ccb89da70df0164d224600c325ac">staticSamplers</a> () const noexcept</td></tr>
+<tr class="separator:ab3b3ccb89da70df0164d224600c325ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abb12a6b21397134b26fb9fd515e2f7f2" id="r_abb12a6b21397134b26fb9fd515e2f7f2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abb12a6b21397134b26fb9fd515e2f7f2">inputAttachments</a> () const noexcept</td></tr>
+<tr class="separator:abb12a6b21397134b26fb9fd515e2f7f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
@@ -196,8 +210,8 @@ Friends</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a55d9db3063afde9baadcbce41a101397" name="a55d9db3063afde9baadcbce41a101397"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a55d9db3063afde9baadcbce41a101397">&#9670;&#160;</a></span>allocate() <span class="overload">[1/2]</span></h2>
+<a id="af291bc3c0d4919b049f593ec55e65d72" name="af291bc3c0d4919b049f593ec55e65d72"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af291bc3c0d4919b049f593ec55e65d72">&#9670;&#160;</a></span>allocate() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -208,7 +222,7 @@ Friends</h2></td></tr>
         <tr>
           <td class="memname">auto LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayoutImpl::allocate </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>layout</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>parent</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -225,8 +239,8 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a id="a375e8b40030cfc4bf2ccd2fd6bb53bb4" name="a375e8b40030cfc4bf2ccd2fd6bb53bb4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a375e8b40030cfc4bf2ccd2fd6bb53bb4">&#9670;&#160;</a></span>allocate() <span class="overload">[2/2]</span></h2>
+<a id="a753a44222924dbc801589626db94d706" name="a753a44222924dbc801589626db94d706"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a753a44222924dbc801589626db94d706">&#9670;&#160;</a></span>allocate() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -239,7 +253,7 @@ template&lt;typename TDescriptorBindings &gt; </div>
         <tr>
           <td class="memname">auto LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayoutImpl::allocate </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>layout</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>parent</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -255,6 +269,85 @@ template&lt;typename TDescriptorBindings &gt; </div>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aca211d76111323a62f531f378f1e0e14" name="aca211d76111323a62f531f378f1e0e14"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca211d76111323a62f531f378f1e0e14">&#9670;&#160;</a></span>buffers()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayoutImpl::buffers </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a02ceb3c3886590785f09ba35088584e1" name="a02ceb3c3886590785f09ba35088584e1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02ceb3c3886590785f09ba35088584e1">&#9670;&#160;</a></span>doAllocate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html">DirectX12DescriptorSet</a> &gt; LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayoutImpl::doAllocate </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>parent</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>descriptorCount</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af3c98bdd9b6cba989e5ba0ef36d7e9ae" name="af3c98bdd9b6cba989e5ba0ef36d7e9ae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3c98bdd9b6cba989e5ba0ef36d7e9ae">&#9670;&#160;</a></span>images()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayoutImpl::images </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -286,8 +379,8 @@ template&lt;typename TDescriptorBindings &gt; </div>
 
 </div>
 </div>
-<a id="ab238fb443b5ed3bfe29a24f8ab6258ae" name="ab238fb443b5ed3bfe29a24f8ab6258ae"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab238fb443b5ed3bfe29a24f8ab6258ae">&#9670;&#160;</a></span>tryAllocate()</h2>
+<a id="abb12a6b21397134b26fb9fd515e2f7f2" name="abb12a6b21397134b26fb9fd515e2f7f2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abb12a6b21397134b26fb9fd515e2f7f2">&#9670;&#160;</a></span>inputAttachments()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -296,24 +389,115 @@ template&lt;typename TDescriptorBindings &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayoutImpl::tryAllocate </td>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayoutImpl::inputAttachments </td>
           <td>(</td>
-          <td class="paramtype">ComPtr&lt; ID3D12DescriptorHeap &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>bufferHeap</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">ComPtr&lt; ID3D12DescriptorHeap &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>samplerHeap</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>descriptorCount</em></span>&#160;)</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4b32cc5ff66589d90f546236ffb84207" name="a4b32cc5ff66589d90f546236ffb84207"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b32cc5ff66589d90f546236ffb84207">&#9670;&#160;</a></span>samplers()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayoutImpl::samplers </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab3b3ccb89da70df0164d224600c325ac" name="ab3b3ccb89da70df0164d224600c325ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab3b3ccb89da70df0164d224600c325ac">&#9670;&#160;</a></span>staticSamplers()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayoutImpl::staticSamplers </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a01b2ce2cd7aeb572a8a1fd484c3bc72d" name="a01b2ce2cd7aeb572a8a1fd484c3bc72d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a01b2ce2cd7aeb572a8a1fd484c3bc72d">&#9670;&#160;</a></span>storages()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayoutImpl::storages </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a808d9160af91a75701820a8b980c475a" name="a808d9160af91a75701820a8b980c475a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a808d9160af91a75701820a8b980c475a">&#9670;&#160;</a></span>uniforms()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayoutImpl::uniforms </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

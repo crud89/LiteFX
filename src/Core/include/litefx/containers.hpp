@@ -1122,7 +1122,9 @@ namespace LiteFX {
 		template <typename TSelf>
 		[[nodiscard]] auto inline shared_from_this(this TSelf&& self) noexcept
 		{
-			return std::static_pointer_cast<std::remove_reference_t<TSelf>>(
+			// TODO: In C++26 we should be able to use `std::is_virtual_base_of<SharedObject, TSelf>` here to prefer a `static_pointer_cast`, if possible.
+
+			return std::dynamic_pointer_cast<std::remove_reference_t<TSelf>>(
 				std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::shared_from_this());
 		}
 		
@@ -1132,7 +1134,9 @@ namespace LiteFX {
 		template <typename TSelf>
 		[[nodiscard]] auto inline weak_from_this(this TSelf&& self) noexcept -> WeakPtr<std::remove_reference_t<TSelf>>
 		{
-			return std::static_pointer_cast<std::remove_reference_t<TSelf>>(
+			// TODO: In C++26 we should be able to use `std::is_virtual_base_of<SharedObject, TSelf>` here to prefer a `static_pointer_cast`, if possible.
+
+			return std::dynamic_pointer_cast<std::remove_reference_t<TSelf>>(
 				std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::weak_from_this().lock());
 		}
 	};

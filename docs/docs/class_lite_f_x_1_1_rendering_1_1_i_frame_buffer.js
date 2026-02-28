@@ -2,6 +2,7 @@ var class_lite_f_x_1_1_rendering_1_1_i_frame_buffer =
 [
     [ "ReleasedEventArgs", "struct_lite_f_x_1_1_rendering_1_1_i_frame_buffer_1_1_released_event_args.html", "struct_lite_f_x_1_1_rendering_1_1_i_frame_buffer_1_1_released_event_args" ],
     [ "ResizeEventArgs", "struct_lite_f_x_1_1_rendering_1_1_i_frame_buffer_1_1_resize_event_args.html", "struct_lite_f_x_1_1_rendering_1_1_i_frame_buffer_1_1_resize_event_args" ],
+    [ "allocation_callback_type", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#aad8878f3d144d11591264e93df7a4353", null ],
     [ "IFrameBuffer", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a4b0ab5ac6f8c2c09e793211e71fa938e", null ],
     [ "IFrameBuffer", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a75e6c0061a715f5ff6af724d8102ce27", null ],
     [ "IFrameBuffer", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#ae4a185a08b6e0dd821dbf271cae0dc85", null ],
@@ -35,5 +36,6 @@ var class_lite_f_x_1_1_rendering_1_1_i_frame_buffer =
     [ "size", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a38f4c01f88c828885dea6509af7b0cb3", null ],
     [ "unmapRenderTarget", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#ab9ebe1cf007e5cc287b75d598156b107", null ],
     [ "released", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#ad73fafbce63254f28ad86beea49f1902", null ],
-    [ "resized", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a04144daf36df81eefb01b7e1df5d4bb5", null ]
+    [ "resized", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a04144daf36df81eefb01b7e1df5d4bb5", null ],
+    [ "resizing", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a65d04b31dabad3de64809b385677d641", null ]
 ];

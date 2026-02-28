@@ -24,7 +24,7 @@ void TestApp::onInit()
         auto surface = backend->createSurface(_window);
 
         // Create the device.
-        [[maybe_unused]] auto& device = backend->createDevice("Default", *adapters.front(), std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false);
+        [[maybe_unused]] auto& device = backend->createDevice("Default", *adapters.front(), std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, true);
 
         return true;
     };

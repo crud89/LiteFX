@@ -98,7 +98,7 @@ namespace LiteFX {
 	/// Represents a handler for an <see cref="Event" />, that is assigned a unique token when created, so that it can be identified later.
 	/// </summary>
 	/// <remarks>
-	/// Since a `std::function` or callable us not comparable, it is not possible to identify and remove event handlers from an event, after registering 
+	/// Since a `std::function` or callable is non-comparable, it is not possible to identify and remove event handlers from an event, after registering 
 	/// them. To support this functionality, the event handler will be encapsulated in a delegate, which gets assigned with a token. This token is unique
 	/// for the event, the delegate has been registered to.
 	/// </remarks>

@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -100,7 +100,9 @@ $(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_device_memory.html'
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="class_lite_f_x_1_1_rendering_1_1_i_device_memory-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">LiteFX::Rendering::IDeviceMemory Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div></div>
@@ -114,6 +116,15 @@ $(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_device_memory.html'
 
 <p>Inherited by <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer.html">LiteFX::Rendering::IBuffer</a><code> [virtual]</code>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html">LiteFX::Rendering::IImage</a><code> [virtual]</code>.</p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_i_device_memory_1_1_prepare_move_event_args.html">PrepareMoveEventArgs</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores a reference to a barrier that can be used to synchronize accesses to the resource with a move operation.  <a href="struct_lite_f_x_1_1_rendering_1_1_i_device_memory_1_1_prepare_move_event_args.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_i_device_memory_1_1_resource_moving_event_args.html">ResourceMovingEventArgs</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores the fence and the command queue to wait on for the fence before a moved resource can be used.  <a href="struct_lite_f_x_1_1_rendering_1_1_i_device_memory_1_1_resource_moving_event_args.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a1899194e7d61373406c922cc5b336007" id="r_a1899194e7d61373406c922cc5b336007"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1899194e7d61373406c922cc5b336007">~IDeviceMemory</a> () noexcept=default</td></tr>
@@ -136,12 +147,27 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a0f597c3eecfe5e4d6909bd67ad962e64" id="r_a0f597c3eecfe5e4d6909bd67ad962e64"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951">ResourceUsage</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0f597c3eecfe5e4d6909bd67ad962e64">usage</a> () const noexcept=0</td></tr>
 <tr class="memdesc:a0f597c3eecfe5e4d6909bd67ad962e64"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the usage flags for the resource.  <br /></td></tr>
 <tr class="separator:a0f597c3eecfe5e4d6909bd67ad962e64"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a91ef4540e80ac4ad0d42f3005b8aa0f8" id="r_a91ef4540e80ac4ad0d42f3005b8aa0f8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a91ef4540e80ac4ad0d42f3005b8aa0f8">writable</a> () const noexcept</td></tr>
-<tr class="memdesc:a91ef4540e80ac4ad0d42f3005b8aa0f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the resource can be bound to a read/write descriptor.  <br /></td></tr>
-<tr class="separator:a91ef4540e80ac4ad0d42f3005b8aa0f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e19d686770eb7c6f847e8f2ce78c79b" id="r_a7e19d686770eb7c6f847e8f2ce78c79b"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7e19d686770eb7c6f847e8f2ce78c79b">virtualAddress</a> () const noexcept=0</td></tr>
 <tr class="memdesc:a7e19d686770eb7c6f847e8f2ce78c79b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the address of the resource in GPU memory.  <br /></td></tr>
 <tr class="separator:a7e19d686770eb7c6f847e8f2ce78c79b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8cec9d7f1ee29d0f088d16b31cd3bb3e" id="r_a8cec9d7f1ee29d0f088d16b31cd3bb3e"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8cec9d7f1ee29d0f088d16b31cd3bb3e">writable</a> () const noexcept</td></tr>
+<tr class="memdesc:a8cec9d7f1ee29d0f088d16b31cd3bb3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the resource can be bound to a read/write descriptor.  <br /></td></tr>
+<tr class="separator:a8cec9d7f1ee29d0f088d16b31cd3bb3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91f22c38dfa49a8fa39a55ca0feb38cb" id="r_a91f22c38dfa49a8fa39a55ca0feb38cb"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a91f22c38dfa49a8fa39a55ca0feb38cb">volatileMove</a> () const noexcept</td></tr>
+<tr class="memdesc:a91f22c38dfa49a8fa39a55ca0feb38cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the contents of the resource should not be copied during a move.  <br /></td></tr>
+<tr class="separator:a91f22c38dfa49a8fa39a55ca0feb38cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:a127e1e946d18d05dabb385d5df0aa29d" id="r_a127e1e946d18d05dabb385d5df0aa29d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_lite_f_x_1_1_event.html">Event</a>&lt; const <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_i_device_memory_1_1_prepare_move_event_args.html">PrepareMoveEventArgs</a> &amp; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a127e1e946d18d05dabb385d5df0aa29d">prepareMove</a></td></tr>
+<tr class="memdesc:a127e1e946d18d05dabb385d5df0aa29d"><td class="mdescLeft">&#160;</td><td class="mdescRight">An event that gets invoked to prepare a resource for a move operation.  <br /></td></tr>
+<tr class="separator:a127e1e946d18d05dabb385d5df0aa29d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af0e56fb490b2ff583d559e5099af5916" id="r_af0e56fb490b2ff583d559e5099af5916"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_lite_f_x_1_1_event.html">Event</a>&lt; <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_i_device_memory_1_1_resource_moving_event_args.html">ResourceMovingEventArgs</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af0e56fb490b2ff583d559e5099af5916">moving</a></td></tr>
+<tr class="memdesc:af0e56fb490b2ff583d559e5099af5916"><td class="mdescLeft">&#160;</td><td class="mdescRight">An event that gets invoked before a resource is copied during a move.  <br /></td></tr>
+<tr class="separator:af0e56fb490b2ff583d559e5099af5916"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae935df7a7d5ecaff70e7fbc7b974b477" id="r_ae935df7a7d5ecaff70e7fbc7b974b477"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_lite_f_x_1_1_event.html">Event</a>&lt; <a class="el" href="class_lite_f_x_1_1_event_args.html">EventArgs</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae935df7a7d5ecaff70e7fbc7b974b477">moved</a></td></tr>
+<tr class="memdesc:ae935df7a7d5ecaff70e7fbc7b974b477"><td class="mdescLeft">&#160;</td><td class="mdescRight">An event that gets invoked, after the resource has been moved to a different location, but before the old resource gets destroyed.  <br /></td></tr>
+<tr class="separator:ae935df7a7d5ecaff70e7fbc7b974b477"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -530,8 +556,8 @@ Protected Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a91ef4540e80ac4ad0d42f3005b8aa0f8" name="a91ef4540e80ac4ad0d42f3005b8aa0f8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a91ef4540e80ac4ad0d42f3005b8aa0f8">&#9670;&#160;</a></span>writable()</h2>
+<a id="a91f22c38dfa49a8fa39a55ca0feb38cb" name="a91f22c38dfa49a8fa39a55ca0feb38cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a91f22c38dfa49a8fa39a55ca0feb38cb">&#9670;&#160;</a></span>volatileMove()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -540,7 +566,7 @@ Protected Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool LiteFX::Rendering::IDeviceMemory::writable </td>
+          <td class="memname">virtual bool LiteFX::Rendering::IDeviceMemory::volatileMove </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td> const</td>
@@ -548,7 +574,37 @@ Protected Member Functions</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns <code>true</code>, if the contents of the resource should not be copied during a move. </p>
+<p>To set this flag, include <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951a3e3af98b6b48c7e593d8d18863e3333b" title="Causes the contents of the resource to not be copied during defragmentation.">ResourceUsage::Volatile</a> in the resource usage flags. </p>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the contents of the resource should not be copied during a move and <code>false</code> otherwise.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="#af0e56fb490b2ff583d559e5099af5916" title="An event that gets invoked before a resource is copied during a move.">moving</a>, <a class="el" href="#a0f597c3eecfe5e4d6909bd67ad962e64" title="Returns the usage flags for the resource.">usage</a>, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951a3e3af98b6b48c7e593d8d18863e3333b" title="Causes the contents of the resource to not be copied during defragmentation.">ResourceUsage::Volatile</a></dd></dl>
+
+</div>
+</div>
+<a id="a8cec9d7f1ee29d0f088d16b31cd3bb3e" name="a8cec9d7f1ee29d0f088d16b31cd3bb3e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8cec9d7f1ee29d0f088d16b31cd3bb3e">&#9670;&#160;</a></span>writable()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool LiteFX::Rendering::IDeviceMemory::writable </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -556,6 +612,88 @@ Protected Member Functions</h2></td></tr>
 <p>Returns <code>true</code>, if the resource can be bound to a read/write descriptor. </p>
 <p>If the resource is not writable, attempting to bind it to a writable descriptor will result in an exception. </p>
 <dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the resource can be bound to a read/write descriptor.</dd></dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="ae935df7a7d5ecaff70e7fbc7b974b477" name="ae935df7a7d5ecaff70e7fbc7b974b477"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae935df7a7d5ecaff70e7fbc7b974b477">&#9670;&#160;</a></span>moved</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_lite_f_x_1_1_event.html">Event</a>&lt;<a class="el" href="class_lite_f_x_1_1_event_args.html">EventArgs</a>&gt; LiteFX::Rendering::IDeviceMemory::moved</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">mutable</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>An event that gets invoked, after the resource has been moved to a different location, but before the old resource gets destroyed. </p>
+<p>This event gets invoked during defragmentation to inform any subscribers about a relocation. You might want to subscribe to this event is to update any descriptor bindings, as they become invalid after the previous resource gets removed. Additionally, you may want to insert barriers to transition the resource back into the desired layout.</p>
+<p>Note that this event is invoked on the thread that executes the defragmentation process, which means you potentially might want to synchronize the handler with other resource accesses. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="#af0e56fb490b2ff583d559e5099af5916" title="An event that gets invoked before a resource is copied during a move.">moving</a>, IGraphicsFactory::defragment</dd></dl>
+
+</div>
+</div>
+<a id="af0e56fb490b2ff583d559e5099af5916" name="af0e56fb490b2ff583d559e5099af5916"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af0e56fb490b2ff583d559e5099af5916">&#9670;&#160;</a></span>moving</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_lite_f_x_1_1_event.html">Event</a>&lt;<a class="el" href="struct_lite_f_x_1_1_rendering_1_1_i_device_memory_1_1_resource_moving_event_args.html">ResourceMovingEventArgs</a>&gt; LiteFX::Rendering::IDeviceMemory::moving</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">mutable</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>An event that gets invoked before a resource is copied during a move. </p>
+<p>This event gets invoked during defragmentation to inform any subscribers about the relocation. Moving a resource involves an asynchronous copy-command. This event is invoked after this command has been submitted, but before it has been executed. The <a class="el" href="#ae935df7a7d5ecaff70e7fbc7b974b477" title="An event that gets invoked, after the resource has been moved to a different location,...">moved</a> event executes after the resource has been copied to the new location.</p>
+<p>Note that this event is invoked on the thread that executes the defragmentation process, which means you potentially might want to synchronize the handler with other potential resource accesses. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="#ae935df7a7d5ecaff70e7fbc7b974b477" title="An event that gets invoked, after the resource has been moved to a different location,...">moved</a>, IGraphicsFactory::defragment</dd></dl>
+
+</div>
+</div>
+<a id="a127e1e946d18d05dabb385d5df0aa29d" name="a127e1e946d18d05dabb385d5df0aa29d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a127e1e946d18d05dabb385d5df0aa29d">&#9670;&#160;</a></span>prepareMove</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_lite_f_x_1_1_event.html">Event</a>&lt;const <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_i_device_memory_1_1_prepare_move_event_args.html">PrepareMoveEventArgs</a>&amp;&gt; LiteFX::Rendering::IDeviceMemory::prepareMove</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">mutable</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>An event that gets invoked to prepare a resource for a move operation. </p>
+<p>The purpose of this event is to prepare a barrier that synchronizes the resource with other accesses. The event arguments of this event contain a reference to a barrier instance, that can be used to insert a barrier for the resource. Note that the transition must be supported on the underlying command queue that executes the move.</p>
+<p>Note that both, the DirectX 12 as well as the Vulkan backend expect images to be in <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a190ea10dd0d34250e0efc1b42ba3f85aad13bc5b68b2bd9e18f29777db17cc563" title="A common image layout that allows for all types of access (shader resource, transfer destination,...">ImageLayout::Common</a> layout before moving them. </p>
+<dl class="section see"><dt>See also</dt><dd>IGraphicsFactory::defragment</dd></dl>
 
 </div>
 </div>

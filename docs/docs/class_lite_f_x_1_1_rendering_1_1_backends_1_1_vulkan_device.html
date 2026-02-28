@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -103,6 +103,7 @@ $(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_d
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
+<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="#friends">Friends</a> &#124;
 <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">LiteFX::Rendering::Backends::VulkanDevice Class Reference<span class="mlabels"><span class="mlabel">final</span></span></div></div>
@@ -135,6 +136,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9574624c22fd1db84ff1f8df8e2affd0" id="r_a9574624c22fd1db84ff1f8df8e2affd0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="struct_lite_f_x_1_1_enumerable.html">Enumerable</a>&lt; <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9574624c22fd1db84ff1f8df8e2affd0">queueFamilyIndices</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#aa56451875d5735090b2184fde2d65ced">QueueType</a> type=<a class="el" href="namespace_lite_f_x_1_1_rendering.html#aa56451875d5735090b2184fde2d65ceda6adf97f83acf6453d4a6a4b1070f3754">QueueType::None</a>) const</td></tr>
 <tr class="memdesc:a9574624c22fd1db84ff1f8df8e2affd0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the indices of all queue families with support for <em>type</em> .  <br /></td></tr>
 <tr class="separator:a9574624c22fd1db84ff1f8df8e2affd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af936d350660d60c24d3ba9350ced8999" id="r_af936d350660d60c24d3ba9350ced8999"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af936d350660d60c24d3ba9350ced8999">descriptorSize</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a> type) const</td></tr>
+<tr class="memdesc:af936d350660d60c24d3ba9350ced8999"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resolves the binary size for a descriptor of <em>type</em> .  <br /></td></tr>
+<tr class="separator:af936d350660d60c24d3ba9350ced8999"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aca5882c6dbd482c96fa7a539d366833a" id="r_aca5882c6dbd482c96fa7a539d366833a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_device_state.html">DeviceState</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aca5882c6dbd482c96fa7a539d366833a">state</a> () const noexcept override</td></tr>
 <tr class="memdesc:aca5882c6dbd482c96fa7a539d366833a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the device state that can be used to manage resources.<dl class="section return"><dt>Returns</dt><dd>A reference of the device state.</dd></dl>
   <br /></td></tr>
@@ -167,6 +171,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ac84c54ca5189ca74b519e0a456d2e286"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a014a7f190aa23da570a559c1a5ed6b6a" id="r_a014a7f190aa23da570a559c1a5ed6b6a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_frame_buffer.html">VulkanFrameBuffer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a014a7f190aa23da570a559c1a5ed6b6a">makeFrameBuffer</a> (<a class="el" href="namespace_lite_f_x.html#a8f67ef1b66d8e11201ba89c9db51c0c8">StringView</a> name, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;renderArea) const override</td></tr>
 <tr class="separator:a014a7f190aa23da570a559c1a5ed6b6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adcc41054801e8617f686588ee3b8e374" id="r_adcc41054801e8617f686588ee3b8e374"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_frame_buffer.html">VulkanFrameBuffer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adcc41054801e8617f686588ee3b8e374">makeFrameBuffer</a> (<a class="el" href="namespace_lite_f_x.html#a8f67ef1b66d8e11201ba89c9db51c0c8">StringView</a> name, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;renderArea, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#aad8878f3d144d11591264e93df7a4353">VulkanFrameBuffer::allocation_callback_type</a> allocationCallback) const override</td></tr>
+<tr class="separator:adcc41054801e8617f686588ee3b8e374"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab6606fc54b2fa2b535259abcc7d2a8b4" id="r_ab6606fc54b2fa2b535259abcc7d2a8b4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#af59b1119db2dc23323a193706a311528">MultiSamplingLevel</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab6606fc54b2fa2b535259abcc7d2a8b4">maximumMultiSamplingLevel</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a> format) const noexcept override</td></tr>
 <tr class="memdesc:ab6606fc54b2fa2b535259abcc7d2a8b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Queries the device for the maximum supported number of multi-sampling levels.This method returns the maximum supported multi-sampling level for a certain format. Typically you want to pass a back-buffer format for your swap-chain here. All lower multi-sampling levels are implicitly supported for this format.   <br /></td></tr>
 <tr class="separator:ab6606fc54b2fa2b535259abcc7d2a8b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -182,15 +188,39 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:abcef6e281b9fc695b6a1696bcf24cebc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7c39fc6ad530805cc79b80e5b728f4c0" id="r_a7c39fc6ad530805cc79b80e5b728f4c0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7c39fc6ad530805cc79b80e5b728f4c0">computeAccelerationStructureSizes</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_top_level_acceleration_structure.html">VulkanTopLevelAccelerationStructure</a> &amp;tlas, <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> &amp;bufferSize, <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> &amp;scratchSize, bool forUpdate=false) const override</td></tr>
 <tr class="separator:a7c39fc6ad530805cc79b80e5b728f4c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa804d44adcad1b3c20eb7c1d7bcb1ca6" id="r_aa804d44adcad1b3c20eb7c1d7bcb1ca6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_virtual_allocator_1_1_allocation.html">VirtualAllocator::Allocation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa804d44adcad1b3c20eb7c1d7bcb1ca6">allocateGlobalDescriptors</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html">VulkanDescriptorSet</a> &amp;descriptorSet, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a> heapType) const override</td></tr>
+<tr class="separator:aa804d44adcad1b3c20eb7c1d7bcb1ca6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a971c5a474806f9da03c296c2f6ed5ebf" id="r_a971c5a474806f9da03c296c2f6ed5ebf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a971c5a474806f9da03c296c2f6ed5ebf">releaseGlobalDescriptors</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html">VulkanDescriptorSet</a> &amp;descriptorSet) const override</td></tr>
+<tr class="separator:a971c5a474806f9da03c296c2f6ed5ebf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab1526bb96c3cbccf06e777b51935a3d6" id="r_ab1526bb96c3cbccf06e777b51935a3d6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab1526bb96c3cbccf06e777b51935a3d6">updateGlobalDescriptors</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html">VulkanDescriptorSet</a> &amp;descriptorSet, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> offset, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptors) const override</td></tr>
+<tr class="separator:ab1526bb96c3cbccf06e777b51935a3d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42b7b0edb5165a4544ad749ba4e324dd" id="r_a42b7b0edb5165a4544ad749ba4e324dd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a42b7b0edb5165a4544ad749ba4e324dd">bindDescriptorSet</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &amp;commandBuffer, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html">VulkanDescriptorSet</a> &amp;descriptorSet, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_state.html">VulkanPipelineState</a> &amp;pipeline) const noexcept override</td></tr>
+<tr class="separator:a42b7b0edb5165a4544ad749ba4e324dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a151169aef284b5f0628d750cd194a76e" id="r_a151169aef284b5f0628d750cd194a76e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a151169aef284b5f0628d750cd194a76e">bindGlobalDescriptorHeaps</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &amp;commandBuffer) const noexcept override</td></tr>
+<tr class="separator:a151169aef284b5f0628d750cd194a76e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html">LiteFX::Rendering::GraphicsDevice&lt; VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanRenderPipeline, VulkanComputePipeline, VulkanRayTracingPipeline, VulkanBarrier &gt;</a></td></tr>
 <tr class="memitem:a61635b58af42724b0a484ed65b6a3c25 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device" id="r_a61635b58af42724b0a484ed65b6a3c25"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#a61635b58af42724b0a484ed65b6a3c25">~GraphicsDevice</a> () noexcept override=default</td></tr>
 <tr class="separator:a61635b58af42724b0a484ed65b6a3c25 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a990544d68238423be8d9242c0372da7f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device" id="r_a990544d68238423be8d9242c0372da7f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#ab7c64d69afe01a6a82d695b09b36349e">frame_buffer_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#a990544d68238423be8d9242c0372da7f">makeFrameBuffer</a> (const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;renderArea) const</td></tr>
 <tr class="separator:a990544d68238423be8d9242c0372da7f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a368a3dea4812ceb3e504a56dab2d43aa inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device" id="r_a368a3dea4812ceb3e504a56dab2d43aa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#ab7c64d69afe01a6a82d695b09b36349e">frame_buffer_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#a368a3dea4812ceb3e504a56dab2d43aa">makeFrameBuffer</a> (const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;renderArea, frame_buffer_type::allocation_callback_type allocationCallback) const</td></tr>
+<tr class="separator:a368a3dea4812ceb3e504a56dab2d43aa inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af44e8b515aef0be7e8335515db9b33ee inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device" id="r_af44e8b515aef0be7e8335515db9b33ee"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#ab7c64d69afe01a6a82d695b09b36349e">frame_buffer_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#af44e8b515aef0be7e8335515db9b33ee">makeFrameBuffer</a> (<a class="el" href="namespace_lite_f_x.html#a8f67ef1b66d8e11201ba89c9db51c0c8">StringView</a> name, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;renderArea, frame_buffer_type::allocation_callback_type allocationCallback) const=0</td></tr>
+<tr class="separator:af44e8b515aef0be7e8335515db9b33ee inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1d30af705c1f0f869c1bd10d0556a2ef inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device" id="r_a1d30af705c1f0f869c1bd10d0556a2ef"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#a1d30af705c1f0f869c1bd10d0556a2ef">computeAccelerationStructureSizes</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#a7b26eba342567305c0e5d189d7e37589">bottom_level_acceleration_structure_type</a> &amp;blas, <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> &amp;bufferSize, <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> &amp;scratchSize, bool forUpdate=false) const=0</td></tr>
 <tr class="separator:a1d30af705c1f0f869c1bd10d0556a2ef inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae1b2224dfaf48189973f484ef2683ca inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device" id="r_aae1b2224dfaf48189973f484ef2683ca"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#aae1b2224dfaf48189973f484ef2683ca">computeAccelerationStructureSizes</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#a0e4e49fda80199f43e633b82992a09d4">top_level_acceleration_structure_type</a> &amp;tlas, <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> &amp;bufferSize, <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> &amp;scratchSize, bool forUpdate=false) const=0</td></tr>
 <tr class="separator:aae1b2224dfaf48189973f484ef2683ca inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af34054845f253e063ecfb641dc3a71a6 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device" id="r_af34054845f253e063ecfb641dc3a71a6"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_virtual_allocator_1_1_allocation.html">VirtualAllocator::Allocation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#af34054845f253e063ecfb641dc3a71a6">allocateGlobalDescriptors</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#af8d6848dd85b033a29a20f06b4d9f5f1">descriptor_set_type</a> &amp;descriptorSet, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a> heapType) const=0</td></tr>
+<tr class="separator:af34054845f253e063ecfb641dc3a71a6 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96adf992573d47d7240ef8697a8ee6ab inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device" id="r_a96adf992573d47d7240ef8697a8ee6ab"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#a96adf992573d47d7240ef8697a8ee6ab">releaseGlobalDescriptors</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#af8d6848dd85b033a29a20f06b4d9f5f1">descriptor_set_type</a> &amp;descriptorSet) const=0</td></tr>
+<tr class="separator:a96adf992573d47d7240ef8697a8ee6ab inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c17902e9322c15077c68472138d33c9 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device" id="r_a5c17902e9322c15077c68472138d33c9"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#a5c17902e9322c15077c68472138d33c9">updateGlobalDescriptors</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#af8d6848dd85b033a29a20f06b4d9f5f1">descriptor_set_type</a> &amp;descriptorSet, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> offset, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptors) const=0</td></tr>
+<tr class="separator:a5c17902e9322c15077c68472138d33c9 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af63cc97eeb7052b67e9dafeaeef12ec8 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device" id="r_af63cc97eeb7052b67e9dafeaeef12ec8"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#af63cc97eeb7052b67e9dafeaeef12ec8">bindDescriptorSet</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#aa519ef5e52fadeee3c632b314106f6fa">command_buffer_type</a> &amp;commandBuffer, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#af8d6848dd85b033a29a20f06b4d9f5f1">descriptor_set_type</a> &amp;descriptorSet, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#a07b2d8c6fd534ca9a5d8def8c3c8ccb0">pipeline_type</a> &amp;pipeline) const noexcept=0</td></tr>
+<tr class="separator:af63cc97eeb7052b67e9dafeaeef12ec8 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae99071fb074a9f65fc57f88414ec0d4d inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device" id="r_ae99071fb074a9f65fc57f88414ec0d4d"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#ae99071fb074a9f65fc57f88414ec0d4d">bindGlobalDescriptorHeaps</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#aa519ef5e52fadeee3c632b314106f6fa">command_buffer_type</a> &amp;commandBuffer) const noexcept=0</td></tr>
+<tr class="separator:ae99071fb074a9f65fc57f88414ec0d4d inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a></td></tr>
 <tr class="memitem:ab6915ddf6ab441a154714b77420ffccf inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device" id="r_ab6915ddf6ab441a154714b77420ffccf"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab6915ddf6ab441a154714b77420ffccf">~IGraphicsDevice</a> () noexcept override=default</td></tr>
 <tr class="separator:ab6915ddf6ab441a154714b77420ffccf inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -215,6 +245,21 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad6612c13e9dab344b1d2c1e8641ceb35 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device" id="r_ad6612c13e9dab344b1d2c1e8641ceb35"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ad6612c13e9dab344b1d2c1e8641ceb35">computeAccelerationStructureSizes</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_top_level_acceleration_structure.html">ITopLevelAccelerationStructure</a> &amp;tlas, <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> &amp;bufferSize, <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a> &amp;scratchSize, bool forUpdate=false) const</td></tr>
 <tr class="memdesc:ad6612c13e9dab344b1d2c1e8641ceb35 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes the required amount of device memory for an <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_top_level_acceleration_structure.html" title="A structure that stores the instance data for a IBottomLevelAccelerationStructure.">ITopLevelAccelerationStructure</a>.  <br /></td></tr>
 <tr class="separator:ad6612c13e9dab344b1d2c1e8641ceb35 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0e1c7678759935cfe4530714450a645 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device" id="r_ab0e1c7678759935cfe4530714450a645"><td class="memItemLeft" align="right" valign="top"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_virtual_allocator_1_1_allocation.html">VirtualAllocator::Allocation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab0e1c7678759935cfe4530714450a645">allocateGlobalDescriptors</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &amp;descriptorSet, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a> heapType) const</td></tr>
+<tr class="memdesc:ab0e1c7678759935cfe4530714450a645 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a range of descriptors in the global descriptor heaps for the provided <em>descriptorSet</em> .  <br /></td></tr>
+<tr class="separator:ab0e1c7678759935cfe4530714450a645 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7064ad5dfd8f07ff6bf4e172413f9b9c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device" id="r_a7064ad5dfd8f07ff6bf4e172413f9b9c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a7064ad5dfd8f07ff6bf4e172413f9b9c">releaseGlobalDescriptors</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &amp;descriptorSet) const</td></tr>
+<tr class="memdesc:a7064ad5dfd8f07ff6bf4e172413f9b9c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="mdescLeft">&#160;</td><td class="mdescRight">Releases a range of descriptors from the global descriptor heaps.  <br /></td></tr>
+<tr class="separator:a7064ad5dfd8f07ff6bf4e172413f9b9c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0f56e17b373a23f3890e862b2f0f885 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device" id="r_ab0f56e17b373a23f3890e862b2f0f885"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab0f56e17b373a23f3890e862b2f0f885">updateGlobalDescriptors</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &amp;descriptorSet, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> offset, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptors) const</td></tr>
+<tr class="memdesc:ab0f56e17b373a23f3890e862b2f0f885 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates a range of descriptors in the global buffer descriptor heap with the descriptors from <em>descriptorSet</em> .  <br /></td></tr>
+<tr class="separator:ab0f56e17b373a23f3890e862b2f0f885 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c710cf0856bf01d817a81500c45704d inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device" id="r_a6c710cf0856bf01d817a81500c45704d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a6c710cf0856bf01d817a81500c45704d">bindDescriptorSet</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">ICommandBuffer</a> &amp;commandBuffer, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &amp;descriptorSet, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html">IPipeline</a> &amp;pipeline) const noexcept</td></tr>
+<tr class="memdesc:a6c710cf0856bf01d817a81500c45704d inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds the descriptors of the descriptor set to the global descriptor heaps.  <br /></td></tr>
+<tr class="separator:a6c710cf0856bf01d817a81500c45704d inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49c737165888b098da986ee8358ddb01 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device" id="r_a49c737165888b098da986ee8358ddb01"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a49c737165888b098da986ee8358ddb01">bindGlobalDescriptorHeaps</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">ICommandBuffer</a> &amp;commandBuffer) const noexcept</td></tr>
+<tr class="memdesc:a49c737165888b098da986ee8358ddb01 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds the global descriptor heap.  <br /></td></tr>
+<tr class="separator:a49c737165888b098da986ee8358ddb01 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_shared_object"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_class_lite_f_x_1_1_shared_object')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_shared_object.html">LiteFX::SharedObject</a></td></tr>
 <tr class="memitem:afa75ab8f78a411e8026ecb537e6003ed inherit pub_methods_class_lite_f_x_1_1_shared_object" id="r_afa75ab8f78a411e8026ecb537e6003ed"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_shared_object.html#afa75ab8f78a411e8026ecb537e6003ed">~SharedObject</a> () noexcept=default</td></tr>
 <tr class="memdesc:afa75ab8f78a411e8026ecb537e6003ed inherit pub_methods_class_lite_f_x_1_1_shared_object"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destroys the shared object.  <br /></td></tr>
@@ -240,12 +285,18 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:ad0e0eb1ddde3940bdbfe07155bd6e096" id="r_ad0e0eb1ddde3940bdbfe07155bd6e096"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad0e0eb1ddde3940bdbfe07155bd6e096">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html">VulkanBackend</a> &amp;backend, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_graphics_adapter.html">VulkanGraphicsAdapter</a> &amp;<a class="el" href="#a5cb0342b96b76c100809173b80e2514c">adapter</a>, <a class="el" href="namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_surface.html">VulkanSurface</a> &gt; &amp;&amp;<a class="el" href="#a974c93e1c5766f13eabda8b35531ec0a">surface</a>, <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_graphics_device_features.html">GraphicsDeviceFeatures</a> features={ }, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &gt; extensions={ })</td></tr>
-<tr class="memdesc:ad0e0eb1ddde3940bdbfe07155bd6e096"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the device instance.  <br /></td></tr>
-<tr class="separator:ad0e0eb1ddde3940bdbfe07155bd6e096"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a53efa02c2dc85ed0c63df806513d234a" id="r_a53efa02c2dc85ed0c63df806513d234a"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a53efa02c2dc85ed0c63df806513d234a">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html">VulkanBackend</a> &amp;backend, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_graphics_adapter.html">VulkanGraphicsAdapter</a> &amp;<a class="el" href="#a5cb0342b96b76c100809173b80e2514c">adapter</a>, <a class="el" href="namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_surface.html">VulkanSurface</a> &gt; &amp;&amp;<a class="el" href="#a974c93e1c5766f13eabda8b35531ec0a">surface</a>, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a> format, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;renderArea, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> backBuffers, bool enableVsync=false, <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_graphics_device_features.html">GraphicsDeviceFeatures</a> features={ }, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &gt; extensions={ })</td></tr>
-<tr class="memdesc:a53efa02c2dc85ed0c63df806513d234a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the device instance.  <br /></td></tr>
-<tr class="separator:a53efa02c2dc85ed0c63df806513d234a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9499948c777f7076131757c3797ecab" id="r_aa9499948c777f7076131757c3797ecab"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa9499948c777f7076131757c3797ecab">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html">VulkanBackend</a> &amp;backend, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_graphics_adapter.html">VulkanGraphicsAdapter</a> &amp;<a class="el" href="#a5cb0342b96b76c100809173b80e2514c">adapter</a>, <a class="el" href="namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_surface.html">VulkanSurface</a> &gt; &amp;&amp;<a class="el" href="#a974c93e1c5766f13eabda8b35531ec0a">surface</a>, <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_graphics_device_features.html">GraphicsDeviceFeatures</a> features={ }, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &gt; extensions={ }, size_t globalDescriptorHeapSize=<a class="el" href="#aca9e1e1a6e3fce82cd8c8b4778fa0888">DEFAULT_DESCRIPTOR_HEAP_SIZE</a>)</td></tr>
+<tr class="memdesc:aa9499948c777f7076131757c3797ecab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the device instance.  <br /></td></tr>
+<tr class="separator:aa9499948c777f7076131757c3797ecab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9461cfabde4f1e7360798c363dc4652" id="r_ad9461cfabde4f1e7360798c363dc4652"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad9461cfabde4f1e7360798c363dc4652">create</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html">VulkanBackend</a> &amp;backend, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_graphics_adapter.html">VulkanGraphicsAdapter</a> &amp;<a class="el" href="#a5cb0342b96b76c100809173b80e2514c">adapter</a>, <a class="el" href="namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_surface.html">VulkanSurface</a> &gt; &amp;&amp;<a class="el" href="#a974c93e1c5766f13eabda8b35531ec0a">surface</a>, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a> format, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;renderArea, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> backBuffers, bool enableVsync=false, <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_graphics_device_features.html">GraphicsDeviceFeatures</a> features={ }, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &gt; extensions={ }, size_t globalDescriptorHeapSize=<a class="el" href="#aca9e1e1a6e3fce82cd8c8b4778fa0888">DEFAULT_DESCRIPTOR_HEAP_SIZE</a>)</td></tr>
+<tr class="memdesc:ad9461cfabde4f1e7360798c363dc4652"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the device instance.  <br /></td></tr>
+<tr class="separator:ad9461cfabde4f1e7360798c363dc4652"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:aca9e1e1a6e3fce82cd8c8b4778fa0888" id="r_aca9e1e1a6e3fce82cd8c8b4778fa0888"><td class="memItemLeft" align="right" valign="top">static const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aca9e1e1a6e3fce82cd8c8b4778fa0888">DEFAULT_DESCRIPTOR_HEAP_SIZE</a> = 134'217'728</td></tr>
+<tr class="memdesc:aca9e1e1a6e3fce82cd8c8b4778fa0888"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default size for the global buffer heap in bytes.  <br /></td></tr>
+<tr class="separator:aca9e1e1a6e3fce82cd8c8b4778fa0888"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
@@ -267,6 +318,10 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:af9bb537bd60c60afcfd0bf597978be74 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa519ef5e52fadeee3c632b314106f6fa inherit pub_types_class_lite_f_x_1_1_rendering_1_1_graphics_device" id="r_aa519ef5e52fadeee3c632b314106f6fa"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#aa519ef5e52fadeee3c632b314106f6fa">command_buffer_type</a></td></tr>
 <tr class="separator:aa519ef5e52fadeee3c632b314106f6fa inherit pub_types_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8d6848dd85b033a29a20f06b4d9f5f1 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_graphics_device" id="r_af8d6848dd85b033a29a20f06b4d9f5f1"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#af8d6848dd85b033a29a20f06b4d9f5f1">descriptor_set_type</a></td></tr>
+<tr class="separator:af8d6848dd85b033a29a20f06b4d9f5f1 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07b2d8c6fd534ca9a5d8def8c3c8ccb0 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_graphics_device" id="r_a07b2d8c6fd534ca9a5d8def8c3c8ccb0"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#a07b2d8c6fd534ca9a5d8def8c3c8ccb0">pipeline_type</a></td></tr>
+<tr class="separator:a07b2d8c6fd534ca9a5d8def8c3c8ccb0 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d03fe802c2a4c8a4a44fdadd768b097 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_graphics_device" id="r_a0d03fe802c2a4c8a4a44fdadd768b097"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#a0d03fe802c2a4c8a4a44fdadd768b097">factory_type</a></td></tr>
 <tr class="separator:a0d03fe802c2a4c8a4a44fdadd768b097 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_graphics_device"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a86770d5c965f5628f59f3e74e5f087a2 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_graphics_device" id="r_a86770d5c965f5628f59f3e74e5f087a2"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#a86770d5c965f5628f59f3e74e5f087a2">barrier_type</a></td></tr>
@@ -436,6 +491,100 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="aa804d44adcad1b3c20eb7c1d7bcb1ca6" name="aa804d44adcad1b3c20eb7c1d7bcb1ca6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa804d44adcad1b3c20eb7c1d7bcb1ca6">&#9670;&#160;</a></span>allocateGlobalDescriptors()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_virtual_allocator_1_1_allocation.html">VirtualAllocator::Allocation</a> VulkanDevice::allocateGlobalDescriptors </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html">VulkanDescriptorSet</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>descriptorSet</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a></td>          <td class="paramname"><span class="paramname"><em>heapType</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">nodiscard</span><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="a42b7b0edb5165a4544ad749ba4e324dd" name="a42b7b0edb5165a4544ad749ba4e324dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a42b7b0edb5165a4544ad749ba4e324dd">&#9670;&#160;</a></span>bindDescriptorSet()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanDevice::bindDescriptorSet </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>commandBuffer</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html">VulkanDescriptorSet</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>descriptorSet</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_state.html">VulkanPipelineState</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>pipeline</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="a151169aef284b5f0628d750cd194a76e" name="a151169aef284b5f0628d750cd194a76e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a151169aef284b5f0628d750cd194a76e">&#9670;&#160;</a></span>bindGlobalDescriptorHeaps()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanDevice::bindGlobalDescriptorHeaps </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>commandBuffer</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
 <a id="abcef6e281b9fc695b6a1696bcf24cebc" name="abcef6e281b9fc695b6a1696bcf24cebc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abcef6e281b9fc695b6a1696bcf24cebc">&#9670;&#160;</a></span>computeAccelerationStructureSizes() <span class="overload">[1/2]</span></h2>
 
@@ -518,8 +667,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a53efa02c2dc85ed0c63df806513d234a" name="a53efa02c2dc85ed0c63df806513d234a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a53efa02c2dc85ed0c63df806513d234a">&#9670;&#160;</a></span>create() <span class="overload">[1/2]</span></h2>
+<a id="ad9461cfabde4f1e7360798c363dc4652" name="ad9461cfabde4f1e7360798c363dc4652"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad9461cfabde4f1e7360798c363dc4652">&#9670;&#160;</a></span>create() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -570,7 +719,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &gt;</td>          <td class="paramname"><span class="paramname"><em>extensions</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{&#160;}</span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &gt;</td>          <td class="paramname"><span class="paramname"><em>extensions</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{&#160;}</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>globalDescriptorHeapSize</em></span><span class="paramdefsep"> = </span><span class="paramdefval"><a class="el" href="#aca9e1e1a6e3fce82cd8c8b4778fa0888">DEFAULT_DESCRIPTOR_HEAP_SIZE</a></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -592,6 +746,7 @@ Additional Inherited Members</h2></td></tr>
     <tr><td class="paramname">enableVsync</td><td>The initial setting for vertical synchronization.</td></tr>
     <tr><td class="paramname">features</td><td>The features that should be supported by this device.</td></tr>
     <tr><td class="paramname">extensions</td><td>The required extensions the device gets initialized with.</td></tr>
+    <tr><td class="paramname">globalDescriptorHeapSize</td><td>The size of the global descriptor heap in bytes.</td></tr>
   </table>
   </dd>
 </dl>
@@ -599,8 +754,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="ad0e0eb1ddde3940bdbfe07155bd6e096" name="ad0e0eb1ddde3940bdbfe07155bd6e096"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad0e0eb1ddde3940bdbfe07155bd6e096">&#9670;&#160;</a></span>create() <span class="overload">[2/2]</span></h2>
+<a id="aa9499948c777f7076131757c3797ecab" name="aa9499948c777f7076131757c3797ecab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9499948c777f7076131757c3797ecab">&#9670;&#160;</a></span>create() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -631,7 +786,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &gt;</td>          <td class="paramname"><span class="paramname"><em>extensions</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{&#160;}</span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &gt;</td>          <td class="paramname"><span class="paramname"><em>extensions</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{&#160;}</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>globalDescriptorHeapSize</em></span><span class="paramdefsep"> = </span><span class="paramdefval"><a class="el" href="#aca9e1e1a6e3fce82cd8c8b4778fa0888">DEFAULT_DESCRIPTOR_HEAP_SIZE</a></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -649,6 +809,7 @@ Additional Inherited Members</h2></td></tr>
     <tr><td class="paramname">surface</td><td>The surface, the device should draw to.</td></tr>
     <tr><td class="paramname">features</td><td>The features that should be supported by this device.</td></tr>
     <tr><td class="paramname">extensions</td><td>The required extensions the device gets initialized with.</td></tr>
+    <tr><td class="paramname">globalDescriptorHeapSize</td><td>The size of the global descriptor heap in bytes.</td></tr>
   </table>
   </dd>
 </dl>
@@ -715,6 +876,32 @@ Additional Inherited Members</h2></td></tr>
 <p></p>
 
 <p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#ab3caec395ea298403a7808333daaa945">LiteFX::Rendering::GraphicsDevice&lt; VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanRenderPipeline, VulkanComputePipeline, VulkanRayTracingPipeline, VulkanBarrier &gt;</a>.</p>
+
+</div>
+</div>
+<a id="af936d350660d60c24d3ba9350ced8999" name="af936d350660d60c24d3ba9350ced8999"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af936d350660d60c24d3ba9350ced8999">&#9670;&#160;</a></span>descriptorSize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> VulkanDevice::descriptorSize </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a></td>          <td class="paramname"><span class="paramname"><em>type</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Resolves the binary size for a descriptor of <em>type</em> . </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">type</td><td>The type of the descriptor.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The size of the descriptor.</dd></dl>
 
 </div>
 </div>
@@ -810,7 +997,7 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <a id="a014a7f190aa23da570a559c1a5ed6b6a" name="a014a7f190aa23da570a559c1a5ed6b6a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a014a7f190aa23da570a559c1a5ed6b6a">&#9670;&#160;</a></span>makeFrameBuffer()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a014a7f190aa23da570a559c1a5ed6b6a">&#9670;&#160;</a></span>makeFrameBuffer() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -839,6 +1026,42 @@ Additional Inherited Members</h2></td></tr>
 <p></p>
 
 <p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_device.html#a99ce410c1927ca95ebb3ab94b1c266ef">LiteFX::Rendering::GraphicsDevice&lt; VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanRenderPipeline, VulkanComputePipeline, VulkanRayTracingPipeline, VulkanBarrier &gt;</a>.</p>
+
+</div>
+</div>
+<a id="adcc41054801e8617f686588ee3b8e374" name="adcc41054801e8617f686588ee3b8e374"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adcc41054801e8617f686588ee3b8e374">&#9670;&#160;</a></span>makeFrameBuffer() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_frame_buffer.html">VulkanFrameBuffer</a> &gt; VulkanDevice::makeFrameBuffer </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#a8f67ef1b66d8e11201ba89c9db51c0c8">StringView</a></td>          <td class="paramname"><span class="paramname"><em>name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>renderArea</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#aad8878f3d144d11591264e93df7a4353">VulkanFrameBuffer::allocation_callback_type</a></td>          <td class="paramname"><span class="paramname"><em>allocationCallback</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">nodiscard</span><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
 
 </div>
 </div>
@@ -894,6 +1117,33 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The indices of the queue families that support queue workloads specified by <em>type</em> .</dd></dl>
+
+</div>
+</div>
+<a id="a971c5a474806f9da03c296c2f6ed5ebf" name="a971c5a474806f9da03c296c2f6ed5ebf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a971c5a474806f9da03c296c2f6ed5ebf">&#9670;&#160;</a></span>releaseGlobalDescriptors()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanDevice::releaseGlobalDescriptors </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html">VulkanDescriptorSet</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>descriptorSet</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
 
 </div>
 </div>
@@ -1101,6 +1351,47 @@ template&lt;typename THandle &gt; </div>
 
 </div>
 </div>
+<a id="ab1526bb96c3cbccf06e777b51935a3d6" name="ab1526bb96c3cbccf06e777b51935a3d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab1526bb96c3cbccf06e777b51935a3d6">&#9670;&#160;</a></span>updateGlobalDescriptors()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanDevice::updateGlobalDescriptors </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html">VulkanDescriptorSet</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>descriptorSet</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>binding</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>offset</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>descriptors</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
 <a id="a140db81d753df1283210c2eb274f5831" name="a140db81d753df1283210c2eb274f5831"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a140db81d753df1283210c2eb274f5831">&#9670;&#160;</a></span>wait()</h2>
 
@@ -1172,6 +1463,32 @@ template&lt;typename THandle &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="aca9e1e1a6e3fce82cd8c8b4778fa0888" name="aca9e1e1a6e3fce82cd8c8b4778fa0888"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca9e1e1a6e3fce82cd8c8b4778fa0888">&#9670;&#160;</a></span>DEFAULT_DESCRIPTOR_HEAP_SIZE</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const size_t LiteFX::Rendering::Backends::VulkanDevice::DEFAULT_DESCRIPTOR_HEAP_SIZE = 134'217'728</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The default size for the global buffer heap in bytes. </p>
+<p>The default value represents the minimum supported value over all devices registered at GPUinfo: <a href="https://vulkan.gpuinfo.org/displayextensionproperty.php?extensionname=VK_EXT_descriptor_buffer&extensionproperty=descriptorBufferAddressSpaceSize&platform=all">https://vulkan.gpuinfo.org/displayextensionproperty.php?extensionname=VK_EXT_descriptor_buffer&amp;extensionproperty=descriptorBufferAddressSpaceSize&amp;platform=all</a>. </p>
 
 </div>
 </div>

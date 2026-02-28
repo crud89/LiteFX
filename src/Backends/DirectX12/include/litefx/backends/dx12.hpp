@@ -1777,6 +1777,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt64 currentFence() const noexcept override;
+        
+        /// <inheritdoc />
+        UInt64 lastCompletedFence() const noexcept override;
 
     private:
         inline void waitForQueue(const ICommandQueue& queue, UInt64 fence) const override {
@@ -2019,6 +2022,7 @@ namespace LiteFX::Rendering::Backends {
         friend struct SharedObject::Allocator<DirectX12FrameBuffer>;
 
     public:
+        using FrameBuffer::allocation_callback_type;
         using FrameBuffer::addImage;
         using FrameBuffer::mapRenderTarget;
         using FrameBuffer::mapRenderTargets;
@@ -2031,6 +2035,16 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="renderArea">The initial size of the render area.</param>
         /// <param name="name">The name of the frame buffer.</param>
         DirectX12FrameBuffer(const DirectX12Device& device, const Size2d& renderArea, StringView name = "");
+
+        /// <summary>
+        /// Initializes a DirectX 12 frame buffer.
+        /// </summary>
+        /// <param name="device">The device the frame buffer is allocated on.</param>
+        /// <param name="renderArea">The initial size of the render area.</param>
+        /// <param name="allocationCallback">A callback that gets invoked, when the frame buffer allocates a new image.</param>
+        /// <param name="name">The name of the frame buffer.</param>
+        /// <seealso cref="IFrameBuffer::allocation_callback_type" />
+        DirectX12FrameBuffer(const DirectX12Device& device, const Size2d& renderArea, allocation_callback_type allocationCallback, StringView name = "");
 
     private:
         /// <inheritdoc />
@@ -2059,6 +2073,18 @@ namespace LiteFX::Rendering::Backends {
         /// <returns>A pointer to the newly created frame buffer instance.</returns>
         static inline SharedPtr<DirectX12FrameBuffer> create(const DirectX12Device& device, const Size2d& renderArea, StringView name = "") {
             return SharedObject::create<DirectX12FrameBuffer>(device, renderArea, name);
+        }
+
+        /// <summary>
+        /// Initializes a DirectX 12 frame buffer.
+        /// </summary>
+        /// <param name="device">The device the frame buffer is allocated on.</param>
+        /// <param name="renderArea">The initial size of the render area.</param>
+        /// <param name="allocationCallback">A callback that gets invoked, when the frame buffer allocates a new image.</param>
+        /// <param name="name">The name of the frame buffer.</param>
+        /// <returns>A pointer to the newly created frame buffer instance.</returns>
+        static inline SharedPtr<DirectX12FrameBuffer> create(const DirectX12Device& device, const Size2d& renderArea, allocation_callback_type allocationCallback, StringView name = "") {
+            return SharedObject::create<DirectX12FrameBuffer>(device, renderArea, std::move(allocationCallback), name);
         }
 
         // DirectX 12 FrameBuffer
@@ -2171,7 +2197,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
-        explicit DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u);
+        /// <param name="viewMask">A mask that identifies the enabled view instances for this render pass.</param>
+        explicit DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000);
 
         /// <summary>
         /// Creates and initializes a new DirectX 12 render pass instance that executes on the default graphics queue.
@@ -2183,8 +2210,9 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
-        explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u);
-        
+        /// <param name="viewMask">A mask that identifies the enabled view instances for this render pass.</param>
+        explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000);
+
         /// <summary>
         /// Creates and initializes a new DirectX 12 render pass instance.
         /// </summary>
@@ -2195,7 +2223,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
-        explicit DirectX12RenderPass(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u);
+        /// <param name="viewMask">A mask that identifies the enabled view instances for this render pass.</param>
+        explicit DirectX12RenderPass(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000);
 
         /// <summary>
         /// Creates and initializes a new DirectX 12 render pass instance.
@@ -2208,7 +2237,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
-        explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u);
+        /// <param name="viewMask">A mask that identifies the enabled view instances for this render pass.</param>
+        explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000);
 
     private:
         /// <inheritdoc />
@@ -2237,9 +2267,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <param name="viewMask">A mask that identifies the enabled view instances for this render pass.</param>
         /// <returns>A pointer to the newly created render pass instance.</returns>
-        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
-            return SharedObject::create<DirectX12RenderPass>(device, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
+        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000) {
+            return SharedObject::create<DirectX12RenderPass>(device, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers, viewMask);
         }
 
         /// <summary>
@@ -2252,9 +2283,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <param name="viewMask">A mask that identifies the enabled view instances for this render pass.</param>
         /// <returns>A pointer to the newly created render pass instance.</returns>
-        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
-            return SharedObject::create<DirectX12RenderPass>(device, name, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
+        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000) {
+            return SharedObject::create<DirectX12RenderPass>(device, name, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers, viewMask);
         }
 
         /// <summary>
@@ -2267,9 +2299,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <param name="viewMask">A mask that identifies the enabled view instances for this render pass.</param>
         /// <returns>A pointer to the newly created render pass instance.</returns>
-        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
-            return SharedObject::create<DirectX12RenderPass>(device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
+        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000) {
+            return SharedObject::create<DirectX12RenderPass>(device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers, viewMask);
         }
 
         /// <summary>
@@ -2283,9 +2316,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <param name="viewMask">A mask that identifies the enabled view instances for this render pass.</param>
         /// <returns>A pointer to the newly created render pass instance.</returns>
-        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
-            return SharedObject::create<DirectX12RenderPass>(device, name, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
+        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000) {
+            return SharedObject::create<DirectX12RenderPass>(device, name, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers, viewMask);
         }
 
     private:
@@ -2356,6 +2390,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt64 end() const override;
+
+        /// <inheritdoc />
+        UInt32 viewMask() const noexcept override;
     };
 
     /// <summary>
@@ -2494,6 +2531,7 @@ namespace LiteFX::Rendering::Backends {
         using base_type::createTextures;
         using base_type::createSampler;
         using base_type::createSamplers;
+        using base_type::allocate;
 
     private:
         /// <summary>
@@ -2531,6 +2569,21 @@ namespace LiteFX::Rendering::Backends {
     public:
         /// <inheritdoc />
         [[nodiscard]] VirtualAllocator createAllocator(UInt64 overallMemory, AllocationAlgorithm algorithm = AllocationAlgorithm::Default) const override;
+
+        /// <inheritdoc />
+        void beginDefragmentation(const ICommandQueue& queue, DefragmentationStrategy strategy = DefragmentationStrategy::Balanced, UInt64 maxBytesToMove = 0u, UInt32 maxAllocationsToMove = 0u) const override;
+
+        /// <inheritdoc />
+        UInt64 beginDefragmentationPass() const override;
+
+        /// <inheritdoc />
+        bool endDefragmentationPass() const override;
+
+        /// <inheritdoc />
+        Generator<ResourceAllocationResult> allocate(Enumerable<const ResourceAllocationInfo&> allocationInfos, AllocationBehavior allocationBehavior = AllocationBehavior::Default, bool alias = false) const override;
+
+        /// <inheritdoc />
+        bool canAlias(Enumerable<const ResourceAllocationInfo&> allocationInfos) const override;
 
         /// <inheritdoc />
         SharedPtr<IDirectX12Buffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
@@ -2781,6 +2834,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         [[nodiscard]] SharedPtr<DirectX12FrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const override;
+
+        /// <inheritdoc />
+        [[nodiscard]] SharedPtr<DirectX12FrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea, DirectX12FrameBuffer::allocation_callback_type allocationCallback) const override;
 
         /// <inheritdoc />
         /// <seealso href="https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_standard_multisample_quality_levels" />

@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -262,6 +262,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_vertex_buffer.html">IVulkanVertexBuffer</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a Vulkan vertex buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_vertex_buffer.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_backends_1_1_vma_allocation_deleter.html">VmaAllocationDeleter</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html">VulkanBackend</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines a rendering backend that creates a Vulkan device.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -376,8 +378,8 @@ Typedefs</h2></td></tr>
 <tr class="separator:aa27e316ea9b66203a0b19237f2f4fd91"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac34dee4e7ac9fd7f4fb9c2f3a3a7dbab" id="r_ac34dee4e7ac9fd7f4fb9c2f3a3a7dbab"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; D3D12MA::Allocator &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac34dee4e7ac9fd7f4fb9c2f3a3a7dbab">AllocatorPtr</a></td></tr>
 <tr class="separator:ac34dee4e7ac9fd7f4fb9c2f3a3a7dbab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adf107f7cea3eaf178abd13c713f9a7cd" id="r_adf107f7cea3eaf178abd13c713f9a7cd"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3">UniquePtr</a>&lt; D3D12MA::Allocation, <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_backends_1_1_d3_d12_m_a_deleter.html">D3D12MADeleter</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adf107f7cea3eaf178abd13c713f9a7cd">AllocationPtr</a></td></tr>
-<tr class="separator:adf107f7cea3eaf178abd13c713f9a7cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9d5acece21122709503eaeb1b164a6d" id="r_aa9d5acece21122709503eaeb1b164a6d"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; D3D12MA::Allocation &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa9d5acece21122709503eaeb1b164a6d">AllocationPtr</a></td></tr>
+<tr class="separator:aa9d5acece21122709503eaeb1b164a6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -387,14 +389,14 @@ Variables</h2></td></tr>
 <tr class="separator:a75850d3bb702d54e8edb6152605317f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a id="adf107f7cea3eaf178abd13c713f9a7cd" name="adf107f7cea3eaf178abd13c713f9a7cd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adf107f7cea3eaf178abd13c713f9a7cd">&#9670;&#160;</a></span>AllocationPtr</h2>
+<a id="aa9d5acece21122709503eaeb1b164a6d" name="aa9d5acece21122709503eaeb1b164a6d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9d5acece21122709503eaeb1b164a6d">&#9670;&#160;</a></span>AllocationPtr</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3">UniquePtr</a>&lt;D3D12MA::Allocation, <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_backends_1_1_d3_d12_m_a_deleter.html">D3D12MADeleter</a>&gt; <a class="el" href="#adf107f7cea3eaf178abd13c713f9a7cd">LiteFX::Rendering::Backends::AllocationPtr</a></td>
+          <td class="memname">typedef <a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; VmaAllocation_T &gt; <a class="el" href="#aa9d5acece21122709503eaeb1b164a6d">LiteFX::Rendering::Backends::AllocationPtr</a></td>
         </tr>
       </table>
 </div><div class="memdoc">

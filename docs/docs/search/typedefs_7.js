@@ -1,5 +1,6 @@
 var searchData=
 [
   ['handle_0',['Handle',['../namespace_lite_f_x.html#adba5fa3ee4a893b8eb69b0f775391c18',1,'LiteFX']]],
-  ['handle_5ftype_1',['handle_type',['../class_lite_f_x_1_1_resource.html#ad0ab4162c7d733e9c76a4accfbf290fc',1,'LiteFX::Resource']]]
+  ['handle_5ftype_1',['handle_type',['../class_lite_f_x_1_1_resource.html#ad0ab4162c7d733e9c76a4accfbf290fc',1,'LiteFX::Resource']]],
+  ['hint_5ftype_2',['hint_type',['../struct_lite_f_x_1_1_rendering_1_1_pipeline_binding_hint.html#a7974aea55c93b9c523005c27c875412d',1,'LiteFX::Rendering::PipelineBindingHint']]]
 ];

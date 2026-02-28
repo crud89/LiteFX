@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -165,9 +165,12 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ab46d26a46ab2aa6faff1f05ca3fbdd7a" id="r_ab46d26a46ab2aa6faff1f05ca3fbdd7a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab46d26a46ab2aa6faff1f05ca3fbdd7a">Byte</a> = uint8_t</td></tr>
-<tr class="memdesc:ab46d26a46ab2aa6faff1f05ca3fbdd7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type for an unsigned 8 bit integer.  <br /></td></tr>
-<tr class="separator:ab46d26a46ab2aa6faff1f05ca3fbdd7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4d738e23a21288ee6d8ad5ad979f2d7" id="r_af4d738e23a21288ee6d8ad5ad979f2d7"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af4d738e23a21288ee6d8ad5ad979f2d7">Byte</a> = std::byte</td></tr>
+<tr class="memdesc:af4d738e23a21288ee6d8ad5ad979f2d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type for a single byte of raw memory.  <br /></td></tr>
+<tr class="separator:af4d738e23a21288ee6d8ad5ad979f2d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a903ef57deca072a76ad57c88b8c324" id="r_a2a903ef57deca072a76ad57c88b8c324"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2a903ef57deca072a76ad57c88b8c324">UInt8</a> = uint8_t</td></tr>
+<tr class="memdesc:a2a903ef57deca072a76ad57c88b8c324"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type for an unsigned 8 bit integer.  <br /></td></tr>
+<tr class="separator:a2a903ef57deca072a76ad57c88b8c324"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad11a8a9a4794ed3022a431c52da9c316" id="r_ad11a8a9a4794ed3022a431c52da9c316"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad11a8a9a4794ed3022a431c52da9c316">Int16</a> = int16_t</td></tr>
 <tr class="memdesc:ad11a8a9a4794ed3022a431c52da9c316"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type for a signed 16 bit integer.  <br /></td></tr>
 <tr class="separator:ad11a8a9a4794ed3022a431c52da9c316"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -227,9 +230,12 @@ Typedefs</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ad96953227e8d2cc6235913beccc22689" id="r_ad96953227e8d2cc6235913beccc22689"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="#ab46d26a46ab2aa6faff1f05ca3fbdd7a">Byte</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad96953227e8d2cc6235913beccc22689">operator&quot;&quot;_b</a> (unsigned long long int arg) noexcept</td></tr>
+<tr class="memitem:ad96953227e8d2cc6235913beccc22689" id="r_ad96953227e8d2cc6235913beccc22689"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="#af4d738e23a21288ee6d8ad5ad979f2d7">Byte</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad96953227e8d2cc6235913beccc22689">operator&quot;&quot;_b</a> (unsigned long long int arg) noexcept</td></tr>
 <tr class="memdesc:ad96953227e8d2cc6235913beccc22689"><td class="mdescLeft">&#160;</td><td class="mdescRight">A literal to define a byte.  <br /></td></tr>
 <tr class="separator:ad96953227e8d2cc6235913beccc22689"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3ac2b6c8830bb34c7a539cf6740a0f67" id="r_a3ac2b6c8830bb34c7a539cf6740a0f67"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="#a2a903ef57deca072a76ad57c88b8c324">UInt8</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3ac2b6c8830bb34c7a539cf6740a0f67">operator&quot;&quot;_ui8</a> (unsigned long long int arg) noexcept</td></tr>
+<tr class="memdesc:a3ac2b6c8830bb34c7a539cf6740a0f67"><td class="mdescLeft">&#160;</td><td class="mdescRight">A literal to define a 8 bit unsigned integer.  <br /></td></tr>
+<tr class="separator:a3ac2b6c8830bb34c7a539cf6740a0f67"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac900274c021cb4f6dee59abb5ca1af31" id="r_ac900274c021cb4f6dee59abb5ca1af31"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="#ad11a8a9a4794ed3022a431c52da9c316">Int16</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac900274c021cb4f6dee59abb5ca1af31">operator&quot;&quot;_i16</a> (unsigned long long int arg) noexcept</td></tr>
 <tr class="memdesc:ac900274c021cb4f6dee59abb5ca1af31"><td class="mdescLeft">&#160;</td><td class="mdescRight">A literal to define a 16 bit integer.  <br /></td></tr>
 <tr class="separator:ac900274c021cb4f6dee59abb5ca1af31"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -256,19 +262,19 @@ Functions</h2></td></tr>
 <tr class="separator:a41c53f161cf49e1628c260e5acc7bb7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a id="ab46d26a46ab2aa6faff1f05ca3fbdd7a" name="ab46d26a46ab2aa6faff1f05ca3fbdd7a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab46d26a46ab2aa6faff1f05ca3fbdd7a">&#9670;&#160;</a></span>Byte</h2>
+<a id="af4d738e23a21288ee6d8ad5ad979f2d7" name="af4d738e23a21288ee6d8ad5ad979f2d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af4d738e23a21288ee6d8ad5ad979f2d7">&#9670;&#160;</a></span>Byte</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="#ab46d26a46ab2aa6faff1f05ca3fbdd7a">LiteFX::Math::Byte</a> = uint8_t</td>
+          <td class="memname">using <a class="el" href="#af4d738e23a21288ee6d8ad5ad979f2d7">LiteFX::Math::Byte</a> = std::byte</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>A type for an unsigned 8 bit integer. </p>
+<p>A type for a single byte of raw memory. </p>
 
 </div>
 </div>
@@ -592,6 +598,22 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
+<a id="a2a903ef57deca072a76ad57c88b8c324" name="a2a903ef57deca072a76ad57c88b8c324"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a903ef57deca072a76ad57c88b8c324">&#9670;&#160;</a></span>UInt8</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#a2a903ef57deca072a76ad57c88b8c324">LiteFX::Math::UInt8</a> = uint8_t</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A type for an unsigned 8 bit integer. </p>
+
+</div>
+</div>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="ad96953227e8d2cc6235913beccc22689" name="ad96953227e8d2cc6235913beccc22689"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad96953227e8d2cc6235913beccc22689">&#9670;&#160;</a></span>operator&quot;&quot;_b()</h2>
@@ -603,7 +625,7 @@ template&lt;typename T &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="#ab46d26a46ab2aa6faff1f05ca3fbdd7a">Byte</a> LiteFX::Math::operator&quot;&quot;_b </td>
+          <td class="memname"><a class="el" href="#af4d738e23a21288ee6d8ad5ad979f2d7">Byte</a> LiteFX::Math::operator&quot;&quot;_b </td>
           <td>(</td>
           <td class="paramtype">unsigned long long int</td>          <td class="paramname"><span class="paramname"><em>arg</em></span></td><td>)</td>
           <td></td>
@@ -896,6 +918,40 @@ template&lt;typename T &gt; </div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The value as 64 bit unsigned integer.</dd></dl>
+
+</div>
+</div>
+<a id="a3ac2b6c8830bb34c7a539cf6740a0f67" name="a3ac2b6c8830bb34c7a539cf6740a0f67"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3ac2b6c8830bb34c7a539cf6740a0f67">&#9670;&#160;</a></span>operator&quot;&quot;_ui8()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#a2a903ef57deca072a76ad57c88b8c324">UInt8</a> LiteFX::Math::operator&quot;&quot;_ui8 </td>
+          <td>(</td>
+          <td class="paramtype">unsigned long long int</td>          <td class="paramname"><span class="paramname"><em>arg</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>A literal to define a 8 bit unsigned integer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">arg</td><td>The value that should be assigned to the integer.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The value as integer.</dd></dl>
 
 </div>
 </div>

@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -135,6 +135,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aa565c2e2a5a234d8fc35306369e8d8c2" id="r_aa565c2e2a5a234d8fc35306369e8d8c2"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_depth_stencil_state.html">DepthStencilState</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa565c2e2a5a234d8fc35306369e8d8c2">depthStencilState</a> () const noexcept=0</td></tr>
 <tr class="memdesc:aa565c2e2a5a234d8fc35306369e8d8c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the depth/stencil state of the rasterizer.  <br /></td></tr>
 <tr class="separator:aa565c2e2a5a234d8fc35306369e8d8c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1475439ba64f9ae41afa45e8dac0a4d1" id="r_a1475439ba64f9ae41afa45e8dac0a4d1"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1475439ba64f9ae41afa45e8dac0a4d1">depthClip</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a1475439ba64f9ae41afa45e8dac0a4d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if z-clipping should be used during distance clipping.  <br /></td></tr>
+<tr class="separator:a1475439ba64f9ae41afa45e8dac0a4d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f3378b1e09d0b4a227601d12021aaa4" id="r_a1f3378b1e09d0b4a227601d12021aaa4"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1f3378b1e09d0b4a227601d12021aaa4">conservativeRasterization</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a1f3378b1e09d0b4a227601d12021aaa4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if conservative rasterization is enabled and <code>false</code> otherwise.  <br /></td></tr>
+<tr class="separator:a1f3378b1e09d0b4a227601d12021aaa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_shared_object"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_class_lite_f_x_1_1_shared_object')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_shared_object.html">LiteFX::SharedObject</a></td></tr>
 <tr class="memitem:afa75ab8f78a411e8026ecb537e6003ed inherit pub_methods_class_lite_f_x_1_1_shared_object" id="r_afa75ab8f78a411e8026ecb537e6003ed"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_shared_object.html#afa75ab8f78a411e8026ecb537e6003ed">~SharedObject</a> () noexcept=default</td></tr>
 <tr class="memdesc:afa75ab8f78a411e8026ecb537e6003ed inherit pub_methods_class_lite_f_x_1_1_shared_object"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destroys the shared object.  <br /></td></tr>
@@ -285,6 +291,37 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a1f3378b1e09d0b4a227601d12021aaa4" name="a1f3378b1e09d0b4a227601d12021aaa4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1f3378b1e09d0b4a227601d12021aaa4">&#9670;&#160;</a></span>conservativeRasterization()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool LiteFX::Rendering::IRasterizer::conservativeRasterization </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns <code>true</code>, if conservative rasterization is enabled and <code>false</code> otherwise. </p>
+<p>This setting requires the <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_graphics_device_features.html#aca88b5ac3ad065fe80183bf035ab63c6" title="Enables support for conservative rasterization.">GraphicsDeviceFeatures::ConservativeRasterization</a> feature to be enabled. </p>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if conservative rasterization is enabled and <code>false</code> otherwise.</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_rasterizer.html#a81c95b0ef54363dc27943d4e50e21a44">LiteFX::Rendering::Rasterizer</a>.</p>
+
+</div>
+</div>
 <a id="aa7b285a917693f35b8400c89ce5cc45d" name="aa7b285a917693f35b8400c89ce5cc45d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa7b285a917693f35b8400c89ce5cc45d">&#9670;&#160;</a></span>cullMode()</h2>
 
@@ -342,6 +379,36 @@ Additional Inherited Members</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>The cull mode of the rasterizer state.</dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_rasterizer.html#a91a7fccb9a3ec64b3bfe26daec9e1208">LiteFX::Rendering::Rasterizer</a>.</p>
+
+</div>
+</div>
+<a id="a1475439ba64f9ae41afa45e8dac0a4d1" name="a1475439ba64f9ae41afa45e8dac0a4d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1475439ba64f9ae41afa45e8dac0a4d1">&#9670;&#160;</a></span>depthClip()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool LiteFX::Rendering::IRasterizer::depthClip </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns <code>true</code>, if z-clipping should be used during distance clipping. </p>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if z-clipping should be used during distance clipping and <code>false</code> otherwise.</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_rasterizer.html#ae66f31825a12aa1ac04152a9cac6e483">LiteFX::Rendering::Rasterizer</a>.</p>
 
 </div>
 </div>

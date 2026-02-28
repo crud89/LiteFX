@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -100,6 +100,7 @@ $(function(){initNavTree('struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_p
 
 <div class="header">
   <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">LiteFX::Rendering::DescriptorBindingPoint Struct Reference<span class="mlabels"><span class="mlabel">final</span></span></div></div>
@@ -111,6 +112,15 @@ $(function(){initNavTree('struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_p
 
 <p><code>#include &lt;<a class="el" href="rendering__api_8hpp_source.html">rendering_api.hpp</a>&gt;</code></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:ad49cb7101b5a633a5485b31b1a9ffd0f" id="r_ad49cb7101b5a633a5485b31b1a9ffd0f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad49cb7101b5a633a5485b31b1a9ffd0f">operator&lt;=&gt;</a> (const <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &amp;other) const noexcept</td></tr>
+<tr class="memdesc:ad49cb7101b5a633a5485b31b1a9ffd0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements three-way comparison for descriptor binding points.  <br /></td></tr>
+<tr class="separator:ad49cb7101b5a633a5485b31b1a9ffd0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69a894730dd965a7fe026b4c664141b0" id="r_a69a894730dd965a7fe026b4c664141b0"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a69a894730dd965a7fe026b4c664141b0">operator==</a> (const <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &amp;other) const noexcept</td></tr>
+<tr class="memdesc:a69a894730dd965a7fe026b4c664141b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements equality comparison for descriptor binding points.  <br /></td></tr>
+<tr class="separator:a69a894730dd965a7fe026b4c664141b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a2e3b0075a12b31cc5def9dd2cce484c2" id="r_a2e3b0075a12b31cc5def9dd2cce484c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2e3b0075a12b31cc5def9dd2cce484c2">Register</a> { 0 }</td></tr>
@@ -122,7 +132,76 @@ Public Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Describes a single descriptor binding point within a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_shader_module.html" title="Represents a single shader module, i.e. a part of a IShaderProgram.">IShaderModule</a>. </p>
-</div><h2 class="groupheader">Member Data Documentation</h2>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="ad49cb7101b5a633a5485b31b1a9ffd0f" name="ad49cb7101b5a633a5485b31b1a9ffd0f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad49cb7101b5a633a5485b31b1a9ffd0f">&#9670;&#160;</a></span>operator&lt;=&gt;()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LiteFX::Rendering::DescriptorBindingPoint::operator&lt;=&gt; </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>other</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements three-way comparison for descriptor binding points. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>The other binding point to compare against.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>less</code>, if the <code>Space</code> property of the instance is lower than the <code>Space</code> property of <em>other</em> , and <code>greater</code> if the opposite is true and they are not equal. If the <code>Space</code> properties are equal, the <code>Register</code> properties are compared accordingly. If both, <code>Space</code> and <code>Register</code> are equal, the operator returns <code>equal</code>. </dd></dl>
+
+</div>
+</div>
+<a id="a69a894730dd965a7fe026b4c664141b0" name="a69a894730dd965a7fe026b4c664141b0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69a894730dd965a7fe026b4c664141b0">&#9670;&#160;</a></span>operator==()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool LiteFX::Rendering::DescriptorBindingPoint::operator== </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_descriptor_binding_point.html">DescriptorBindingPoint</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>other</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements equality comparison for descriptor binding points. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>The other binding point to compare against.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the <code>Space</code> and <code>Register</code> values for both binding points are equal, otherwise <code>false</code>.</dd></dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
 <a id="a2e3b0075a12b31cc5def9dd2cce484c2" name="a2e3b0075a12b31cc5def9dd2cce484c2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2e3b0075a12b31cc5def9dd2cce484c2">&#9670;&#160;</a></span>Register</h2>
 

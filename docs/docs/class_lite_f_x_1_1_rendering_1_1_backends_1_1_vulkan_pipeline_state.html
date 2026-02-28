@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -120,12 +120,12 @@ $(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_p
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a0d1c21654aa1b1bd62b9e56de821c1da" id="r_a0d1c21654aa1b1bd62b9e56de821c1da"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0d1c21654aa1b1bd62b9e56de821c1da">~VulkanPipelineState</a> () noexcept override=default</td></tr>
 <tr class="separator:a0d1c21654aa1b1bd62b9e56de821c1da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab39be6a723130bd13dcaa3c9d18948dc" id="r_ab39be6a723130bd13dcaa3c9d18948dc"><td class="memItemLeft" align="right" valign="top">virtual VkPipelineBindPoint&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab39be6a723130bd13dcaa3c9d18948dc">pipelineType</a> () const noexcept=0</td></tr>
+<tr class="memdesc:ab39be6a723130bd13dcaa3c9d18948dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the type of the pipeline.  <br /></td></tr>
+<tr class="separator:ab39be6a723130bd13dcaa3c9d18948dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c02e25f1f33577c3dd1cf897bfbcb07" id="r_a9c02e25f1f33577c3dd1cf897bfbcb07"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9c02e25f1f33577c3dd1cf897bfbcb07">use</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &amp;commandBuffer) const =0</td></tr>
 <tr class="memdesc:a9c02e25f1f33577c3dd1cf897bfbcb07"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the current pipeline state on the <em>commandBuffer</em> .  <br /></td></tr>
 <tr class="separator:a9c02e25f1f33577c3dd1cf897bfbcb07"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a69bd1309299ad503b53aef19d89e32c3" id="r_a69bd1309299ad503b53aef19d89e32c3"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a69bd1309299ad503b53aef19d89e32c3">bind</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &amp;commandBuffer, <a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html">VulkanDescriptorSet</a> * &gt; descriptorSets) const =0</td></tr>
-<tr class="memdesc:a69bd1309299ad503b53aef19d89e32c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a descriptor set on a command buffer.  <br /></td></tr>
-<tr class="separator:a69bd1309299ad503b53aef19d89e32c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_pipeline"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_pipeline')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_pipeline.html">LiteFX::Rendering::Pipeline&lt; VulkanPipelineLayout, VulkanShaderProgram &gt;</a></td></tr>
 <tr class="memitem:ab1cee1d81fd0fc6185ef5e33ad215708 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_pipeline" id="r_ab1cee1d81fd0fc6185ef5e33ad215708"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_pipeline.html#ab1cee1d81fd0fc6185ef5e33ad215708">~Pipeline</a> () noexcept override=default</td></tr>
 <tr class="separator:ab1cee1d81fd0fc6185ef5e33ad215708 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_pipeline"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -344,46 +344,6 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a69bd1309299ad503b53aef19d89e32c3" name="a69bd1309299ad503b53aef19d89e32c3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a69bd1309299ad503b53aef19d89e32c3">&#9670;&#160;</a></span>bind()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void LiteFX::Rendering::Backends::VulkanPipelineState::bind </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>commandBuffer</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4">Span</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html">VulkanDescriptorSet</a> * &gt;</td>          <td class="paramname"><span class="paramname"><em>descriptorSets</em></span>&#160;) const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Binds a descriptor set on a command buffer. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">commandBuffer</td><td>The command buffer to issue the bind command on.</td></tr>
-    <tr><td class="paramname">descriptorSets</td><td>The descriptor sets to bind.</td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_compute_pipeline.html#af1102d3fe0e83c499dde705e6f8c90fc">LiteFX::Rendering::Backends::VulkanComputePipeline</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_ray_tracing_pipeline.html#a0f367b345ba5c746a52da64b3339f6df">LiteFX::Rendering::Backends::VulkanRayTracingPipeline</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline.html#a27bd9c3320c7fec02bae118b933b2d54">LiteFX::Rendering::Backends::VulkanRenderPipeline</a>.</p>
-
-</div>
-</div>
 <a id="acd92fc2c9e46731c0c195dad6b41f721" name="acd92fc2c9e46731c0c195dad6b41f721"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acd92fc2c9e46731c0c195dad6b41f721">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
 
@@ -431,6 +391,36 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab39be6a723130bd13dcaa3c9d18948dc" name="ab39be6a723130bd13dcaa3c9d18948dc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab39be6a723130bd13dcaa3c9d18948dc">&#9670;&#160;</a></span>pipelineType()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual VkPipelineBindPoint LiteFX::Rendering::Backends::VulkanPipelineState::pipelineType </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the type of the pipeline. </p>
+<dl class="section return"><dt>Returns</dt><dd>The type of the pipeline.</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_compute_pipeline.html#a9c07b657608d978d0050617d797b38a8">LiteFX::Rendering::Backends::VulkanComputePipeline</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_ray_tracing_pipeline.html#a3a27a0a8ca123c4a996e387a03f1bf1a">LiteFX::Rendering::Backends::VulkanRayTracingPipeline</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline.html#abbece82bfc403def258f66a3dd261f79">LiteFX::Rendering::Backends::VulkanRenderPipeline</a>.</p>
 
 </div>
 </div>

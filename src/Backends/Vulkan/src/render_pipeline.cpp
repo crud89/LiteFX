@@ -278,6 +278,7 @@ public:
 
 		VkPipelineRenderingCreateInfo renderingInfo = {
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+			.viewMask = m_renderPass->viewMask(),
 			.colorAttachmentCount = static_cast<UInt32>(formats.size()),
 			.pColorAttachmentFormats = formats.data(),
 			.depthAttachmentFormat = depthFormat,

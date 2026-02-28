@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -136,9 +136,9 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a193d16ace9a84ba36dbfa7b72cfb92b4" id="r_a193d16ace9a84ba36dbfa7b72cfb92b4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a193d16ace9a84ba36dbfa7b72cfb92b4">DirectX12DescriptorSet</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;<a class="el" href="#a1ee5272bc48861c64a31dbcbfe2e578d">layout</a>, ComPtr&lt; ID3D12DescriptorHeap &gt; &amp;&amp;<a class="el" href="#acc25373174d9534caf4e09e4fde9f084">bufferHeap</a>, ComPtr&lt; ID3D12DescriptorHeap &gt; &amp;&amp;<a class="el" href="#a5ac3d6c63150144b027529309de42ff3">samplerHeap</a>)</td></tr>
-<tr class="memdesc:a193d16ace9a84ba36dbfa7b72cfb92b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes a new descriptor set.  <br /></td></tr>
-<tr class="separator:a193d16ace9a84ba36dbfa7b72cfb92b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71b9649f8b376510a78b32e0dcc444fb" id="r_a71b9649f8b376510a78b32e0dcc444fb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a71b9649f8b376510a78b32e0dcc444fb">DirectX12DescriptorSet</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;<a class="el" href="#a1ee5272bc48861c64a31dbcbfe2e578d">layout</a>, ComPtr&lt; ID3D12DescriptorHeap &gt; &amp;&amp;resourceHeap=nullptr, ComPtr&lt; ID3D12DescriptorHeap &gt; &amp;&amp;samplerHeap=nullptr)</td></tr>
+<tr class="memdesc:a71b9649f8b376510a78b32e0dcc444fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes a new descriptor set.  <br /></td></tr>
+<tr class="separator:a71b9649f8b376510a78b32e0dcc444fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5473de163640c0883e8fcfa5a89544e9" id="r_a5473de163640c0883e8fcfa5a89544e9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5473de163640c0883e8fcfa5a89544e9">DirectX12DescriptorSet</a> (<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html">DirectX12DescriptorSet</a> &amp;&amp;) noexcept=delete</td></tr>
 <tr class="separator:a5473de163640c0883e8fcfa5a89544e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3f7744e52ff9ff529b396b3ebc1efc9b" id="r_a3f7744e52ff9ff529b396b3ebc1efc9b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3f7744e52ff9ff529b396b3ebc1efc9b">DirectX12DescriptorSet</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html">DirectX12DescriptorSet</a> &amp;)=delete</td></tr>
@@ -152,40 +152,62 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a1ee5272bc48861c64a31dbcbfe2e578d" id="r_a1ee5272bc48861c64a31dbcbfe2e578d"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html">DirectX12DescriptorSetLayout</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1ee5272bc48861c64a31dbcbfe2e578d">layout</a> () const noexcept</td></tr>
 <tr class="memdesc:a1ee5272bc48861c64a31dbcbfe2e578d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the parent descriptor set layout.  <br /></td></tr>
 <tr class="separator:a1ee5272bc48861c64a31dbcbfe2e578d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6de11a3b12c8d1967a0a429b5d5d6d2b" id="r_a6de11a3b12c8d1967a0a429b5d5d6d2b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6de11a3b12c8d1967a0a429b5d5d6d2b">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html">IDirectX12Buffer</a> &amp;buffer, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> bufferElement=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> elements=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstDescriptor=0) const override</td></tr>
-<tr class="separator:a6de11a3b12c8d1967a0a429b5d5d6d2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7a72c38ce496396fecd0836b24a8a25" id="r_ae7a72c38ce496396fecd0836b24a8a25"><td class="memItemLeft" align="right" valign="top"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_virtual_allocator_1_1_allocation.html">VirtualAllocator::Allocation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae7a72c38ce496396fecd0836b24a8a25">globalHeapAllocation</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a> heapType) const noexcept override</td></tr>
+<tr class="memdesc:ae7a72c38ce496396fecd0836b24a8a25"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the allocation information for the descriptor set in the global descriptor heap indicated by <em>heapType</em> .<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">heapType</td><td>The type of the descriptor heap for which to obtain the heap allocation.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The allocation for the descriptor set in the global descriptor heap.</dd></dl>
+  <br /></td></tr>
+<tr class="separator:ae7a72c38ce496396fecd0836b24a8a25"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7ac95acb81949424d799f3a4479e251" id="r_ad7ac95acb81949424d799f3a4479e251"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad7ac95acb81949424d799f3a4479e251">bindToHeap</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a> bindingType, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html">IDirectX12Buffer</a> &amp;buffer, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> bufferElement=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> elements=0, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a> texelFormat=<a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6ba6adf97f83acf6453d4a6a4b1070f3754">Format::None</a>) const override</td></tr>
+<tr class="separator:ad7ac95acb81949424d799f3a4479e251"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb1f992bd52fe8a4f92333c292b27d85" id="r_aeb1f992bd52fe8a4f92333c292b27d85"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeb1f992bd52fe8a4f92333c292b27d85">bindToHeap</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a> bindingType, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &amp;image, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLevel=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> levels=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLayer=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> layers=0) const override</td></tr>
+<tr class="separator:aeb1f992bd52fe8a4f92333c292b27d85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3d2ef19b737f3c81fb1c420778d27e3d" id="r_a3d2ef19b737f3c81fb1c420778d27e3d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3d2ef19b737f3c81fb1c420778d27e3d">bindToHeap</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_sampler.html">IDirectX12Sampler</a> &amp;sampler) const override</td></tr>
+<tr class="separator:a3d2ef19b737f3c81fb1c420778d27e3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9fdf5b6b3ffeb95cd562f22be6859ff7" id="r_a9fdf5b6b3ffeb95cd562f22be6859ff7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9fdf5b6b3ffeb95cd562f22be6859ff7">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html">IDirectX12Buffer</a> &amp;buffer, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> bufferElement=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> elements=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstDescriptor=0, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a> texelFormat=<a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6ba6adf97f83acf6453d4a6a4b1070f3754">Format::None</a>) const override</td></tr>
+<tr class="separator:a9fdf5b6b3ffeb95cd562f22be6859ff7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a66aeaf91bbec40be97482af9e51c1a51" id="r_a66aeaf91bbec40be97482af9e51c1a51"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a66aeaf91bbec40be97482af9e51c1a51">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &amp;texture, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLevel=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> levels=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLayer=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> layers=0) const override</td></tr>
 <tr class="separator:a66aeaf91bbec40be97482af9e51c1a51"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1a2df349c10afd9733ecdbf9b69008d" id="r_ac1a2df349c10afd9733ecdbf9b69008d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac1a2df349c10afd9733ecdbf9b69008d">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_sampler.html">IDirectX12Sampler</a> &amp;sampler, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor=0) const override</td></tr>
 <tr class="separator:ac1a2df349c10afd9733ecdbf9b69008d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a06bac518580e1ebc2b8bb9301db04b37" id="r_a06bac518580e1ebc2b8bb9301db04b37"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a06bac518580e1ebc2b8bb9301db04b37">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_acceleration_structure.html">IDirectX12AccelerationStructure</a> &amp;accelerationStructure, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor=0) const override</td></tr>
 <tr class="separator:a06bac518580e1ebc2b8bb9301db04b37"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acc25373174d9534caf4e09e4fde9f084" id="r_acc25373174d9534caf4e09e4fde9f084"><td class="memItemLeft" align="right" valign="top">virtual const ComPtr&lt; ID3D12DescriptorHeap &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acc25373174d9534caf4e09e4fde9f084">bufferHeap</a> () const noexcept</td></tr>
-<tr class="memdesc:acc25373174d9534caf4e09e4fde9f084"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the local (CPU-visible) heap that contains the buffer descriptors.  <br /></td></tr>
-<tr class="separator:acc25373174d9534caf4e09e4fde9f084"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acdea4591915ac4924d25c47b70ed8add" id="r_acdea4591915ac4924d25c47b70ed8add"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acdea4591915ac4924d25c47b70ed8add">bufferOffset</a> () const noexcept</td></tr>
-<tr class="memdesc:acdea4591915ac4924d25c47b70ed8add"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the offset of the buffer descriptors in the global descriptor heap.  <br /></td></tr>
-<tr class="separator:acdea4591915ac4924d25c47b70ed8add"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5ac3d6c63150144b027529309de42ff3" id="r_a5ac3d6c63150144b027529309de42ff3"><td class="memItemLeft" align="right" valign="top">virtual const ComPtr&lt; ID3D12DescriptorHeap &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5ac3d6c63150144b027529309de42ff3">samplerHeap</a> () const noexcept</td></tr>
-<tr class="memdesc:a5ac3d6c63150144b027529309de42ff3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the local (CPU-visible) heap that contains the sampler descriptors.  <br /></td></tr>
-<tr class="separator:a5ac3d6c63150144b027529309de42ff3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaef35e9566bf5abd483971ae2a76ed3a" id="r_aaef35e9566bf5abd483971ae2a76ed3a"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaef35e9566bf5abd483971ae2a76ed3a">samplerOffset</a> () const noexcept</td></tr>
-<tr class="memdesc:aaef35e9566bf5abd483971ae2a76ed3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the offset of the sampler descriptors in the global descriptor heap.  <br /></td></tr>
-<tr class="separator:aaef35e9566bf5abd483971ae2a76ed3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ff9a1f6e14b1fb3e92b029f638d5367" id="r_a6ff9a1f6e14b1fb3e92b029f638d5367"><td class="memItemLeft" align="right" valign="top">virtual const ComPtr&lt; ID3D12DescriptorHeap &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6ff9a1f6e14b1fb3e92b029f638d5367">localHeap</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a> heapType) const noexcept</td></tr>
+<tr class="memdesc:a6ff9a1f6e14b1fb3e92b029f638d5367"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the local (CPU-visible) heap that contains the set's descriptors.  <br /></td></tr>
+<tr class="separator:a6ff9a1f6e14b1fb3e92b029f638d5367"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html">LiteFX::Rendering::DescriptorSet&lt; IDirectX12Buffer, IDirectX12Image, IDirectX12Sampler, IDirectX12AccelerationStructure &gt;</a></td></tr>
 <tr class="memitem:a7b2db9ff2fa8330381ca73a8a7b09134 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set" id="r_a7b2db9ff2fa8330381ca73a8a7b09134"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a7b2db9ff2fa8330381ca73a8a7b09134">~DescriptorSet</a> () noexcept override=default</td></tr>
 <tr class="separator:a7b2db9ff2fa8330381ca73a8a7b09134 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9cf59e14b1bea892cad7a4ec18da7f09 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set" id="r_a9cf59e14b1bea892cad7a4ec18da7f09"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a9cf59e14b1bea892cad7a4ec18da7f09">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#aff1ae8312d831a44c21ebcef2294c722">buffer_type</a> &amp;buffer, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> bufferElement=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> elements=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstDescriptor=0) const=0</td></tr>
-<tr class="separator:a9cf59e14b1bea892cad7a4ec18da7f09 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5af04fb4638efe0122125d376cc8fb3c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set" id="r_a5af04fb4638efe0122125d376cc8fb3c"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a5af04fb4638efe0122125d376cc8fb3c">bindToHeap</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a> bindingType, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#aff1ae8312d831a44c21ebcef2294c722">buffer_type</a> &amp;buffer, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> bufferElement=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> elements=0, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a> texelFormat=<a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6ba6adf97f83acf6453d4a6a4b1070f3754">Format::None</a>) const=0</td></tr>
+<tr class="separator:a5af04fb4638efe0122125d376cc8fb3c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a10098d013270836e50083311eae85f2f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set" id="r_a10098d013270836e50083311eae85f2f"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a10098d013270836e50083311eae85f2f">bindToHeap</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a> bindingType, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a814c51501811f2fa9c529ddd9c8a01fe">image_type</a> &amp;image, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLevel=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> levels=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLayer=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> layers=0) const=0</td></tr>
+<tr class="separator:a10098d013270836e50083311eae85f2f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afdf7b85b9792b05e600169ec1252ab0d inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set" id="r_afdf7b85b9792b05e600169ec1252ab0d"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#afdf7b85b9792b05e600169ec1252ab0d">bindToHeap</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a4d9ea97ed50054340cd85ebde8d559bb">sampler_type</a> &amp;sampler) const=0</td></tr>
+<tr class="separator:afdf7b85b9792b05e600169ec1252ab0d inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac633a45f78d5f32f50ce9d1b0ed78f87 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set" id="r_ac633a45f78d5f32f50ce9d1b0ed78f87"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#ac633a45f78d5f32f50ce9d1b0ed78f87">bindToHeap</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a> bindingType, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer.html">IBuffer</a> &amp;buffer, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> bufferElement=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> elements=0, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a> texelFormat=<a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6ba6adf97f83acf6453d4a6a4b1070f3754">Format::None</a>) const</td></tr>
+<tr class="memdesc:ac633a45f78d5f32f50ce9d1b0ed78f87 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a resource directly to a descriptor heap and returns the index that can be used to access it.  <br /></td></tr>
+<tr class="separator:ac633a45f78d5f32f50ce9d1b0ed78f87 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a965541afcb628f2863dd66f5ceb70d29 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set" id="r_a965541afcb628f2863dd66f5ceb70d29"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a965541afcb628f2863dd66f5ceb70d29">bindToHeap</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a> bindingType, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html">IImage</a> &amp;image, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLevel=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> levels=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLayer=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> layers=0) const</td></tr>
+<tr class="memdesc:a965541afcb628f2863dd66f5ceb70d29 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a resource directly to a descriptor heap and returns the index that can be used to access it.  <br /></td></tr>
+<tr class="separator:a965541afcb628f2863dd66f5ceb70d29 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a19da2a13a72549c1bce2ffbbca25874f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set" id="r_a19da2a13a72549c1bce2ffbbca25874f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a19da2a13a72549c1bce2ffbbca25874f">bindToHeap</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_sampler.html">ISampler</a> &amp;sampler) const</td></tr>
+<tr class="memdesc:a19da2a13a72549c1bce2ffbbca25874f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a sampler directly to a descriptor heap and returns the index that can be used to access it.  <br /></td></tr>
+<tr class="separator:a19da2a13a72549c1bce2ffbbca25874f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b279ce13f9fd7ed0f4cc8aca8d06851 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set" id="r_a4b279ce13f9fd7ed0f4cc8aca8d06851"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a4b279ce13f9fd7ed0f4cc8aca8d06851">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#aff1ae8312d831a44c21ebcef2294c722">buffer_type</a> &amp;buffer, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> bufferElement=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> elements=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstDescriptor=0, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a> texelFormat=<a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6ba6adf97f83acf6453d4a6a4b1070f3754">Format::None</a>) const=0</td></tr>
+<tr class="separator:a4b279ce13f9fd7ed0f4cc8aca8d06851 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a729216c394a75a801cab4d7b2a53190c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set" id="r_a729216c394a75a801cab4d7b2a53190c"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a729216c394a75a801cab4d7b2a53190c">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a814c51501811f2fa9c529ddd9c8a01fe">image_type</a> &amp;texture, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLevel=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> levels=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLayer=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> layers=0) const=0</td></tr>
 <tr class="separator:a729216c394a75a801cab4d7b2a53190c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a58c8793012312f5bbf386f71a7e67888 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set" id="r_a58c8793012312f5bbf386f71a7e67888"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a58c8793012312f5bbf386f71a7e67888">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a4d9ea97ed50054340cd85ebde8d559bb">sampler_type</a> &amp;sampler, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor=0) const=0</td></tr>
 <tr class="separator:a58c8793012312f5bbf386f71a7e67888 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a834e59566fd25f0a1bce3a9741896d05 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set" id="r_a834e59566fd25f0a1bce3a9741896d05"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a834e59566fd25f0a1bce3a9741896d05">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a7ab9da7ff5fa69022f4b36b9368a361e">acceleration_structure_type</a> &amp;accelerationStructure, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor=0) const=0</td></tr>
 <tr class="separator:a834e59566fd25f0a1bce3a9741896d05 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57075731be38d0de7cad23f5af4e85fe inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set" id="r_a57075731be38d0de7cad23f5af4e85fe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a57075731be38d0de7cad23f5af4e85fe">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer.html">IBuffer</a> &amp;buffer, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> bufferElement=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> elements=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstDescriptor=0) const</td></tr>
-<tr class="memdesc:a57075731be38d0de7cad23f5af4e85fe inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates one or more buffer descriptors within the current descriptor set.  <br /></td></tr>
-<tr class="separator:a57075731be38d0de7cad23f5af4e85fe inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace90eade506835d24ac499ceefe9fbfd inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set" id="r_ace90eade506835d24ac499ceefe9fbfd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#ace90eade506835d24ac499ceefe9fbfd">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer.html">IBuffer</a> &amp;buffer, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> bufferElement=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> elements=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstDescriptor=0, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a> texelFormat=<a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6ba6adf97f83acf6453d4a6a4b1070f3754">Format::None</a>) const</td></tr>
+<tr class="memdesc:ace90eade506835d24ac499ceefe9fbfd inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates one or more buffer descriptors within the current descriptor set.  <br /></td></tr>
+<tr class="separator:ace90eade506835d24ac499ceefe9fbfd inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab17fcb6b2b64d6111e9747265def32b4 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set" id="r_ab17fcb6b2b64d6111e9747265def32b4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#ab17fcb6b2b64d6111e9747265def32b4">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html">IImage</a> &amp;texture, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLevel=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> levels=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLayer=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> layers=0) const</td></tr>
 <tr class="memdesc:ab17fcb6b2b64d6111e9747265def32b4 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates one or more texture descriptors within the current descriptor set.  <br /></td></tr>
 <tr class="separator:ab17fcb6b2b64d6111e9747265def32b4 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -198,9 +220,18 @@ Public Member Functions</h2></td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">LiteFX::Rendering::IDescriptorSet</a></td></tr>
 <tr class="memitem:a91d809c2f16d74f24422e36e9a173b4f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set" id="r_a91d809c2f16d74f24422e36e9a173b4f"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#a91d809c2f16d74f24422e36e9a173b4f">~IDescriptorSet</a> () noexcept=default</td></tr>
 <tr class="separator:a91d809c2f16d74f24422e36e9a173b4f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57075731be38d0de7cad23f5af4e85fe inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set" id="r_a57075731be38d0de7cad23f5af4e85fe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#a57075731be38d0de7cad23f5af4e85fe">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer.html">IBuffer</a> &amp;buffer, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> bufferElement=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> elements=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstDescriptor=0) const</td></tr>
-<tr class="memdesc:a57075731be38d0de7cad23f5af4e85fe inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates one or more buffer descriptors within the current descriptor set.  <br /></td></tr>
-<tr class="separator:a57075731be38d0de7cad23f5af4e85fe inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac633a45f78d5f32f50ce9d1b0ed78f87 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set" id="r_ac633a45f78d5f32f50ce9d1b0ed78f87"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#ac633a45f78d5f32f50ce9d1b0ed78f87">bindToHeap</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a> bindingType, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer.html">IBuffer</a> &amp;buffer, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> bufferElement=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> elements=0, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a> texelFormat=<a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6ba6adf97f83acf6453d4a6a4b1070f3754">Format::None</a>) const</td></tr>
+<tr class="memdesc:ac633a45f78d5f32f50ce9d1b0ed78f87 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a resource directly to a descriptor heap and returns the index that can be used to access it.  <br /></td></tr>
+<tr class="separator:ac633a45f78d5f32f50ce9d1b0ed78f87 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a965541afcb628f2863dd66f5ceb70d29 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set" id="r_a965541afcb628f2863dd66f5ceb70d29"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#a965541afcb628f2863dd66f5ceb70d29">bindToHeap</a> (<a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a> bindingType, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html">IImage</a> &amp;image, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLevel=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> levels=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLayer=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> layers=0) const</td></tr>
+<tr class="memdesc:a965541afcb628f2863dd66f5ceb70d29 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a resource directly to a descriptor heap and returns the index that can be used to access it.  <br /></td></tr>
+<tr class="separator:a965541afcb628f2863dd66f5ceb70d29 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a19da2a13a72549c1bce2ffbbca25874f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set" id="r_a19da2a13a72549c1bce2ffbbca25874f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#a19da2a13a72549c1bce2ffbbca25874f">bindToHeap</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_sampler.html">ISampler</a> &amp;sampler) const</td></tr>
+<tr class="memdesc:a19da2a13a72549c1bce2ffbbca25874f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a sampler directly to a descriptor heap and returns the index that can be used to access it.  <br /></td></tr>
+<tr class="separator:a19da2a13a72549c1bce2ffbbca25874f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace90eade506835d24ac499ceefe9fbfd inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set" id="r_ace90eade506835d24ac499ceefe9fbfd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#ace90eade506835d24ac499ceefe9fbfd">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer.html">IBuffer</a> &amp;buffer, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> bufferElement=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> elements=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstDescriptor=0, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a> texelFormat=<a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6ba6adf97f83acf6453d4a6a4b1070f3754">Format::None</a>) const</td></tr>
+<tr class="memdesc:ace90eade506835d24ac499ceefe9fbfd inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates one or more buffer descriptors within the current descriptor set.  <br /></td></tr>
+<tr class="separator:ace90eade506835d24ac499ceefe9fbfd inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab17fcb6b2b64d6111e9747265def32b4 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set" id="r_ab17fcb6b2b64d6111e9747265def32b4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#ab17fcb6b2b64d6111e9747265def32b4">update</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> binding, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html">IImage</a> &amp;texture, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> descriptor=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLevel=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> levels=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> firstLayer=0, <a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> layers=0) const</td></tr>
 <tr class="memdesc:ab17fcb6b2b64d6111e9747265def32b4 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates one or more texture descriptors within the current descriptor set.  <br /></td></tr>
 <tr class="separator:ab17fcb6b2b64d6111e9747265def32b4 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_descriptor_set"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -255,8 +286,8 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a193d16ace9a84ba36dbfa7b72cfb92b4" name="a193d16ace9a84ba36dbfa7b72cfb92b4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a193d16ace9a84ba36dbfa7b72cfb92b4">&#9670;&#160;</a></span>DirectX12DescriptorSet() <span class="overload">[1/3]</span></h2>
+<a id="a71b9649f8b376510a78b32e0dcc444fb" name="a71b9649f8b376510a78b32e0dcc444fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71b9649f8b376510a78b32e0dcc444fb">&#9670;&#160;</a></span>DirectX12DescriptorSet() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -272,12 +303,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">ComPtr&lt; ID3D12DescriptorHeap &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>bufferHeap</em></span>, </td>
+          <td class="paramtype">ComPtr&lt; ID3D12DescriptorHeap &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>resourceHeap</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">ComPtr&lt; ID3D12DescriptorHeap &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>samplerHeap</em></span>&#160;)</td>
+          <td class="paramtype">ComPtr&lt; ID3D12DescriptorHeap &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>samplerHeap</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -291,8 +322,8 @@ Additional Inherited Members</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">layout</td><td>The parent descriptor set layout.</td></tr>
-    <tr><td class="paramname">bufferHeap</td><td>A CPU-visible descriptor heap that contains all buffer descriptors of the descriptor set.</td></tr>
-    <tr><td class="paramname">samplerHeap</td><td>A CPU-visible descriptor heap that contains all sampler descriptors of the descriptor set.</td></tr>
+    <tr><td class="paramname">resourceHeap</td><td>A CPU-visible descriptor heap that contains the descriptors for the resources of the descriptor set.</td></tr>
+    <tr><td class="paramname">samplerHeap</td><td>A CPU-visible descriptor heap that contains the descriptors for the samplers of the descriptor set.</td></tr>
   </table>
   </dd>
 </dl>
@@ -381,8 +412,8 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="acc25373174d9534caf4e09e4fde9f084" name="acc25373174d9534caf4e09e4fde9f084"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acc25373174d9534caf4e09e4fde9f084">&#9670;&#160;</a></span>bufferHeap()</h2>
+<a id="ad7ac95acb81949424d799f3a4479e251" name="ad7ac95acb81949424d799f3a4479e251"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7ac95acb81949424d799f3a4479e251">&#9670;&#160;</a></span>bindToHeap() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -391,26 +422,49 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const ComPtr&lt; ID3D12DescriptorHeap &gt; &amp; DirectX12DescriptorSet::bufferHeap </td>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> DirectX12DescriptorSet::bindToHeap </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> const</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a></td>          <td class="paramname"><span class="paramname"><em>bindingType</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>descriptor</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html">IDirectX12Buffer</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>buffer</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>bufferElement</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>elements</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a></td>          <td class="paramname"><span class="paramname"><em>texelFormat</em></span><span class="paramdefsep"> = </span><span class="paramdefval"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6ba6adf97f83acf6453d4a6a4b1070f3754">Format::None</a></span>&#160;) const</td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Returns the local (CPU-visible) heap that contains the buffer descriptors. </p>
-<dl class="section return"><dt>Returns</dt><dd>The local (CPU-visible) heap that contains the buffer descriptors, or <code>nullptr</code>, if the descriptor set does not contain any buffers.</dd></dl>
+<p></p>
 
 </div>
 </div>
-<a id="acdea4591915ac4924d25c47b70ed8add" name="acdea4591915ac4924d25c47b70ed8add"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acdea4591915ac4924d25c47b70ed8add">&#9670;&#160;</a></span>bufferOffset()</h2>
+<a id="aeb1f992bd52fe8a4f92333c292b27d85" name="aeb1f992bd52fe8a4f92333c292b27d85"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb1f992bd52fe8a4f92333c292b27d85">&#9670;&#160;</a></span>bindToHeap() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -419,21 +473,116 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> DirectX12DescriptorSet::bufferOffset </td>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> DirectX12DescriptorSet::bindToHeap </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#a9b87c28294d95187f93b2d59f529d32e">DescriptorType</a></td>          <td class="paramname"><span class="paramname"><em>bindingType</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>descriptor</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>image</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>firstLevel</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>levels</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>firstLayer</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>layers</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="a3d2ef19b737f3c81fb1c420778d27e3d" name="a3d2ef19b737f3c81fb1c420778d27e3d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3d2ef19b737f3c81fb1c420778d27e3d">&#9670;&#160;</a></span>bindToHeap() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> DirectX12DescriptorSet::bindToHeap </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>descriptor</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_sampler.html">IDirectX12Sampler</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>sampler</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="ae7a72c38ce496396fecd0836b24a8a25" name="ae7a72c38ce496396fecd0836b24a8a25"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7a72c38ce496396fecd0836b24a8a25">&#9670;&#160;</a></span>globalHeapAllocation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_virtual_allocator_1_1_allocation.html">VirtualAllocator::Allocation</a> DirectX12DescriptorSet::globalHeapAllocation </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a></td>          <td class="paramname"><span class="paramname"><em>heapType</em></span></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Returns the offset of the buffer descriptors in the global descriptor heap. </p>
-<dl class="section return"><dt>Returns</dt><dd>The offset of the buffer descriptors in the global descriptor heap.</dd></dl>
+<p>Returns the allocation information for the descriptor set in the global descriptor heap indicated by <em>heapType</em> .<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">heapType</td><td>The type of the descriptor heap for which to obtain the heap allocation.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The allocation for the descriptor set in the global descriptor heap.</dd></dl>
+ </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#af3162bc84922bdf63af496572e6b3f20">LiteFX::Rendering::IDescriptorSet</a>.</p>
 
 </div>
 </div>
@@ -462,6 +611,40 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Returns the parent descriptor set layout. </p>
 <dl class="section return"><dt>Returns</dt><dd>The parent descriptor set layout.</dd></dl>
+
+</div>
+</div>
+<a id="a6ff9a1f6e14b1fb3e92b029f638d5367" name="a6ff9a1f6e14b1fb3e92b029f638d5367"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ff9a1f6e14b1fb3e92b029f638d5367">&#9670;&#160;</a></span>localHeap()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const ComPtr&lt; ID3D12DescriptorHeap &gt; DirectX12DescriptorSet::localHeap </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320">DescriptorHeapType</a></td>          <td class="paramname"><span class="paramname"><em>heapType</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the local (CPU-visible) heap that contains the set's descriptors. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">heapType</td><td>The type of the descriptor heap to obtain.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The local (CPU-visible) heap that contains the set's descriptors.</dd></dl>
 
 </div>
 </div>
@@ -519,62 +702,6 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a5ac3d6c63150144b027529309de42ff3" name="a5ac3d6c63150144b027529309de42ff3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5ac3d6c63150144b027529309de42ff3">&#9670;&#160;</a></span>samplerHeap()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const ComPtr&lt; ID3D12DescriptorHeap &gt; &amp; DirectX12DescriptorSet::samplerHeap </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Returns the local (CPU-visible) heap that contains the sampler descriptors. </p>
-<dl class="section return"><dt>Returns</dt><dd>The local (CPU-visible) heap that contains the sampler descriptors, or <code>nullptr</code>, if the descriptor set does not contain any samplers.</dd></dl>
-
-</div>
-</div>
-<a id="aaef35e9566bf5abd483971ae2a76ed3a" name="aaef35e9566bf5abd483971ae2a76ed3a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaef35e9566bf5abd483971ae2a76ed3a">&#9670;&#160;</a></span>samplerOffset()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> DirectX12DescriptorSet::samplerOffset </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Returns the offset of the sampler descriptors in the global descriptor heap. </p>
-<dl class="section return"><dt>Returns</dt><dd>The offset of the sampler descriptors in the global descriptor heap.</dd></dl>
-
-</div>
-</div>
 <a id="a06bac518580e1ebc2b8bb9301db04b37" name="a06bac518580e1ebc2b8bb9301db04b37"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a06bac518580e1ebc2b8bb9301db04b37">&#9670;&#160;</a></span>update() <span class="overload">[1/4]</span></h2>
 
@@ -611,8 +738,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a6de11a3b12c8d1967a0a429b5d5d6d2b" name="a6de11a3b12c8d1967a0a429b5d5d6d2b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6de11a3b12c8d1967a0a429b5d5d6d2b">&#9670;&#160;</a></span>update() <span class="overload">[2/4]</span></h2>
+<a id="a9fdf5b6b3ffeb95cd562f22be6859ff7" name="a9fdf5b6b3ffeb95cd562f22be6859ff7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9fdf5b6b3ffeb95cd562f22be6859ff7">&#9670;&#160;</a></span>update() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -643,7 +770,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>firstDescriptor</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;) const</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a></td>          <td class="paramname"><span class="paramname"><em>firstDescriptor</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6b">Format</a></td>          <td class="paramname"><span class="paramname"><em>texelFormat</em></span><span class="paramdefsep"> = </span><span class="paramdefval"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#af55b7643ecb08b99ef831fb284937e6ba6adf97f83acf6453d4a6a4b1070f3754">Format::None</a></span>&#160;) const</td>
         </tr>
       </table>
   </td>

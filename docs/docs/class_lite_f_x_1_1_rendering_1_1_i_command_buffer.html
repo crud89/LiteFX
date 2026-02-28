@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -139,6 +139,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aee6a49d3411bdd8767ab6a59828cb0f1" id="r_aee6a49d3411bdd8767ab6a59828cb0f1"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aee6a49d3411bdd8767ab6a59828cb0f1">track</a> (<a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_sampler.html">ISampler</a> &gt; sampler) const =0</td></tr>
 <tr class="memdesc:aee6a49d3411bdd8767ab6a59828cb0f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets up tracking for a sampler state, so that it will not be destroyed until the command buffer has been executed.  <br /></td></tr>
 <tr class="separator:aee6a49d3411bdd8767ab6a59828cb0f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af27319144e27619bbc6385c5b43b5ca7" id="r_af27319144e27619bbc6385c5b43b5ca7"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af27319144e27619bbc6385c5b43b5ca7">track</a> (<a class="el" href="namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3">UniquePtr</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &gt; &amp;&amp;descriptorSet) const =0</td></tr>
+<tr class="memdesc:af27319144e27619bbc6385c5b43b5ca7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets up tracking for a descriptor set, so that bindings aren't released until the command buffer has been executed.  <br /></td></tr>
+<tr class="separator:af27319144e27619bbc6385c5b43b5ca7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a866d6746ae7d5384a099852b5bafa527" id="r_a866d6746ae7d5384a099852b5bafa527"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f">SharedPtr</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html">ICommandQueue</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a866d6746ae7d5384a099852b5bafa527">queue</a> () const noexcept</td></tr>
 <tr class="memdesc:a866d6746ae7d5384a099852b5bafa527"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets a pointer to the command queue that this command buffer was allocated from or <code>nullptr</code>, if the queue has already been released.  <br /></td></tr>
 <tr class="separator:a866d6746ae7d5384a099852b5bafa527"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -299,6 +302,9 @@ requires std::derived_from&lt;std::remove_cv_t&lt;std::remove_pointer_t&lt;std::
 <tr class="memitem:ae15e58df15cdb65c53b1305a6a202b47" id="r_ae15e58df15cdb65c53b1305a6a202b47"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae15e58df15cdb65c53b1305a6a202b47">setStencilRef</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f">UInt32</a> stencilRef) const noexcept=0</td></tr>
 <tr class="memdesc:ae15e58df15cdb65c53b1305a6a202b47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the stencil reference for the subsequent draw calls.  <br /></td></tr>
 <tr class="separator:ae15e58df15cdb65c53b1305a6a202b47"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f63da9b8ac29e5d8231f0bd3cbcc13d" id="r_a4f63da9b8ac29e5d8231f0bd3cbcc13d"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4f63da9b8ac29e5d8231f0bd3cbcc13d">setDepthBounds</a> (<a class="el" href="namespace_lite_f_x_1_1_math.html#a7272a8e096481053b319d7658c1c5484">Float</a> minBounds, <a class="el" href="namespace_lite_f_x_1_1_math.html#a7272a8e096481053b319d7658c1c5484">Float</a> maxBounds) const noexcept=0</td></tr>
+<tr class="memdesc:a4f63da9b8ac29e5d8231f0bd3cbcc13d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the depth range for the depth bounds test.  <br /></td></tr>
+<tr class="separator:a4f63da9b8ac29e5d8231f0bd3cbcc13d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a03a13eb3eefcdb8be47986354e3d69ac" id="r_a03a13eb3eefcdb8be47986354e3d69ac"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457">UInt64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a03a13eb3eefcdb8be47986354e3d69ac">submit</a> () const =0</td></tr>
 <tr class="memdesc:a03a13eb3eefcdb8be47986354e3d69ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Submits the command buffer to parent command.  <br /></td></tr>
 <tr class="separator:a03a13eb3eefcdb8be47986354e3d69ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2332,6 +2338,48 @@ requires std::derived_from&lt;std::remove_cv_t&lt;std::remove_pointer_t&lt;std::
 
 </div>
 </div>
+<a id="a4f63da9b8ac29e5d8231f0bd3cbcc13d" name="a4f63da9b8ac29e5d8231f0bd3cbcc13d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4f63da9b8ac29e5d8231f0bd3cbcc13d">&#9670;&#160;</a></span>setDepthBounds()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void LiteFX::Rendering::ICommandBuffer::setDepthBounds </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a7272a8e096481053b319d7658c1c5484">Float</a></td>          <td class="paramname"><span class="paramname"><em>minBounds</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_math.html#a7272a8e096481053b319d7658c1c5484">Float</a></td>          <td class="paramname"><span class="paramname"><em>maxBounds</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets the depth range for the depth bounds test. </p>
+<p>In order to use the depth bounds test, the currently bound render pipeline must have been created with the depth bounds test enabled, which requires the device to be created with the <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_graphics_device_features.html#a86e94edc73501390c89a23aa66dc9fed" title="Enables support for enabling depth bounds test on IRenderPipeline creation.">GraphicsDeviceFeatures::DepthBoundsTest</a> enabled. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">minBounds</td><td></td></tr>
+    <tr><td class="paramname">maxBounds</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_graphics_device_features.html#a86e94edc73501390c89a23aa66dc9fed" title="Enables support for enabling depth bounds test on IRenderPipeline creation.">GraphicsDeviceFeatures::DepthBoundsTest</a>, <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_depth_stencil_state_1_1_depth_state.html#a9551ac5efbdaae4463b57948cd23503b" title="Enables the depth bounds test.">DepthStencilState::DepthState::DepthBoundsTestEnable</a></dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#aed823a6e3f13aa93fc3d8b420371ecb0">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#ac712e1985de22aee2573a74e1d5df377">LiteFX::Rendering::Backends::VulkanCommandBuffer</a>.</p>
+
+</div>
+</div>
 <a id="a687637f8cc8cf2353c6e8bfdc79b7d3c" name="a687637f8cc8cf2353c6e8bfdc79b7d3c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a687637f8cc8cf2353c6e8bfdc79b7d3c">&#9670;&#160;</a></span>setScissors() <span class="overload">[1/2]</span></h2>
 
@@ -2681,7 +2729,7 @@ requires std::derived_from&lt;std::remove_cv_t&lt;std::remove_pointer_t&lt;std::
 </div>
 </div>
 <a id="a19a0010af97379721ddf59242481c15d" name="a19a0010af97379721ddf59242481c15d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a19a0010af97379721ddf59242481c15d">&#9670;&#160;</a></span>track() <span class="overload">[1/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a19a0010af97379721ddf59242481c15d">&#9670;&#160;</a></span>track() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2725,7 +2773,7 @@ requires std::derived_from&lt;std::remove_cv_t&lt;std::remove_pointer_t&lt;std::
 </div>
 </div>
 <a id="afa3cd495aff810b4b27e36e1798e0de3" name="afa3cd495aff810b4b27e36e1798e0de3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afa3cd495aff810b4b27e36e1798e0de3">&#9670;&#160;</a></span>track() <span class="overload">[2/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#afa3cd495aff810b4b27e36e1798e0de3">&#9670;&#160;</a></span>track() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2767,7 +2815,7 @@ requires std::derived_from&lt;std::remove_cv_t&lt;std::remove_pointer_t&lt;std::
 </div>
 </div>
 <a id="aee6a49d3411bdd8767ab6a59828cb0f1" name="aee6a49d3411bdd8767ab6a59828cb0f1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aee6a49d3411bdd8767ab6a59828cb0f1">&#9670;&#160;</a></span>track() <span class="overload">[3/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aee6a49d3411bdd8767ab6a59828cb0f1">&#9670;&#160;</a></span>track() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2805,6 +2853,41 @@ requires std::derived_from&lt;std::remove_cv_t&lt;std::remove_pointer_t&lt;std::
 <dl class="section see"><dt>See also</dt><dd>track(SharedPtr&amp;le;const IBuffer&amp;ge;)</dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#aa31a2831a18cfdc6d098127dd8ebe91d">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a45cce0a80d6facfb32f5bc29a8036b9a">LiteFX::Rendering::Backends::VulkanCommandBuffer</a>.</p>
+
+</div>
+</div>
+<a id="af27319144e27619bbc6385c5b43b5ca7" name="af27319144e27619bbc6385c5b43b5ca7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af27319144e27619bbc6385c5b43b5ca7">&#9670;&#160;</a></span>track() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void LiteFX::Rendering::ICommandBuffer::track </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3">UniquePtr</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html">IDescriptorSet</a> &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>descriptorSet</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets up tracking for a descriptor set, so that bindings aren't released until the command buffer has been executed. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">descriptorSet</td><td>The descriptor set to track.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#aa0bbd455de2c01ab7b5fdc79b9bf4395">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#ae77d7f2e2ff94b978ae9745b786ef995">LiteFX::Rendering::Backends::VulkanCommandBuffer</a>.</p>
 
 </div>
 </div>

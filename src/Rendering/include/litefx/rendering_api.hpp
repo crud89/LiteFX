@@ -813,6 +813,15 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <seealso cref="IFrameBuffer" />
         FrameBufferImage = TransferSource | RenderTarget,
+
+        /// <summary>
+        /// Causes the contents of the resource to not be copied during defragmentation.
+        /// </summary>
+        /// <seealso cref="IGraphicsFactory::beginDefragmentation" />
+        /// <seealso cref="IDeviceMemory::volatileMove" />
+        /// <seealso cref="IDeviceMemory::moving" />
+        /// <seealso cref="IDeviceMemory::moved" />
+        Volatile = 0x1000
     };
 
     /// <summary>
@@ -867,6 +876,28 @@ namespace LiteFX::Rendering {
         /// Prefers allocation time over packing.
         /// </summary>
         OptimizeTime = 0x02,
+    };
+
+    /// <summary>
+    /// The strategy to apply to a defragmentation pass.
+    /// </summary>
+    /// <seealso cref="IGraphicsFactory::beginDefragmentation" />
+    /// <seealso cref="IGraphicsFactory::defragment" />
+    enum class DefragmentationStrategy : UInt32 {
+        /// <summary>
+        /// Provides fast fragment computation, but potentially suboptimal packing.
+        /// </summary>
+        Fast = 0x01,
+
+        /// <summary>
+        /// Provides a balance between fragment computation time and packing efficiency.
+        /// </summary>
+        Balanced = 0x02,
+
+        /// <summary>
+        /// Provides optimal packing at the cost of potentially more copies.
+        /// </summary>
+        Full = 0x03
     };
 
     /// <summary>
@@ -2373,6 +2404,219 @@ namespace LiteFX::Rendering {
         UInt32 Z{ 1 };
     };
 #pragma warning(pop)
+
+    /// <summary>
+    /// Contains the parameters for a resource allocation.
+    /// </summary>
+    /// <seealso cref="IGraphicsFactory" />
+    /// <seealso cref="ResourceAllocationResult" />
+    struct LITEFX_RENDERING_API ResourceAllocationInfo final {
+    public:
+        /// <summary>
+        /// Stores information about a buffer resource allocation.
+        /// </summary>
+        struct BufferInfo 
+        {
+            /// <summary>
+            /// Stores the buffer type.
+            /// </summary>
+            BufferType Type{ BufferType::Uniform };
+
+            /// <summary>
+            /// Stores the size of a single element within the buffer.
+            /// </summary>
+            size_t ElementSize{ 0u };
+
+            /// <summary>
+            /// Stores the number of elements in the buffer.
+            /// </summary>
+            UInt32 Elements{ 1u };
+            
+            /// <summary>
+            /// Stores the resource heap on which to allocate the resource.
+            /// </summary>
+            ResourceHeap Heap{ ResourceHeap::Dynamic };
+
+            /// <summary>
+            /// The layout of a vertex buffer.
+            /// </summary>
+            /// <remarks>
+            /// If <see cref="Type" /> is <see cref="BufferType::Vertex" />, setting this property creates a <see cref="IVertexBuffer" />, otherwise a usual 
+            /// <see cref="IBuffer" /> is created. If <see cref="Type" /> is not <see cref="BufferType::Vertex" />, this property is ignored.
+            /// </remarks>
+            SharedPtr<const IVertexBufferLayout> VertexBufferLayout{ nullptr };
+
+            /// <summary>
+            /// The layout of a index buffer.
+            /// </summary>
+            /// <remarks>
+            /// If <see cref="Type" /> is <see cref="BufferType::Index" />, setting this property creates a <see cref="IIndexBuffer" />, otherwise a usual 
+            /// <see cref="IBuffer" /> is created. If <see cref="Type" /> is not <see cref="BufferType::Index" />, this property is ignored.
+            /// </remarks>
+            SharedPtr<const IIndexBufferLayout> IndexBufferLayout{ nullptr };
+        };
+
+        /// <summary>
+        /// Stores information about an image resource allocation.
+        /// </summary>
+        struct ImageInfo 
+        {
+            /// <summary>
+            /// Stores the desired format of the image.
+            /// </summary>
+            Format Format{ Format::R8G8B8A8_SRGB };
+
+            /// <summary>
+            /// Stores the dimensions of the image.
+            /// </summary>
+            ImageDimensions Dimensions{ ImageDimensions::DIM_2 };
+
+            /// <summary>
+            /// Stores the size of the image.
+            /// </summary>
+            Size3d Size{ };
+
+            /// <summary>
+            /// Stores the number of mip-map levels in the image.
+            /// </summary>
+            UInt32 Levels{ 1u };
+
+            /// <summary>
+            /// Stores the number of layers in the image.
+            /// </summary>
+            UInt32 Layers{ 1u };
+
+            /// <summary>
+            /// Stores the number of multi-samples in the image.
+            /// </summary>
+            MultiSamplingLevel Samples{ MultiSamplingLevel::x1 };
+        };
+
+    public:
+        /// <summary>
+        /// Stores the buffer or image info associated with the allocation info.
+        /// </summary>
+        Variant<BufferInfo, ImageInfo> ResourceInfo{};
+
+        /// <summary>
+        /// Stores the resource usage flags for the allocation info.
+        /// </summary>
+        ResourceUsage Usage{ ResourceUsage::Default };
+
+        /// <summary>
+        /// Stores the desired name of the allocated resource.
+        /// </summary>
+        String Name{ };
+
+        /// <summary>
+        /// An optional offset that is used to place the resource in a block of allocated memory when allocating overlapping resources.
+        /// </summary>
+        /// <seealso cref="IGraphicsFactory::allocate" />
+        size_t AliasingOffset{ 0u };
+
+    public:
+        /// <summary>
+        /// Creates a new resource allocation info instance.
+        /// </summary>
+        ResourceAllocationInfo() = default;
+
+        /// <summary>
+        /// Creates a new resource allocation info instance for a buffer resource.
+        /// </summary>
+        /// <param name="bufferInfo">The details about the buffer.</param>
+        /// <param name="usage">The usage flags for the buffer.</param>
+        /// <param name="name">The name of the buffer resource.</param>
+        /// <param name="aliasingOffset">An optional offset that is used to place the resource in a block of allocated memory when allocating overlapping resources.</param>
+        explicit ResourceAllocationInfo(const BufferInfo& bufferInfo, ResourceUsage usage = ResourceUsage::Default, String name = "", size_t aliasingOffset = 0u) :
+            ResourceInfo(bufferInfo), Usage(usage), Name(std::move(name)), AliasingOffset(aliasingOffset) { }
+
+        /// <summary>
+        /// Creates a new resource allocation info instance for an image resource.
+        /// </summary>
+        /// <param name="imageInfo">The details about the image.</param>
+        /// <param name="usage">The usage flags for the image.</param>
+        /// <param name="name">The name of the image resource.</param>
+        /// <param name="aliasingOffset">An optional offset that is used to place the resource in a block of allocated memory when allocating overlapping resources.</param>
+        explicit ResourceAllocationInfo(const ImageInfo& imageInfo, ResourceUsage usage = ResourceUsage::Default, String name = "", size_t aliasingOffset = 0u) :
+            ResourceInfo(imageInfo), Usage(usage), Name(std::move(name)), AliasingOffset(aliasingOffset) { }
+        
+        ResourceAllocationInfo(const ResourceAllocationInfo&) = default;
+        ResourceAllocationInfo(ResourceAllocationInfo&&) noexcept = default;
+        ResourceAllocationInfo& operator=(const ResourceAllocationInfo&) = default;
+        ResourceAllocationInfo& operator=(ResourceAllocationInfo&&) noexcept = default;
+        ~ResourceAllocationInfo() noexcept = default;
+    };
+
+    /// <summary>
+    /// Stores the result of a resource allocation.
+    /// </summary>
+    /// <seealso cref="IGraphicsFactory" />
+    /// <seealso cref="ResourceAllocationInfo" />
+    struct LITEFX_RENDERING_API ResourceAllocationResult final {
+    private:
+        Variant<SharedPtr<IImage>, SharedPtr<IBuffer>> m_resource;
+
+    public:
+        /// <summary>
+        /// Initializes an allocation result for an image resource.
+        /// </summary>
+        /// <param name="image">The allocate image resource.</param>
+        ResourceAllocationResult(SharedPtr<IImage>&& image) noexcept :
+            m_resource(std::move(image)) { }
+        
+        /// <summary>
+        /// Initializes an allocation result for a buffer resource.
+        /// </summary>
+        /// <param name="buffer">The allocated buffer resource.</param>
+        ResourceAllocationResult(SharedPtr<IBuffer>&& buffer) noexcept :
+            m_resource(std::move(buffer)) { }
+
+        ResourceAllocationResult() = delete;
+        ResourceAllocationResult(const ResourceAllocationResult&) = delete;
+        ResourceAllocationResult(ResourceAllocationResult&&) noexcept = default;
+        ResourceAllocationResult& operator=(const ResourceAllocationResult&) = delete;
+        ResourceAllocationResult& operator=(ResourceAllocationResult&&) noexcept = default;
+        ~ResourceAllocationResult() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns the allocated image resource, or raises an exception if the allocation does not contain an image resource, or the image resource is not of <typeparamref name="TImage" />.
+        /// </summary>
+        /// <typeparam name="TImage">The type of the image.</typeparam>
+        /// <returns>The pointer to the image resource.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the allocated resource is not an image, or if the allocated image does not implement <typeparamref name="TImage"/>.</exception>
+        template <std::derived_from<IImage> TImage>
+        SharedPtr<TImage> image() const {
+            if (!std::holds_alternative<SharedPtr<IImage>>(m_resource)) [[unlikely]]
+                throw RuntimeException("The allocation result does not contain an image.");
+            
+            auto image = std::dynamic_pointer_cast<TImage>(std::get<SharedPtr<IImage>>(m_resource));
+
+            if (image == nullptr)
+                throw RuntimeException("The allocated image resource is not of the requested image type.");
+            
+            return image;
+        }
+
+        /// <summary>
+        /// Returns the allocated buffer resource, or raises an exception if the allocation does not contain a buffer resource, or the buffer resource is not of <typeparamref name="TBuffer" />.
+        /// </summary>
+        /// <typeparam name="TBuffer">The type of the buffer.</typeparam>
+        /// <returns>The pointer to the buffer resource.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the allocated resource is not a buffer, or if the allocated buffer does not implement <typeparamref name="TBuffer"/>.</exception>
+        template <std::derived_from<IBuffer> TBuffer>
+        SharedPtr<TBuffer> buffer() const {
+            if (!std::holds_alternative<SharedPtr<IBuffer>>(m_resource)) [[unlikely]]
+                throw RuntimeException("The allocation result does not contain a buffer.");
+
+            auto buffer = std::dynamic_pointer_cast<TBuffer>(std::get<SharedPtr<IBuffer>>(m_resource));
+
+            if (buffer == nullptr)
+                throw RuntimeException("The allocated buffer resource is not of the requested buffer type.");
+
+            return buffer;
+        }
+    };
 #pragma endregion
 
     /// <summary>
@@ -4512,6 +4756,88 @@ namespace LiteFX::Rendering {
     /// Describes a chunk of device memory.
     /// </summary>
     class LITEFX_RENDERING_API IDeviceMemory {
+    public:
+        /// <summary>
+        /// Stores a reference to a barrier that can be used to synchronize accesses to the resource with a move operation.
+        /// </summary>
+        /// <seealso cref="IDeviceMemory::prepareMove" />
+        struct PrepareMoveEventArgs final {
+        private:
+            /// <summary>
+            /// Stores a reference to the underlying barrier.
+            /// </summary>
+            IBarrier& m_barrier;
+
+        public:
+            PrepareMoveEventArgs() = delete;
+            PrepareMoveEventArgs(const PrepareMoveEventArgs&) = delete;
+            PrepareMoveEventArgs(PrepareMoveEventArgs&&) noexcept = delete;
+            PrepareMoveEventArgs& operator=(const PrepareMoveEventArgs&) = delete;
+            PrepareMoveEventArgs& operator=(PrepareMoveEventArgs&&) noexcept = delete;
+            ~PrepareMoveEventArgs() noexcept = default;
+            
+            /// <summary>
+            /// Creates a new instance of the event arguments.
+            /// </summary>
+            /// <param name="barrier">A reference to the underlying barrier, that is used to synchronize the move operation with other accesses to the resource.</param>
+            PrepareMoveEventArgs(IBarrier& barrier) :
+                m_barrier(barrier) { 
+            }
+
+        public:
+            /// <summary>
+            /// Returns a reference of the barrier that is used to synchronize the move operation with other accesses to the resource.
+            /// </summary>
+            /// <returns>A reference to the underlying barrier.</returns>
+            IBarrier& barrier() const noexcept {
+                return m_barrier;
+            }
+        };
+
+        /// <summary>
+        /// Stores the fence and the command queue to wait on for the fence before a moved resource can be used.
+        /// </summary>
+        /// <seealso cref="IDeviceMemory::moving" />
+        struct ResourceMovingEventArgs final {
+        private:
+            SharedPtr<const ICommandQueue> m_queue{};
+            UInt64 m_fence{};
+
+        public:
+            /// <summary>
+            /// Creates a new instance of the resource moving event arguments.
+            /// </summary>
+            /// <param name="queue">The queue that executes the resource move.</param>
+            /// <param name="fence">The fence value on <paramref name="queue" /> after which the resource can be used.</param>
+            ResourceMovingEventArgs(SharedPtr<const ICommandQueue> queue, UInt64 fence) noexcept :
+                m_queue(std::move(queue)), m_fence(fence)
+            {
+            }
+
+            ResourceMovingEventArgs(const ResourceMovingEventArgs&) = default;
+            ResourceMovingEventArgs(ResourceMovingEventArgs&&) noexcept = default;
+            ResourceMovingEventArgs& operator=(const ResourceMovingEventArgs&) = default;
+            ResourceMovingEventArgs& operator=(ResourceMovingEventArgs&&) noexcept = default;
+            ~ResourceMovingEventArgs() noexcept = default;
+
+        public:
+            /// <summary>
+            /// Returns the queue that executes the resource move.
+            /// </summary>
+            /// <returns>A pointer to the queue that executes the resource move.</returns>
+            SharedPtr<const ICommandQueue> queue() const noexcept {
+                return m_queue;
+            }
+
+            /// <summary>
+            /// Returns the fence on <see cref="queue" /> after which the resource can be used.
+            /// </summary>
+            /// <returns></returns>
+            UInt64 fence() const noexcept {
+                return m_fence;
+            }
+        };
+
     protected:
         IDeviceMemory() noexcept = default;
         IDeviceMemory(IDeviceMemory&&) noexcept = default;
@@ -4521,6 +4847,51 @@ namespace LiteFX::Rendering {
 
     public:
         virtual ~IDeviceMemory() noexcept = default;
+
+    public:
+        /// <summary>
+        /// An event that gets invoked to prepare a resource for a move operation.
+        /// </summary>
+        /// <remarks>
+        /// The purpose of this event is to prepare a barrier that synchronizes the resource with other accesses. The event arguments of this event contain a reference to a 
+        /// barrier instance, that can be used to insert a barrier for the resource. Note that the transition must be supported on the underlying command queue that executes
+        /// the move.
+        /// 
+        /// Note that both, the DirectX 12 as well as the Vulkan backend expect images to be in <see cref="ImageLayout::Common" /> layout before moving them.
+        /// </remarks>
+        /// <seealso cref="IGraphicsFactory::defragment" />
+        /// <seealso href="https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#command-queue-layout-compatibility" />
+        mutable Event<const PrepareMoveEventArgs&> prepareMove;
+
+        /// <summary>
+        /// An event that gets invoked before a resource is copied during a move.
+        /// </summary>
+        /// <remarks>
+        /// This event gets invoked during defragmentation to inform any subscribers about the relocation. Moving a resource involves an asynchronous copy-command. This event
+        /// is invoked after this command has been submitted, but before it has been executed. The <see cref="moved" /> event executes after the resource has been copied to the
+        /// new location.
+        /// 
+        /// Note that this event is invoked on the thread that executes the defragmentation process, which means you potentially might want to synchronize the handler with other
+        /// potential resource accesses.
+        /// </remarks>
+        /// <seealso cref="moved" />
+        /// <seealso cref="IGraphicsFactory::defragment" />
+        mutable Event<ResourceMovingEventArgs> moving;
+
+        /// <summary>
+        /// An event that gets invoked, after the resource has been moved to a different location, but before the old resource gets destroyed.
+        /// </summary>
+        /// <remarks>
+        /// This event gets invoked during defragmentation to inform any subscribers about a relocation. You might want to subscribe to this event is to update any descriptor 
+        /// bindings, as they become invalid after the previous resource gets removed. Additionally, you may want to insert barriers to transition the resource back into the 
+        /// desired layout.
+        /// 
+        /// Note that this event is invoked on the thread that executes the defragmentation process, which means you potentially might want to synchronize the handler with other
+        /// resource accesses.
+        /// </remarks>
+        /// <seealso cref="moving" />
+        /// <seealso cref="IGraphicsFactory::defragment" />
+        mutable Event<EventArgs> moved;
 
     public:
         /// <summary>
@@ -4586,17 +4957,6 @@ namespace LiteFX::Rendering {
         virtual ResourceUsage usage() const noexcept = 0;
 
         /// <summary>
-        /// Returns <c>true</c>, if the resource can be bound to a read/write descriptor.
-        /// </summary>
-        /// <remarks>
-        /// If the resource is not writable, attempting to bind it to a writable descriptor will result in an exception.
-        /// </remarks>
-        /// <returns><c>true</c>, if the resource can be bound to a read/write descriptor.</returns>
-        inline bool writable() const noexcept {
-            return LITEFX_FLAG_IS_SET(this->usage(), ResourceUsage::AllowWrite);
-        }
-
-        /// <summary>
         /// Gets the address of the resource in GPU memory.
         /// </summary>
         /// <remarks>
@@ -4604,6 +4964,31 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The address of the resource in GPU memory.</returns>
         virtual UInt64 virtualAddress() const noexcept = 0;
+
+        /// <summary>
+        /// Returns <c>true</c>, if the resource can be bound to a read/write descriptor.
+        /// </summary>
+        /// <remarks>
+        /// If the resource is not writable, attempting to bind it to a writable descriptor will result in an exception.
+        /// </remarks>
+        /// <returns><c>true</c>, if the resource can be bound to a read/write descriptor.</returns>
+        virtual inline bool writable() const noexcept {
+            return LITEFX_FLAG_IS_SET(this->usage(), ResourceUsage::AllowWrite);
+        }
+
+        /// <summary>
+        /// Returns `true`, if the contents of the resource should not be copied during a move.
+        /// </summary>
+        /// <remarks>
+        /// To set this flag, include <see cref="ResourceUsage::Volatile" /> in the resource usage flags.
+        /// </remarks>
+        /// <returns>`true`, if the contents of the resource should not be copied during a move and `false` otherwise.</returns>
+        /// <seealso cref="moving" />
+        /// <seealso cref="usage" />
+        /// <seealso cref="ResourceUsage::Volatile" />
+        virtual inline bool volatileMove() const noexcept {
+            return LITEFX_FLAG_IS_SET(this->usage(), ResourceUsage::Volatile);
+        }
     };
 
     /// <summary>
@@ -8504,8 +8889,41 @@ namespace LiteFX::Rendering {
     /// the render targets must first be mapped to the images in the frame buffer by calling <see cref="IFrameBuffer::mapRenderTarget" />. Calling this method multiple times will
     /// overwrite the mapping. It is also possible to remove a render target mapping by calling <see cref="IFrameBuffer::unmapRenderTarget" />. This will result in future attempts
     /// to resolve this render target using the frame buffer instance to fail.
+    /// 
+    /// The images in the frame buffer can be resized by calling <see cref="IFrameBuffer::resize" />. As this involves re-creating the images, it is important to properly 
+    /// synchronize resizing with rendering, i.e., resizing while a frame is still being rendered is not allowed. Calling <see cref="IFrameBuffer::resize" /> invokes two events,
+    /// <see cref="IFrameBuffer::resizing" /> before the actual resize occurs and <see cref="IFrameBuffer::resized" /> afterwards.
+    /// 
+    /// The main purpose of those events is to provide convenient points for manually controlling image allocation for the frame buffer. Whenever the frame buffer needs to create
+    /// a new image instance, it checks, if a <see cref="IFrameBuffer::allocation_callback_type" /> has been provided during initialization. If provided, this callback is invoked
+    /// instead of directly creating the image. Only if the callback returns `nullptr`, the frame buffer will proceed with the default behavior of allocating the image itself. 
+    /// This way, it is possible to selectively deviate from the default image allocation behavior, for example to allocate a fixed-size image or to provide pre-allocated images, 
+    /// which can be helpful if render targets should be aliased.
     /// </remarks>
     class LITEFX_RENDERING_API IFrameBuffer : public virtual IStateResource, public SharedObject {
+    public:
+        /// <summary>
+        /// A function that gets invoked as a callback, if the frame buffer needs to allocate an image. 
+        /// </summary>
+        /// <remarks>
+        /// A frame buffer may allocate image resources, during it's initialization stage, as well as during resize events. The default behavior, if no callback is provided, is
+        /// to re-create the image resource with the same parameters as it has been initialized with, except a different resolution. The resolution in this case is always equal 
+        /// to the frame buffer extent.
+        /// 
+        /// Defining render-targets that render at a different resolution is possible by providing an allocation callback that creates the resource externally. Another use case
+        /// for this callback is to re-use images from a pool of potentially aliasing image resources. Only in case this callback returns `nullptr` the default behavior gets 
+        /// invoked.
+        /// 
+        /// <example>
+        /// auto callback = [this](Optional<UInt64> renderTargetId, Size2d size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) {
+        ///     return m_device->factory().createTexture(name, format, size, ImageDimensions::DIM_2, 1u, 1u, samples, usage); // Emulates the default behavior.
+        /// };
+        /// </example>
+        /// </remarks>
+        /// <see cref="resize" />
+        template <typename TImage>
+        using allocation_callback_type = std::function<SharedPtr<const TImage>(Optional<UInt64>, Size2d, ResourceUsage, Format, MultiSamplingLevel, const String&)>;
+
     public:
         /// <summary>
         /// Event arguments that are published to subscribers when a frame buffer gets resized.
@@ -8568,9 +8986,17 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
-        /// Invoked when the frame buffer gets resized.
+        /// Invoked if the frame buffer gets resized.
         /// </summary>
         /// <seealso cref="resize" />
+        /// <seealso cref="resized" />
+        mutable Event<ResizeEventArgs> resizing;
+
+        /// <summary>
+        /// Invoked after the frame buffer has been resized.
+        /// </summary>
+        /// <seealso cref="resize" />
+        /// <seealso cref="resizing" />
         mutable Event<ResizeEventArgs> resized;
 
         /// <summary>
@@ -8852,6 +9278,8 @@ namespace LiteFX::Rendering {
         /// Causes the frame buffer to be invalidated and recreated with a new size.
         /// </summary>
         /// <param name="renderArea">The new dimensions of the frame buffer.</param>
+        /// <seealso cref="resizing" />
+        /// <seealso cref="resized" />
         virtual void resize(const Size2d& renderArea) = 0;
 
     private:
@@ -9034,6 +9462,13 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The value of the fence that indicates the end of the render pass.</returns>
         virtual UInt64 end() const = 0;
+
+        /// <summary>
+        /// Returns the mask that identifies the views that are enabled during rendering.
+        /// </summary>
+        /// <returns>A mask that identifies the views that are enabled during rendering.</returns>
+        /// <seealso cref="GraphicsDeviceFeatures::ViewInstancing" />
+        virtual UInt32 viewMask() const noexcept = 0;
 
     private:
         virtual SharedPtr<const IFrameBuffer> getActiveFrameBuffer() const noexcept = 0;
@@ -9522,7 +9957,15 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The value of the latest fence inserted into the queue.</returns>
         /// <seealso cref="waitFor" />
+        /// <seealso cref="lastCompletedFence" />
         virtual UInt64 currentFence() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the last fence that was completed on the queue.
+        /// </summary>
+        /// <returns>The last fence that was completed on the queue.</returns>
+        /// <seealso cref="currentFence" />
+        virtual UInt64 lastCompletedFence() const noexcept = 0;
 
     private:
         virtual SharedPtr<ICommandBuffer> getCommandBuffer(bool beginRecording, bool secondary) const = 0;
@@ -9693,6 +10136,130 @@ namespace LiteFX::Rendering {
         /// <param name="algorithm">The algorithm used to find a suitable block in the allocator memory.</param>
         /// <returns>The instance of the virtual allocator.</returns>
         [[nodiscard]] virtual VirtualAllocator createAllocator(UInt64 overallMemory, AllocationAlgorithm algorithm = AllocationAlgorithm::Default) const = 0;
+
+        /// <summary>
+        /// Starts a defragmentation process for the resources allocated from the factory.
+        /// </summary>
+        /// <remarks>
+        /// Defragmentation is an iterative process. Calling this method starts defragmentation, which is then advanced by alternating calls to 
+        /// <see cref="beginDefragmentationPass" /> and <see cref="endDefragmentationPass" />. The process ends if <see cref="endDefragmentationPass" /> returns `true`.
+        /// 
+        /// During a defragmentation pass, a number of resources may get allocated and the memory and filled with memory from resources that will later be destroyed. 
+        /// Each iteration will only create a certain number of such move events, which is mainly influenced by the <paramref name="maxBytesToMove" /> and 
+        /// <paramref name="maxAllocationsToMove" /> parameters, as well as the provided <paramref name="strategy" />. This way, the number of moves per frame can be 
+        /// limited, which helps with keeping a steady frame rate.
+        /// 
+        /// Moving a resource happens by recording copy commands on a command buffer created from <paramref name="queue" />. If a resource does not need to be copied,
+        /// for example because it only contains temporary data, you can set the <see cref="IDeviceMemory::volatileMove" /> property to `true`. This will only allocate
+        /// a new resource, but wont copy the contents of the old allocation.
+        /// 
+        /// Calling <see cref="beginDefragmentationPass" /> returns the fence on that queue after which the move commands have been executed. You can either manually 
+        /// wait for the fence (e.g., by calling <see cref="ICommandQueue::lastCompletedFence" />) or call <see cref="endDefragmentationPass" /> directly. Keep in mind 
+        /// that <see cref="endDefragmentationPass" /> blocks to wait for the last fence to finish, so you might want to consider the alternative approach if you are 
+        /// doing per-frame defragmentation.
+        /// 
+        /// Calling this method while another defragmentation process is active will raise an exception.
+        /// </remarks>
+        /// <param name="queue">The queue to execute the move commands on.</param>
+        /// <param name="strategy">The strategy to pack the fragmented memory.</param>
+        /// <param name="maxBytesToMove">The maximum number of bytes to move during this pass or `0`, if no limitation should be imposed.</param>
+        /// <param name="maxAllocationsToMove">The maximum number of allocations to move during this pass or `0`, if no limitation should be imposed.</param>
+        /// <exception cref="RuntimeException">Thrown, if another defragmentation process is currently running and has not yet finished.</exception>
+        virtual void beginDefragmentation(const ICommandQueue& queue, DefragmentationStrategy strategy = DefragmentationStrategy::Balanced, UInt64 maxBytesToMove = 0u, UInt32 maxAllocationsToMove = 0u) const = 0;
+
+        /// <summary>
+        /// Starts a new defragmentation pass.
+        /// </summary>
+        /// <remarks>
+        /// Before calling this method, make sure you have started a defragmentation process by calling <see cref="beginDefragmentation" />. If no defragmentation
+        /// process is currently started, calling this method raises an exception.
+        /// 
+        /// You are expected to issue alternating calls to this method and <see cref="endDefragmentationPass" />. This can happen either at the beginning or end of a 
+        /// frame, or on a separate thread.
+        /// 
+        /// In between a call to this method and <see cref="endDefragmentationPass" />, the moved-from resources remain valid. Only after the move has finished and 
+        /// <see cref="endDefragmentationPass" /> has been called, they will get invalidated. This means, that you might have to update descriptor bindings for the 
+        /// resource. You can subscribe to the <see cref="IDeviceMemory::moved" /> event for this purpose. You might also want to issue a barrier to transition an 
+        /// image resource back into the required layout. Calling this method will leave the new resource in a <see cref="ImageLayout::Common" /> state.
+        /// </remarks>
+        /// <seealso cref="beginDefragmentation" />
+        /// <seealso cref="endDefragmentationPass" />
+        /// <exception cref="RuntimeException">Thrown, if no defragmentation process is currently active.</exception>
+        virtual UInt64 beginDefragmentationPass() const = 0;
+
+        /// <summary>
+        /// Ends a defragmentation pass.
+        /// </summary>
+        /// <remarks>
+        /// Before calling this method, make sure you have started a defragmentation process by calling <see cref="beginDefragmentation" />. If no defragmentation
+        /// process is currently started, calling this method raises an exception.
+        /// 
+        /// This method waits for the fence issued by the last call to <see cref="beginDefragmentation" /> before first invoking the <see cref="IDeviceMemory::moved" />
+        /// event on all affected resources and finally destroying the moved-from resources.
+        /// </remarks>
+        /// <seealso cref="beginDefragmentation" />
+        /// <seealso cref="beginDefragmentationPass" />
+        /// <exception cref="RuntimeException">Thrown, if no defragmentation process is currently active.</exception>
+        virtual bool endDefragmentationPass() const = 0;
+
+        /// <summary>
+        /// Allocates a single resource as described by <paramref name="allocationInfo" />.
+        /// </summary>
+        /// <param name="allocationInfo">The description of the resource to allocate.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>The resource allocation result.</returns>
+        virtual ResourceAllocationResult allocate(const ResourceAllocationInfo& allocationInfo, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            if (std::holds_alternative<ResourceAllocationInfo::ImageInfo>(allocationInfo.ResourceInfo))
+            {
+                auto& imageInfo = std::get<ResourceAllocationInfo::ImageInfo>(allocationInfo.ResourceInfo);
+                return this->createTexture(allocationInfo.Name, imageInfo.Format, imageInfo.Size, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, allocationInfo.Usage, allocationBehavior);
+            }
+            else
+            {
+                auto& bufferInfo = std::get<ResourceAllocationInfo::BufferInfo>(allocationInfo.ResourceInfo);
+
+                if (bufferInfo.Type == BufferType::Vertex && bufferInfo.VertexBufferLayout != nullptr)
+                    return std::dynamic_pointer_cast<IBuffer>(
+                        this->createVertexBuffer(allocationInfo.Name, *bufferInfo.VertexBufferLayout, bufferInfo.Heap, bufferInfo.Elements, allocationInfo.Usage, allocationBehavior));
+                else if (bufferInfo.Type == BufferType::Index && bufferInfo.IndexBufferLayout != nullptr)
+                    return std::dynamic_pointer_cast<IBuffer>(
+                        this->createIndexBuffer(allocationInfo.Name, *bufferInfo.IndexBufferLayout, bufferInfo.Heap, bufferInfo.Elements, allocationInfo.Usage, allocationBehavior));
+                else
+                    return this->createBuffer(allocationInfo.Name, bufferInfo.Type, bufferInfo.Heap, bufferInfo.ElementSize, bufferInfo.Elements, allocationInfo.Usage, allocationBehavior);
+            }
+        }
+
+        /// <summary>
+        /// Allocates a set of resources as described by <paramref name="allocationInfos" />.
+        /// </summary>
+        /// <remarks>
+        /// If the <paramref name="alias" /> parameter is set to `true`, the allocator attempts to overlap the resources in a single allocation, which saves memory. 
+        /// However, this implies that the resources must be properly synchronized and accessed according to the aliasing rules imposed by the backend. Most notably,
+        /// you have to manually insert aliasing barriers to isolate access.
+        /// 
+        /// Note that overlapping arbitrary resource types might not be possible on each GPU. You can check if aliasing is supported for the desired resources by
+        /// calling <see cref="canAlias" /> first. If aliasing is not possible, you can instead fallback to non-overlapping resources by setting the 
+        /// <paramref name="alias" /> parameter to `false` accordingly. If you attempt to allocate aliasing resources on an unsupported GPU directly, this method
+        /// will raise an error.
+        /// </remarks>
+        /// <param name="allocationInfos">The description of the resources to allocate.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <param name="alias">`true` if the allocator should attempt to overlap the allocations and `false` otherwise.</param>
+        /// <returns>A generator that returns the individual resources that have been allocated.</returns>
+        /// <seealso cref="canAlias" />
+        /// <seealso href="https://gpuopen-librariesandsdks.github.io/D3D12MemoryAllocator/html/resource_aliasing.html" />
+        /// <seealso href="https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/resource_aliasing.html" />
+        /// <exception cref="InvalidArgumentException">Thrown, if the <paramref name="alias" /> parameter is set to `true`, but the provided <paramref name="allocationInfos" /> cannot be overlapped on the system's GPU.</exception>
+        virtual Generator<ResourceAllocationResult> allocate(Enumerable<const ResourceAllocationInfo&> allocationInfos, AllocationBehavior allocationBehavior = AllocationBehavior::Default, bool alias = false) const = 0;
+
+        /// <summary>
+        /// Checks if the resources described by <paramref name="allocationInfos" /> can be overlapped.
+        /// </summary>
+        /// <param name="allocationInfos">The resource descriptions to check.</param>
+        /// <returns>`true`, if the resources described by  <paramref name="allocationInfos" /> can be overlapped and `false` otherwise.</returns>
+        /// <seealso cref="allocate" />
+        /// <seealso cref="ResourceAllocationInfo::AliasingOffset" />
+        virtual bool canAlias(Enumerable<const ResourceAllocationInfo&> allocationInfos) const = 0;
 
         /// <summary>
         /// Creates a buffer of type <paramref name="type" />.
@@ -10468,6 +11035,13 @@ namespace LiteFX::Rendering {
         /// <seealso href="https://learn.microsoft.com/en-us/windows/win32/direct3d12/conservative-rasterization" />
         /// <seealso href="https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_conservative_rasterization.html" />
         bool ConservativeRasterization { false };
+
+        /// <summary>
+        /// Enables support for view instancing/multi-view.
+        /// </summary>
+        /// <seealso href="https://microsoft.github.io/DirectX-Specs/d3d/ViewInstancing.html#view-instance-masking" />
+        /// <seealso href="https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_multiview.html" />
+        bool ViewInstancing { false };
     };
 
     /// <summary>

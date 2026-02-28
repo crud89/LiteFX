@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.12.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>LiteFX: LiteFX::Rendering::Backends::DirectX12GraphicsFactory::DirectX12GraphicsFactoryImpl Class Reference</title>
+<title>LiteFX: DirectX12GraphicsFactory::DirectX12GraphicsFactoryImpl Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.5.1.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -103,14 +103,20 @@ $(function(){initNavTree('class_direct_x12_graphics_factory_1_1_direct_x12_graph
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#friends">Friends</a> &#124;
 <a href="class_direct_x12_graphics_factory_1_1_direct_x12_graphics_factory_impl-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">LiteFX::Rendering::Backends::DirectX12GraphicsFactory::DirectX12GraphicsFactoryImpl Class Reference</div></div>
+  <div class="headertitle"><div class="title">DirectX12GraphicsFactory::DirectX12GraphicsFactoryImpl Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a5aa01907af8afe73d77305d4cb84032a" id="r_a5aa01907af8afe73d77305d4cb84032a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5aa01907af8afe73d77305d4cb84032a">DirectX12GraphicsFactoryImpl</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &amp;device)</td></tr>
-<tr class="separator:a5aa01907af8afe73d77305d4cb84032a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a811edbb7e29c21af1195cba468870d66" id="r_a811edbb7e29c21af1195cba468870d66"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a811edbb7e29c21af1195cba468870d66">DirectX12GraphicsFactoryImpl</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &amp;device)</td></tr>
+<tr class="separator:a811edbb7e29c21af1195cba468870d66"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24993e8bde9c74ed02cf2f95ae7e4bd3" id="r_a24993e8bde9c74ed02cf2f95ae7e4bd3"><td class="memTemplParams" colspan="2">template&lt;typename TAllocator , typename... TArgs&gt; </td></tr>
+<tr class="memitem:a24993e8bde9c74ed02cf2f95ae7e4bd3"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a24993e8bde9c74ed02cf2f95ae7e4bd3">allocateBuffer</a> (const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &amp;name, const <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_resource_allocation_info_1_1_buffer_info.html">ResourceAllocationInfo::BufferInfo</a> &amp;bufferInfo, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951">ResourceUsage</a> usage, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#abed15e7a2e5c084be01bcbb34b187006">AllocationBehavior</a> allocationBehavior, TAllocator allocator, TArgs &amp;&amp;... args)</td></tr>
+<tr class="separator:a24993e8bde9c74ed02cf2f95ae7e4bd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ebc34232f0b97f1e776cccba1b6b83d" id="r_a5ebc34232f0b97f1e776cccba1b6b83d"><td class="memTemplParams" colspan="2">template&lt;typename TAllocator , typename... TArgs&gt; </td></tr>
+<tr class="memitem:a5ebc34232f0b97f1e776cccba1b6b83d"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a5ebc34232f0b97f1e776cccba1b6b83d">allocateImage</a> (const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &amp;name, const <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_resource_allocation_info_1_1_image_info.html">ResourceAllocationInfo::ImageInfo</a> &amp;imageInfo, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951">ResourceUsage</a> usage, <a class="el" href="namespace_lite_f_x_1_1_rendering.html#abed15e7a2e5c084be01bcbb34b187006">AllocationBehavior</a> allocationBehavior, TAllocator allocator, TArgs &amp;&amp;... args)</td></tr>
+<tr class="separator:a5ebc34232f0b97f1e776cccba1b6b83d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
@@ -118,8 +124,8 @@ Friends</h2></td></tr>
 <tr class="separator:a08c5527aa1de76e870e9702f96ac014c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a5aa01907af8afe73d77305d4cb84032a" name="a5aa01907af8afe73d77305d4cb84032a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5aa01907af8afe73d77305d4cb84032a">&#9670;&#160;</a></span>DirectX12GraphicsFactoryImpl()</h2>
+<a id="a811edbb7e29c21af1195cba468870d66" name="a811edbb7e29c21af1195cba468870d66"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a811edbb7e29c21af1195cba468870d66">&#9670;&#160;</a></span>DirectX12GraphicsFactoryImpl()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -128,10 +134,113 @@ Friends</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">LiteFX::Rendering::Backends::DirectX12GraphicsFactory::DirectX12GraphicsFactoryImpl::DirectX12GraphicsFactoryImpl </td>
+          <td class="memname">DirectX12GraphicsFactory::DirectX12GraphicsFactoryImpl::DirectX12GraphicsFactoryImpl </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>device</em></span></td><td>)</td>
           <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a24993e8bde9c74ed02cf2f95ae7e4bd3" name="a24993e8bde9c74ed02cf2f95ae7e4bd3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a24993e8bde9c74ed02cf2f95ae7e4bd3">&#9670;&#160;</a></span>allocateBuffer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TAllocator , typename... TArgs&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto DirectX12GraphicsFactory::DirectX12GraphicsFactoryImpl::allocateBuffer </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_resource_allocation_info_1_1_buffer_info.html">ResourceAllocationInfo::BufferInfo</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>bufferInfo</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951">ResourceUsage</a></td>          <td class="paramname"><span class="paramname"><em>usage</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#abed15e7a2e5c084be01bcbb34b187006">AllocationBehavior</a></td>          <td class="paramname"><span class="paramname"><em>allocationBehavior</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TAllocator</td>          <td class="paramname"><span class="paramname"><em>allocator</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TArgs &amp;&amp;...</td>          <td class="paramname"><span class="paramname"><em>args</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5ebc34232f0b97f1e776cccba1b6b83d" name="a5ebc34232f0b97f1e776cccba1b6b83d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ebc34232f0b97f1e776cccba1b6b83d">&#9670;&#160;</a></span>allocateImage()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TAllocator , typename... TArgs&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto DirectX12GraphicsFactory::DirectX12GraphicsFactoryImpl::allocateImage </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51">String</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_resource_allocation_info_1_1_image_info.html">ResourceAllocationInfo::ImageInfo</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>imageInfo</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#a85e85c2c13e89d1aaadc8dcfad380951">ResourceUsage</a></td>          <td class="paramname"><span class="paramname"><em>usage</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x_1_1_rendering.html#abed15e7a2e5c084be01bcbb34b187006">AllocationBehavior</a></td>          <td class="paramname"><span class="paramname"><em>allocationBehavior</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TAllocator</td>          <td class="paramname"><span class="paramname"><em>allocator</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TArgs &amp;&amp;...</td>          <td class="paramname"><span class="paramname"><em>args</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -171,7 +280,7 @@ Friends</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="namespace_lite_f_x.html">LiteFX</a></li><li class="navelem"><a class="el" href="namespace_lite_f_x_1_1_rendering.html">Rendering</a></li><li class="navelem"><a class="el" href="namespace_lite_f_x_1_1_rendering_1_1_backends.html">Backends</a></li><li class="navelem"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html">DirectX12GraphicsFactory</a></li><li class="navelem"><a class="el" href="class_direct_x12_graphics_factory_1_1_direct_x12_graphics_factory_impl.html">DirectX12GraphicsFactoryImpl</a></li>
+    <li class="navelem"><b>DirectX12GraphicsFactory</b></li><li class="navelem"><a class="el" href="class_direct_x12_graphics_factory_1_1_direct_x12_graphics_factory_impl.html">DirectX12GraphicsFactoryImpl</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.12.0 </li>
   </ul>
 </div>
