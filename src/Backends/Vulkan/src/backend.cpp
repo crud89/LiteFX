@@ -168,11 +168,13 @@ public:
         raiseIfFailed(::vkCreateInstance(&createInfo, nullptr, &instance), "Unable to create Vulkan instance.");
 
 #ifndef NDEBUG
-        vkCreateDebugUtilsMessenger     = std::bit_cast<PFN_vkCreateDebugUtilsMessengerEXT>(::vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
-        vkDestroyDebugUtilsMessenger    = std::bit_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(::vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
-        vkQueueBeginDebugUtilsLabel     = std::bit_cast<PFN_vkQueueBeginDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueBeginDebugUtilsLabelEXT"));
-        vkQueueEndDebugUtilsLabel       = std::bit_cast<PFN_vkQueueEndDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueEndDebugUtilsLabelEXT"));
-        vkQueueInsertDebugUtilsLabel    = std::bit_cast<PFN_vkQueueInsertDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueInsertDebugUtilsLabelEXT"));
+        // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
+        vkCreateDebugUtilsMessenger     = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(::vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
+        vkDestroyDebugUtilsMessenger    = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(::vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
+        vkQueueBeginDebugUtilsLabel     = reinterpret_cast<PFN_vkQueueBeginDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueBeginDebugUtilsLabelEXT"));
+        vkQueueEndDebugUtilsLabel       = reinterpret_cast<PFN_vkQueueEndDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueEndDebugUtilsLabelEXT"));
+        vkQueueInsertDebugUtilsLabel    = reinterpret_cast<PFN_vkQueueInsertDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueInsertDebugUtilsLabelEXT"));
+        // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
 
         if (vkCreateDebugUtilsMessenger == nullptr)
             LITEFX_WARNING(VULKAN_LOG, "The debug messenger factory \"vkCreateDebugUtilsMessengerEXT\" could not be loaded. Debug utilities will not be enabled.");

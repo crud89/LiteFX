@@ -447,7 +447,7 @@ public:
 		if (!m_supportsTiming)
 			LITEFX_WARNING(VULKAN_LOG, "Timestamp queries are not supported and will be disabled. Reading timestamps will always return 0.");
 
-		importSemaphoreWin32HandleKHR = std::bit_cast<PFN_vkImportSemaphoreWin32HandleKHR>(::vkGetDeviceProcAddr(device.handle(), "vkImportSemaphoreWin32HandleKHR"));
+		importSemaphoreWin32HandleKHR = reinterpret_cast<PFN_vkImportSemaphoreWin32HandleKHR>(::vkGetDeviceProcAddr(device.handle(), "vkImportSemaphoreWin32HandleKHR")); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
 		if (importSemaphoreWin32HandleKHR == nullptr) [[unlikely]]
 			throw RuntimeException("Semaphore importing is not available. Check if all required extensions are available.");

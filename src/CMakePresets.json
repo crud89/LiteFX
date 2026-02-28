@@ -303,66 +303,87 @@
   "buildPresets": [
     {
       "name": "windows-msvc-x64-release",
+      "displayName": "Release x64 [msvc]",
       "configurePreset": "windows-msvc-x64-release"
     },
     {
       "name": "windows-msvc-x64-release-static",
+      "displayName": "Release x64-static [msvc]",
       "configurePreset": "windows-msvc-x64-release-static"
     },
     {
       "name": "windows-msvc-x64-test",
+      "displayName": "Test x64 [msvc]",
       "configurePreset": "windows-msvc-x64-test"
     },
     {
       "name": "windows-msvc-x64-debug",
+      "displayName": "Debug x64 [msvc]",
       "configurePreset": "windows-msvc-x64-debug"
     },
     {
       "name": "windows-msvc-x64-debug-static",
+      "displayName": "Debug x64-static [msvc]",
       "configurePreset": "windows-msvc-x64-debug-static"
     },
     {
       "name": "windows-msvc-x86-release",
+      "displayName": "Release x86 [msvc]",
       "configurePreset": "windows-msvc-x86-release"
     },
     {
       "name": "windows-msvc-x86-release-static",
+      "displayName": "Release x86-static [msvc]",
       "configurePreset": "windows-msvc-x86-release-static"
     },
     {
       "name": "windows-msvc-x86-test",
+      "displayName": "Test x86 [msvc]",
       "configurePreset": "windows-msvc-x86-test"
     },
     {
       "name": "windows-msvc-x86-debug",
+      "displayName": "Debug x86 [msvc]",
       "configurePreset": "windows-msvc-x86-debug"
     },
     {
+      "name": "windows-msvc-x86-debug-static",
+      "displayName": "Debug x86-static [msvc]",
+      "configurePreset": "windows-msvc-x86-debug-static"
+    },
+    {
       "name": "windows-clang-x64-release",
+      "displayName": "Release x64 [clang]",
       "configurePreset": "windows-clang-x64-release"
     },
     {
       "name": "windows-clang-x64-release-static",
+      "displayName": "Release x64-static [clang]",
       "configurePreset": "windows-clang-x64-release-static"
     },
     {
       "name": "windows-clang-x64-test",
+      "displayName": "Test x64 [clang]",
       "configurePreset": "windows-clang-x64-test"
     },
     {
       "name": "windows-clang-x64-debug",
+      "displayName": "Debug x64 [clang]",
       "configurePreset": "windows-clang-x64-debug"
     },
     {
       "name": "windows-clang-x64-debug-static",
+      "displayName": "Debug x64-static [clang]",
       "configurePreset": "windows-clang-x64-debug-static"
     },
     {
       "name": "windows-clangcl-x64-debug",
+      "displayName": "Debug x64 [clang-cl]",
       "configurePreset": "windows-clangcl-x64-debug"
     },
     {
       "name": "windows-clangcl-x64-release",
+      "displayName": "Release x64 [clang-cl]",
       "configurePreset": "windows-clangcl-x64-release"
     }
   ],

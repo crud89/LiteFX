@@ -212,7 +212,7 @@ public:
         std::ranges::for_each(m_modules, [&](auto& shaderModule) {
             // Read the file and initialize a reflection module.
             auto bytecode = shaderModule->bytecode();
-            spv_reflect::ShaderModule reflection(bytecode.size(), bytecode.c_str());
+            spv_reflect::ShaderModule reflection(bytecode.size() * sizeof(UInt32), bytecode.data());
             auto result = reflection.GetResult();
 
             if (result != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
@@ -415,17 +415,14 @@ public:
                 auto space = it->second.space;
                 auto stage = it->second.stage;
 
-                // Create the descriptor layouts.
-                auto descriptorLayouts = [](DescriptorSetInfo descriptorSet) -> std::generator<VulkanDescriptorLayout> {
-                    for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor) {
-                        if (descriptor->type == DescriptorType::Sampler && descriptor->staticSampler != nullptr)
-                            co_yield VulkanDescriptorLayout { *descriptor->staticSampler, descriptor->location };
-                        else if (descriptor->type == DescriptorType::InputAttachment)
-                            co_yield VulkanDescriptorLayout { descriptor->type, descriptor->location, descriptor->inputAttachmentIndex };
+                auto descriptorLayouts = it->second.descriptors | std::views::transform([](const auto& descriptor) -> VulkanDescriptorLayout {
+                        if (descriptor.type == DescriptorType::Sampler && descriptor.staticSampler != nullptr)
+                            return { *descriptor.staticSampler, descriptor.location };
+                        else if (descriptor.type == DescriptorType::InputAttachment)
+                            return { descriptor.type, descriptor.location, descriptor.inputAttachmentIndex };
                         else [[likely]]
-                            co_yield VulkanDescriptorLayout { descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->unbounded };
-                    }
-                }(std::move(it->second)) | std::ranges::to<Array<VulkanDescriptorLayout>>();
+                            return { descriptor.type, descriptor.location, descriptor.elementSize, descriptor.elements, descriptor.unbounded };
+                    }) | std::ranges::to<std::vector>();
 
                 co_yield VulkanDescriptorSetLayout::create(*device, descriptorLayouts, space, stage);
             }
