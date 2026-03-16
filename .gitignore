@@ -357,3 +357,6 @@ out/
 
 # CMake user presets
 CMakeUserPresets.json
+
+# Ignore vcpkg module contents
+src/Modules/vcpkg/*

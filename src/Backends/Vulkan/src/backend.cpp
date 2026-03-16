@@ -109,7 +109,7 @@ private:
     }
 
 public:
-    VkInstance initialize(const App& app)
+    VkInstance initialize(const App& app, void* instanceExtensionObjects)
     {
         // Check if all extensions are available.
         if (!VulkanBackend::validateInstanceExtensions(m_extensions))
@@ -137,24 +137,18 @@ public:
         };
 
         // Create Vulkan instance.
-        VkInstanceCreateInfo createInfo {
-            .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-            .pApplicationInfo = &appInfo,
-            .enabledLayerCount = static_cast<UInt32>(enabledLayers.size()),
-            .ppEnabledLayerNames = enabledLayers.data(),
-            .enabledExtensionCount = static_cast<UInt32>(requiredExtensions.size()),
-            .ppEnabledExtensionNames = requiredExtensions.data()
-        };
+        void* pNext = instanceExtensionObjects;
 
 #ifndef NDEBUG
-        VkDebugUtilsMessengerCreateInfoEXT debugMessageCallbackInfo {
+        VkDebugUtilsMessengerCreateInfoEXT debugMessageCallbackInfo{
             .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+            .pNext = instanceExtensionObjects,
             .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
             .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
             .pfnUserCallback = &onDebugMessage
         };
 
-        VkDebugUtilsMessengerCreateInfoEXT debugBreakCallbackInfo {
+        VkDebugUtilsMessengerCreateInfoEXT debugBreakCallbackInfo{
             .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
             .pNext = &debugMessageCallbackInfo,
             .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
@@ -162,8 +156,19 @@ public:
             .pfnUserCallback = &onDebugBreak
         };
 
-        createInfo.pNext = &debugBreakCallbackInfo;
+        pNext = &debugBreakCallbackInfo;
 #endif
+
+        VkInstanceCreateInfo createInfo {
+            .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+            .pNext = pNext,
+            .pApplicationInfo = &appInfo,
+            .enabledLayerCount = static_cast<UInt32>(enabledLayers.size()),
+            .ppEnabledLayerNames = enabledLayers.data(),
+            .enabledExtensionCount = static_cast<UInt32>(requiredExtensions.size()),
+            .ppEnabledExtensionNames = requiredExtensions.data()
+        };
+
         VkInstance instance{};
         raiseIfFailed(::vkCreateInstance(&createInfo, nullptr, &instance), "Unable to create Vulkan instance.");
 
@@ -219,10 +224,10 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBackend::VulkanBackend(const App& app, Span<String> extensions, Span<String> validationLayers) :
+VulkanBackend::VulkanBackend(const App& app, Span<String> extensions, Span<String> validationLayers, void* instanceExtensionObjects) :
     Resource<VkInstance>(nullptr), m_impl(extensions, validationLayers)
 {
-    this->handle() = m_impl->initialize(app);
+    this->handle() = m_impl->initialize(app, instanceExtensionObjects);
     m_impl->loadAdapters(*this);
 
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
