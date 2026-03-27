@@ -1,7 +1,7 @@
 var class_lite_f_x_1_1_rendering_1_1_i_command_queue =
 [
-    [ "QueueSubmittedEventArgs", "struct_lite_f_x_1_1_rendering_1_1_i_command_queue_1_1_queue_submitted_event_args.html", "struct_lite_f_x_1_1_rendering_1_1_i_command_queue_1_1_queue_submitted_event_args" ],
     [ "QueueSubmittingEventArgs", "struct_lite_f_x_1_1_rendering_1_1_i_command_queue_1_1_queue_submitting_event_args.html", "struct_lite_f_x_1_1_rendering_1_1_i_command_queue_1_1_queue_submitting_event_args" ],
+    [ "QueueSubmittedEventArgs", "struct_lite_f_x_1_1_rendering_1_1_i_command_queue_1_1_queue_submitted_event_args.html", "struct_lite_f_x_1_1_rendering_1_1_i_command_queue_1_1_queue_submitted_event_args" ],
     [ "ICommandQueue", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a1ec7c9a18c6885a0ed7d7f2c014da279", null ],
     [ "ICommandQueue", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a6ebdc35544def35f937f3c4eec67c00e", null ],
     [ "ICommandQueue", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a2e2e503be1bb8ba87bbfede41ecdcf82", null ],

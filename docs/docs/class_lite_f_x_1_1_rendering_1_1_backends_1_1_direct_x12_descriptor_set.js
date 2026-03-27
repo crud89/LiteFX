@@ -14,8 +14,12 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set =
     [ "localHeap", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html#a6ff9a1f6e14b1fb3e92b029f638d5367", null ],
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html#a03150d83a84564a48a7b6e7fd21db253", null ],
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html#a6b7c955d272be40ae8f51d55689cf8f0", null ],
+    [ "update", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html#a389cda20f9d6c491fe6270c06b6edd3a", null ],
+    [ "update", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html#a79277bf67e7918fcd23158158f1efd76", null ],
     [ "update", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html#a06bac518580e1ebc2b8bb9301db04b37", null ],
     [ "update", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html#a9fdf5b6b3ffeb95cd562f22be6859ff7", null ],
     [ "update", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html#a66aeaf91bbec40be97482af9e51c1a51", null ],
-    [ "update", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html#ac1a2df349c10afd9733ecdbf9b69008d", null ]
+    [ "update", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html#ac1a2df349c10afd9733ecdbf9b69008d", null ],
+    [ "update", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html#a479b8ff3d9d02a9c445a5b7115133584", null ],
+    [ "update", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html#a752a4dcb3df5e517426c68995de81417", null ]
 ];

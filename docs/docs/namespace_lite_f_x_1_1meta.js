@@ -1,7 +1,7 @@
 var namespace_lite_f_x_1_1meta =
 [
     [ "has_builder_t", "struct_lite_f_x_1_1meta_1_1has__builder__t.html", null ],
-    [ "has_builder_t< T, std::void_t< typename T::builder > >", "struct_lite_f_x_1_1meta_1_1has__builder__t_3_01_t_00_01std_1_1void__t_3_01typename_01_t_1_1builder_01_4_01_4.html", null ],
+    [ "has_builder_t&lt; T, std::void_t&lt; typename T::builder &gt; &gt;", "struct_lite_f_x_1_1meta_1_1has__builder__t_3_01_t_00_01std_1_1void__t_3_01typename_01_t_1_1builder_01_4_01_4.html", null ],
     [ "is_explicitly_constructible_t", "struct_lite_f_x_1_1meta_1_1is__explicitly__constructible__t.html", null ],
     [ "is_implicitly_constructible_t", "struct_lite_f_x_1_1meta_1_1is__implicitly__constructible__t.html", null ],
     [ "has_builder", "concept_lite_f_x_1_1meta_1_1has__builder.html", null ],

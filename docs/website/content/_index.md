@@ -1,5 +1,10 @@
 ---
 title: LiteFX ✨
+
+params:
+  ui:
+    navbar_theme: dark
+    showLightDarkModeMenu: false
 ---
 
 {{< blocks/cover image_anchor="top" height="full" >}}
