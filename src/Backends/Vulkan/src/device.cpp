@@ -265,7 +265,7 @@ public:
             std::ranges::to<Array<QueueFamily>>();
     }
 
-    VkDevice initialize(const GraphicsDeviceFeatures& features)
+    VkDevice initialize(const GraphicsDeviceFeatures& features, void* deviceExtensionObjects)
     {
         if (!m_adapter->validateDeviceExtensions(m_extensions))
             throw InvalidArgumentException("extensions", "Some required device extensions are not supported by the system.");
@@ -293,11 +293,12 @@ public:
 
         // Enable requested features.
         // NOTE: We keep track of the last feature set with this pointer, as it is against the standard to include features in the pNext chain without requiring the extension.
-        void* lastFeature = nullptr;
+        void* lastFeature = deviceExtensionObjects;
 
         // Enable ray-tracing features.
         VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR,
+            .pNext = lastFeature,
             .rayQuery = features.RayQueries
         };
 
@@ -672,9 +673,9 @@ VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphic
 
 VulkanDevice::~VulkanDevice() noexcept = default;
 
-SharedPtr<VulkanDevice> VulkanDevice::initialize(Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features)
+SharedPtr<VulkanDevice> VulkanDevice::initialize(Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features, void* deviceExtensionObjects)
 {
-    this->handle() = m_impl->initialize(features);
+    this->handle() = m_impl->initialize(features, deviceExtensionObjects);
 
     // NOTE: The order of initialization here is important.
     m_impl->initializeDefaultQueues(*this);

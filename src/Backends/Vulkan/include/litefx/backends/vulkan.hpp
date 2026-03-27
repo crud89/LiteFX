@@ -2765,10 +2765,11 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="surface">The surface, the device should draw to.</param>
         /// <param name="features">The features that should be supported by this device.</param>
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
+        /// <param name="deviceExtensionObjects">A pointer to additional extension objects (such as device features) that are stored in the devices's `pNext` chain during device creation.</param>
         /// <param name="globalDescriptorHeapSize">The size of the global descriptor heap in bytes.</param>
         /// <returns>A shared pointer to the new device instance.</returns>
-        static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }, size_t globalDescriptorHeapSize = DEFAULT_DESCRIPTOR_HEAP_SIZE) {
-            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions, globalDescriptorHeapSize)->initialize(Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }, void* deviceExtensionObjects = nullptr, size_t globalDescriptorHeapSize = DEFAULT_DESCRIPTOR_HEAP_SIZE) {
+            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions, globalDescriptorHeapSize)->initialize(Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features, deviceExtensionObjects); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         }
 
         /// <summary>
@@ -2783,10 +2784,11 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="enableVsync">The initial setting for vertical synchronization.</param>
         /// <param name="features">The features that should be supported by this device.</param>
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
+        /// <param name="deviceExtensionObjects">A pointer to additional extension objects (such as device features) that are stored in the devices's `pNext` chain during device creation.</param>
         /// <param name="globalDescriptorHeapSize">The size of the global descriptor heap in bytes.</param>
         /// <returns>A shared pointer to the new device instance.</returns>
-        static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }, size_t globalDescriptorHeapSize = DEFAULT_DESCRIPTOR_HEAP_SIZE) {
-            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions, globalDescriptorHeapSize)->initialize(format, renderArea, backBuffers, enableVsync, features);
+        static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }, void* deviceExtensionObjects = nullptr, size_t globalDescriptorHeapSize = DEFAULT_DESCRIPTOR_HEAP_SIZE) {
+            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions, globalDescriptorHeapSize)->initialize(format, renderArea, backBuffers, enableVsync, features, deviceExtensionObjects);
         }
 
     private:
@@ -2798,8 +2800,9 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="backBuffers">The initial number of back buffers.</param>
         /// <param name="enableVsync">The initial setting for vertical synchronization.</param>
         /// <param name="features">The features that should be supported by this device.</param>
+        /// <param name="deviceExtensionObjects">A pointer to additional extension objects (such as device features) that are stored in the devices's `pNext` chain during device creation.</param>
         /// <returns>A shared pointer to the current device instance.</returns>
-        SharedPtr<VulkanDevice> initialize(Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { });
+        SharedPtr<VulkanDevice> initialize(Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { }, void* deviceExtensionObjects = nullptr);
 
         /// <summary>
         /// Releases the device state to prepare it for destruction.
@@ -2975,7 +2978,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="app">An instance of the app that owns the backend.</param>
         /// <param name="extensions">A set of instance extensions to enable on the backend instance.</param>
         /// <param name="validationLayers">A set of validation layers to enable on the rendering backend.</param>
-        explicit VulkanBackend(const App& app, const Span<String> extensions = { }, const Span<String> validationLayers = { });
+        /// <param name="instanceExtensionObjects">A pointer to additional extension objects that are stored in the instance's `pNext` chain during instance creation.</param>
+        explicit VulkanBackend(const App& app, const Span<String> extensions = { }, const Span<String> validationLayers = { }, void* instanceExtensionObjects = nullptr);
 
         /// <inheritdoc />
         VulkanBackend(VulkanBackend&&) noexcept;
