@@ -7,11 +7,13 @@ var class_lite_f_x_1_1_builder_3_01_t_00_01std_1_1nullptr__t_00_01_t_pointer_01_
     [ "Builder", "class_lite_f_x_1_1_builder_3_01_t_00_01std_1_1nullptr__t_00_01_t_pointer_01_4.html#a6b136a6de4db909ecfde2985d92701c4", null ],
     [ "Builder", "class_lite_f_x_1_1_builder_3_01_t_00_01std_1_1nullptr__t_00_01_t_pointer_01_4.html#a957b110b1ea447a95b4a3984fa78302e", null ],
     [ "~Builder", "class_lite_f_x_1_1_builder_3_01_t_00_01std_1_1nullptr__t_00_01_t_pointer_01_4.html#aea6b11f5a64253be994ed9e0693e6b5d", null ],
+    [ "add", "class_lite_f_x_1_1_builder.html#a3a479859763bfdf6bdbc54d15b23d2c5", null ],
     [ "build", "class_lite_f_x_1_1_builder_3_01_t_00_01std_1_1nullptr__t_00_01_t_pointer_01_4.html#a2aac767c2503be13605c81ef0b8b493a", null ],
     [ "instance", "class_lite_f_x_1_1_builder_3_01_t_00_01std_1_1nullptr__t_00_01_t_pointer_01_4.html#aad88fbaa10f1aa8d2c6ab12226ee6afd", null ],
     [ "instance", "class_lite_f_x_1_1_builder_3_01_t_00_01std_1_1nullptr__t_00_01_t_pointer_01_4.html#a1d3f08f4b05fcb9d82fe0e8fbba24d32", null ],
     [ "operator TPointer &&", "class_lite_f_x_1_1_builder_3_01_t_00_01std_1_1nullptr__t_00_01_t_pointer_01_4.html#acf3b8212bdb4b9f25cd5acb18b9ac643", null ],
     [ "operator=", "class_lite_f_x_1_1_builder_3_01_t_00_01std_1_1nullptr__t_00_01_t_pointer_01_4.html#a2d9b52348af748122670c76fe14d5e8a", null ],
     [ "operator=", "class_lite_f_x_1_1_builder_3_01_t_00_01std_1_1nullptr__t_00_01_t_pointer_01_4.html#a896ff760b7e6a1afd9bb9556c285127b", null ],
+    [ "parent", "class_lite_f_x_1_1_builder.html#a7b028c36f9a901fb8db7faa6d0a04216", null ],
     [ "use", "class_lite_f_x_1_1_builder_3_01_t_00_01std_1_1nullptr__t_00_01_t_pointer_01_4.html#a0ce34856e4d1712ee346de3a9743f057", null ]
 ];

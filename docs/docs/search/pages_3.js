@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['setup_0',['Project Setup',['../md_docs_2tutorials_2project-setup.html',1,'']]],
-  ['start_1',['Quick Start',['../md_docs_2tutorials_2quick-start.html',1,'']]]
+  ['dependencies_0',['Dependencies',['../index.html#autotoc_md9',1,'']]]
 ];

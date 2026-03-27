@@ -9,7 +9,7 @@ var searchData=
   ['span_6',['Span',['../namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4',1,'LiteFX']]],
   ['string_7',['String',['../namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51',1,'LiteFX']]],
   ['stringview_8',['StringView',['../namespace_lite_f_x.html#a8f67ef1b66d8e11201ba89c9db51c0c8',1,'LiteFX']]],
-  ['surface_5fcallback_9',['surface_callback',['../class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html#a2fe747d4e94c1086c0f29984e476cc0e',1,'LiteFX::Rendering::Backends::VulkanBackend']]],
+  ['surface_5fcallback_9',['surface_callback',['../class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html#a18d55e26103c4cbc89f67559c060ec1e',1,'LiteFX::Rendering::Backends::VulkanBackend']]],
   ['surface_5ftype_10',['surface_type',['../class_lite_f_x_1_1_rendering_1_1_graphics_device.html#adb7756dd9991d8e7ba3424911f841827',1,'LiteFX::Rendering::GraphicsDevice::surface_type'],['../class_lite_f_x_1_1_rendering_1_1_render_backend.html#a29aa819827b6b4cd77b33aee4e3dd2a5',1,'LiteFX::Rendering::RenderBackend::surface_type']]],
   ['swap_5fchain_5ftype_11',['swap_chain_type',['../class_lite_f_x_1_1_rendering_1_1_graphics_device.html#a882e8ad847322802fb3d1f326d32f479',1,'LiteFX::Rendering::GraphicsDevice::swap_chain_type'],['../class_lite_f_x_1_1_rendering_1_1_render_backend.html#ac331218b0f97f2ff05110f45d766fcc1',1,'LiteFX::Rendering::RenderBackend::swap_chain_type']]]
 ];

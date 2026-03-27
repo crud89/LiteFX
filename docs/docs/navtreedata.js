@@ -25,19 +25,19 @@
 var NAVTREE =
 [
   [ "LiteFX", "index.html", [
-    [ "About", "index.html#autotoc_md7", [
-      [ "Key Features", "index.html#autotoc_md8", null ]
+    [ "About", "index.html#autotoc_md6", [
+      [ "Key Features", "index.html#autotoc_md7", null ]
     ] ],
-    [ "Getting Started", "index.html#autotoc_md9", null ],
-    [ "Dependencies", "index.html#autotoc_md10", null ],
-    [ "Contribute", "index.html#autotoc_md11", null ],
-    [ "Projects using LiteFX", "index.html#autotoc_md12", null ],
-    [ "License", "index.html#autotoc_md13", null ],
+    [ "Getting Started", "index.html#autotoc_md8", null ],
+    [ "Dependencies", "index.html#autotoc_md9", null ],
+    [ "Contribute", "index.html#autotoc_md10", null ],
+    [ "Projects using LiteFX", "index.html#autotoc_md11", null ],
+    [ "License", "index.html#autotoc_md12", null ],
     [ "Project Setup", "md_docs_2tutorials_2project-setup.html", [
-      [ "Project Structure", "md_docs_2tutorials_2project-setup.html#autotoc_md3", null ],
-      [ "Setting up vcpkg.", "md_docs_2tutorials_2project-setup.html#autotoc_md4", null ],
-      [ "Setting up CMake.", "md_docs_2tutorials_2project-setup.html#autotoc_md5", null ],
-      [ "Performing a build.", "md_docs_2tutorials_2project-setup.html#autotoc_md6", null ]
+      [ "Project Structure", "md_docs_2tutorials_2project-setup.html#autotoc_md1", null ],
+      [ "Setting up vcpkg.", "md_docs_2tutorials_2project-setup.html#autotoc_md2", null ],
+      [ "Setting up CMake.", "md_docs_2tutorials_2project-setup.html#autotoc_md3", null ],
+      [ "Performing a build.", "md_docs_2tutorials_2project-setup.html#autotoc_md4", null ]
     ] ],
     [ "Quick Start", "md_docs_2tutorials_2quick-start.html", [
       [ "Application Infrastructure", "md_docs_2tutorials_2quick-start.html#autotoc_md14", [
@@ -90,43 +90,45 @@ var NAVTREEINDEX =
 [
 "annotated.html",
 "class_direct_x12_pipeline_layout_1_1_direct_x12_pipeline_layout_impl.html#a667946e0b618caadaccd803ee1049d6a",
-"class_lite_f_x_1_1_app.html#a5fadaa2d9c8f99de6f98beeb3168808d",
-"class_lite_f_x_1_1_event_args.html#a3728687feba282b06d2842f7cb169688",
-"class_lite_f_x_1_1_math_1_1_rect.html#a515155da98f722a408c94dd4e2a6a11d",
-"class_lite_f_x_1_1_math_1_1_vector1u.html#a786bf67da1747fa46c133148a4fcc740",
-"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_backend.html#ae76b9cba8127875fe7ff8127e354f347",
-"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#aed5f11f82980fdbace380d44a450d5d9",
-"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_frame_buffer.html#ad146c5cdc92ab4b54688f34fbfb8822e",
-"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_push_constants_layout.html#aa5bf49a4b7c8cbf84af6858c7d5f4af3",
-"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_swap_chain.html#a20a7055a3d603a52f48255468220c691",
-"class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_image.html#aeba8c2a85660069033beb80ec5eb605f",
-"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a4d2a8c76ebe9a755c5ce8130693f8cde",
-"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html#a151169aef284b5f0628d750cd194a76e",
-"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_index_buffer.html",
-"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline.html",
-"class_lite_f_x_1_1_rendering_1_1_barrier.html#a4335fde1e1e8beefffc1c30154ece01f",
-"class_lite_f_x_1_1_rendering_1_1_command_buffer.html#aefb781fde72411588b7b94d10035d1ed",
-"class_lite_f_x_1_1_rendering_1_1_device_state.html#abe60ec30b6fd7480eb7a0d53926d66a4",
-"class_lite_f_x_1_1_rendering_1_1_graphics_factory.html#a92741a8d8850bb73b94a387379f8215b",
-"class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a684b278b20a31c08cff01fbbb56a3a7a",
-"class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#aa268d947f6767a94d0067db416a9573a",
-"class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a43bd2d5e69b2532571e6650384a81b35",
-"class_lite_f_x_1_1_rendering_1_1_i_push_constants_layout.html#a8e86b6f657a96480c2634e3a9d3df6fe",
-"class_lite_f_x_1_1_rendering_1_1_i_sampler.html#af6c09f662506a0ce33a92de5f2a925d1",
-"class_lite_f_x_1_1_rendering_1_1_index_buffer.html#a61596fbd608d6e0dee43eed50023e2cc",
-"class_lite_f_x_1_1_rendering_1_1_render_pass.html",
-"class_lite_f_x_1_1_rendering_1_1_timing_event.html#af688eba35382c0e2e4b6abb1cb4dce2b",
-"class_sample_app.html#a6bf44b610e01b378af6c06cd7a4d6d8c",
-"class_vulkan_graphics_factory_1_1_vulkan_graphics_factory_impl.html#ad165e6f5eb7d681bdd5688190602e3a5",
-"class_vulkan_vertex_buffer_layout_1_1_vulkan_vertex_buffer_layout_impl.html#acdca11dad87b6ab4b8f8671ca72e845d",
-"namespace_lite_f_x_1_1_rendering.html#a067287371bfdb096c743f9791c12e320a6adf97f83acf6453d4a6a4b1070f3754",
-"namespace_lite_f_x_1_1_rendering.html#ad0c4e431db149130a77cfbbbe1aa8235a05d26e7d7c53744b903ae1f6f8a8c7ed",
-"namespace_lite_f_x_1_1_rendering_1_1_backends_1_1_d_x12.html#ab1975100d1334091bcbdd5541151bde9",
-"struct_lite_f_x_1_1_math_1_1_matrix.html#ae27adcd226eb61ea3bf0cf6583a6a060",
-"struct_lite_f_x_1_1_rendering_1_1_i_command_queue_1_1_queue_submitted_event_args.html#aededbc1ca2aeecc943173ace9c0ab5ff",
-"struct_lite_f_x_1_1_rendering_1_1_resource_allocation_info.html#a42e5560fdc050b4b313a90fd56f553f9",
-"structstd_1_1formatter_3_01_d3_d___s_h_a_d_e_r___i_n_p_u_t___t_y_p_e_01_4.html"
+"class_lite_f_x_1_1_app.html#a598116c7d4a5191a05095588e86768c4",
+"class_lite_f_x_1_1_event_args.html#a11b4a71023676e833b4232958621d4b6",
+"class_lite_f_x_1_1_math_1_1_rect.html#a0b0798f9e3b43d8f97eb47ec54cb80a9",
+"class_lite_f_x_1_1_math_1_1_vector1u.html#a1871f4b22e053632709ba817b4dcdd09",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_backend.html#ae28048bcbe8b62f2e703348523fd4131",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a85f3e823b712fef81cc48a49ba075720",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html#ac473d85c820442549757fd80ad48015c",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a19046e51bf0ac343842590f9dcabb808",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html#a5d30c0ba84c35c477366d0d5fe174f3f",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_vertex_buffer_layout.html#ae4c34119cf21141d42fbc2ff13428a71",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_barrier.html#ab5047a2d073f0415cb5a0f00ac68b68b",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#abcc3ae50053238929bd140ed50df8c9a",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html#a7c39fc6ad530805cc79b80e5b728f4c0",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#abfd5dfb1f945ac9a78514d22f8db29e1",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html#a95038bae1c9ea480c3d43a0b98f8fcae",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_vertex_buffer_layout.html#ad48261ded3515a6b8b291d30e558a1fb",
+"class_lite_f_x_1_1_rendering_1_1_command_buffer.html#adeff9100e16c51d9d12e34853703fb22",
+"class_lite_f_x_1_1_rendering_1_1_device_state.html#a8fec016c3028371c561bca2ba6d693fb",
+"class_lite_f_x_1_1_rendering_1_1_graphics_factory.html#a78a0d2a999c4ef2af6da02e1c928eaa7",
+"class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a5184ae021db9aa5324b0ca508164e717",
+"class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a4e857a9767a5957e5d2b55feaedcd750",
+"class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a18aa961799d4279dab3ecc509558abfa",
+"class_lite_f_x_1_1_rendering_1_1_i_pipeline_layout.html#a9fdc2d5aa16a32837d1dbb63b9ba9083",
+"class_lite_f_x_1_1_rendering_1_1_i_sampler.html#a5650a21f815c0cc88cd7b930189bf995",
+"class_lite_f_x_1_1_rendering_1_1_i_viewport.html#a92e1366c5171b5719b115fd168f622a2",
+"class_lite_f_x_1_1_rendering_1_1_render_backend.html#acbd02f6f1607091605ab336643ac2f94",
+"class_lite_f_x_1_1_rendering_1_1_timing_event.html#a04c1e2c2a796d0646c65f4f0925036de",
+"class_sample_app.html#a63ede3cd439a0d24756f05cb810db41f",
+"class_vulkan_graphics_factory_1_1_vulkan_graphics_factory_impl.html#a221e7d83193bf4e8321f1a396e78aee2",
+"class_vulkan_top_level_acceleration_structure_1_1_vulkan_top_level_acceleration_structure_impl.html#a7b567d53113599965715246383266899",
+"namespace_lite_f_x_1_1_math_1_1_vectors.html#acf2337c23ec41530cb69583496d9194f",
+"namespace_lite_f_x_1_1_rendering.html#abe8141cd646ad8a0322b60525a5d34b3a32a843da6ea40ab3b17a3421ccdf671b",
+"namespace_lite_f_x_1_1_rendering_1_1_backends.html#a75850d3bb702d54e8edb6152605317f1",
+"struct_lite_f_x_1_1_math_1_1_matrix.html#aa1fcec9c61f8bce6b37e885ef32b6910",
+"struct_lite_f_x_1_1_rendering_1_1_i_bottom_level_acceleration_structure_1_1_triangle_mesh.html#aacd9205654fcce6d667fe852b6970284",
+"struct_lite_f_x_1_1_rendering_1_1_pipeline_binding_hint_1_1_push_constants_hint.html",
+"structstd_1_1formatter_3_01_acceleration_structure_flags_01_4.html"
 ];
 
-var SYNCONMSG = 'click to disable panel synchronisation';
-var SYNCOFFMSG = 'click to enable panel synchronisation';
+var SYNCONMSG = 'click to disable panel synchronization';
+var SYNCOFFMSG = 'click to enable panel synchronization';
+var LISTOFALLMEMBERS = 'List of all members';

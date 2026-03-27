@@ -1,7 +1,7 @@
 var class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend =
 [
     [ "VulkanBackendImpl", "class_vulkan_backend_1_1_vulkan_backend_impl.html", "class_vulkan_backend_1_1_vulkan_backend_impl" ],
-    [ "surface_callback", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html#a2fe747d4e94c1086c0f29984e476cc0e", null ],
+    [ "surface_callback", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html#a18d55e26103c4cbc89f67559c060ec1e", null ],
     [ "VulkanBackend", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html#a91a0f66464ca4dbfc0061df63dee954b", null ],
     [ "VulkanBackend", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html#a6e83f4213eb462f8de6511820a6efaf0", null ],
     [ "VulkanBackend", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html#a3bbc7481c2c660d2bb47a3a9152bfb16", null ],

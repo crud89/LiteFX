@@ -35,7 +35,7 @@ var class_sample_app =
     [ "drawFrame", "class_sample_app.html#a6bf44b610e01b378af6c06cd7a4d6d8c", null ],
     [ "drawFrame", "class_sample_app.html#a6bf44b610e01b378af6c06cd7a4d6d8c", null ],
     [ "drawObject", "class_sample_app.html#ab2cbb2cf645438b7411f920943336b7b", null ],
-    [ "frameBufferAllocationCallback", "class_sample_app.html#a5cbe8c950fbeac34585991044e03eb24", null ],
+    [ "frameBufferAllocationCallback", "class_sample_app.html#a147c54f5e0eea32ac63764cf4f16da93", null ],
     [ "handleEvents", "class_sample_app.html#a85bf98ae9b5f65b2ec9418549183a643", null ],
     [ "handleEvents", "class_sample_app.html#a85bf98ae9b5f65b2ec9418549183a643", null ],
     [ "handleEvents", "class_sample_app.html#a85bf98ae9b5f65b2ec9418549183a643", null ],

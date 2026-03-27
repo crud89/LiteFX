@@ -1,7 +1,7 @@
 var class_lite_f_x_1_1_rendering_1_1_i_swap_chain =
 [
-    [ "BackBufferSwapEventArgs", "struct_lite_f_x_1_1_rendering_1_1_i_swap_chain_1_1_back_buffer_swap_event_args.html", "struct_lite_f_x_1_1_rendering_1_1_i_swap_chain_1_1_back_buffer_swap_event_args" ],
     [ "ResetEventArgs", "struct_lite_f_x_1_1_rendering_1_1_i_swap_chain_1_1_reset_event_args.html", "struct_lite_f_x_1_1_rendering_1_1_i_swap_chain_1_1_reset_event_args" ],
+    [ "BackBufferSwapEventArgs", "struct_lite_f_x_1_1_rendering_1_1_i_swap_chain_1_1_back_buffer_swap_event_args.html", "struct_lite_f_x_1_1_rendering_1_1_i_swap_chain_1_1_back_buffer_swap_event_args" ],
     [ "ISwapChain", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#aa65de9a795d45cfc754e0595b729e915", null ],
     [ "ISwapChain", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#afb3480277242a471812529f1f5d86f95", null ],
     [ "ISwapChain", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a10661df24674441561d4be9bfbc8ce73", null ],

@@ -1,7 +1,7 @@
 var class_lite_f_x_1_1_rendering_1_1_i_frame_buffer =
 [
-    [ "ReleasedEventArgs", "struct_lite_f_x_1_1_rendering_1_1_i_frame_buffer_1_1_released_event_args.html", "struct_lite_f_x_1_1_rendering_1_1_i_frame_buffer_1_1_released_event_args" ],
     [ "ResizeEventArgs", "struct_lite_f_x_1_1_rendering_1_1_i_frame_buffer_1_1_resize_event_args.html", "struct_lite_f_x_1_1_rendering_1_1_i_frame_buffer_1_1_resize_event_args" ],
+    [ "ReleasedEventArgs", "struct_lite_f_x_1_1_rendering_1_1_i_frame_buffer_1_1_released_event_args.html", "struct_lite_f_x_1_1_rendering_1_1_i_frame_buffer_1_1_released_event_args" ],
     [ "allocation_callback_type", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#aad8878f3d144d11591264e93df7a4353", null ],
     [ "IFrameBuffer", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a4b0ab5ac6f8c2c09e793211e71fa938e", null ],
     [ "IFrameBuffer", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a75e6c0061a715f5ff6af724d8102ce27", null ],

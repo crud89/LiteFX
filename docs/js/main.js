@@ -1,6 +1,6 @@
 /*!
-  * Bootstrap v5.3.3 (https://getbootstrap.com/)
-  * Copyright 2011-2024 The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors)
+  * Bootstrap v5.3.8 (https://getbootstrap.com/)
+  * Copyright 2011-2025 The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors)
   * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
   */
 (function (global, factory) {
@@ -205,7 +205,7 @@
    * @param {HTMLElement} element
    * @return void
    *
-   * @see https://www.charistheo.io/blog/2021/02/restart-a-css-animation-with-javascript/#restarting-a-css-animation
+   * @see https://www.harrytheo.com/blog/2021/02/restart-a-css-animation-with-javascript/#restarting-a-css-animation
    */
   const reflow = element => {
     element.offsetHeight; // eslint-disable-line no-unused-expressions
@@ -250,7 +250,7 @@
     });
   };
   const execute = (possibleCallback, args = [], defaultValue = possibleCallback) => {
-    return typeof possibleCallback === 'function' ? possibleCallback(...args) : defaultValue;
+    return typeof possibleCallback === 'function' ? possibleCallback.call(...args) : defaultValue;
   };
   const executeAfterTransition = (callback, transitionElement, waitForTransition = true) => {
     if (!waitForTransition) {
@@ -572,7 +572,7 @@
       const bsKeys = Object.keys(element.dataset).filter(key => key.startsWith('bs') && !key.startsWith('bsConfig'));
       for (const key of bsKeys) {
         let pureKey = key.replace(/^bs/, '');
-        pureKey = pureKey.charAt(0).toLowerCase() + pureKey.slice(1, pureKey.length);
+        pureKey = pureKey.charAt(0).toLowerCase() + pureKey.slice(1);
         attributes[pureKey] = normalizeData(element.dataset[key]);
       }
       return attributes;
@@ -647,7 +647,7 @@
    * Constants
    */
 
-  const VERSION = '5.3.3';
+  const VERSION = '5.3.8';
 
   /**
    * Class definition
@@ -673,6 +673,8 @@
         this[propertyName] = null;
       }
     }
+
+    // Private
     _queueCallback(callback, element, isAnimated = true) {
       executeAfterTransition(callback, element, isAnimated);
     }
@@ -1604,11 +1606,11 @@
       this._element.style[dimension] = '';
       this._queueCallback(complete, this._element, true);
     }
+
+    // Private
     _isShown(element = this._element) {
       return element.classList.contains(CLASS_NAME_SHOW$7);
     }
-
-    // Private
     _configAfterMerge(config) {
       config.toggle = Boolean(config.toggle); // Coerce string values
       config.parent = getElement(config.parent);
@@ -2666,7 +2668,6 @@
     var popperOffsets = computeOffsets({
       reference: referenceClientRect,
       element: popperRect,
-      strategy: 'absolute',
       placement: placement
     });
     var popperClientRect = rectToClientRect(Object.assign({}, popperRect, popperOffsets));
@@ -2994,7 +2995,6 @@
     state.modifiersData[name] = computeOffsets({
       reference: state.rects.reference,
       element: state.rects.popper,
-      strategy: 'absolute',
       placement: state.placement
     });
   } // eslint-disable-next-line import/no-unused-modules
@@ -3701,7 +3701,7 @@
     }
     _createPopper() {
       if (typeof Popper === 'undefined') {
-        throw new TypeError('Bootstrap\'s dropdowns require Popper (https://popper.js.org)');
+        throw new TypeError('Bootstrap\'s dropdowns require Popper (https://popper.js.org/docs/v2/)');
       }
       let referenceElement = this._element;
       if (this._config.reference === 'parent') {
@@ -3780,7 +3780,7 @@
       }
       return {
         ...defaultBsPopperConfig,
-        ...execute(this._config.popperConfig, [defaultBsPopperConfig])
+        ...execute(this._config.popperConfig, [undefined, defaultBsPopperConfig])
       };
     }
     _selectMenuItem({
@@ -4802,7 +4802,6 @@
    *
    * Shout-out to Angular https://github.com/angular/angular/blob/15.2.8/packages/core/src/sanitization/url_sanitizer.ts#L38
    */
-  // eslint-disable-next-line unicorn/better-regex
   const SAFE_URL_PATTERN = /^(?!javascript:)(?:[a-z0-9+.-]+:|[^&:/?#]*(?:[/?#]|$))/i;
   const allowedAttribute = (attribute, allowedAttributeList) => {
     const attributeName = attribute.nodeName.toLowerCase();
@@ -4967,7 +4966,7 @@
       return this._config.sanitize ? sanitizeHtml(arg, this._config.allowList, this._config.sanitizeFn) : arg;
     }
     _resolvePossibleFunction(arg) {
-      return execute(arg, [this]);
+      return execute(arg, [undefined, this]);
     }
     _putElementInTemplate(element, templateElement) {
       if (this._config.html) {
@@ -5066,7 +5065,7 @@
   class Tooltip extends BaseComponent {
     constructor(element, config) {
       if (typeof Popper === 'undefined') {
-        throw new TypeError('Bootstrap\'s tooltips require Popper (https://popper.js.org)');
+        throw new TypeError('Bootstrap\'s tooltips require Popper (https://popper.js.org/docs/v2/)');
       }
       super(element, config);
 
@@ -5112,7 +5111,6 @@
       if (!this._isEnabled) {
         return;
       }
-      this._activeTrigger.click = !this._activeTrigger.click;
       if (this._isShown()) {
         this._leave();
         return;
@@ -5300,7 +5298,7 @@
       return offset;
     }
     _resolvePossibleFunction(arg) {
-      return execute(arg, [this._element]);
+      return execute(arg, [this._element, this._element]);
     }
     _getPopperConfig(attachment) {
       const defaultBsPopperConfig = {
@@ -5338,7 +5336,7 @@
       };
       return {
         ...defaultBsPopperConfig,
-        ...execute(this._config.popperConfig, [defaultBsPopperConfig])
+        ...execute(this._config.popperConfig, [undefined, defaultBsPopperConfig])
       };
     }
     _setListeners() {
@@ -5347,6 +5345,7 @@
         if (trigger === 'click') {
           EventHandler.on(this._element, this.constructor.eventName(EVENT_CLICK$1), this._config.selector, event => {
             const context = this._initializeOnDelegatedTarget(event);
+            context._activeTrigger[TRIGGER_CLICK] = !(context._isShown() && context._activeTrigger[TRIGGER_CLICK]);
             context.toggle();
           });
         } else if (trigger !== TRIGGER_MANUAL) {
@@ -6212,7 +6211,6 @@
     }
 
     // Private
-
     _maybeScheduleHide() {
       if (!this._config.autohide) {
         return;
@@ -6348,33 +6346,96 @@ limitations under the License.
         return element.offset().top + element.outerHeight();
     }
 
-    // Bootstrap Fixed Header
-    $(function() {
-        var promo = $(".js-td-cover");
-        if (!promo.length) {
-            return
-        }
+    // Navbar transparency over cover images
+    $(function () {
+      const promo = $('.js-td-cover');
+      if (!promo.length) return;
+      const navbar = $('.js-navbar-scroll');
+      if (!navbar.length) return;
 
-        var promoOffset = bottomPos(promo);
-        var navbarOffset = $('.js-navbar-scroll').offset().top;
+      const threshold = Math.ceil(navbar.outerHeight());
 
-        var threshold = Math.ceil($('.js-navbar-scroll').outerHeight());
-        if ((promoOffset - navbarOffset) < threshold) {
-            $('.js-navbar-scroll').addClass('navbar-bg-onscroll');
-        }
+      function adjustNavbarTransparency() {
+        const promoOffset = bottomPos(promo);
+        const navbarOffset = navbar.offset().top;
+        navbar.toggleClass('td-navbar-transparent', (promoOffset - navbarOffset) >= threshold);
+      }
 
+      adjustNavbarTransparency();
+      $(window).on('scroll', adjustNavbarTransparency);
+    });
 
-        $(window).on('scroll', function() {
-            var navtop = $('.js-navbar-scroll').offset().top - $(window).scrollTop();
-            var promoOffset = bottomPos($('.js-td-cover'));
-            var navbarOffset = $('.js-navbar-scroll').offset().top;
-            if ((promoOffset - navbarOffset) < threshold) {
-                $('.js-navbar-scroll').addClass('navbar-bg-onscroll');
+        // Navbar overflow detection with scroll indicators
+    function checkNavbarOverflow() {
+        const navbarNav = $('.navbar-nav');
+        const container = $('#main_navbar');
+        const navbarContainer = $('.td-navbar-container');
+
+        if (navbarNav.length) {
+            const navElement = navbarNav[0];
+            const isOverflowing = navElement.scrollWidth > navElement.clientWidth;
+
+            // console.log('Overflow check:', {
+            //     scrollWidth: navElement.scrollWidth,
+            //     clientWidth: navElement.clientWidth,
+            //     isOverflowing: isOverflowing
+            // });
+
+            if (isOverflowing) {
+                container.addClass('td-navbar-nav-scroll--indicator');
+                navbarContainer.addClass('navbar-is-overflowing');
+
+                // Add click handlers
+                container.find('.scroll-left').on('click', function() {
+                    navbarNav.animate({scrollLeft: '-=100'}, 300);
+                });
+
+                container.find('.scroll-right').on('click', function() {
+                    navbarNav.animate({scrollLeft: '+=100'}, 300);
+                });
+
+                // Update indicator visibility based on scroll position
+                updateScrollIndicators();
             } else {
-                $('.js-navbar-scroll').removeClass('navbar-bg-onscroll');
-                $('.js-navbar-scroll').addClass('navbar-bg-onscroll--fade');
+                container.removeClass('td-navbar-nav-scroll--indicator');
+                navbarContainer.removeClass('navbar-is-overflowing');
             }
-        });
+        }
+    }
+
+    function updateScrollIndicators() {
+        const navbarNav = $('.navbar-nav');
+        const leftIndicator = $('.scroll-left');
+        const rightIndicator = $('.scroll-right');
+
+        if (navbarNav.length) {
+            const navElement = navbarNav[0];
+            const scrollLeft = navElement.scrollLeft;
+            const maxScroll = navElement.scrollWidth - navElement.clientWidth;
+
+            // Show/hide left indicator
+            if (scrollLeft <= 0) {
+                leftIndicator.removeClass('visible');
+            } else {
+                leftIndicator.addClass('visible');
+            }
+
+            // Show/hide right indicator
+            if (scrollLeft >= maxScroll) {
+                rightIndicator.removeClass('visible');
+            } else {
+                rightIndicator.addClass('visible');
+            }
+        }
+    }
+
+    // Check overflow on page load and window resize
+    $(function() {
+        checkNavbarOverflow();
+        $(window).on('resize', checkNavbarOverflow);
+
+        // Update indicators on scroll
+        $('.navbar-nav').on('scroll', updateScrollIndicators);
     });
 
 
@@ -6429,3 +6490,119 @@ limitations under the License.
 
 ;
 
+
+;
+/*
+ * ScrollSpy patch for Bootstrap
+ *
+ * This patch fixes ScrollSpy's handling of heading IDs that start with digits
+ * or contain special characters. It applies the fix from Bootstrap PR #41726:
+ * https://github.com/twbs/bootstrap/pull/41726
+ *
+ * The patch intercepts ScrollSpy's _initializeTargetsAndObservables method to properly
+ * escape CSS selectors using CSS.escape() before querying the DOM.
+ *
+ * Original code from node_modules: bootstrap/js/dist/scrollspy.js
+ * For more details, see scripts/scrollspy-patch/README.md
+ */
+
+(function () {
+  'use strict';
+
+  // Wait for Bootstrap to be available
+  if (typeof bootstrap === 'undefined' || !bootstrap.ScrollSpy) {
+    console.warn('[Docsy] ScrollSpy patch: Bootstrap not found, patch skipped');
+    return;
+  }
+
+  const ScrollSpy = bootstrap.ScrollSpy;
+
+  // Check if _initializeTargetsAndObservables exists
+  if (!ScrollSpy.prototype._initializeTargetsAndObservables) {
+    console.warn(
+      '[Docsy] ScrollSpy patch: _initializeTargetsAndObservables method not found, patch skipped',
+    );
+    return;
+  }
+
+  // parseSelector function from Bootstrap PR #41726
+  // Escapes CSS selectors, particularly IDs, to handle special characters
+  function parseSelector(selector) {
+    if (selector && window.CSS && window.CSS.escape) {
+      // document.querySelector needs escaping to handle IDs (html5+) containing special characters
+      // Match # followed by ID characters (excluding quotes and #)
+      selector = selector.replace(
+        /#([^\s"']+)/g,
+        (match, id) => `#${CSS.escape(id)}`,
+      );
+    }
+    return selector;
+  }
+
+  // SelectorEngine - mimics Bootstrap's SelectorEngine API using native DOM methods
+  const SelectorEngine = {
+    find(selector, element) {
+      if (!element) {
+        return [];
+      }
+      return Array.from(element.querySelectorAll(selector));
+    },
+    findOne(selector, element) {
+      if (!element) {
+        return null;
+      }
+      return element.querySelector(selector);
+    },
+  };
+
+  const SELECTOR_TARGET_LINKS = '[href]';
+
+  // Simple fallback implementations matching Bootstrap's behavior
+  // These match the internal isDisabled and isVisible utilities
+  function isDisabled(element) {
+    return (
+      element.hasAttribute('disabled') || element.classList.contains('disabled')
+    );
+  }
+
+  function isVisible(element) {
+    return (
+      element &&
+      element.offsetParent !== null &&
+      window.getComputedStyle(element).visibility !== 'hidden'
+    );
+  }
+
+  // Patched method body - generated from Bootstrap's _initializeTargetsAndObservables
+  // by applying method.patch. See scripts/scrollspy-patch/ for details.
+  // prettier-ignore-start
+  function patchedInitializeTargetsAndObservables() {
+    this._targetLinks = new Map()
+    this._observableSections = new Map()
+
+    const targetLinks = SelectorEngine.find(SELECTOR_TARGET_LINKS, this._config.target)
+
+    for (const anchor of targetLinks) {
+      // ensure that the anchor has an id and is not disabled
+      if (!anchor.hash || isDisabled(anchor)) {
+        continue
+      }
+
+      const decodedHash = decodeURI(anchor.hash)
+      const escapedSelector = parseSelector(decodedHash)
+      const observableSection = SelectorEngine.findOne(escapedSelector, this._element)
+
+      // ensure that the observableSection exists & is visible
+      if (isVisible(observableSection)) {
+        this._targetLinks.set(decodedHash, anchor)
+        this._observableSections.set(anchor.hash, observableSection)
+      }
+    }
+  }
+  // prettier-ignore-end
+
+  // Apply the patched method
+  ScrollSpy.prototype._initializeTargetsAndObservables = patchedInitializeTargetsAndObservables;
+
+  console.log('[Docsy] ScrollSpy patch applied successfully');
+})();

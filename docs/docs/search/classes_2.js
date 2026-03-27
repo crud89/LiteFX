@@ -11,5 +11,6 @@ var searchData=
   ['computepipeline_3c_20vulkanpipelinelayout_2c_20vulkanshaderprogram_20_3e_8',['ComputePipeline&lt; VulkanPipelineLayout, VulkanShaderProgram &gt;',['../class_lite_f_x_1_1_rendering_1_1_compute_pipeline.html',1,'LiteFX::Rendering']]],
   ['consolesink_9',['ConsoleSink',['../class_lite_f_x_1_1_logging_1_1_console_sink.html',1,'LiteFX::Logging']]],
   ['consolesinkimpl_10',['ConsoleSinkImpl',['../class_console_sink_1_1_console_sink_impl.html',1,'LiteFX::Logging::ConsoleSink']]],
-  ['covariantiterator_11',['CovariantIterator',['../struct_lite_f_x_1_1_covariant_iterator.html',1,'LiteFX']]]
+  ['covariantiterator_11',['CovariantIterator',['../struct_lite_f_x_1_1_covariant_iterator.html',1,'LiteFX']]],
+  ['covariantiterator_3c_20const_20std_3a_3aremove_5fconst_5ft_3c_20t_20_3e_20_3e_12',['CovariantIterator&lt; const std::remove_const_t&lt; T &gt; &gt;',['../struct_lite_f_x_1_1_covariant_iterator.html',1,'LiteFX']]]
 ];

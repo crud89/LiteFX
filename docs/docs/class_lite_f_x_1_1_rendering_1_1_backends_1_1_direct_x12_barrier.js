@@ -11,11 +11,17 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier =
     [ "operator=", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html#a2c1405bb8580d5d074aba1b83f7f973d", null ],
     [ "syncAfter", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html#a7dca27da967d3962976b413f5a0a6d54", null ],
     [ "syncBefore", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html#ac00c24106aad038fcbe4ae0e5dcb931f", null ],
+    [ "transition", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html#a0e1828050bf25e5767083a64030e4b48", null ],
+    [ "transition", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html#a6d4a9a27b131a04057c499e5b49823c2", null ],
     [ "transition", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html#aa53b1d9101ba0fc4589d9ecfc990648f", null ],
     [ "transition", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html#a4c48dedcc3f561fdac61e88612725da7", null ],
     [ "transition", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html#a9ea1148370ac5240b73c1fad9e744cdb", null ],
     [ "transition", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html#a87e2dc1fb1148c5fc54e87be8627a3e0", null ],
     [ "transition", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html#ac6ec0598292de2159061689f8b32cca3", null ],
     [ "transition", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html#ae1931936754068b9a8e0386d36e79fab", null ],
+    [ "transition", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html#afa8b09df03c16808627585f5741982f4", null ],
+    [ "transition", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html#a0888c6413b513a253522c0612de33341", null ],
+    [ "transition", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html#a82e7877c5a597b62890d8f2acfddcb9a", null ],
+    [ "transition", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html#aa41bd04feb2b53c5471b879b9fe4d991", null ],
     [ "wait", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html#af6d2eac37fd55168c0a3af2f8eca10e3", null ]
 ];

@@ -49,15 +49,15 @@ var hierarchy =
     [ "LiteFX::Rendering::BufferAttribute", "class_lite_f_x_1_1_rendering_1_1_buffer_attribute.html", null ],
     [ "LiteFX::Rendering::BufferAttribute::BufferAttributeImpl", "class_buffer_attribute_1_1_buffer_attribute_impl.html", null ],
     [ "LiteFX::Rendering::ResourceAllocationInfo::BufferInfo", "struct_lite_f_x_1_1_rendering_1_1_resource_allocation_info_1_1_buffer_info.html", null ],
-    [ "LiteFX::Builder< T, TParent, TPointer >", "class_lite_f_x_1_1_builder.html", null ],
-    [ "LiteFX::Builder< App >", "class_lite_f_x_1_1_builder.html", [
+    [ "LiteFX::Builder&lt; T, TParent, TPointer &gt;", "class_lite_f_x_1_1_builder.html", null ],
+    [ "LiteFX::Builder&lt; App &gt;", "class_lite_f_x_1_1_builder.html", [
       [ "LiteFX::AppBuilder", "class_lite_f_x_1_1_app_builder.html", null ]
     ] ],
-    [ "LiteFX::Builder< T, std::nullptr_t, TPointer >", "class_lite_f_x_1_1_builder_3_01_t_00_01std_1_1nullptr__t_00_01_t_pointer_01_4.html", null ],
+    [ "LiteFX::Builder&lt; T, std::nullptr_t, TPointer &gt;", "class_lite_f_x_1_1_builder_3_01_t_00_01std_1_1nullptr__t_00_01_t_pointer_01_4.html", null ],
     [ "LiteFX::Logging::ConsoleSink::ConsoleSinkImpl", "class_console_sink_1_1_console_sink_impl.html", null ],
-    [ "LiteFX::CovariantIterator< T >", "struct_lite_f_x_1_1_covariant_iterator.html", null ],
+    [ "LiteFX::CovariantIterator&lt; T &gt;", "struct_lite_f_x_1_1_covariant_iterator.html", null ],
     [ "LiteFX::Rendering::Backends::D3D12MADeleter", "struct_lite_f_x_1_1_rendering_1_1_backends_1_1_d3_d12_m_a_deleter.html", null ],
-    [ "LiteFX::Delegate< TResult, TArgs >", "class_lite_f_x_1_1_delegate.html", null ],
+    [ "LiteFX::Delegate&lt; TResult, TArgs &gt;", "class_lite_f_x_1_1_delegate.html", null ],
     [ "LiteFX::Rendering::DepthStencilState::DepthBias", "struct_lite_f_x_1_1_rendering_1_1_depth_stencil_state_1_1_depth_bias.html", null ],
     [ "LiteFX::Rendering::DepthStencilState::DepthState", "struct_lite_f_x_1_1_rendering_1_1_depth_stencil_state_1_1_depth_state.html", null ],
     [ "LiteFX::Rendering::DepthStencilState", "class_lite_f_x_1_1_rendering_1_1_depth_stencil_state.html", null ],
@@ -275,20 +275,8 @@ var hierarchy =
         [ "LiteFX::Rendering::Backends::VulkanBottomLevelAccelerationStructure::VulkanBottomLevelAccelerationStructureImpl", "class_vulkan_bottom_level_acceleration_structure_1_1_vulkan_bottom_level_acceleration_structure_impl.html", null ]
       ] ]
     ] ],
-    [ "LiteFX::Enumerable< T >", "struct_lite_f_x_1_1_enumerable.html", null ],
-    [ "LiteFX::Event< TEventArgs >", "class_lite_f_x_1_1_event.html", null ],
-    [ "LiteFX::Event< const LiteFX::IBackend * >", "class_lite_f_x_1_1_event.html", null ],
-    [ "LiteFX::Event< const LiteFX::Rendering::IDeviceMemory::PrepareMoveEventArgs & >", "class_lite_f_x_1_1_event.html", null ],
-    [ "LiteFX::Event< LiteFX::EventArgs >", "class_lite_f_x_1_1_event.html", null ],
-    [ "LiteFX::Event< LiteFX::Rendering::ICommandQueue::QueueSubmittedEventArgs >", "class_lite_f_x_1_1_event.html", null ],
-    [ "LiteFX::Event< LiteFX::Rendering::ICommandQueue::QueueSubmittingEventArgs >", "class_lite_f_x_1_1_event.html", null ],
-    [ "LiteFX::Event< LiteFX::Rendering::IDeviceMemory::ResourceMovingEventArgs >", "class_lite_f_x_1_1_event.html", null ],
-    [ "LiteFX::Event< LiteFX::Rendering::IFrameBuffer::ReleasedEventArgs >", "class_lite_f_x_1_1_event.html", null ],
-    [ "LiteFX::Event< LiteFX::Rendering::IFrameBuffer::ResizeEventArgs >", "class_lite_f_x_1_1_event.html", null ],
-    [ "LiteFX::Event< LiteFX::Rendering::IRenderPass::BeginEventArgs >", "class_lite_f_x_1_1_event.html", null ],
-    [ "LiteFX::Event< LiteFX::Rendering::ISwapChain::BackBufferSwapEventArgs >", "class_lite_f_x_1_1_event.html", null ],
-    [ "LiteFX::Event< LiteFX::Rendering::ISwapChain::ResetEventArgs >", "class_lite_f_x_1_1_event.html", null ],
-    [ "LiteFX::Event< LiteFX::ResizeEventArgs >", "class_lite_f_x_1_1_event.html", null ],
+    [ "LiteFX::Enumerable&lt; T &gt;", "struct_lite_f_x_1_1_enumerable.html", null ],
+    [ "LiteFX::Event&lt; TEventArgs &gt;", "class_lite_f_x_1_1_event.html", null ],
     [ "LiteFX::EventArgs", "class_lite_f_x_1_1_event_args.html", [
       [ "LiteFX::Rendering::ICommandQueue::QueueSubmittedEventArgs", "struct_lite_f_x_1_1_rendering_1_1_i_command_queue_1_1_queue_submitted_event_args.html", null ],
       [ "LiteFX::Rendering::ICommandQueue::QueueSubmittingEventArgs", "struct_lite_f_x_1_1_rendering_1_1_i_command_queue_1_1_queue_submitting_event_args.html", null ],
@@ -300,9 +288,10 @@ var hierarchy =
       [ "LiteFX::ResizeEventArgs", "struct_lite_f_x_1_1_resize_event_args.html", null ]
     ] ],
     [ "std::false_type", null, [
+      [ "LiteFX::meta::has_builder_t< T, std::void_t< typename T::builder > >", "struct_lite_f_x_1_1meta_1_1has__builder__t_3_01_t_00_01std_1_1void__t_3_01typename_01_t_1_1builder_01_4_01_4.html", null ],
       [ "LiteFX::meta::has_builder_t< class, class >", "struct_lite_f_x_1_1meta_1_1has__builder__t.html", null ]
     ] ],
-    [ "FileExtensions< TRenderBackend >", "struct_file_extensions.html", null ],
+    [ "FileExtensions&lt; TRenderBackend &gt;", "struct_file_extensions.html", null ],
     [ "std::formatter", null, [
       [ "std::formatter< AccelerationStructureFlags >", "structstd_1_1formatter_3_01_acceleration_structure_flags_01_4.html", null ],
       [ "std::formatter< AttributeSemantic >", "structstd_1_1formatter_3_01_attribute_semantic_01_4.html", null ],
@@ -337,11 +326,11 @@ var hierarchy =
       [ "std::formatter< SpvReflectResult >", "structstd_1_1formatter_3_01_spv_reflect_result_01_4.html", null ],
       [ "std::formatter< VkResult >", "structstd_1_1formatter_3_01_vk_result_01_4.html", null ]
     ] ],
-    [ "std::formatter< LiteFX::AppVersion >", "structstd_1_1formatter_3_01_lite_f_x_1_1_app_version_01_4.html", null ],
+    [ "std::formatter&lt; LiteFX::AppVersion &gt;", "structstd_1_1formatter_3_01_lite_f_x_1_1_app_version_01_4.html", null ],
     [ "GeometryData", "struct_geometry_data.html", null ],
     [ "GlfwWindowDeleter", "struct_glfw_window_deleter.html", null ],
     [ "LiteFX::Rendering::GraphicsDeviceFeatures", "struct_lite_f_x_1_1_rendering_1_1_graphics_device_features.html", null ],
-    [ "std::hash< LocalDescriptorBindingPoint >", "structstd_1_1hash_3_01_local_descriptor_binding_point_01_4.html", null ],
+    [ "std::hash&lt; LocalDescriptorBindingPoint &gt;", "structstd_1_1hash_3_01_local_descriptor_binding_point_01_4.html", null ],
     [ "LiteFX::IBackend", "class_lite_f_x_1_1_i_backend.html", [
       [ "LiteFX::Rendering::IRenderBackend", "class_lite_f_x_1_1_rendering_1_1_i_render_backend.html", [
         [ "LiteFX::Rendering::RenderBackend< DirectX12Device >", "class_lite_f_x_1_1_rendering_1_1_render_backend.html", [
@@ -409,8 +398,8 @@ var hierarchy =
     [ "LiteFX::Rendering::IRenderTarget", "class_lite_f_x_1_1_rendering_1_1_i_render_target.html", [
       [ "LiteFX::Rendering::RenderTarget", "class_lite_f_x_1_1_rendering_1_1_render_target.html", null ]
     ] ],
-    [ "LiteFX::IResource< THandle >", "class_lite_f_x_1_1_i_resource.html", [
-      [ "LiteFX::Resource< THandle >", "class_lite_f_x_1_1_resource.html", [
+    [ "LiteFX::IResource&lt; THandle &gt;", "class_lite_f_x_1_1_i_resource.html", [
+      [ "LiteFX::Resource< ComPtr< THandle > >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::DirectX12Backend", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_backend.html", null ],
         [ "LiteFX::Rendering::Backends::DirectX12Buffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html", null ],
         [ "LiteFX::Rendering::Backends::DirectX12CommandBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html", null ],
@@ -426,18 +415,19 @@ var hierarchy =
         [ "LiteFX::Rendering::Backends::DirectX12Queue", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html", null ],
         [ "LiteFX::Rendering::Backends::DirectX12ShaderModule", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_shader_module.html", null ],
         [ "LiteFX::Rendering::Backends::DirectX12SwapChain", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_swap_chain.html", null ]
-      ] ]
+      ] ],
+      [ "LiteFX::Resource< THandle >", "class_lite_f_x_1_1_resource.html", null ]
     ] ],
-    [ "LiteFX::IResource< ComPtr< ID3D12Resource > >", "class_lite_f_x_1_1_i_resource.html", [
+    [ "LiteFX::IResource&lt; ComPtr&lt; ID3D12Resource &gt; &gt;", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Rendering::Backends::IDirectX12Buffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html", null ],
       [ "LiteFX::Rendering::Backends::IDirectX12Image", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html", null ]
     ] ],
-    [ "LiteFX::IResource< HWND >", "class_lite_f_x_1_1_i_resource.html", [
+    [ "LiteFX::IResource&lt; HWND &gt;", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< HWND >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::DirectX12Surface", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_surface.html", null ]
       ] ]
     ] ],
-    [ "LiteFX::IResource< VkAccelerationStructureKHR >", "class_lite_f_x_1_1_i_resource.html", [
+    [ "LiteFX::IResource&lt; VkAccelerationStructureKHR &gt;", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkAccelerationStructureKHR >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::VulkanBottomLevelAccelerationStructure", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_bottom_level_acceleration_structure.html", null ],
         [ "LiteFX::Rendering::Backends::VulkanTopLevelAccelerationStructure", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_top_level_acceleration_structure.html", null ]
@@ -447,44 +437,44 @@ var hierarchy =
         [ "LiteFX::Rendering::Backends::VulkanTopLevelAccelerationStructure", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_top_level_acceleration_structure.html", null ]
       ] ]
     ] ],
-    [ "LiteFX::IResource< VkBuffer >", "class_lite_f_x_1_1_i_resource.html", [
+    [ "LiteFX::IResource&lt; VkBuffer &gt;", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkBuffer >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::VulkanBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html", null ]
       ] ],
       [ "LiteFX::Rendering::Backends::IVulkanBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_buffer.html", null ]
     ] ],
-    [ "LiteFX::IResource< VkCommandBuffer >", "class_lite_f_x_1_1_i_resource.html", [
+    [ "LiteFX::IResource&lt; VkCommandBuffer &gt;", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkCommandBuffer >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::VulkanCommandBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html", null ]
       ] ]
     ] ],
-    [ "LiteFX::IResource< VkDescriptorSetLayout >", "class_lite_f_x_1_1_i_resource.html", [
+    [ "LiteFX::IResource&lt; VkDescriptorSetLayout &gt;", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkDescriptorSetLayout >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::VulkanDescriptorSetLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html", null ]
       ] ]
     ] ],
-    [ "LiteFX::IResource< VkDevice >", "class_lite_f_x_1_1_i_resource.html", [
+    [ "LiteFX::IResource&lt; VkDevice &gt;", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkDevice >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::VulkanDevice", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html", null ]
       ] ]
     ] ],
-    [ "LiteFX::IResource< VkImage >", "class_lite_f_x_1_1_i_resource.html", [
+    [ "LiteFX::IResource&lt; VkImage &gt;", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkImage >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::VulkanImage", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html", null ]
       ] ],
       [ "LiteFX::Rendering::Backends::IVulkanImage", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_image.html", null ]
     ] ],
-    [ "LiteFX::IResource< VkInstance >", "class_lite_f_x_1_1_i_resource.html", [
+    [ "LiteFX::IResource&lt; VkInstance &gt;", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkInstance >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::VulkanBackend", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html", null ]
       ] ]
     ] ],
-    [ "LiteFX::IResource< VkPhysicalDevice >", "class_lite_f_x_1_1_i_resource.html", [
+    [ "LiteFX::IResource&lt; VkPhysicalDevice &gt;", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkPhysicalDevice >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::VulkanGraphicsAdapter", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_graphics_adapter.html", null ]
       ] ]
     ] ],
-    [ "LiteFX::IResource< VkPipeline >", "class_lite_f_x_1_1_i_resource.html", [
+    [ "LiteFX::IResource&lt; VkPipeline &gt;", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkPipeline >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::VulkanPipelineState", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_state.html", [
           [ "LiteFX::Rendering::Backends::VulkanComputePipeline", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_compute_pipeline.html", null ],
@@ -493,28 +483,28 @@ var hierarchy =
         ] ]
       ] ]
     ] ],
-    [ "LiteFX::IResource< VkPipelineLayout >", "class_lite_f_x_1_1_i_resource.html", [
+    [ "LiteFX::IResource&lt; VkPipelineLayout &gt;", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkPipelineLayout >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::VulkanPipelineLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_layout.html", null ]
       ] ]
     ] ],
-    [ "LiteFX::IResource< VkQueue >", "class_lite_f_x_1_1_i_resource.html", [
+    [ "LiteFX::IResource&lt; VkQueue &gt;", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkQueue >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::VulkanQueue", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html", null ]
       ] ]
     ] ],
-    [ "LiteFX::IResource< VkSampler >", "class_lite_f_x_1_1_i_resource.html", [
+    [ "LiteFX::IResource&lt; VkSampler &gt;", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkSampler >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::VulkanSampler", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_sampler.html", null ]
       ] ],
       [ "LiteFX::Rendering::Backends::IVulkanSampler", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_sampler.html", null ]
     ] ],
-    [ "LiteFX::IResource< VkShaderModule >", "class_lite_f_x_1_1_i_resource.html", [
+    [ "LiteFX::IResource&lt; VkShaderModule &gt;", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkShaderModule >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::VulkanShaderModule", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_shader_module.html", null ]
       ] ]
     ] ],
-    [ "LiteFX::IResource< VkSurfaceKHR >", "class_lite_f_x_1_1_i_resource.html", [
+    [ "LiteFX::IResource&lt; VkSurfaceKHR &gt;", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkSurfaceKHR >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::VulkanSurface", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_surface.html", null ]
       ] ]
@@ -646,12 +636,11 @@ var hierarchy =
     [ "LiteFX::Logging::Logger", "class_lite_f_x_1_1_logging_1_1_logger.html", null ],
     [ "LiteFX::Logging::Log::LogImpl", "class_log_1_1_log_impl.html", null ],
     [ "MaterialData", "struct_material_data.html", null ],
-    [ "LiteFX::Math::Matrix< T, ROWS, COLS >", "struct_lite_f_x_1_1_math_1_1_matrix.html", null ],
-    [ "LiteFX::Math::Matrix< Float >", "struct_lite_f_x_1_1_math_1_1_matrix.html", null ],
+    [ "LiteFX::Math::Matrix&lt; T, ROWS, COLS &gt;", "struct_lite_f_x_1_1_math_1_1_matrix.html", null ],
     [ "LiteFX::Rendering::MemoryHeapStatistics", "struct_lite_f_x_1_1_rendering_1_1_memory_heap_statistics.html", null ],
     [ "LiteFX::Rendering::IShaderRecord::MeshGeometryHitGroup", "struct_lite_f_x_1_1_rendering_1_1_i_shader_record_1_1_mesh_geometry_hit_group.html", null ],
     [ "ObjectBuffer", "struct_object_buffer.html", null ],
-    [ "LiteFX::PimplPtr< pImpl >", "class_lite_f_x_1_1_pimpl_ptr.html", null ],
+    [ "LiteFX::PimplPtr&lt; pImpl &gt;", "class_lite_f_x_1_1_pimpl_ptr.html", null ],
     [ "LiteFX::Rendering::PipelineBindingHint", "struct_lite_f_x_1_1_rendering_1_1_pipeline_binding_hint.html", null ],
     [ "LiteFX::Rendering::IDeviceMemory::PrepareMoveEventArgs", "struct_lite_f_x_1_1_rendering_1_1_i_device_memory_1_1_prepare_move_event_args.html", null ],
     [ "LiteFX::Rendering::PipelineBindingHint::PushConstantsHint", "struct_lite_f_x_1_1_rendering_1_1_pipeline_binding_hint_1_1_push_constants_hint.html", null ],
@@ -676,7 +665,7 @@ var hierarchy =
     ] ],
     [ "LiteFX::Rendering::Scissor::ScissorImpl", "class_scissor_1_1_scissor_impl.html", null ],
     [ "LiteFX::Rendering::ShaderBindingTableOffsets", "struct_lite_f_x_1_1_rendering_1_1_shader_binding_table_offsets.html", null ],
-    [ "LiteFX::Rendering::ShaderRecord< TLocalData >", "struct_lite_f_x_1_1_rendering_1_1_shader_record.html", null ],
+    [ "LiteFX::Rendering::ShaderRecord&lt; TLocalData &gt;", "struct_lite_f_x_1_1_rendering_1_1_shader_record.html", null ],
     [ "LiteFX::Rendering::ShaderRecordCollection", "class_lite_f_x_1_1_rendering_1_1_shader_record_collection.html", null ],
     [ "LiteFX::Rendering::PipelineBindingHint::ShaderStageHint", "struct_lite_f_x_1_1_rendering_1_1_pipeline_binding_hint_1_1_shader_stage_hint.html", null ],
     [ "Sinks", "class_sinks.html", null ],
@@ -696,50 +685,50 @@ var hierarchy =
       [ "LiteFX::meta::has_builder_t< T, std::void_t< typename T::builder > >", "struct_lite_f_x_1_1meta_1_1has__builder__t_3_01_t_00_01std_1_1void__t_3_01typename_01_t_1_1builder_01_4_01_4.html", null ]
     ] ],
     [ "LiteFX::Rendering::PipelineBindingHint::UnboundedArrayHint", "struct_lite_f_x_1_1_rendering_1_1_pipeline_binding_hint_1_1_unbounded_array_hint.html", null ],
-    [ "LiteFX::Math::Vector< T, DIM >", "struct_lite_f_x_1_1_math_1_1_vector.html", null ],
-    [ "LiteFX::Math::Vector< Float, 1 >", "struct_lite_f_x_1_1_math_1_1_vector.html", [
+    [ "LiteFX::Math::Vector&lt; T, DIM &gt;", "struct_lite_f_x_1_1_math_1_1_vector.html", null ],
+    [ "LiteFX::Math::Vector&lt; Float, 1 &gt;", "struct_lite_f_x_1_1_math_1_1_vector.html", [
       [ "LiteFX::Math::Vector1f", "class_lite_f_x_1_1_math_1_1_vector1f.html", null ]
     ] ],
-    [ "LiteFX::Math::Vector< Float, 2 >", "struct_lite_f_x_1_1_math_1_1_vector.html", [
+    [ "LiteFX::Math::Vector&lt; Float, 2 &gt;", "struct_lite_f_x_1_1_math_1_1_vector.html", [
       [ "LiteFX::Math::Vector2f", "class_lite_f_x_1_1_math_1_1_vector2f.html", null ]
     ] ],
-    [ "LiteFX::Math::Vector< Float, 3 >", "struct_lite_f_x_1_1_math_1_1_vector.html", [
+    [ "LiteFX::Math::Vector&lt; Float, 3 &gt;", "struct_lite_f_x_1_1_math_1_1_vector.html", [
       [ "LiteFX::Math::Vector3f", "class_lite_f_x_1_1_math_1_1_vector3f.html", null ]
     ] ],
-    [ "LiteFX::Math::Vector< Float, 4 >", "struct_lite_f_x_1_1_math_1_1_vector.html", [
+    [ "LiteFX::Math::Vector&lt; Float, 4 &gt;", "struct_lite_f_x_1_1_math_1_1_vector.html", [
       [ "LiteFX::Math::RectF", "class_lite_f_x_1_1_math_1_1_rect_f.html", null ],
       [ "LiteFX::Math::Vector4f", "class_lite_f_x_1_1_math_1_1_vector4f.html", null ]
     ] ],
-    [ "LiteFX::Math::Vector< Int32, 2 >", "struct_lite_f_x_1_1_math_1_1_vector.html", [
+    [ "LiteFX::Math::Vector&lt; Int32, 2 &gt;", "struct_lite_f_x_1_1_math_1_1_vector.html", [
       [ "LiteFX::Math::Vector2i", "class_lite_f_x_1_1_math_1_1_vector2i.html", null ]
     ] ],
-    [ "LiteFX::Math::Vector< Int32, 3 >", "struct_lite_f_x_1_1_math_1_1_vector.html", [
+    [ "LiteFX::Math::Vector&lt; Int32, 3 &gt;", "struct_lite_f_x_1_1_math_1_1_vector.html", [
       [ "LiteFX::Math::Vector3i", "class_lite_f_x_1_1_math_1_1_vector3i.html", null ]
     ] ],
-    [ "LiteFX::Math::Vector< Int32, 4 >", "struct_lite_f_x_1_1_math_1_1_vector.html", [
+    [ "LiteFX::Math::Vector&lt; Int32, 4 &gt;", "struct_lite_f_x_1_1_math_1_1_vector.html", [
       [ "LiteFX::Math::RectI", "class_lite_f_x_1_1_math_1_1_rect_i.html", null ],
       [ "LiteFX::Math::Vector4i", "class_lite_f_x_1_1_math_1_1_vector4i.html", null ]
     ] ],
-    [ "LiteFX::Math::Vector< size_t, 2 >", "struct_lite_f_x_1_1_math_1_1_vector.html", [
+    [ "LiteFX::Math::Vector&lt; size_t, 2 &gt;", "struct_lite_f_x_1_1_math_1_1_vector.html", [
       [ "LiteFX::Math::Size2d", "class_lite_f_x_1_1_math_1_1_size2d.html", null ]
     ] ],
-    [ "LiteFX::Math::Vector< size_t, 3 >", "struct_lite_f_x_1_1_math_1_1_vector.html", [
+    [ "LiteFX::Math::Vector&lt; size_t, 3 &gt;", "struct_lite_f_x_1_1_math_1_1_vector.html", [
       [ "LiteFX::Math::Size3d", "class_lite_f_x_1_1_math_1_1_size3d.html", null ]
     ] ],
-    [ "LiteFX::Math::Vector< size_t, 4 >", "struct_lite_f_x_1_1_math_1_1_vector.html", [
+    [ "LiteFX::Math::Vector&lt; size_t, 4 &gt;", "struct_lite_f_x_1_1_math_1_1_vector.html", [
       [ "LiteFX::Math::Rect", "class_lite_f_x_1_1_math_1_1_rect.html", null ],
       [ "LiteFX::Math::Size4d", "class_lite_f_x_1_1_math_1_1_size4d.html", null ]
     ] ],
-    [ "LiteFX::Math::Vector< UInt32, 1 >", "struct_lite_f_x_1_1_math_1_1_vector.html", [
+    [ "LiteFX::Math::Vector&lt; UInt32, 1 &gt;", "struct_lite_f_x_1_1_math_1_1_vector.html", [
       [ "LiteFX::Math::Vector1u", "class_lite_f_x_1_1_math_1_1_vector1u.html", null ]
     ] ],
-    [ "LiteFX::Math::Vector< UInt32, 2 >", "struct_lite_f_x_1_1_math_1_1_vector.html", [
+    [ "LiteFX::Math::Vector&lt; UInt32, 2 &gt;", "struct_lite_f_x_1_1_math_1_1_vector.html", [
       [ "LiteFX::Math::Vector2u", "class_lite_f_x_1_1_math_1_1_vector2u.html", null ]
     ] ],
-    [ "LiteFX::Math::Vector< UInt32, 3 >", "struct_lite_f_x_1_1_math_1_1_vector.html", [
+    [ "LiteFX::Math::Vector&lt; UInt32, 3 &gt;", "struct_lite_f_x_1_1_math_1_1_vector.html", [
       [ "LiteFX::Math::Vector3u", "class_lite_f_x_1_1_math_1_1_vector3u.html", null ]
     ] ],
-    [ "LiteFX::Math::Vector< UInt32, 4 >", "struct_lite_f_x_1_1_math_1_1_vector.html", [
+    [ "LiteFX::Math::Vector&lt; UInt32, 4 &gt;", "struct_lite_f_x_1_1_math_1_1_vector.html", [
       [ "LiteFX::Math::Vector4u", "class_lite_f_x_1_1_math_1_1_vector4u.html", null ]
     ] ],
     [ "LiteFX::Graphics::Vertex", "struct_lite_f_x_1_1_graphics_1_1_vertex.html", null ],

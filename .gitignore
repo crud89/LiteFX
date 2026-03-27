@@ -358,5 +358,8 @@ out/
 # CMake user presets
 CMakeUserPresets.json
 
-# Ignore vcpkg module contents
+# Ignore vcpkg submodule contents
 src/Modules/vcpkg/*
+
+# Doxygen XML output
+docs/xml/*

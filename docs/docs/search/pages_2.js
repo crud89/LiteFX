@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['quick_20start_0',['Quick Start',['../md_docs_2tutorials_2quick-start.html',1,'']]]
+  ['cmake_0',['Setting up CMake.',['../md_docs_2tutorials_2project-setup.html#autotoc_md3',1,'']]],
+  ['contribute_1',['Contribute',['../index.html#autotoc_md10',1,'']]]
 ];

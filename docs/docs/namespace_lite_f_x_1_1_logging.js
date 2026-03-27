@@ -1,11 +1,11 @@
 var namespace_lite_f_x_1_1_logging =
 [
-    [ "ConsoleSink", "class_lite_f_x_1_1_logging_1_1_console_sink.html", "class_lite_f_x_1_1_logging_1_1_console_sink" ],
     [ "ISink", "class_lite_f_x_1_1_logging_1_1_i_sink.html", "class_lite_f_x_1_1_logging_1_1_i_sink" ],
-    [ "Log", "class_lite_f_x_1_1_logging_1_1_log.html", "class_lite_f_x_1_1_logging_1_1_log" ],
-    [ "Logger", "class_lite_f_x_1_1_logging_1_1_logger.html", "class_lite_f_x_1_1_logging_1_1_logger" ],
+    [ "ConsoleSink", "class_lite_f_x_1_1_logging_1_1_console_sink.html", "class_lite_f_x_1_1_logging_1_1_console_sink" ],
     [ "RollingFileSink", "class_lite_f_x_1_1_logging_1_1_rolling_file_sink.html", "class_lite_f_x_1_1_logging_1_1_rolling_file_sink" ],
     [ "TerminationSink", "class_lite_f_x_1_1_logging_1_1_termination_sink.html", "class_lite_f_x_1_1_logging_1_1_termination_sink" ],
+    [ "Log", "class_lite_f_x_1_1_logging_1_1_log.html", "class_lite_f_x_1_1_logging_1_1_log" ],
+    [ "Logger", "class_lite_f_x_1_1_logging_1_1_logger.html", "class_lite_f_x_1_1_logging_1_1_logger" ],
     [ "LogLevel", "namespace_lite_f_x_1_1_logging.html#acc8c01209124c287a3c2d38ce65a6bd4", [
       [ "Trace", "namespace_lite_f_x_1_1_logging.html#acc8c01209124c287a3c2d38ce65a6bd4add4ec0ac4e58f7c32a01244ae91150b1", null ],
       [ "Debug", "namespace_lite_f_x_1_1_logging.html#acc8c01209124c287a3c2d38ce65a6bd4aa603905470e2a5b8c13e96b579ef0dba", null ],

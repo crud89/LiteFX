@@ -19,5 +19,5 @@ var searchData=
   ['log_16',['log',['../class_lite_f_x_1_1_logging_1_1_log.html#a7cdab533280d13464d7aa610695fab14',1,'LiteFX::Logging::Log::log(LogLevel level, StringView message)'],['../class_lite_f_x_1_1_logging_1_1_log.html#af8d0d303a394a1f8c737ad2916857609',1,'LiteFX::Logging::Log::log(LogLevel level, std::format_string&lt; TArgs... &gt; format, TArgs &amp;&amp;... args)']]],
   ['logger_17',['Logger',['../class_lite_f_x_1_1_logging_1_1_logger.html#a7a39887fed193200a7dace3027e29319',1,'LiteFX::Logging::Logger::Logger(Logger &amp;&amp;) noexcept=delete'],['../class_lite_f_x_1_1_logging_1_1_logger.html#ae969761072394b5b8635b1f78a2df37b',1,'LiteFX::Logging::Logger::Logger(const Logger &amp;)=delete']]],
   ['logimpl_18',['LogImpl',['../class_log_1_1_log_impl.html#a6b09701f8ee8b52c1a0ac6727b2c070e',1,'Log::LogImpl']]],
-  ['logto_19',['logTo',['../class_lite_f_x_1_1_app_builder.html#a1af13587a7eadb312a63abba2530b0ce',1,'LiteFX::AppBuilder']]]
+  ['logto_19',['logTo',['../class_lite_f_x_1_1_app_builder.html#a5e22a6e75684cda9ea3431c2774d58a9',1,'LiteFX::AppBuilder']]]
 ];
