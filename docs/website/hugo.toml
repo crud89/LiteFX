@@ -1,6 +1,6 @@
 baseURL = "https://litefx.crudolph.io/"
 title = "LiteFX - Computer Graphics Engine"
-theme = "docsy"
+theme = ["github.com/google/docsy"]
 publishDir = "../"
 
 # Language settings
@@ -18,6 +18,9 @@ pygmentsUseClassic = false
 #pygmentsOptions = "linenos=table"
 # See https://help.farbox.com/pygments.html
 pygmentsStyle = "onedrak"
+
+# Disable taxonomies/tags (https://www.docsy.dev/docs/content/taxonomy/)
+disableKinds = ["taxonomy"]
 
 # Image processing configuration.
 [imaging]
@@ -104,6 +107,8 @@ breadcrumb_disable = false
 navbar_logo = true
 # Set to true if you don't want the top navbar to be translucent when over a `block/cover`, like on the homepage.
 navbar_translucent_over_cover_disable = false
+# Set navbar theme to dark, so that font colors are light.
+navbar_theme = "dark"
 # Enable to show the side bar menu in its compact state.
 sidebar_menu_compact = false
 # Set to true to hide the sidebar search box (the top nav search box will still be displayed if search is enabled)
@@ -152,13 +157,15 @@ enable = false
 # hugo module configuration
 
 [module]
+  proxy="direct"
+
   # Uncomment the next line to build and serve using local docsy clone declared in the named Hugo workspace:
   # workspace = "docsy.work"
   [module.hugoVersion]
     extended = true
-    min = "0.110.0"
+    min = "0.155.3"
   [[module.imports]]
-    path = "docsy"
+    path = "github.com/google/docsy"
     disable = false
 
 [[menu.main]]
