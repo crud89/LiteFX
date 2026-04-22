@@ -7662,6 +7662,12 @@ namespace LiteFX::Rendering {
         /// <returns>The primitive topology.</returns>
         virtual PrimitiveTopology topology() const noexcept = 0;
 
+        /// <summary>
+        /// The number of control points for a patch, if the <see cref="topology" /> is set to `PrimitiveTopology::PatchList`.
+        /// </summary>
+        /// <returns>The number of control points for a patch.</returns>
+        virtual UInt32 controlPoints() const noexcept = 0;
+
     private:
         virtual Enumerable<const IVertexBufferLayout&> getVertexBufferLayouts() const = 0;
     };

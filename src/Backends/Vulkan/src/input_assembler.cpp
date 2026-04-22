@@ -15,15 +15,20 @@ private:
     Dictionary<UInt32, SharedPtr<VulkanVertexBufferLayout>> m_vertexBufferLayouts;
     SharedPtr<VulkanIndexBufferLayout> m_indexBufferLayout;
     PrimitiveTopology m_primitiveTopology{ PrimitiveTopology::TriangleList };
+    UInt32 m_controlPoints{ 0u };
 
 public:
     VulkanInputAssemblerImpl() = default;
 
 public:
-    void initialize(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology)
+    void initialize(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology, UInt32 controlPoints)
     {
+        if (primitiveTopology == PrimitiveTopology::PatchList && (controlPoints < 1 || controlPoints > 32))
+            throw ArgumentOutOfRangeException("controlPoints", { 1u, 32u }, controlPoints, "The number of control points must be a value ranging from 1 and 32.");
+
         m_primitiveTopology = primitiveTopology;
         m_indexBufferLayout = std::move(indexBufferLayout);
+        m_controlPoints = controlPoints;
         auto layouts = std::move(vertexBufferLayouts);
 
         for (auto vertexBufferLayout : layouts)
@@ -40,16 +45,16 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanInputAssembler::VulkanInputAssembler(PrimitiveTopology primitiveTopology) :
+VulkanInputAssembler::VulkanInputAssembler(PrimitiveTopology primitiveTopology, UInt32 controlPoints) :
     m_impl()
 {
-    m_impl->initialize({}, {}, primitiveTopology);
+    m_impl->initialize({}, {}, primitiveTopology, controlPoints);
 }
 
-VulkanInputAssembler::VulkanInputAssembler(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology) :
+VulkanInputAssembler::VulkanInputAssembler(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology, UInt32 controlPoints) :
     m_impl()
 {
-    m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
+    m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology, controlPoints);
 }
 
 VulkanInputAssembler::VulkanInputAssembler() :
@@ -87,6 +92,11 @@ PrimitiveTopology VulkanInputAssembler::topology() const noexcept
     return m_impl->m_primitiveTopology;
 }
 
+UInt32 VulkanInputAssembler::controlPoints() const noexcept
+{
+    return m_impl->m_controlPoints;
+}
+
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
@@ -115,7 +125,7 @@ VulkanInputAssemblerBuilder::~VulkanInputAssemblerBuilder() noexcept = default;
 
 void VulkanInputAssemblerBuilder::build()
 {
-    this->instance()->m_impl->initialize(this->state().vertexBufferLayouts | std::views::as_rvalue, std::move(this->state().indexBufferLayout), this->state().topology);
+    this->instance()->m_impl->initialize(this->state().vertexBufferLayouts | std::views::as_rvalue, std::move(this->state().indexBufferLayout), this->state().topology, this->state().controlPoints);
 }
 
 VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)

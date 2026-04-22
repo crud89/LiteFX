@@ -1255,15 +1255,17 @@ namespace LiteFX::Rendering::Backends {
         /// Initializes a new DirectX 12 input assembler state.
         /// </summary>
         /// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
-        explicit DirectX12InputAssembler(PrimitiveTopology primitiveTopology);
+        /// <param name="controlPoints">The number of control points in a patch primitive. Ignored if <paramref name="primitiveTopology" /> is not `PrimitiveTopology::PatchList`. Must be a value between 1 and 32.</param>
+        explicit DirectX12InputAssembler(PrimitiveTopology primitiveTopology, UInt32 controlPoints = 1);
 
-		/// <summary>
-		/// Initializes a new DirectX 12 input assembler state.
-		/// </summary>
-		/// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
-		/// <param name="indexBufferLayout">The index buffer layout.</param>
-		/// <param name="primitiveTopology">The primitive topology.</param>
-		explicit DirectX12InputAssembler(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList);
+        /// <summary>
+        /// Initializes a new DirectX 12 input assembler state.
+        /// </summary>
+        /// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
+        /// <param name="indexBufferLayout">The index buffer layout.</param>
+        /// <param name="primitiveTopology">The primitive topology.</param>
+        /// <param name="controlPoints">The number of control points in a patch primitive. Ignored if <paramref name="primitiveTopology" /> is not `PrimitiveTopology::PatchList`. Must be a value between 1 and 32.</param>
+        explicit DirectX12InputAssembler(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList, UInt32 controlPoints = 1);
 
         /// <summary>
         /// Initializes a new DirectX 12 input assembler state.
@@ -1292,9 +1294,10 @@ namespace LiteFX::Rendering::Backends {
         /// Creates a new DirectX 12 input assembler state.
         /// </summary>
         /// <param name="primitiveTopology">The primitive topology.</param>
+        /// <param name="controlPoints">The number of control points in a patch primitive. Ignored if <paramref name="primitiveTopology" /> is not `PrimitiveTopology::PatchList`. Must be a value between 1 and 32.</param>
         /// <returns>A shared pointer to the newly created input assembler instance.</returns>
-        static inline auto create(PrimitiveTopology primitiveTopology) {
-            return SharedObject::create<DirectX12InputAssembler>(primitiveTopology);
+        static inline auto create(PrimitiveTopology primitiveTopology, UInt32 controlPoints = 1) {
+            return SharedObject::create<DirectX12InputAssembler>(primitiveTopology, controlPoints);
         }
 
         /// <summary>
@@ -1303,9 +1306,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
         /// <param name="indexBufferLayout">The index buffer layout.</param>
         /// <param name="primitiveTopology">The primitive topology.</param>
+        /// <param name="controlPoints">The number of control points in a patch primitive. Ignored if <paramref name="primitiveTopology" /> is not `PrimitiveTopology::PatchList`. Must be a value between 1 and 32.</param>
         /// <returns>A shared pointer to the newly created input assembler instance.</returns>
-        static inline auto create(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList) {
-            return SharedObject::create<DirectX12InputAssembler>(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
+        static inline auto create(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList, UInt32 controlPoints = 1) {
+            return SharedObject::create<DirectX12InputAssembler>(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology, controlPoints);
         }
 
         /// <summary>
@@ -1338,6 +1342,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         PrimitiveTopology topology() const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 controlPoints() const noexcept override;
     };
 
     /// <summary>

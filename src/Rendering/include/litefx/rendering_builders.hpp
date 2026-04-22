@@ -1552,6 +1552,11 @@ namespace LiteFX::Rendering {
             /// The index buffer layout.
             /// </summary>
             SharedPtr<index_buffer_layout_type> indexBufferLayout{};
+
+            /// <summary>
+            /// The number of control points in a `PrimitiveType::PatchList`.
+            /// </summary>
+            UInt32 controlPoints{ 1u };
         } m_state;
 
     protected:
@@ -1592,6 +1597,16 @@ namespace LiteFX::Rendering {
         template <typename TSelf>
         constexpr auto use(this TSelf&& self, SharedPtr<index_buffer_layout_type>&& layout) -> TSelf&& {
             self.m_state.indexBufferLayout = std::move(layout);
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Specifies the number of control points to initialize the input assembler with.
+        /// </summary>
+        /// <param name="controlPoints">The control points to initialize the input assembler with.</param>
+        template <typename TSelf>
+        constexpr auto topology(this TSelf&& self, UInt32 controlPoints) -> TSelf&& {
+            self.m_state.controlPoints = controlPoints;
             return std::forward<TSelf>(self);
         }
     };
