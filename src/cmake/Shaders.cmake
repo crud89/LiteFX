@@ -131,7 +131,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
 
     ADD_CUSTOM_COMMAND(TARGET ${target_name} POST_BUILD
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND ${LITEFX_BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=bin -fshader-stage=${SHADER_STAGE} -DSPIRV -x hlsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      COMMAND ${LITEFX_BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=bin -fshader-stage=${SHADER_STAGE} -DSPIRV -x hlsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/$<TARGET_PROPERTY:${target_name},OUTPUT_NAME>$<TARGET_PROPERTY:${target_name},SUFFIX>" -MD
     )
 
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
@@ -189,7 +189,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
 
       ADD_CUSTOM_COMMAND(TARGET ${target_name} POST_BUILD
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND ${LITEFX_BUILD_DXC_COMPILER} -spirv -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> ${compiler_options} -fspv-target-env=vulkan1.3 ${shader_source}
+        COMMAND ${LITEFX_BUILD_DXC_COMPILER} -spirv -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/$<TARGET_PROPERTY:${target_name},OUTPUT_NAME>$<TARGET_PROPERTY:${target_name},SUFFIX>" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> ${compiler_options} -fspv-target-env=vulkan1.3 ${shader_source}
       )
     
       SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
@@ -209,7 +209,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       
       ADD_CUSTOM_COMMAND(TARGET ${target_name} POST_BUILD
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND ${LITEFX_BUILD_DXC_COMPILER} -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${DXIL_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> $<IF:$<CONFIG:Debug,RelWithDebInfo>,-Qembed_debug,-Qstrip_debug> ${compiler_options} ${shader_source} -Wno-ignored-attributes
+        COMMAND ${LITEFX_BUILD_DXC_COMPILER} -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/$<TARGET_PROPERTY:${target_name},OUTPUT_NAME>$<TARGET_PROPERTY:${target_name},SUFFIX>" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> $<IF:$<CONFIG:Debug,RelWithDebInfo>,-Qembed_debug,-Qstrip_debug> ${compiler_options} ${shader_source} -Wno-ignored-attributes
       )
     
       SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
@@ -286,7 +286,7 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
 
     ADD_CUSTOM_COMMAND(TARGET ${target_name} POST_BUILD
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND ${LITEFX_BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=bin -fshader-stage=${SHADER_STAGE} -DSPIRV -x glsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      COMMAND ${LITEFX_BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=bin -fshader-stage=${SHADER_STAGE} -DSPIRV -x glsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/$<TARGET_PROPERTY:${target_name},OUTPUT_NAME>$<TARGET_PROPERTY:${target_name},SUFFIX>" -MD
     )
     
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
@@ -336,12 +336,8 @@ FUNCTION(TARGET_LINK_SHADERS target_name)
   ADD_DEPENDENCIES(${target_name} ${SHADER_SHADERS})
 
   FOREACH(shader_module ${SHADER_SHADERS})
-    GET_TARGET_PROPERTY(SHADER_PROGRAM_NAME ${shader_module} OUTPUT_NAME)
-    GET_TARGET_PROPERTY(SHADER_PROGRAM_SUFFIX ${shader_module} SUFFIX)
-    GET_TARGET_PROPERTY(SHADER_PROGRAM_BINARY_DIR ${shader_module} RUNTIME_OUTPUT_DIRECTORY)
-    
     CMAKE_PATH(SET SHADER_INSTALL_DEST NORMALIZE ${CMAKE_INSTALL_PREFIX}/${SHADER_INSTALL_DESTINATION})
-    INSTALL(FILES "${SHADER_PROGRAM_BINARY_DIR}/${SHADER_PROGRAM_NAME}${SHADER_PROGRAM_SUFFIX}" DESTINATION ${SHADER_INSTALL_DEST})
+    INSTALL(FILES "$<TARGET_PROPERTY:${shader_module},RUNTIME_OUTPUT_DIRECTORY>/$<TARGET_PROPERTY:${shader_module},OUTPUT_NAME>$<TARGET_PROPERTY:${shader_module},SUFFIX>" DESTINATION ${SHADER_INSTALL_DEST})
   ENDFOREACH(shader_module ${SHADER_SHADERS})
 ENDFUNCTION(TARGET_LINK_SHADERS target_name)
 
