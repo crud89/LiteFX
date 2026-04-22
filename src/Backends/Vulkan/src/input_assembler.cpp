@@ -23,8 +23,8 @@ public:
 public:
     void initialize(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology, UInt32 controlPoints)
     {
-        if (primitiveTopology == PrimitiveTopology::PatchList && (controlPoints < 1 || controlPoints > 32))
-            throw ArgumentOutOfRangeException("controlPoints", { 1u, 32u }, controlPoints, "The number of control points must be a value ranging from 1 and 32.");
+        if (primitiveTopology == PrimitiveTopology::PatchList && (controlPoints < 1 || controlPoints > 32)) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            throw ArgumentOutOfRangeException("controlPoints", { 1u, 32u }, controlPoints, "The number of control points must be a value ranging from 1 and 32."); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
         m_primitiveTopology = primitiveTopology;
         m_indexBufferLayout = std::move(indexBufferLayout);

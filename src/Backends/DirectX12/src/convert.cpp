@@ -497,7 +497,7 @@ PrimitiveTopology LiteFX::Rendering::Backends::DX12::getPrimitiveTopology(const 
 UInt32 LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getPatchListControlPoints(const D3D12_PRIMITIVE_TOPOLOGY& topology) noexcept
 {
 	if (topology >= D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST && topology <= D3D_PRIMITIVE_TOPOLOGY_32_CONTROL_POINT_PATCHLIST)
-		return static_cast<UInt32>(topology) - 32u;
+		return static_cast<UInt32>(topology) - 32u; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 	else
 		return 0u;
 }
@@ -525,7 +525,7 @@ D3D12_PRIMITIVE_TOPOLOGY LiteFX::Rendering::Backends::DX12::getPrimitiveTopology
 	case PrimitiveTopology::TriangleStripWithAdjacency:
 		return D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ;
 	case PrimitiveTopology::PatchList:
-		if (controlPoints > 0 && controlPoints <= 32)
+		if (controlPoints > 0 && controlPoints <= 32) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 			return static_cast<D3D12_PRIMITIVE_TOPOLOGY>(D3D12_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST + (controlPoints - 1));
 	}
 
