@@ -42,7 +42,7 @@ FUNCTION(TARGET_ADD_ASSET_DIRECTORY target_name)
 
   ADD_CUSTOM_TARGET(${directory_target_name}
     COMMENT "Copying assets to runtime directory '${OUTPUT_DIR}'..."
-    SOURCES ${ASSET_FILE}
+    SOURCES ${ASSET_DIRECTORY_ASSETS}
   )
 
   ADD_CUSTOM_COMMAND(TARGET ${directory_target_name} POST_BUILD
@@ -50,7 +50,6 @@ FUNCTION(TARGET_ADD_ASSET_DIRECTORY target_name)
   )
     
   SET_TARGET_PROPERTIES(${directory_target_name} PROPERTIES 
-    SOURCES ${ASSET_DIRECTORY_ASSETS}
     RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR}
     FOLDER ${folder_name}
   )
