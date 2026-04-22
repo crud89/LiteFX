@@ -605,7 +605,7 @@ void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) c
 	// Set the pipeline state.
 	commandBuffer.handle()->SetPipelineState(this->handle().Get());
 	commandBuffer.handle()->SetGraphicsRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
-	commandBuffer.handle()->IASetPrimitiveTopology(DX12::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
+	commandBuffer.handle()->IASetPrimitiveTopology(DX12::getPrimitiveTopology(m_impl->m_inputAssembler->topology(), m_impl->m_inputAssembler->controlPoints()));
 
 	// NOTE: The same pipeline can be used from multiple multi-threaded command buffers, in which case we need to prevent multiple threads 
 	//       from attempting to initialize the bindings on first use.

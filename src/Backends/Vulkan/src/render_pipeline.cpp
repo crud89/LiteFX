@@ -144,6 +144,7 @@ public:
 		// Setup input assembler state.
 		VkPipelineVertexInputStateCreateInfo inputState = { .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly = { .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
+		VkPipelineTessellationStateCreateInfo tessellationInfo = { .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO };
 		Array<VkVertexInputBindingDescription> vertexInputBindings;
 		Array<VkVertexInputAttributeDescription> vertexInputAttributes;
 
@@ -152,6 +153,9 @@ public:
 		// Set primitive topology.
 		inputAssembly.topology = Vk::getPrimitiveTopology(m_inputAssembler->topology());
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+		if (m_inputAssembler->topology() == PrimitiveTopology::PatchList)
+			tessellationInfo.patchControlPoints = m_inputAssembler->controlPoints();
 
 #ifndef NDEBUG
 		auto vertexLayouts = std::ranges::distance(m_inputAssembler->vertexBufferLayouts());
@@ -294,6 +298,7 @@ public:
 			.pStages = shaderStages.data(),
 			.pVertexInputState = &inputState,
 			.pInputAssemblyState = &inputAssembly,
+			.pTessellationState = &tessellationInfo,
 			.pViewportState = &viewportState,
 			.pRasterizationState = &rasterizerState,
 			.pMultisampleState = &multisampling,

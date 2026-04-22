@@ -340,10 +340,15 @@ struct LITEFX_RENDERING_API std::formatter<LiteFX::Rendering::PrimitiveTopology>
 		switch (t) {
 		using enum PrimitiveTopology;
 		case PointList: name = "PointList"; break;
+		case PatchList: name = "PatchList"; break;
 		case LineList: name = "LineList"; break;
 		case TriangleList: name = "TriangleList"; break;
 		case LineStrip: name = "LineStrip"; break;
 		case TriangleStrip: name = "TriangleStrip"; break;
+		case LineListWithAdjacency: name = "LineListWithAdjacency"; break;
+		case TriangleListWithAdjacency: name = "TriangleListWithAdjacency"; break;
+		case LineStripWithAdjacency: name = "LineStripWithAdjacency"; break;
+		case TriangleStripWithAdjacency: name = "TriangleStripWithAdjacency"; break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}

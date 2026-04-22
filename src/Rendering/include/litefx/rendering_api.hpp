@@ -947,22 +947,51 @@ namespace LiteFX::Rendering {
         LineList = 0x00020001,
 
         /// <summary>
+        /// A list of lines where each vertex pair refers to the start and end points of a line and where vertices also store adjacency data.
+        /// </summary>
+        /// <seealso cref="LineList" />
+        LineListWithAdjacency = 0x00020011,
+
+        /// <summary>
         /// A list of triangles, where each triplet of vertices refers to a whole triangle.
         /// </summary>
         /// <seealso cref="TriangleStrip" />
         TriangleList = 0x00040001,
 
         /// <summary>
+        /// A list of triangles, where each triplet of vertices refers to a whole triangle and where vertices also store adjacency data.
+        /// </summary>
+        /// <seealso cref="TriangleList" />
+        TriangleListWithAdjacency = 0x00040011,
+
+        /// <summary>
         /// A strip of lines where each vertex (except the first one) refers to the end point for the next line segment.
         /// </summary>
         /// <seealso cref="LineList" />
         LineStrip = 0x00020002,
+
+        /// <summary>
+        /// A strip of lines where each vertex (except the first one) refers to the end point for the next line segment.
+        /// </summary>
+        /// <seealso cref="LineStrip" />
+        LineStripWithAdjacency = 0x00020012,
         
         /// <summary>
-        /// A strip of triangles, where each vertex (except the first two) refers to the third vertex of the next triangle segment.
+        /// A strip of triangles, where each vertex (except the first two) refers to the third vertex of the next triangle segment and where vertices also store adjacency data..
         /// </summary>
         /// <seealso cref="TriangleList" />
-        TriangleStrip = 0x00040002
+        TriangleStrip = 0x00040002,
+
+        /// <summary>
+        /// A strip of triangles, where each vertex (except the first two) refers to the third vertex of the next triangle segment and where vertices also store adjacency data..
+        /// </summary>
+        /// <seealso cref="TriangleStrip" />
+        TriangleStripWithAdjacency = 0x00040012,
+
+        /// <summary>
+        /// A list of patches used in combination with tessellation.
+        /// </summary>
+        PatchList = 0x00080001
     };
 
     /// <summary>
@@ -7632,6 +7661,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The primitive topology.</returns>
         virtual PrimitiveTopology topology() const noexcept = 0;
+
+        /// <summary>
+        /// The number of control points for a patch, if the <see cref="topology" /> is set to `PrimitiveTopology::PatchList`.
+        /// </summary>
+        /// <returns>The number of control points for a patch.</returns>
+        virtual UInt32 controlPoints() const noexcept = 0;
 
     private:
         virtual Enumerable<const IVertexBufferLayout&> getVertexBufferLayouts() const = 0;
