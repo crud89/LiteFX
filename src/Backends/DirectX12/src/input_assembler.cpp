@@ -39,6 +39,13 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
+DirectX12InputAssembler::DirectX12InputAssembler(PrimitiveTopology primitiveTopology) :
+    m_impl()
+{
+    m_impl->initialize({}, {}, primitiveTopology);
+}
+
+
 DirectX12InputAssembler::DirectX12InputAssembler(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology) :
     m_impl()
 {
@@ -51,6 +58,10 @@ DirectX12InputAssembler::DirectX12InputAssembler() :
 }
 
 DirectX12InputAssembler::DirectX12InputAssembler(const DirectX12InputAssembler&) = default;
+DirectX12InputAssembler::DirectX12InputAssembler(DirectX12InputAssembler&&) noexcept = default;
+DirectX12InputAssembler& DirectX12InputAssembler::operator=(const DirectX12InputAssembler&) = default;
+DirectX12InputAssembler& DirectX12InputAssembler::operator=(DirectX12InputAssembler&&) noexcept = default;
+
 DirectX12InputAssembler::~DirectX12InputAssembler() noexcept = default;
 
 Enumerable<const DirectX12VertexBufferLayout&> DirectX12InputAssembler::vertexBufferLayouts() const

@@ -40,14 +40,28 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
+VulkanInputAssembler::VulkanInputAssembler(PrimitiveTopology primitiveTopology) :
+    m_impl()
+{
+    m_impl->initialize({}, {}, primitiveTopology);
+}
+
 VulkanInputAssembler::VulkanInputAssembler(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology) :
     m_impl()
 {
     m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
 }
 
-VulkanInputAssembler::VulkanInputAssembler() = default;
+VulkanInputAssembler::VulkanInputAssembler() :
+    m_impl()
+{
+}
+
 VulkanInputAssembler::VulkanInputAssembler(const VulkanInputAssembler&) = default;
+VulkanInputAssembler::VulkanInputAssembler(VulkanInputAssembler&&) noexcept = default;
+VulkanInputAssembler& VulkanInputAssembler::operator=(const VulkanInputAssembler&) = default;
+VulkanInputAssembler& VulkanInputAssembler::operator=(VulkanInputAssembler&&) noexcept = default;
+
 VulkanInputAssembler::~VulkanInputAssembler() noexcept = default;
 
 Enumerable<const VulkanVertexBufferLayout&> VulkanInputAssembler::vertexBufferLayouts() const

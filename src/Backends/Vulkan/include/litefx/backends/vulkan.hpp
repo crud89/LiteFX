@@ -1256,6 +1256,12 @@ namespace LiteFX::Rendering::Backends {
         friend struct SharedObject::Allocator<VulkanInputAssembler>;
 
 	private:
+        /// <summary>
+        /// Initializes a new Vulkan input assembler state.
+        /// </summary>
+        /// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
+        explicit VulkanInputAssembler(PrimitiveTopology primitiveTopology);
+
 		/// <summary>
 		/// Initializes a new Vulkan input assembler state.
 		/// </summary>
@@ -1271,22 +1277,31 @@ namespace LiteFX::Rendering::Backends {
 
     private:
         /// <inheritdoc />
-        VulkanInputAssembler(VulkanInputAssembler&&) noexcept = delete;
+        VulkanInputAssembler(VulkanInputAssembler&&) noexcept;
 
         /// <inheritdoc />
 		VulkanInputAssembler(const VulkanInputAssembler&);
 
         /// <inheritdoc />
-        VulkanInputAssembler& operator=(VulkanInputAssembler&&) noexcept = delete;
+        VulkanInputAssembler& operator=(VulkanInputAssembler&&) noexcept;
 
         /// <inheritdoc />
-        VulkanInputAssembler& operator=(const VulkanInputAssembler&) = delete;
+        VulkanInputAssembler& operator=(const VulkanInputAssembler&);
 
     public:
         /// <inheritdoc />
 		~VulkanInputAssembler() noexcept override;
 
     public:
+        /// <summary>
+        /// Creates a new Vulkan input assembler state.
+        /// </summary>
+        /// <param name="primitiveTopology">The primitive topology.</param>
+        /// <returns>A shared pointer to the newly created input assembler instance.</returns>
+        static inline auto create(PrimitiveTopology primitiveTopology) {
+            return SharedObject::create<VulkanInputAssembler>(primitiveTopology);
+        }
+
         /// <summary>
         /// Creates a new Vulkan input assembler state.
         /// </summary>
