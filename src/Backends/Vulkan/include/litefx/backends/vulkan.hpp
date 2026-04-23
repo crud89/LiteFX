@@ -1256,13 +1256,21 @@ namespace LiteFX::Rendering::Backends {
         friend struct SharedObject::Allocator<VulkanInputAssembler>;
 
 	private:
+        /// <summary>
+        /// Initializes a new Vulkan input assembler state.
+        /// </summary>
+        /// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
+        /// <param name="controlPoints">The number of control points in a patch primitive. Ignored if <paramref name="primitiveTopology" /> is not `PrimitiveTopology::PatchList`. Must be a value between 1 and 32.</param>
+        explicit VulkanInputAssembler(PrimitiveTopology primitiveTopology, UInt32 controlPoints = 1);
+
 		/// <summary>
 		/// Initializes a new Vulkan input assembler state.
 		/// </summary>
 		/// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
 		/// <param name="indexBufferLayout">The index buffer layout.</param>
 		/// <param name="primitiveTopology">The primitive topology.</param>
-		explicit VulkanInputAssembler(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList);
+        /// <param name="controlPoints">The number of control points in a patch primitive. Ignored if <paramref name="primitiveTopology" /> is not `PrimitiveTopology::PatchList`. Must be a value between 1 and 32.</param>
+		explicit VulkanInputAssembler(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList, UInt32 controlPoints = 1);
 
         /// <summary>
         /// Initializes a new Vulkan input assembler state.
@@ -1271,16 +1279,16 @@ namespace LiteFX::Rendering::Backends {
 
     private:
         /// <inheritdoc />
-        VulkanInputAssembler(VulkanInputAssembler&&) noexcept = delete;
+        VulkanInputAssembler(VulkanInputAssembler&&) noexcept;
 
         /// <inheritdoc />
 		VulkanInputAssembler(const VulkanInputAssembler&);
 
         /// <inheritdoc />
-        VulkanInputAssembler& operator=(VulkanInputAssembler&&) noexcept = delete;
+        VulkanInputAssembler& operator=(VulkanInputAssembler&&) noexcept;
 
         /// <inheritdoc />
-        VulkanInputAssembler& operator=(const VulkanInputAssembler&) = delete;
+        VulkanInputAssembler& operator=(const VulkanInputAssembler&);
 
     public:
         /// <inheritdoc />
@@ -1290,12 +1298,23 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// Creates a new Vulkan input assembler state.
         /// </summary>
+        /// <param name="primitiveTopology">The primitive topology.</param>
+        /// <param name="controlPoints">The number of control points in a patch primitive. Ignored if <paramref name="primitiveTopology" /> is not `PrimitiveTopology::PatchList`. Must be a value between 1 and 32.</param>
+        /// <returns>A shared pointer to the newly created input assembler instance.</returns>
+        static inline auto create(PrimitiveTopology primitiveTopology, UInt32 controlPoints = 1) {
+            return SharedObject::create<VulkanInputAssembler>(primitiveTopology, controlPoints);
+        }
+
+        /// <summary>
+        /// Creates a new Vulkan input assembler state.
+        /// </summary>
         /// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
         /// <param name="indexBufferLayout">The index buffer layout.</param>
         /// <param name="primitiveTopology">The primitive topology.</param>
+        /// <param name="controlPoints">The number of control points in a patch primitive. Ignored if <paramref name="primitiveTopology" /> is not `PrimitiveTopology::PatchList`. Must be a value between 1 and 32.</param>
         /// <returns>A shared pointer to the newly created input assembler instance.</returns>
-        static inline auto create(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList) {
-            return SharedObject::create<VulkanInputAssembler>(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
+        static inline auto create(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList, UInt32 controlPoints = 1) {
+            return SharedObject::create<VulkanInputAssembler>(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology, controlPoints);
         }
 
         /// <summary>
@@ -1328,6 +1347,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         PrimitiveTopology topology() const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 controlPoints() const noexcept override;
     };
 
     /// <summary>

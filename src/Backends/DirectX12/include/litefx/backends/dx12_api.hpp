@@ -163,7 +163,12 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        D3D12_PRIMITIVE_TOPOLOGY LITEFX_DIRECTX12_API getPrimitiveTopology(PrimitiveTopology topology);
+        UInt32 LITEFX_DIRECTX12_API getPatchListControlPoints(const D3D12_PRIMITIVE_TOPOLOGY& topology) noexcept;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        D3D12_PRIMITIVE_TOPOLOGY LITEFX_DIRECTX12_API getPrimitiveTopology(PrimitiveTopology topology, UInt32 controlPoints = 0);
 
         /// <summary>
         /// 
