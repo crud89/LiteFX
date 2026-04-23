@@ -2782,6 +2782,11 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// Initializes the device instance.
         /// </summary>
+        /// <remarks>
+        /// Providing an extension chain using <paramref name="deviceExtensionObjects" /> allows to customize which extensions to load and enable. User-defined extensions provided this way will be picked up
+        /// and patched with the required settings accordingly. Settings enabled by the user will not be disabled this way, with the exception of features that are controlled by the <paramref name="features" /> 
+        /// property.
+        /// </remarks>
         /// <param name="backend">The backend from which the device is created.</param>
         /// <param name="adapter">The adapter the device uses for drawing.</param>
         /// <param name="surface">The surface, the device should draw to.</param>
@@ -2797,6 +2802,11 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// Initializes the device instance.
         /// </summary>
+        /// <remarks>
+        /// Providing an extension chain using <paramref name="deviceExtensionObjects" /> allows to customize which extensions to load and enable. User-defined extensions provided this way will be picked up
+        /// and patched with the required settings accordingly. Settings enabled by the user will not be disabled this way, with the exception of features that are controlled by the <paramref name="features" /> 
+        /// property.
+        /// </remarks>
         /// <param name="backend">The backend from which the device is created.</param>
         /// <param name="adapter">The adapter the device uses for drawing.</param>
         /// <param name="surface">The surface, the device should draw to.</param>
