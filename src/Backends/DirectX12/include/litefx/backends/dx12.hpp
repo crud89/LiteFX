@@ -1056,7 +1056,7 @@ namespace LiteFX::Rendering::Backends {
         UInt32 size() const noexcept override;
 
         /// <inheritdoc />
-        ShaderStage stage() const noexcept override;
+        ShaderStage stageMask() const noexcept override;
     };
 
     /// <summary>
@@ -1108,9 +1108,6 @@ namespace LiteFX::Rendering::Backends {
     public:
         /// <inheritdoc />
         UInt32 size() const noexcept override;
-
-        /// <inheritdoc />
-        const DirectX12PushConstantsRange& range(ShaderStage stage) const override;
 
         /// <inheritdoc />
         const Array<UniquePtr<DirectX12PushConstantsRange>>& ranges() const override;

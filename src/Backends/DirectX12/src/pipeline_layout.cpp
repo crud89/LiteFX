@@ -128,7 +128,7 @@ public:
             std::ranges::for_each(pushConstantsLayout->ranges(), [&](const auto& range) {
                 CD3DX12_ROOT_PARAMETER1 rootParameter = {};
 
-                switch (range->stage())
+                switch (range->stageMask())
                 {
                 case ShaderStage::Vertex: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_VERTEX); break;
                 case ShaderStage::Geometry: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_GEOMETRY); break;
