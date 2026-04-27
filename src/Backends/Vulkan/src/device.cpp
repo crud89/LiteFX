@@ -266,24 +266,19 @@ public:
     }
 
     template <typename T>
-    static T findOrCreateExtension(VkStructureType structureType, void* deviceExtensionChain, bool& added) {
+    static T* findExtension(VkStructureType structureType, void* deviceExtensionChain) {
         // NOTE: Only use this at the beginning of an extension chain!
         auto next = reinterpret_cast<VkBaseOutStructure*>(deviceExtensionChain); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-        added = false;
 
         while (next != nullptr)
         {
             if (next->sType == structureType)
-                return *reinterpret_cast<T*>(next); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                return reinterpret_cast<T*>(next); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
             next = reinterpret_cast<VkBaseOutStructure*>(next->pNext); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         }
 
-        added = true;
-        return {
-            .sType = structureType,
-            .pNext = deviceExtensionChain
-        };
+        return nullptr;
     }
 
     VkDevice initialize(const GraphicsDeviceFeatures& features, void* deviceExtensionObjects)
@@ -315,172 +310,215 @@ public:
         // Enable requested features. Look up if they are already provided in the extension chain and overwrite them if necessary. We only enable features for compatibility 
         // reasons. Only exceptions are GraphicsDeviceFeatures, which are provided by different means.
         // Start enabling ray-tracing features.
-        bool added{ false };
-        auto rayQueryFeatures = findOrCreateExtension<VkPhysicalDeviceRayQueryFeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR, deviceExtensionObjects, added);
-        
-        if (features.RayQueries) {
-            rayQueryFeatures.rayQuery = true;
+        VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR, .pNext = deviceExtensionObjects };
+        auto pRayQueryFeatures = findExtension<VkPhysicalDeviceRayQueryFeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR, deviceExtensionObjects);
 
-            if (added)
-                deviceExtensionObjects = &rayQueryFeatures;
+        if (pRayQueryFeatures == nullptr) {
+            pRayQueryFeatures = &rayQueryFeatures;
+            deviceExtensionObjects = pRayQueryFeatures;
         }
 
-        auto rayTracingMaintenanceFeatures = findOrCreateExtension<VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MAINTENANCE_1_FEATURES_KHR, deviceExtensionObjects, added);
+        if (features.RayQueries) {
+            pRayQueryFeatures->rayQuery = true;
+        }
+
+        VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR rayTracingMaintenanceFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MAINTENANCE_1_FEATURES_KHR, .pNext = deviceExtensionObjects };
+        auto pRayTracingMaintenanceFeatures = findExtension<VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MAINTENANCE_1_FEATURES_KHR, deviceExtensionObjects);
+
+        if (pRayTracingMaintenanceFeatures == nullptr) {
+            pRayTracingMaintenanceFeatures = &rayTracingMaintenanceFeatures;
+            deviceExtensionObjects = pRayTracingMaintenanceFeatures;
+        }
 
         if (features.RayTracing || features.RayQueries) {
-            rayTracingMaintenanceFeatures.rayTracingMaintenance1 = true;
-            rayTracingMaintenanceFeatures.rayTracingPipelineTraceRaysIndirect2 = features.RayQueries;
-        
-            if (added)
-                deviceExtensionObjects = &rayTracingMaintenanceFeatures;
+            pRayTracingMaintenanceFeatures->rayTracingMaintenance1 = true;
+            pRayTracingMaintenanceFeatures->rayTracingPipelineTraceRaysIndirect2 = features.RayQueries;
         }
 
-        auto accelerationStructureFeatures = findOrCreateExtension<VkPhysicalDeviceAccelerationStructureFeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR, deviceExtensionObjects, added);
+        VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR, .pNext = deviceExtensionObjects };
+        auto pAccelerationStructureFeatures = findExtension<VkPhysicalDeviceAccelerationStructureFeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR, deviceExtensionObjects);
+
+        if (pAccelerationStructureFeatures == nullptr) {
+            pAccelerationStructureFeatures = &accelerationStructureFeatures;
+            deviceExtensionObjects = pAccelerationStructureFeatures;
+        }
 
         if (features.RayQueries || features.RayTracing) {
-            accelerationStructureFeatures.accelerationStructure = true;
-            accelerationStructureFeatures.descriptorBindingAccelerationStructureUpdateAfterBind = true;
-        
-            if (added)
-                deviceExtensionObjects = &accelerationStructureFeatures;
+            pAccelerationStructureFeatures->accelerationStructure = true;
+            pAccelerationStructureFeatures->descriptorBindingAccelerationStructureUpdateAfterBind = true;
         }
 
-        auto rayTracingPipelineFeatures = findOrCreateExtension<VkPhysicalDeviceRayTracingPipelineFeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR, deviceExtensionObjects, added);
+        VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR, .pNext = deviceExtensionObjects };
+        auto pRayTracingPipelineFeatures = findExtension<VkPhysicalDeviceRayTracingPipelineFeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR, deviceExtensionObjects);
+
+        if (pRayTracingPipelineFeatures == nullptr) {
+            pRayTracingPipelineFeatures = &rayTracingPipelineFeatures;
+            deviceExtensionObjects = pRayTracingPipelineFeatures;
+        }
 
         if (features.RayTracing) {
-            rayTracingPipelineFeatures.rayTracingPipeline = true;
-        
-            if (added)
-                deviceExtensionObjects = &rayTracingPipelineFeatures;
+            pRayTracingPipelineFeatures->rayTracingPipeline = true;
         }
 
-        auto meshShaderFeatures = findOrCreateExtension<VkPhysicalDeviceMeshShaderFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT, deviceExtensionObjects, added);
+        VkPhysicalDeviceMeshShaderFeaturesEXT meshShaderFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT, .pNext = deviceExtensionObjects };
+        auto pMeshShaderFeatures = findExtension<VkPhysicalDeviceMeshShaderFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT, deviceExtensionObjects);
+
+        if (pMeshShaderFeatures == nullptr) {
+            pMeshShaderFeatures = &meshShaderFeatures;
+            deviceExtensionObjects = pMeshShaderFeatures;
+        }
 
         if (features.MeshShaders) {
-            meshShaderFeatures.taskShader = true;
-            meshShaderFeatures.meshShader = true;
-        
-            if (added)
-                deviceExtensionObjects = &meshShaderFeatures;
+            pMeshShaderFeatures->taskShader = true;
+            pMeshShaderFeatures->meshShader = true;
         }
 
-        auto mutableDescriptorTypeFeatures = findOrCreateExtension<VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT, deviceExtensionObjects, added);
+        VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT mutableDescriptorTypeFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT, .pNext = deviceExtensionObjects };
+        auto pMutableDescriptorTypeFeatures = findExtension<VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT, deviceExtensionObjects);
+
+        if (pMutableDescriptorTypeFeatures == nullptr) {
+            pMutableDescriptorTypeFeatures = &mutableDescriptorTypeFeatures;
+            deviceExtensionObjects = pMutableDescriptorTypeFeatures;
+        }
 
         if (features.DynamicDescriptors) {
-            mutableDescriptorTypeFeatures.mutableDescriptorType = true;
-        
-            if (added)
-                deviceExtensionObjects = &mutableDescriptorTypeFeatures;
+            pMutableDescriptorTypeFeatures->mutableDescriptorType = true;
         }
 
-        auto multiViewFeatures = findOrCreateExtension<VkPhysicalDeviceMultiviewFeatures>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES, deviceExtensionObjects, added);
+        VkPhysicalDeviceMaintenance5FeaturesKHR maintenance5Features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES_KHR, .pNext = deviceExtensionObjects };
+        auto pMaintenance5Features = findExtension<VkPhysicalDeviceMaintenance5FeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES_KHR, deviceExtensionObjects);
 
-        if (features.ViewInstancing) {
-            multiViewFeatures.multiview = true;
-#ifndef LITEFX_BUILD_TESTS
-            multiViewFeatures.multiviewGeometryShader = true;
-            multiViewFeatures.multiviewTessellationShader = true;
-#endif // LITEFX_BUILD_TESTS
-        
-            if (added)
-                deviceExtensionObjects = &multiViewFeatures;
+        if (pMaintenance5Features == nullptr) {
+            pMaintenance5Features = &maintenance5Features;
+            deviceExtensionObjects = pMaintenance5Features;
         }
-
-        auto maintenance5Features = findOrCreateExtension<VkPhysicalDeviceMaintenance5FeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES_KHR, deviceExtensionObjects, added);
 
         if (std::ranges::find_if(m_extensions, [](auto& ext) { return ext == VK_KHR_MAINTENANCE_5_EXTENSION_NAME; }) != m_extensions.end()) {
-            maintenance5Features.maintenance5 = true;
-        
-            if (added)
-                deviceExtensionObjects = &maintenance5Features;
+            pMaintenance5Features->maintenance5 = true;
         }
 
-        auto deviceFeatures = findOrCreateExtension<VkPhysicalDeviceFeatures2>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, deviceExtensionObjects, added);
-        deviceFeatures.features.fullDrawIndexUint32 = true;
-        deviceFeatures.features.independentBlend = true;
+        VkPhysicalDeviceFeatures2 deviceFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = deviceExtensionObjects };
+        auto pDeviceFeatures = findExtension<VkPhysicalDeviceFeatures2>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, deviceExtensionObjects);
+
+        if (pDeviceFeatures == nullptr) {
+            pDeviceFeatures = &deviceFeatures;
+            deviceExtensionObjects = pDeviceFeatures;
+        }
+
+        pDeviceFeatures->features.fullDrawIndexUint32 = true;
+        pDeviceFeatures->features.independentBlend = true;
 #ifndef LITEFX_BUILD_TESTS
-        deviceFeatures.features.geometryShader = true;
-        deviceFeatures.features.tessellationShader = true;
+        pDeviceFeatures->features.geometryShader = true;
+        pDeviceFeatures->features.tessellationShader = true;
 #endif // LITEFX_BUILD_TESTS
-        deviceFeatures.features.dualSrcBlend = true;
-        deviceFeatures.features.logicOp = true;
-        deviceFeatures.features.drawIndirectFirstInstance = features.DrawIndirect;
-        deviceFeatures.features.depthClamp = true;
-        deviceFeatures.features.depthBounds = features.DepthBoundsTest;
-        deviceFeatures.features.alphaToOne = true;
-        deviceFeatures.features.multiViewport = true;
-        deviceFeatures.features.samplerAnisotropy = true;
-        deviceFeatures.features.shaderFloat64 = true;
-        deviceFeatures.features.shaderInt64 = true;
-        deviceFeatures.features.shaderInt16 = true;
-        
-        if (added)
-            deviceExtensionObjects = &deviceFeatures;
+        pDeviceFeatures->features.dualSrcBlend = true;
+        pDeviceFeatures->features.logicOp = true;
+        pDeviceFeatures->features.drawIndirectFirstInstance = features.DrawIndirect;
+        pDeviceFeatures->features.depthClamp = true;
+        pDeviceFeatures->features.depthBounds = features.DepthBoundsTest;
+        pDeviceFeatures->features.alphaToOne = true;
+        pDeviceFeatures->features.multiViewport = true;
+        pDeviceFeatures->features.samplerAnisotropy = true;
+        pDeviceFeatures->features.shaderFloat64 = true;
+        pDeviceFeatures->features.shaderInt64 = true;
+        pDeviceFeatures->features.shaderInt16 = true;
 
-        auto deviceFeatures13 = findOrCreateExtension<VkPhysicalDeviceVulkan13Features>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES, deviceExtensionObjects, added);
-        deviceFeatures13.synchronization2 = true;
-        deviceFeatures13.dynamicRendering = true;
-        deviceFeatures13.maintenance4 = true;
-        
-        if (added)
-            deviceExtensionObjects = &deviceFeatures13;
+        VkPhysicalDeviceVulkan13Features deviceFeatures13{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES, .pNext = deviceExtensionObjects };
+        auto pDeviceFeatures13 = findExtension<VkPhysicalDeviceVulkan13Features>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES, deviceExtensionObjects);
 
-        auto deviceFeatures12 = findOrCreateExtension<VkPhysicalDeviceVulkan12Features>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, deviceExtensionObjects, added);
-        deviceFeatures12.drawIndirectCount = features.DrawIndirect;
-        deviceFeatures12.descriptorIndexing = true;
+        if (pDeviceFeatures13 == nullptr) {
+            pDeviceFeatures13 = &deviceFeatures13;
+            deviceExtensionObjects = pDeviceFeatures13;
+        }
+
+        pDeviceFeatures13->synchronization2 = true;
+        pDeviceFeatures13->dynamicRendering = true;
+        pDeviceFeatures13->maintenance4 = true;
+
+        VkPhysicalDeviceVulkan12Features deviceFeatures12{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, .pNext = deviceExtensionObjects };
+        auto pDeviceFeatures12 = findExtension<VkPhysicalDeviceVulkan12Features>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, deviceExtensionObjects);
+
+        if (pDeviceFeatures12 == nullptr) {
+            pDeviceFeatures12 = &deviceFeatures12;
+            deviceExtensionObjects = pDeviceFeatures12;
+        }
+
+        pDeviceFeatures12->drawIndirectCount = features.DrawIndirect;
+        pDeviceFeatures12->descriptorIndexing = true;
         //deviceFeatures12.shaderInputAttachmentArrayDynamicIndexing = true; // Not supported by Intel ARC drivers and SwiftShader and since we're now using dynamic rendering anyway, this became (even) less important.
-        deviceFeatures12.shaderUniformTexelBufferArrayDynamicIndexing = true;
-        deviceFeatures12.shaderStorageTexelBufferArrayDynamicIndexing = true;
-        deviceFeatures12.shaderUniformBufferArrayNonUniformIndexing = true;
-        deviceFeatures12.shaderSampledImageArrayNonUniformIndexing = true;
-        deviceFeatures12.shaderStorageBufferArrayNonUniformIndexing = true;
-        deviceFeatures12.shaderStorageImageArrayNonUniformIndexing = true;
+        pDeviceFeatures12->shaderUniformTexelBufferArrayDynamicIndexing = true;
+        pDeviceFeatures12->shaderStorageTexelBufferArrayDynamicIndexing = true;
+        pDeviceFeatures12->shaderUniformBufferArrayNonUniformIndexing = true;
+        pDeviceFeatures12->shaderSampledImageArrayNonUniformIndexing = true;
+        pDeviceFeatures12->shaderStorageBufferArrayNonUniformIndexing = true;
+        pDeviceFeatures12->shaderStorageImageArrayNonUniformIndexing = true;
         //deviceFeatures12.shaderInputAttachmentArrayNonUniformIndexing = true; // See above.
-        deviceFeatures12.shaderUniformTexelBufferArrayNonUniformIndexing = true;
-        deviceFeatures12.shaderStorageTexelBufferArrayNonUniformIndexing = true;
+        pDeviceFeatures12->shaderUniformTexelBufferArrayNonUniformIndexing = true;
+        pDeviceFeatures12->shaderStorageTexelBufferArrayNonUniformIndexing = true;
         //deviceFeatures12.descriptorBindingUniformBufferUpdateAfterBind = true; // Not supported on NVidia Pascal and earlier, as well as SwiftShader.
-        deviceFeatures12.descriptorBindingSampledImageUpdateAfterBind = true;
-        deviceFeatures12.descriptorBindingStorageImageUpdateAfterBind = true;
-        deviceFeatures12.descriptorBindingStorageBufferUpdateAfterBind = true;
-        deviceFeatures12.descriptorBindingUniformTexelBufferUpdateAfterBind = true;
-        deviceFeatures12.descriptorBindingStorageTexelBufferUpdateAfterBind = true;
-        deviceFeatures12.descriptorBindingUpdateUnusedWhilePending = true;
-        deviceFeatures12.descriptorBindingPartiallyBound = true;
-        deviceFeatures12.descriptorBindingVariableDescriptorCount = true;
-        deviceFeatures12.runtimeDescriptorArray = true;
-        deviceFeatures12.separateDepthStencilLayouts = true;
-        deviceFeatures12.hostQueryReset = true;
-        deviceFeatures12.timelineSemaphore = true;
-        deviceFeatures12.bufferDeviceAddress = true;
-        deviceFeatures12.shaderOutputViewportIndex = features.ViewInstancing;
-        deviceFeatures12.shaderOutputLayer = features.ViewInstancing;
-        
-        if (added)
-            deviceExtensionObjects = &deviceFeatures12;
+        pDeviceFeatures12->descriptorBindingSampledImageUpdateAfterBind = true;
+        pDeviceFeatures12->descriptorBindingStorageImageUpdateAfterBind = true;
+        pDeviceFeatures12->descriptorBindingStorageBufferUpdateAfterBind = true;
+        pDeviceFeatures12->descriptorBindingUniformTexelBufferUpdateAfterBind = true;
+        pDeviceFeatures12->descriptorBindingStorageTexelBufferUpdateAfterBind = true;
+        pDeviceFeatures12->descriptorBindingUpdateUnusedWhilePending = true;
+        pDeviceFeatures12->descriptorBindingPartiallyBound = true;
+        pDeviceFeatures12->descriptorBindingVariableDescriptorCount = true;
+        pDeviceFeatures12->runtimeDescriptorArray = true;
+        pDeviceFeatures12->separateDepthStencilLayouts = true;
+        pDeviceFeatures12->hostQueryReset = true;
+        pDeviceFeatures12->timelineSemaphore = true;
+        pDeviceFeatures12->bufferDeviceAddress = true;
+        pDeviceFeatures12->shaderOutputViewportIndex = features.ViewInstancing;
+        pDeviceFeatures12->shaderOutputLayer = features.ViewInstancing;
 
-        auto deviceFeatures11 = findOrCreateExtension<VkPhysicalDeviceVulkan11Features>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES, deviceExtensionObjects, added);
-        deviceFeatures11.shaderDrawParameters = true;
-        
-        if (added)
-            deviceExtensionObjects = &deviceFeatures11;
+        VkPhysicalDeviceVulkan11Features deviceFeatures11{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES, .pNext = deviceExtensionObjects };
+        auto pDeviceFeatures11 = findExtension<VkPhysicalDeviceVulkan11Features>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES, deviceExtensionObjects);
 
-        auto depthClipEnableFeatures = findOrCreateExtension<VkPhysicalDeviceDepthClipEnableFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT, deviceExtensionObjects, added);
-        depthClipEnableFeatures.depthClipEnable = true;
-        
-        if (added)
-            deviceExtensionObjects = &depthClipEnableFeatures;
+        if (pDeviceFeatures11 == nullptr) {
+            pDeviceFeatures11 = &deviceFeatures11;
+            deviceExtensionObjects = pDeviceFeatures11;
+        }
 
-        auto extendedDynamicStateFeatures = findOrCreateExtension<VkPhysicalDeviceExtendedDynamicStateFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT, deviceExtensionObjects, added);
-        extendedDynamicStateFeatures.extendedDynamicState = true;
-        
-        if (added)
-            deviceExtensionObjects = &extendedDynamicStateFeatures;
+        pDeviceFeatures11->shaderDrawParameters = true;
 
-        auto descriptorBufferFeatures = findOrCreateExtension<VkPhysicalDeviceDescriptorBufferFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT, deviceExtensionObjects, added);
-        descriptorBufferFeatures.descriptorBuffer = true;
-        
-        if (added)
-            deviceExtensionObjects = &descriptorBufferFeatures;
+        if (features.ViewInstancing) {
+            pDeviceFeatures11->multiview = true;
+#ifndef LITEFX_BUILD_TESTS
+            pDeviceFeatures11->multiviewGeometryShader = true;
+            pDeviceFeatures11->multiviewTessellationShader = true;
+#endif // LITEFX_BUILD_TESTS
+        }
+
+        VkPhysicalDeviceDepthClipEnableFeaturesEXT depthClipEnableFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT, .pNext = deviceExtensionObjects };
+        auto pDepthClipEnableFeatures = findExtension<VkPhysicalDeviceDepthClipEnableFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT, deviceExtensionObjects);
+
+        if (pDepthClipEnableFeatures == nullptr) {
+            pDepthClipEnableFeatures = &depthClipEnableFeatures;
+            deviceExtensionObjects = pDepthClipEnableFeatures;
+        }
+
+        pDepthClipEnableFeatures->depthClipEnable = true;
+
+        VkPhysicalDeviceExtendedDynamicStateFeaturesEXT extendedDynamicStateFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT, .pNext = deviceExtensionObjects };
+        auto pExtendedDynamicStateFeatures = findExtension<VkPhysicalDeviceExtendedDynamicStateFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT, deviceExtensionObjects);
+
+        if (pExtendedDynamicStateFeatures == nullptr) {
+            pExtendedDynamicStateFeatures = &extendedDynamicStateFeatures;
+            deviceExtensionObjects = pExtendedDynamicStateFeatures;
+        }
+
+        pExtendedDynamicStateFeatures->extendedDynamicState = true;
+
+        VkPhysicalDeviceDescriptorBufferFeaturesEXT descriptorBufferFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT, .pNext = deviceExtensionObjects };
+        auto pDescriptorBufferFeatures = findExtension<VkPhysicalDeviceDescriptorBufferFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT, deviceExtensionObjects);
+
+        if (pDescriptorBufferFeatures == nullptr) {
+            pDescriptorBufferFeatures = &descriptorBufferFeatures;
+            deviceExtensionObjects = pDescriptorBufferFeatures;
+        }
+
+        pDescriptorBufferFeatures->descriptorBuffer = true;
 
         // Define the device itself.
         VkDeviceCreateInfo createInfo = {
@@ -582,7 +620,7 @@ public:
             vkCmdSetDescriptorBufferOffsets = reinterpret_cast<PFN_vkCmdSetDescriptorBufferOffsetsEXT>(::vkGetDeviceProcAddr(device, "vkCmdSetDescriptorBufferOffsetsEXT"));
 
         // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
-        
+
         // Return the device instance.
         return device;
     }
