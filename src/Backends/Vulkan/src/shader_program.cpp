@@ -326,13 +326,8 @@ public:
             });
 
             // Parse push constants.
-            // NOTE: Block variables are not exposing the shader stage, they are used from. If there are two shader modules created from the same source, but with different 
-            //       entry points, each using their own push constants, it would be valid, but we are not able to tell which push constant range belongs to which stage.
-            if (pushConstantCount > 1)
-                LITEFX_WARNING(VULKAN_LOG, "More than one push constant range detected for shader stage {0}. If you have multiple entry points, you may be able to split them up into different shader files.", shaderModule->type());
-
             std::ranges::for_each(pushConstants, [&shaderModule, &pushConstantRanges](const SpvReflectBlockVariable* pushConstant) {
-                pushConstantRanges.push_back(PushConstantRangeInfo{ .stage = shaderModule->type(), .offset = pushConstant->absolute_offset, .size = pushConstant->padded_size });
+                pushConstantRanges.emplace_back(shaderModule->type(), pushConstant->absolute_offset, pushConstant->padded_size);
             });
         });
 
@@ -429,12 +424,83 @@ public:
         }(m_device, std::move(descriptorSetLayouts)) | std::ranges::to<Array<SharedPtr<VulkanDescriptorSetLayout>>>();
 
         // Create the push constants layout.
-        auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
+        // NOTE: In Vulkan, push constant ranges are a uniform memory block, that is accessed at different offsets from different stages. We thus need to iterate 
+        //       the ranges and potentially create new ones, where there's an overlap. We assume that the first range starts at offset 0x00. The overall size is
+        //       obtained by the maximum sum of offset and size over all ranges. In between, there can be multiple "partitions" that may be accessed from different
+        //       shader stages.
+        std::ranges::sort(pushConstantRanges, [](const auto& lhs, const auto& rhs) { return lhs.offset <= rhs.offset; });
+
         auto pushConstants = [](Array<PushConstantRangeInfo> pushConstantRanges) -> std::generator<UniquePtr<VulkanPushConstantsRange>> {
-            for (auto it = pushConstantRanges.begin(); it != pushConstantRanges.end(); ++it)
-                co_yield makeUnique<VulkanPushConstantsRange>(it->stage, it->offset, it->size, 0, 0);   // No space or binding for Vulkan push constants.
+            while (!pushConstantRanges.empty())
+            {
+                // Get the first range and remove it.
+                auto range = pushConstantRanges.front();
+                pushConstantRanges.erase(pushConstantRanges.begin());
+
+                // Check if the next range does not overlap - this is the most straightforward case, where we simply yield a 1-1 mapping between ranges and stages.
+                if (pushConstantRanges.empty() || pushConstantRanges.front().offset >= range.offset + range.size)
+                {
+                    co_yield makeUnique<VulkanPushConstantsRange>(range.stage, range.offset, range.size, 0, 0);
+                    continue;
+                }
+
+                // Now we need to remove all ranges until we find the first one again, that does no longer overlap.
+                UInt32 lastEnd = range.offset + range.size;
+                auto overlaps = pushConstantRanges 
+                    | std::views::take_while([&lastEnd](const auto& r) { 
+                            if (lastEnd <= r.offset)
+                                return false;
+
+                            lastEnd = r.offset + r.size;
+                            return true;
+                        })
+                    | std::ranges::to<std::vector>();
+
+                pushConstantRanges.erase(pushConstantRanges.begin(), pushConstantRanges.begin() + overlaps.size());
+
+                // Next, we need to resolve the overlaps. The idea is to walk through the address space incrementally. With each step, we evaluate the size of the 
+                // overlapping region, as well as the affected shader stages. We keep track of the offset and yield a new range at each step.
+                overlaps.insert(overlaps.begin(), range);
+
+                while (!overlaps.empty())
+                {
+                    UInt32 offset = overlaps.front().offset;
+                    ShaderStage stageMask = overlaps.front().stage;
+                    UInt32 size = 0u;
+
+                    // Search for the next overlap begin.
+                    for (auto& r : overlaps)
+                    {
+                        // Get the overlap size.
+                        size = r.offset - offset;
+
+                        // If the overlap size is 0, it means that the range starts at exactly the same position as the last one, so we need to include it into the range.
+                        if (size > 0)
+                            break;
+                        else
+                        {
+                            stageMask |= r.stage;
+                            continue;
+                        }
+                    }
+
+                    // If the size is 0, all overlaps start at the same offset, so we now need to find the smallest size.
+                    if (size == 0)
+                        size = std::ranges::min(overlaps | std::views::transform([](const auto& r) { return r.size; }));
+
+                    // Yield another range.
+                    co_yield makeUnique<VulkanPushConstantsRange>(stageMask, offset, size, 0, 0);
+
+                    // Increase the offset of each overlapping range by the size and remove the ones, where the remaining size gets 0.
+                    std::ranges::for_each(overlaps, [&size](auto& r) { r.offset += size; r.size -= size; });
+                    auto [from, to] = std::ranges::remove_if(overlaps, [](const auto& r) { return r.size == 0; });
+
+                    overlaps.erase(from, to);
+                }
+            }
         }(std::move(pushConstantRanges)) | std::ranges::to<Array<UniquePtr<VulkanPushConstantsRange>>>();
 
+        auto overallSize = std::ranges::max(pushConstants | std::views::transform([](const auto& r) { return r->offset() + r->size(); }));
         auto pushConstantsLayout = makeUnique<VulkanPushConstantsLayout>(pushConstants | std::views::as_rvalue, overallSize);
 
         // Return the pipeline layout.
