@@ -500,7 +500,7 @@ public:
             }
         }(std::move(pushConstantRanges)) | std::ranges::to<Array<UniquePtr<VulkanPushConstantsRange>>>();
 
-        auto overallSize = std::ranges::max(pushConstants | std::views::transform([](const auto& r) { return r->offset() + r->size(); }));
+        auto overallSize = pushConstants.empty() ? 0u : std::ranges::max(pushConstants | std::views::transform([](const auto& r) { return r->offset() + r->size(); }));
         auto pushConstantsLayout = makeUnique<VulkanPushConstantsLayout>(pushConstants | std::views::as_rvalue, overallSize);
 
         // Return the pipeline layout.
