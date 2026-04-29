@@ -456,7 +456,7 @@ public:
                         })
                     | std::ranges::to<std::vector>();
 
-                pushConstantRanges.erase(pushConstantRanges.begin(), pushConstantRanges.begin() + overlaps.size());
+                pushConstantRanges.erase(pushConstantRanges.begin(), pushConstantRanges.begin() + static_cast<decltype(pushConstantRanges)::difference_type>(overlaps.size()));
 
                 // Next, we need to resolve the overlaps. The idea is to walk through the address space incrementally. With each step, we evaluate the size of the 
                 // overlapping region, as well as the affected shader stages. We keep track of the offset and yield a new range at each step.
