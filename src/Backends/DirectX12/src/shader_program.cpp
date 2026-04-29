@@ -69,7 +69,6 @@ private:
     struct PushConstantRangeInfo {
     public:
         ShaderStage stage{ ShaderStage::Other };
-        UInt32 offset{ 0 };
         UInt32 size{ 0 };
         UInt32 location{ 0 };
         UInt32 space{ 0 };
@@ -210,8 +209,6 @@ public:
         }
 
         // Iterate the root parameters.
-        UInt32 pushConstantOffset = 0;
-
         for (UInt32 i(0); i < description->NumParameters; ++i)
         {
             auto rootParameter = description->pParameters[i]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -244,12 +241,11 @@ public:
                     case D3D12_SHADER_VISIBILITY_PIXEL:         stage = ShaderStage::Fragment; break;
                     case D3D12_SHADER_VISIBILITY_AMPLIFICATION: stage = ShaderStage::Task; break;
                     case D3D12_SHADER_VISIBILITY_MESH:          stage = ShaderStage::Mesh; break;
-                    case D3D12_SHADER_VISIBILITY_ALL:           stage = ShaderStage::Any; break; // TODO: Might not work as intended.
-                    default: throw InvalidArgumentException("pushConstantRanges", "The push constants for a shader are defined for invalid or unsupported shader stages. Note that a push constant must only be defined for a single shader stage.");
+                    case D3D12_SHADER_VISIBILITY_ALL:           stage = ShaderStage::Any; break;
+                    default: throw InvalidArgumentException("pushConstantRanges", "The push constants for a shader are defined for invalid or unsupported shader stages.");
                     }
 
-                    pushConstantRanges.push_back(PushConstantRangeInfo{ .stage = stage, .offset = pushConstantOffset, .size = rootParameter.Constants.Num32BitValues * 4, .location = rootParameter.Descriptor.ShaderRegister, .space = rootParameter.Descriptor.RegisterSpace });
-                    pushConstantOffset += rootParameter.Constants.Num32BitValues * 4;
+                    pushConstantRanges.push_back(PushConstantRangeInfo{ .stage = stage, .size = rootParameter.Constants.Num32BitValues * 4, .location = rootParameter.Descriptor.ShaderRegister, .space = rootParameter.Descriptor.RegisterSpace });
                     
                     // Remove the descriptor from the descriptor set.
                     descriptorSetLayouts[rootParameter.Descriptor.RegisterSpace].descriptors.erase(match);
@@ -512,13 +508,8 @@ public:
                         else
                         {
                             // Lookup the last registered range to compute the highest offset.
-                            UInt32 pushConstantOffset = 0;
-
-                            if (!pushConstantRanges.empty())
-                                pushConstantOffset = pushConstantRanges.back().offset + pushConstantRanges.back().size;
-
                             auto rangeSize = descriptor.elements * descriptor.elementSize;
-                            pushConstantRanges.push_back(PushConstantRangeInfo{ .stage = descriptorSet.stage, .offset = pushConstantOffset, .size = rangeSize, .location = descriptor.location, .space = descriptorSet.space });
+                            pushConstantRanges.push_back(PushConstantRangeInfo{ .stage = descriptorSet.stage, .size = rangeSize, .location = descriptor.location, .space = descriptorSet.space });
 
                             // Remove the descriptor from the descriptor set.
                             descriptorSet.descriptors.erase(std::next(std::begin(descriptorSet.descriptors), i--));
@@ -647,12 +638,38 @@ public:
         }(m_device, std::move(descriptorSetLayouts)) | std::ranges::to<Array<SharedPtr<DirectX12DescriptorSetLayout>>>();
 
         // Create the push constants layout.
-        auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
+        // NOTE: In D3D12, push constants are treated as a usual descriptor binding. We thus assume, that mixing different push constant layouts at the same binding over different shader stages 
+        //       is not allowed. This allows us to iterate the ranges based on binding space and register, match them and accumulate the overall size simply by adding up the filtered sizes of
+        //       each range afterwards.
         auto pushConstants = [](Array<PushConstantRangeInfo> pushConstantRanges) -> std::generator<UniquePtr<DirectX12PushConstantsRange>> {
-            for (auto range = pushConstantRanges.begin(); range != pushConstantRanges.end(); ++range)
-                co_yield makeUnique<DirectX12PushConstantsRange>(range->stage, range->offset, range->size, range->space, range->location);
+            UInt32 accumulatedOffset{ 0u };
+
+            while (!pushConstantRanges.empty())
+            {
+                auto range = pushConstantRanges.front();
+                auto match = [&range](const PushConstantRangeInfo& r) { return r.space == range.space && r.location == range.location; };
+                
+                // Find all ranges in the same space and location, get the stages and maximum size.
+                // NOTE: This also matches the front range itself, but we don't care.
+                for (auto& r : pushConstantRanges | std::views::filter(match))
+                {
+                    range.size = std::max(r.size, range.size);
+                    range.stage |= r.stage;
+                }
+
+                // Remove all ranges at the current binding.
+                auto [from, to] = std::ranges::remove_if(pushConstantRanges, match);
+                pushConstantRanges.erase(from, to);
+
+                // Return the range.
+                co_yield makeUnique<DirectX12PushConstantsRange>(range.stage, accumulatedOffset, range.size, range.space, range.location);
+
+                // Accumulate the offset for the next
+                accumulatedOffset += range.size;
+            }
         }(std::move(pushConstantRanges)) | std::ranges::to<Array<UniquePtr<DirectX12PushConstantsRange>>>();
 
+        auto overallSize = std::accumulate(pushConstants.begin(), pushConstants.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range->size(); });
         auto pushConstantsLayout = makeUnique<DirectX12PushConstantsLayout>(pushConstants | std::views::as_rvalue, overallSize);
 
         // Return the pipeline layout.

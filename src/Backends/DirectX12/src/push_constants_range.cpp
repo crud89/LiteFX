@@ -11,21 +11,18 @@ public:
     friend class DirectX12PushConstantsRange;
 
 private:
-    ShaderStage m_stage;
+    ShaderStage m_stageMask;
     UInt32 m_offset, m_size, m_space, m_binding;
 
 public:
-    DirectX12PushConstantsRangeImpl(ShaderStage shaderStage, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) :
-        m_stage(shaderStage), m_offset(offset), m_size(size), m_space(space), m_binding(binding)
+    DirectX12PushConstantsRangeImpl(ShaderStage shaderStageMask, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) :
+        m_stageMask(shaderStageMask), m_offset(offset), m_size(size), m_space(space), m_binding(binding)
     {
         if (offset % 4 != 0)
             throw InvalidArgumentException("offset", "The push constants range offset must be a multiple of 4 bytes.");
 
         if (size % 4 != 0)
             throw InvalidArgumentException("size", "The push constants range size must be a multiple of 4 bytes.");
-
-        if (!(std::to_underlying(shaderStage) && !(std::to_underlying(shaderStage) & (std::to_underlying(shaderStage) - 1))))
-            throw InvalidArgumentException("shaderStage", "A push constant range is only allowed to be associated with one shader stage.");
     }
 };
 
@@ -33,8 +30,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PushConstantsRange::DirectX12PushConstantsRange(ShaderStage shaderStage, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) :
-    m_impl(shaderStage, offset, size, space, binding)
+DirectX12PushConstantsRange::DirectX12PushConstantsRange(ShaderStage shaderStageMask, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) :
+    m_impl(shaderStageMask, offset, size, space, binding)
 {
 }
 
@@ -64,7 +61,7 @@ UInt32 DirectX12PushConstantsRange::size() const noexcept
     return m_impl->m_size;
 }
 
-ShaderStage DirectX12PushConstantsRange::stage() const noexcept
+ShaderStage DirectX12PushConstantsRange::stageMask() const noexcept
 {
-    return m_impl->m_stage;
+    return m_impl->m_stageMask;
 }

@@ -6629,7 +6629,7 @@ namespace LiteFX::Rendering {
         /// Returns the shader stage(s), the range is accessible from.
         /// </summary>
         /// <returns>The shader stage(s), the range is accessible from.</returns>
-        virtual ShaderStage stage() const noexcept = 0;
+        virtual ShaderStage stageMask() const noexcept = 0;
     };
 
     /// <summary>
@@ -6652,16 +6652,6 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The size (in bytes) of the push constants backing memory.</returns>
         virtual UInt32 size() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the push constant range associated with the shader stage provided in <paramref name="stage" />.
-        /// </summary>
-        /// <param name="stage">The shader stage to request the associated push constant range for. Specifying multiple stages is not supported and will raise an exception.</param>
-        /// <returns>The push constant range associated with the provided shader stage.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if no range is mapped to the provided shader stage.</exception>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="stage" /> contains multiple shader stages.</exception>
-        /// <seealso cref="ranges" />
-        virtual const IPushConstantsRange& range(ShaderStage stage) const = 0;
 
         /// <summary>
         /// Returns all push constant ranges.

@@ -73,7 +73,7 @@ public:
         {
             rangeHandles = pushConstantsLayout->ranges()
                 | std::views::transform([](const auto& range) -> VkPushConstantRange {
-                        return { .stageFlags = static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), .offset = range->offset(), .size = range->size() };
+                        return { .stageFlags = static_cast<VkShaderStageFlags>(std::to_underlying(range->stageMask())), .offset = range->offset(), .size = range->size() };
                     })
                 | std::ranges::to<Array<VkPushConstantRange>>();
         }

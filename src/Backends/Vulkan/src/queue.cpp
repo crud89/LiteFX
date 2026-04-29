@@ -139,23 +139,26 @@ void VulkanQueue::beginDebugRegion(const String& label, const Vectors::ByteVecto
 		.color = { static_cast<float>(color.x()) / static_cast<float>(std::numeric_limits<UInt8>::max()), static_cast<float>(color.y()) / static_cast<float>(std::numeric_limits<UInt8>::max()), static_cast<float>(color.z()) / static_cast<float>(std::numeric_limits<UInt8>::max()), 1.0f }
 	};
 	
-	::vkQueueBeginDebugUtilsLabel(this->handle(), &labelInfo);
+	if (::vkQueueBeginDebugUtilsLabel)
+		::vkQueueBeginDebugUtilsLabel(this->handle(), &labelInfo);
 }
 
 void VulkanQueue::endDebugRegion() const noexcept
 {
-	::vkQueueEndDebugUtilsLabel(this->handle());
+	if (::vkQueueEndDebugUtilsLabel)
+		::vkQueueEndDebugUtilsLabel(this->handle());
 }
 
 void VulkanQueue::setDebugMarker(const String& label, const Vectors::ByteVector3& color) const noexcept
 {
-	VkDebugUtilsLabelEXT labelInfo{
+	VkDebugUtilsLabelEXT labelInfo {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
 		.pLabelName = label.c_str(),
 		.color = { static_cast<float>(color.x()) / static_cast<float>(std::numeric_limits<UInt8>::max()), static_cast<float>(color.y()) / static_cast<float>(std::numeric_limits<UInt8>::max()), static_cast<float>(color.z()) / static_cast<float>(std::numeric_limits<UInt8>::max()), 1.0f }
 	};
 
-	::vkQueueInsertDebugUtilsLabel(this->handle(), &labelInfo);
+	if (::vkQueueInsertDebugUtilsLabel)
+		::vkQueueInsertDebugUtilsLabel(this->handle(), &labelInfo);
 }
 #endif // LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
 
