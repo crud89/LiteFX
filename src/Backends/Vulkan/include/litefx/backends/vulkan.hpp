@@ -1879,15 +1879,15 @@ namespace LiteFX::Rendering::Backends {
         /// Initializes a new Vulkan render pipeline.
         /// </summary>
         /// <param name="renderPass">The parent render pass.</param>
-        /// <param name="shaderProgram">The shader program used by the pipeline.</param>
         /// <param name="layout">The layout of the pipeline.</param>
+        /// <param name="shaderProgram">The shader program used by the pipeline.</param>
         /// <param name="inputAssembler">The input assembler state of the pipeline.</param>
         /// <param name="rasterizer">The rasterizer state of the pipeline.</param>
         /// <param name="samples">The initial multi-sampling level of the render pipeline.</param>
         /// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
         /// <param name="name">The optional name of the render pipeline.</param>
-        explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const SharedPtr<VulkanShaderProgram>& shaderProgram, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanInputAssembler>& inputAssembler, const SharedPtr<VulkanRasterizer>& rasterizer, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool enableAlphaToCoverage = false, const String& name = "");
-
+        explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanShaderProgram>& shaderProgram, const SharedPtr<VulkanInputAssembler>& inputAssembler, const SharedPtr<VulkanRasterizer>& rasterizer, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool enableAlphaToCoverage = false, const String& name = "");
+        
         /// <inheritdoc />
         VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 
