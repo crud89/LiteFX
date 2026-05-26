@@ -40,6 +40,16 @@ public:
 
 	inline Allocation allocate(UInt64 size, UInt32 alignment, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const override
 	{
+		auto allocation = this->tryAllocate(size, alignment, strategy, privateData);
+
+		if (allocation.has_value()) [[likely]]
+			return allocation.value();
+		else
+			throw RuntimeException("An allocation from a virtual allocator failed.");
+	}
+
+	inline Optional<Allocation> tryAllocate(UInt64 size, UInt32 alignment = 1u, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const override 
+	{
 		D3D12MA::VIRTUAL_ALLOCATION_DESC allocDesc = {
 			.Flags = strategy == AllocationStrategy::OptimizeTime ?
 				D3D12MA::VIRTUAL_ALLOCATION_FLAG_STRATEGY_MIN_TIME :
@@ -53,12 +63,12 @@ public:
 		auto result = m_block->Allocate(&allocDesc, &allocation, &offset);
 
 		if (FAILED(result)) [[unlikely]]
-			throw RuntimeException("An allocation from a virtual allocator failed.");
+			return std::nullopt;
 
 		if (privateData != nullptr)
 			m_block->SetAllocationPrivateData(allocation, privateData);
 
-		return { .Handle = allocation.AllocHandle, .Size = size, .Offset = offset };
+		return Allocation { .Handle = allocation.AllocHandle, .Size = size, .Offset = offset };
 	}
 
 	inline void free(Allocation&& allocation) const override

@@ -38,6 +38,16 @@ public:
 
 	inline Allocation allocate(UInt64 size, UInt32 alignment, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const override
 	{
+		auto allocation = this->tryAllocate(size, alignment, strategy, privateData);
+
+		if (allocation.has_value()) [[likely]]
+			return allocation.value();
+		else
+			throw RuntimeException("An allocation from a virtual allocator failed.");
+	}
+
+	inline Optional<Allocation> tryAllocate(UInt64 size, UInt32 alignment = 1u, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const override
+	{
 		VmaVirtualAllocationCreateInfo allocationInfo = {
 			.size = size,
 			.alignment = alignment,
@@ -57,10 +67,11 @@ public:
 			if (privateData != nullptr)
 				::vmaSetVirtualAllocationUserData(m_block, allocation, privateData);
 
-			return Allocation{ .Handle = std::bit_cast<UInt64>(allocation), .Size = size, .Offset = static_cast<UInt64>(offset) };
+			return Allocation { .Handle = std::bit_cast<UInt64>(allocation), .Size = size, .Offset = static_cast<UInt64>(offset) };
 		}
 		else [[unlikely]]
-			throw RuntimeException("An allocation from a virtual allocator failed.");
+			return std::nullopt;
+
 	}
 
 	inline void free(Allocation&& allocation) const override
