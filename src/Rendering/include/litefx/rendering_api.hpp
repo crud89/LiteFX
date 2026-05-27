@@ -3136,6 +3136,16 @@ namespace LiteFX::Rendering {
             [[nodiscard]] virtual Allocation allocate(UInt64 size, UInt32 alignment = 1u, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const = 0;
 
             /// <summary>
+            /// Attempts to allocate a piece of memory of <paramref name="size" /> bytes, aligned to <paramref name="alignment" />. If the allocation fails `std::nullopt` is returned.
+            /// </summary>
+            /// <param name="size">The size (in bytes) of the resource to place in the allocation.</param>
+            /// <param name="alignment">The alignment requirements of the resource.</param>
+            /// <param name="strategy">The strategy to look for a place to put the allocation in.</param>
+            /// <param name="privateData">A pointer to an object that should be internally associated with the allocation.</param>
+            /// <returns>An object that contains details about the allocation, or `std::nullopt` if the allocation fails.</returns>
+            [[nodiscard]] virtual Optional<Allocation> tryAllocate(UInt64 size, UInt32 alignment = 1u, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const = 0;
+
+            /// <summary>
             /// Releases an allocation from the allocator, so that its memory can be re-used later.
             /// </summary>
             /// <param name="allocation">The allocation to release.</param>
@@ -3218,6 +3228,18 @@ namespace LiteFX::Rendering {
         /// <returns>An object that contains details about the allocation.</returns>
         [[nodiscard]] inline Allocation allocate(UInt64 size, UInt32 alignment = 1u, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const {
             return m_impl->allocate(size, alignment, strategy, privateData);
+        }
+
+        /// <summary>
+        /// Attempts to allocate a piece of memory of <paramref name="size" /> bytes, aligned to <paramref name="alignment" />. If the allocation fails `std::nullopt` is returned.
+        /// </summary>
+        /// <param name="size">The size (in bytes) of the resource to place in the allocation.</param>
+        /// <param name="alignment">The alignment requirements of the resource.</param>
+        /// <param name="strategy">The strategy to look for a place to put the allocation in.</param>
+        /// <param name="privateData">A pointer to an object that should be internally associated with the allocation.</param>
+        /// <returns>An object that contains details about the allocation, or `std::nullopt` if the allocation fails.</returns>
+        [[nodiscard]] virtual Optional<Allocation> tryAllocate(UInt64 size, UInt32 alignment = 1u, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const {
+            return m_impl->tryAllocate(size, alignment, strategy, privateData);
         }
 
         /// <summary>
