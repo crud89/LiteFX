@@ -222,6 +222,31 @@ public:
     {
         return m_secondaryCommandBuffers.at(static_cast<const IFrameBuffer*>(&frameBuffer));
     }
+
+    inline Array<SharedPtr<const IDirectX12Image>> getRenderTargetImages(const DirectX12FrameBuffer& frameBuffer, RenderTargetType type) 
+    {
+        auto images = m_renderTargets
+            | std::views::filter([type](const auto& renderTarget) { return renderTarget.type() == type; })
+            | std::views::transform([&frameBuffer](const auto& renderTarget) { return frameBuffer[renderTarget].shared_from_this(); })
+            | std::ranges::to<std::vector>();
+        std::ranges::sort(images);
+        auto duplicates = std::ranges::unique(images);
+        images.erase(duplicates.begin(), duplicates.end());
+
+        return images;
+    }
+
+    inline Array<SharedPtr<const IDirectX12Image>> getInputAttachmentImages(const DirectX12FrameBuffer& frameBuffer)
+    {
+        auto images = m_inputAttachments
+            | std::views::transform([&frameBuffer](const auto& dependency) { return frameBuffer[dependency.renderTarget()].shared_from_this(); })
+            | std::ranges::to<std::vector>();
+        std::ranges::sort(images);
+        auto duplicates = std::ranges::unique(images);
+        images.erase(duplicates.begin(), duplicates.end());
+
+        return images;
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -360,24 +385,26 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
     auto beginCommandBuffer = m_impl->getBeginCommandBuffer(frameBuffer);
     beginCommandBuffer->begin();
 
-    // Declare render pass input transition barriers for render targets and input attachments.
-    DirectX12Barrier renderTargetBarrier(PipelineStage::None, PipelineStage::RenderTarget), depthStencilBarrier(PipelineStage::None, PipelineStage::DepthStencil);
+    // Declare render pass input transition barriers for render targets and input attachments. For this, we need to obtain the frame buffer images from the current
+    // frame buffer. As multiple render targets are allowed to map to the same image, we must make sure they are not listed multiple times in the barriers.
+    DirectX12Barrier renderTargetBarrier(PipelineStage::None, PipelineStage::RenderTarget), 
+        depthStencilBarrier(PipelineStage::None, PipelineStage::DepthStencil), 
+        inputAttachmentBarrier(PipelineStage::None, PipelineStage::All);
 
-    std::ranges::for_each(m_impl->m_renderTargets, [&renderTargetBarrier, &depthStencilBarrier, &frameBuffer](const RenderTarget& renderTarget) {
-        auto& image = frameBuffer[renderTarget];
-
-        if (renderTarget.type() == RenderTargetType::DepthStencil)
-            depthStencilBarrier.transition(image, ResourceAccess::None, ResourceAccess::DepthStencilWrite, ImageLayout::Undefined, ImageLayout::DepthWrite);
-        else //if (!renderTarget.multiQueueAccess())
-            renderTargetBarrier.transition(image, ResourceAccess::None, ResourceAccess::RenderTarget, ImageLayout::Undefined, ImageLayout::RenderTarget);
-        //else  // Resources with simultaneous access enabled don't need to be transitioned.
-        //    renderTargetBarrier.transition(image, ResourceAccess::ShaderRead, ResourceAccess::RenderTarget, ImageLayout::Common);
+    std::ranges::for_each(m_impl->getRenderTargetImages(frameBuffer, RenderTargetType::Color), [&renderTargetBarrier](const auto& image) {
+        renderTargetBarrier.transition(*image, ResourceAccess::None, ResourceAccess::RenderTarget, ImageLayout::Undefined, ImageLayout::RenderTarget);
     });
 
-    DirectX12Barrier inputAttachmentBarrier(PipelineStage::None, PipelineStage::All);
+    std::ranges::for_each(m_impl->getRenderTargetImages(frameBuffer, RenderTargetType::Present), [&renderTargetBarrier](const auto& image) {
+        renderTargetBarrier.transition(*image, ResourceAccess::None, ResourceAccess::RenderTarget, ImageLayout::Undefined, ImageLayout::RenderTarget); 
+    });
 
-    std::ranges::for_each(m_impl->m_inputAttachments, [&inputAttachmentBarrier, &frameBuffer](const RenderPassDependency& dependency) {
-        inputAttachmentBarrier.transition(frameBuffer[dependency.renderTarget()], ResourceAccess::None, ResourceAccess::ShaderRead, ImageLayout::Undefined, ImageLayout::ShaderResource);
+    std::ranges::for_each(m_impl->getRenderTargetImages(frameBuffer, RenderTargetType::DepthStencil), [&depthStencilBarrier](const auto& image) {
+        depthStencilBarrier.transition(*image, ResourceAccess::None, ResourceAccess::DepthStencilWrite, ImageLayout::Undefined, ImageLayout::DepthWrite);
+    });
+
+    std::ranges::for_each(m_impl->getInputAttachmentImages(frameBuffer), [&inputAttachmentBarrier](const auto& image) {
+        inputAttachmentBarrier.transition(*image, ResourceAccess::None, ResourceAccess::ShaderRead, ImageLayout::Undefined, ImageLayout::ShaderResource);
     });
 
     beginCommandBuffer->barrier(renderTargetBarrier);
@@ -430,29 +457,24 @@ UInt64 DirectX12RenderPass::end() const
 
     // Transition the present and depth/stencil views.
     // NOTE: Ending the render pass implicitly barriers with legacy resource state?!
-    DirectX12Barrier renderTargetBarrier(PipelineStage::RenderTarget, PipelineStage::None), depthStencilBarrier(PipelineStage::DepthStencil, PipelineStage::None),
-        resolveBarrier(PipelineStage::RenderTarget, PipelineStage::Resolve), presentBarrier(PipelineStage::RenderTarget, PipelineStage::Transfer);
-    std::ranges::for_each(m_impl->m_renderTargets, [&](const RenderTarget& renderTarget) {
-        //if (renderTarget.multiQueueAccess())
-        //    return;  // Resources with simultaneous access enabled don't need to be transitioned.
+    DirectX12Barrier renderTargetBarrier(PipelineStage::RenderTarget, PipelineStage::None), 
+        depthStencilBarrier(PipelineStage::DepthStencil, PipelineStage::None),
+        resolveBarrier(PipelineStage::RenderTarget, PipelineStage::Resolve), 
+        presentBarrier(PipelineStage::RenderTarget, PipelineStage::Transfer);
 
-        switch (renderTarget.type())
-        {
-        default:
-        case RenderTargetType::Color:
-            renderTargetBarrier.transition(frameBuffer[renderTarget], ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::RenderTarget, ImageLayout::ShaderResource);
-            break;
-        case RenderTargetType::DepthStencil:
-            depthStencilBarrier.transition(frameBuffer[renderTarget], ResourceAccess::DepthStencilWrite, ResourceAccess::None, ImageLayout::DepthWrite, ImageLayout::DepthRead);
-            break;
-        case RenderTargetType::Present:
-            if (requiresResolve)
-                resolveBarrier.transition(frameBuffer[renderTarget], ResourceAccess::RenderTarget, ResourceAccess::ResolveRead, ImageLayout::RenderTarget, ImageLayout::ResolveSource);
-            else
-                presentBarrier.transition(frameBuffer[renderTarget], ResourceAccess::RenderTarget, ResourceAccess::TransferRead, ImageLayout::RenderTarget, ImageLayout::CopySource);
+    std::ranges::for_each(m_impl->getRenderTargetImages(frameBuffer, RenderTargetType::Color), [&renderTargetBarrier](const auto& image) {
+        renderTargetBarrier.transition(*image, ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::RenderTarget, ImageLayout::ShaderResource);
+    });
 
-            break;
-        }
+    std::ranges::for_each(m_impl->getRenderTargetImages(frameBuffer, RenderTargetType::Present), [&](const auto& image) {
+        if (requiresResolve)
+            resolveBarrier.transition(*image, ResourceAccess::RenderTarget, ResourceAccess::ResolveRead, ImageLayout::RenderTarget, ImageLayout::ResolveSource);
+        else
+            presentBarrier.transition(*image, ResourceAccess::RenderTarget, ResourceAccess::TransferRead, ImageLayout::RenderTarget, ImageLayout::CopySource);
+    });
+
+    std::ranges::for_each(m_impl->getRenderTargetImages(frameBuffer, RenderTargetType::DepthStencil), [&depthStencilBarrier](const auto& image) {
+        depthStencilBarrier.transition(*image, ResourceAccess::DepthStencilWrite, ResourceAccess::None, ImageLayout::DepthWrite, ImageLayout::DepthRead);
     });
 
     endCommandBuffer->barrier(renderTargetBarrier);

@@ -251,6 +251,31 @@ public:
     {
         return m_secondaryCommandBuffers.at(static_cast<const IFrameBuffer*>(&frameBuffer));
     }
+
+    inline Array<SharedPtr<const IVulkanImage>> getRenderTargetImages(const VulkanFrameBuffer& frameBuffer, RenderTargetType type)
+    {
+        auto images = m_renderTargets
+            | std::views::filter([type](const auto& renderTarget) { return renderTarget.type() == type; })
+            | std::views::transform([&frameBuffer](const auto& renderTarget) { return frameBuffer[renderTarget].shared_from_this(); })
+            | std::ranges::to<std::vector>();
+        std::ranges::sort(images);
+        auto duplicates = std::ranges::unique(images);
+        images.erase(duplicates.begin(), duplicates.end());
+
+        return images;
+    }
+
+    inline Array<SharedPtr<const IVulkanImage>> getInputAttachmentImages(const VulkanFrameBuffer& frameBuffer)
+    {
+        auto images = m_inputAttachments
+            | std::views::transform([&frameBuffer](const auto& dependency) { return frameBuffer[dependency.renderTarget()].shared_from_this(); })
+            | std::ranges::to<std::vector>();
+        std::ranges::sort(images);
+        auto duplicates = std::ranges::unique(images);
+        images.erase(duplicates.begin(), duplicates.end());
+
+        return images;
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -409,13 +434,16 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
     // Declare render pass input transition barriers for render targets and input attachments.
     VulkanBarrier renderTargetBarrier(PipelineStage::None, PipelineStage::RenderTarget), depthStencilBarrier(PipelineStage::None, PipelineStage::DepthStencil);
 
-    std::ranges::for_each(m_impl->m_renderTargets, [&renderTargetBarrier, &depthStencilBarrier, &frameBuffer](const RenderTarget& renderTarget) {
-        auto& image = frameBuffer[renderTarget];
+    std::ranges::for_each(m_impl->getRenderTargetImages(frameBuffer, RenderTargetType::Color), [&renderTargetBarrier](const auto& image) {
+        renderTargetBarrier.transition(*image, ResourceAccess::None, ResourceAccess::RenderTarget, ImageLayout::ShaderResource, ImageLayout::RenderTarget);
+    });
 
-        if (renderTarget.type() == RenderTargetType::DepthStencil)
-            depthStencilBarrier.transition(image, ResourceAccess::None, ResourceAccess::DepthStencilWrite, ImageLayout::DepthRead, ImageLayout::DepthWrite);
-        else
-            renderTargetBarrier.transition(image, ResourceAccess::None, ResourceAccess::RenderTarget, ImageLayout::ShaderResource, ImageLayout::RenderTarget);
+    std::ranges::for_each(m_impl->getRenderTargetImages(frameBuffer, RenderTargetType::Present), [&renderTargetBarrier](const auto& image) {
+        renderTargetBarrier.transition(*image, ResourceAccess::None, ResourceAccess::RenderTarget, ImageLayout::ShaderResource, ImageLayout::RenderTarget);
+    });
+
+    std::ranges::for_each(m_impl->getRenderTargetImages(frameBuffer, RenderTargetType::DepthStencil), [&depthStencilBarrier](const auto& image) {
+        depthStencilBarrier.transition(*image, ResourceAccess::None, ResourceAccess::DepthStencilWrite, ImageLayout::DepthRead, ImageLayout::DepthWrite);
     });
 
     // If the present target is multi-sampled, transition the back buffer image into resolve state.
@@ -469,26 +497,24 @@ UInt64 VulkanRenderPass::end() const
     bool requiresResolve{ this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1 };
 
     // Transition the present and depth/stencil views.
-    VulkanBarrier renderTargetBarrier(PipelineStage::RenderTarget, PipelineStage::None), depthStencilBarrier(PipelineStage::DepthStencil, PipelineStage::None),
-        resolveBarrier(PipelineStage::RenderTarget, PipelineStage::None), presentBarrier(PipelineStage::RenderTarget, PipelineStage::Transfer);
-    std::ranges::for_each(m_impl->m_renderTargets, [&](const RenderTarget& renderTarget) {
-        switch (renderTarget.type())
-        {
-        default:
-        case RenderTargetType::Color:
-            renderTargetBarrier.transition(frameBuffer[renderTarget], ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::RenderTarget, ImageLayout::ShaderResource);
-            break;
-        case RenderTargetType::DepthStencil:
-            depthStencilBarrier.transition(frameBuffer[renderTarget], ResourceAccess::DepthStencilWrite, ResourceAccess::None, ImageLayout::DepthWrite, ImageLayout::DepthRead);
-            break;
-        case RenderTargetType::Present:
-            if (requiresResolve)
-                resolveBarrier.transition(frameBuffer[renderTarget], ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::RenderTarget, ImageLayout::ShaderResource);
-            else
-                presentBarrier.transition(frameBuffer[renderTarget], ResourceAccess::RenderTarget, ResourceAccess::TransferRead, ImageLayout::RenderTarget, ImageLayout::CopySource);
+    VulkanBarrier renderTargetBarrier(PipelineStage::RenderTarget, PipelineStage::None), 
+        depthStencilBarrier(PipelineStage::DepthStencil, PipelineStage::None),
+        resolveBarrier(PipelineStage::RenderTarget, PipelineStage::None), 
+        presentBarrier(PipelineStage::RenderTarget, PipelineStage::Transfer);
 
-            break;
-        }
+    std::ranges::for_each(m_impl->getRenderTargetImages(frameBuffer, RenderTargetType::Color), [&renderTargetBarrier](const auto& image) {
+        renderTargetBarrier.transition(*image, ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::RenderTarget, ImageLayout::ShaderResource);
+    });
+
+    std::ranges::for_each(m_impl->getRenderTargetImages(frameBuffer, RenderTargetType::Present), [&](const auto& image) {
+        if (requiresResolve)
+            resolveBarrier.transition(*image, ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::RenderTarget, ImageLayout::ShaderResource);
+        else
+            presentBarrier.transition(*image, ResourceAccess::RenderTarget, ResourceAccess::TransferRead, ImageLayout::RenderTarget, ImageLayout::CopySource);
+    });
+
+    std::ranges::for_each(m_impl->getRenderTargetImages(frameBuffer, RenderTargetType::DepthStencil), [&depthStencilBarrier](const auto& image) {
+        depthStencilBarrier.transition(*image, ResourceAccess::DepthStencilWrite, ResourceAccess::None, ImageLayout::DepthWrite, ImageLayout::DepthRead);
     });
 
     primaryCommandBuffer->barrier(renderTargetBarrier);
