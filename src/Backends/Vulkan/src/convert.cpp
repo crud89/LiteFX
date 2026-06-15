@@ -770,6 +770,8 @@ VkPrimitiveTopology LiteFX::Rendering::Backends::Vk::getPrimitiveTopology(Primit
 		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	case PrimitiveTopology::TriangleListWithAdjacency:
 		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY;
+	case PrimitiveTopology::TriangleStrip:
+		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	case PrimitiveTopology::TriangleStripWithAdjacency:
 		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
 	case PrimitiveTopology::PointList:
