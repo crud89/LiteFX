@@ -1,5 +1,6 @@
 #include <litefx/backends/dx12.hpp>
 #include <tchar.h>
+#include <dxcore.h>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -15,6 +16,7 @@ private:
 	DXGI_ADAPTER_DESC1 m_properties{};
 	UInt64 m_driverVersion{ 0 };
 	UInt32 m_apiVersion{ D3D12_SDK_VERSION };
+	GraphicsAdapterType m_type{};
 
 public:
     DirectX12GraphicsAdapterImpl(const DirectX12GraphicsAdapter& adapter) noexcept
@@ -35,6 +37,40 @@ public:
 			LITEFX_WARNING(DIRECTX12_LOG, "Unable to query adapter driver version (HRESULT = {})", hr);
 		else
 			m_driverVersion = umdVersion.QuadPart;
+
+		// Get the graphics adapter type.
+		if (m_properties.Flags & DXGI_ADAPTER_FLAG3_SOFTWARE)
+			m_type = GraphicsAdapterType::Software;
+		else
+		{
+			// DXGI is quite limited in the information it provides about an adapter. To determine the GPU type, query DXCore instead.
+			ComPtr<IDXCoreAdapterFactory1> adapterFactory;
+			ComPtr<IDXCoreAdapter1> coreAdapter;
+
+			if (FAILED(hr = ::DXCoreCreateAdapterFactory(IID_PPV_ARGS(&adapterFactory))))
+			{
+				LITEFX_WARNING(DIRECTX12_LOG, "Unable to acquire GPU type for adapter {}: core adapter factory creation returned {}.", adapter.uniqueId(), hr);
+				return;
+			}
+
+			if (FAILED(hr = adapterFactory->GetAdapterByLuid(m_properties.AdapterLuid, IID_PPV_ARGS(&coreAdapter))))
+			{
+				LITEFX_WARNING(DIRECTX12_LOG, "Unable to acquire GPU type for adapter {}: core adapter query returned {}.", adapter.uniqueId(), hr);
+				return;
+			}
+
+			bool integrated{}, hardware{};
+
+			if (FAILED(hr = coreAdapter->GetProperty(DXCoreAdapterProperty::IsIntegrated, &integrated)) ||
+				FAILED(hr = coreAdapter->GetProperty(DXCoreAdapterProperty::IsHardware, &hardware)))
+			{
+				LITEFX_WARNING(DIRECTX12_LOG, "Unable to acquire GPU type for adapter {}: core adapter property query returned {}.", adapter.uniqueId(), hr);
+				return;
+			}
+
+			// NOTE: We treat all non-integrated hardware adapters as dedicated GPU and all other devices as CPU (iGPU).
+			m_type = hardware && !integrated ? GraphicsAdapterType::GPU : GraphicsAdapterType::CPU;
+		}
 	}
 };
 
@@ -71,7 +107,7 @@ UInt32 DirectX12GraphicsAdapter::deviceId() const noexcept
 
 GraphicsAdapterType DirectX12GraphicsAdapter::type() const noexcept
 {
-    return m_impl->m_properties.Flags & DXGI_ADAPTER_FLAG3_SOFTWARE ? GraphicsAdapterType::CPU : GraphicsAdapterType::GPU;
+	return m_impl->m_type;
 }
 
 UInt64 DirectX12GraphicsAdapter::driverVersion() const noexcept

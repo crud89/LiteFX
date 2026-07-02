@@ -46,11 +46,13 @@ public:
         switch (properties.deviceType)
         {
         case VK_PHYSICAL_DEVICE_TYPE_CPU:
+            m_type = GraphicsAdapterType::Software;
+            break;
+        case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
             m_type = GraphicsAdapterType::CPU;
             break;
         case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
         case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-        case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
             m_type = GraphicsAdapterType::GPU;
             break;
         default:

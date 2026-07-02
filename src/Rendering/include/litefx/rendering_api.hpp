@@ -77,22 +77,27 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// The adapter is not a valid graphics adapter.
         /// </summary>
-        None = 0x00000000,
-        
-        /// <summary>
-        /// The adapter is a dedicated GPU or integrated CPU adapter.
-        /// </summary>
-        GPU = 0x00000001,
-
-        /// <summary>
-        /// The adapter is a software driver.
-        /// </summary>
-        CPU = 0x00000002,
+        None = 0,
 
         /// <summary>
         /// The adapter type is not captured by this enum. This value is used internally to mark invalid adapters and should not be used.
         /// </summary>
-        Other = 0x7FFFFFFF,
+        Other = 1,
+
+        /// <summary>
+        /// The adapter is a software driver.
+        /// </summary>
+        Software = 2,
+
+        /// <summary>
+        /// The adapter is a GPU integrated into the CPU.
+        /// </summary>
+        CPU = 3,
+        
+        /// <summary>
+        /// The adapter is a dedicated or external GPU.
+        /// </summary>
+        GPU = 4,
     };
 
     /// <summary>
