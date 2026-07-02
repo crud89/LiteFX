@@ -1,5 +1,10 @@
 #include <litefx/backends/vulkan.hpp>
 
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
+#include <dxgi1_6.h>
+#include <wrl/client.h>
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
+
 using namespace LiteFX::Rendering::Backends;
 
 // Exported extensions (we should probably find a better solution for this).
@@ -284,6 +289,42 @@ const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& 
         return match->get();
 
     return nullptr;
+}
+
+const VulkanGraphicsAdapter* VulkanBackend::findAdapter(GpuPreference preference) const noexcept
+{
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
+    // Get the first adapter for the preference.
+    Microsoft::WRL::ComPtr<IDXGIFactory7> factory;
+    Microsoft::WRL::ComPtr<IDXGIAdapter1> adapterInterface;
+
+    if (FAILED(::CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory))))
+    {
+        LITEFX_WARNING(VULKAN_LOG, "Unable to create DXGI factory for retrieving adapter preferences. Falling back to default adapter order.");
+        return this->findAdapter();
+    }
+
+    if (FAILED(factory->EnumAdapterByGpuPreference(0u, static_cast<DXGI_GPU_PREFERENCE>(preference), IID_PPV_ARGS(&adapterInterface))))
+    {
+        LITEFX_WARNING(VULKAN_LOG, "Unable acquire adapter preferences. Falling back to default adapter order.");
+        return this->findAdapter();
+    }
+
+    // Get the LUID.
+    UInt64 adapterId{};
+    DXGI_ADAPTER_DESC1 adapterDecriptor;
+
+    if (FAILED(adapterInterface->GetDesc1(&adapterDecriptor)))
+    {
+        LITEFX_WARNING(VULKAN_LOG, "Unable obtain LUID from preferred adapter. Falling back to default adapter order.");
+        return this->findAdapter();
+    }
+
+    std::memcpy(&adapterId, &adapterDecriptor.AdapterLuid, sizeof(LUID));
+    return this->findAdapter(adapterId);
+#else  // LITEFX_BUILD_DIRECTX_12_BACKEND
+    return this->findAdapter();
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
 void VulkanBackend::registerDevice(const String& name, SharedPtr<VulkanDevice>&& device)

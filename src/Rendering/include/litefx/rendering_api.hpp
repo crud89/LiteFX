@@ -101,6 +101,26 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Provides a preference setting when selecting an adapter.
+    /// </summary>
+    enum class GpuPreference {
+        /// <summary>
+        /// Returns the first adapter in the list without any preference.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Returns the preferred adapter for minimum power consumption.
+        /// </summary>
+        Power = 1,
+
+        /// <summary>
+        /// Returns the preferred adapter for maximum performance.
+        /// </summary>
+        Performance = 2
+    };
+
+    /// <summary>
     /// Represents the type of a <see cref="CommandQueue" />.
     /// </summary>
     /// <remarks>
@@ -11386,6 +11406,20 @@ namespace LiteFX::Rendering {
         /// <returns>A pointer to a graphics adapter, or <c>nullptr</c>, if no adapter could be found.</returns>
         /// <seealso cref="IGraphicsAdapter" />
         virtual const IGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const noexcept = 0;
+
+        /// <summary>
+        /// Finds an adapter using a preference setting, based on the user preferences made in the operating system settings.
+        /// </summary>
+        /// <remarks>
+        /// Note that the backend might return any adapter if the operating system does not support GPU preference settings, or if the backend does not support querying
+        /// adapters from such a setting.
+        /// 
+        /// The Vulkan backend only supports this method if the DirectX 12 backend is also available, as it performs the query through DXGI.
+        /// </remarks>
+        /// <param name="preference">The profile for the preferred adapter.</param>
+        /// <returns>A pointer to a graphics adapter, or <c>nullptr</c>, if no adapter could be found.</returns>
+        /// <seealso cref="IGraphicsAdapter" />
+        virtual const IGraphicsAdapter* findAdapter(GpuPreference preference) const noexcept = 0;
 
         /// <summary>
         /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.

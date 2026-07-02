@@ -1837,6 +1837,9 @@ namespace LiteFX::Rendering {
         const adapter_type* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const noexcept override = 0;
 
         /// <inheritdoc />
+        const adapter_type* findAdapter(GpuPreference preference) const noexcept override = 0;
+
+        /// <inheritdoc />
         virtual void registerDevice(const String& name, SharedPtr<device_type>&& device) = 0;
 
         /// <summary>

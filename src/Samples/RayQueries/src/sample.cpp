@@ -386,11 +386,7 @@ void SampleApp::onInit()
         int width{}, height{};
         ::glfwGetFramebufferSize(window, &width, &height);
 
-        auto adapter = backend->findAdapter(m_adapterId);
-
-        if (adapter == nullptr)
-            adapter = backend->findAdapter(std::nullopt);
-
+        auto adapter = m_adapterId.has_value() ? backend->findAdapter(m_adapterId) : backend->findAdapter(GpuPreference::Performance);
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create viewport and scissors.

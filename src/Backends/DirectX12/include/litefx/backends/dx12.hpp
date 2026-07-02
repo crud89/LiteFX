@@ -2976,6 +2976,9 @@ namespace LiteFX::Rendering::Backends {
         const DirectX12GraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const noexcept override;
 
         /// <inheritdoc />
+        const DirectX12GraphicsAdapter* findAdapter(GpuPreference preference) const noexcept override;
+
+        /// <inheritdoc />
         void registerDevice(const String& name, SharedPtr<DirectX12Device>&& device) override;
 
         /// <inheritdoc />

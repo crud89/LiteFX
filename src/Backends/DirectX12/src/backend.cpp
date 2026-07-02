@@ -118,6 +118,25 @@ const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UIn
     return nullptr;
 }
 
+const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(GpuPreference preference) const noexcept 
+{
+    // Get the first adapter for the preference.
+    ComPtr<IDXGIAdapter1> adapterInterface;
+    
+    if (FAILED(this->handle()->EnumAdapterByGpuPreference(0u, static_cast<DXGI_GPU_PREFERENCE>(preference), IID_PPV_ARGS(&adapterInterface))))
+        return this->findAdapter();
+    
+    // Get the LUID.
+    UInt64 adapterId{};
+    DXGI_ADAPTER_DESC1 adapterDecriptor;
+    
+    if (FAILED(adapterInterface->GetDesc1(&adapterDecriptor)))
+        return this->findAdapter();
+
+    std::memcpy(&adapterId, &adapterDecriptor.AdapterLuid, sizeof(LUID));
+    return this->findAdapter(adapterId);
+}
+
 void DirectX12Backend::registerDevice(const String& name, SharedPtr<DirectX12Device>&& device)
 {
     if (m_impl->m_devices.contains(name)) [[unlikely]]
