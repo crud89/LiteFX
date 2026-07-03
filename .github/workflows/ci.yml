@@ -118,15 +118,14 @@ jobs:
           #- name: ubuntu-latest
           #  os: ubuntu-latest
 
-    steps:
-      - name: Setup environment
-        run: echo "Setup environment"
-        env:
-          MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
-          VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
+    env:
+      MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
+      VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
+      CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
 
-          DEPENDENCY_DIR: ${{ runner.temp }}/dep/win
-          CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
+    steps:
+      - name: Setup dependency directory
+        run: echo "DEPENDENCY_DIR=$env:RUNNER_TEMP/dep/win" >> $env:GITHUB_ENV
 
       - name: Lookup dependency cache (no restore use)
         id: cache
@@ -163,16 +162,15 @@ jobs:
             compiler: clang
             configuration: windows-clang-x64-test
             
-    steps:
-      - name: Setup environment
-        run: echo "Setup environment"
-        env:
-          MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
-          VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
-          LLVM_VERSION: ${{ vars.LLVM_VERSION }}
+    env:
+      MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
+      VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
+      LLVM_VERSION: ${{ vars.LLVM_VERSION }}
+      CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
 
-          DEPENDENCY_DIR: ${{ runner.temp }}/dep/win
-          CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
+    steps:
+      - name: Setup dependency directory
+        run: echo "DEPENDENCY_DIR=$env:RUNNER_TEMP/dep/win" >> $env:GITHUB_ENV
 
       - name: Retrieve PR info
         id: retrieve-pr-from-issue-comment
@@ -508,17 +506,16 @@ jobs:
             compiler: clang
             triplet: x64-windows
             configuration: windows-clang-x64-release-static
+            
+    env:
+      MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
+      VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
+      LLVM_VERSION: ${{ vars.LLVM_VERSION }}
+      CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
 
     steps:
-      - name: Setup environment
-        run: echo "Setup environment"
-        env:
-          MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
-          VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
-          LLVM_VERSION: ${{ vars.LLVM_VERSION }}
-
-          DEPENDENCY_DIR: ${{ runner.temp }}/dep/win
-          CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
+      - name: Setup dependency directory
+        run: echo "DEPENDENCY_DIR=$env:RUNNER_TEMP/dep/win" >> $env:GITHUB_ENV
 
       - name: Retrieve PR info
         id: retrieve-pr-from-issue-comment
