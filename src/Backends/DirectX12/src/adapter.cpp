@@ -19,7 +19,7 @@ private:
 	GraphicsAdapterType m_type{};
 
 public:
-    DirectX12GraphicsAdapterImpl(const DirectX12GraphicsAdapter& adapter) noexcept
+    DirectX12GraphicsAdapterImpl(const DirectX12GraphicsAdapter& adapter)
 	{
 		// Store adapter properties.
 		HRESULT hr = adapter.handle()->GetDesc1(&m_properties);
@@ -47,13 +47,13 @@ public:
 			ComPtr<IDXCoreAdapterFactory1> adapterFactory;
 			ComPtr<IDXCoreAdapter1> coreAdapter;
 
-			if (FAILED(hr = ::DXCoreCreateAdapterFactory(IID_PPV_ARGS(&adapterFactory))))
+			if (FAILED(hr = ::DXCoreCreateAdapterFactory(IID_PPV_ARGS(&adapterFactory)))) // NOLINT(bugprone-assignment-in-if-condition)
 			{
 				LITEFX_WARNING(DIRECTX12_LOG, "Unable to acquire GPU type for adapter {}: core adapter factory creation returned {}.", adapter.uniqueId(), hr);
 				return;
 			}
 
-			if (FAILED(hr = adapterFactory->GetAdapterByLuid(m_properties.AdapterLuid, IID_PPV_ARGS(&coreAdapter))))
+			if (FAILED(hr = adapterFactory->GetAdapterByLuid(m_properties.AdapterLuid, IID_PPV_ARGS(&coreAdapter)))) // NOLINT(bugprone-assignment-in-if-condition)
 			{
 				LITEFX_WARNING(DIRECTX12_LOG, "Unable to acquire GPU type for adapter {}: core adapter query returned {}.", adapter.uniqueId(), hr);
 				return;
@@ -61,8 +61,8 @@ public:
 
 			bool integrated{}, hardware{};
 
-			if (FAILED(hr = coreAdapter->GetProperty(DXCoreAdapterProperty::IsIntegrated, &integrated)) ||
-				FAILED(hr = coreAdapter->GetProperty(DXCoreAdapterProperty::IsHardware, &hardware)))
+			if (FAILED(hr = coreAdapter->GetProperty(DXCoreAdapterProperty::IsIntegrated, &integrated)) || // NOLINT(bugprone-assignment-in-if-condition)
+				FAILED(hr = coreAdapter->GetProperty(DXCoreAdapterProperty::IsHardware, &hardware))) // NOLINT(bugprone-assignment-in-if-condition)
 			{
 				LITEFX_WARNING(DIRECTX12_LOG, "Unable to acquire GPU type for adapter {}: core adapter property query returned {}.", adapter.uniqueId(), hr);
 				return;

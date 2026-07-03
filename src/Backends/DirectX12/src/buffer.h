@@ -36,7 +36,7 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12Buffer& operator=(const DirectX12Buffer&) = delete;
 
 	public:
-		~DirectX12Buffer() noexcept override;
+		~DirectX12Buffer() override;
 
 		// IBuffer interface.
 	public:

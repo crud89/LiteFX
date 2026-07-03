@@ -109,7 +109,7 @@ VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, const Enu
     this->handle() = m_impl->initialize(*this, descriptorSetLayouts | std::ranges::to<std::vector>(), std::move(pushConstantsLayout));
 }
 
-VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device) noexcept :
+VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device) noexcept : // NOLINT(bugprone-exception-escape)
     Resource<VkPipelineLayout>(VK_NULL_HANDLE), m_impl(device)
 {
 }

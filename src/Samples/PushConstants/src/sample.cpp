@@ -1,11 +1,13 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-enum DescriptorSets : UInt32 // NOLINT(performance-enum-size)
+enum DescriptorSets : UInt32 // NOLINT(performance-enum-size, cppcoreguidelines-use-enum-class)
 {
     Constant = 0,                                       // All buffers that are immutable.
     PerFrame = 1,                                       // All buffers that are updated each frame.
 };
+
+// NOLINTBEGIN(bugprone-throwing-static-initialization)
 
 const Array<Vertex> vertices =
 {
@@ -56,6 +58,8 @@ const Array<glm::vec4> colors =
     { 0.230f, 0.238f, 0.652f, 1.f },
 };
 
+// NOLINTEND(bugprone-throwing-static-initialization)
+
 template<typename TRenderBackend> requires
     meta::implements<TRenderBackend, IRenderBackend>
 struct FileExtensions {
@@ -64,11 +68,11 @@ struct FileExtensions {
 
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
 template<>
-const String FileExtensions<VulkanBackend>::SHADER = "spv";
+const String FileExtensions<VulkanBackend>::SHADER = "spv"; // NOLINT(bugprone-throwing-static-initialization)
 #endif // LITEFX_BUILD_VULKAN_BACKEND
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
 template<>
-const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
+const String FileExtensions<DirectX12Backend>::SHADER = "dxi"; // NOLINT(bugprone-throwing-static-initialization)
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 template<typename TRenderBackend> requires
@@ -418,8 +422,8 @@ void SampleApp::drawFrame()
     {
         // Initialize the object buffer and push it to the command buffer.
         ObjectBuffer buffer{
-            .World = glm::translate(glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)), translations[i]), // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-            .Color = colors[i]
+            .World = glm::translate(glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)), translations[i]), // NOLINT(cppcoreguidelines-avoid-magic-numbers, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+            .Color = colors[i] // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         };
 
         commandBuffer->pushConstants(*geometryPipeline.layout()->pushConstants(), &buffer);

@@ -3,11 +3,15 @@
 
 constexpr UInt32 LIGHT_SOURCES = 8;
 
-enum DescriptorSets : UInt32 // NOLINT(performance-enum-size)
+enum DescriptorSets : UInt32 // NOLINT(performance-enum-size, cppcoreguidelines-use-enum-class)
 {
     Constant = 0,                                       // All buffers that are immutable.
     PerFrame = 1,                                       // All buffers that are updated each frame.
 };
+
+// NOLINTBEGIN(bugprone-throwing-static-initialization)
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 
 const Array<Vertex> vertices =
 {
@@ -46,9 +50,6 @@ const Array<UInt16> indices = {
     20, 22, 21, 21, 22, 23  // Top
 };
 
-// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
-// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
-
 struct CameraBuffer {
     glm::mat4 ViewProjection;
     glm::vec4 Position;
@@ -75,6 +76,7 @@ struct LightBuffer { // NOLINT(cppcoreguidelines-avoid-c-arrays)
 
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
+// NOLINTEND(bugprone-throwing-static-initialization)
 
 template<typename TRenderBackend> requires
     meta::implements<TRenderBackend, IRenderBackend>
@@ -84,11 +86,11 @@ struct FileExtensions {
 
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
 template<>
-const String FileExtensions<VulkanBackend>::SHADER = "spv";
+const String FileExtensions<VulkanBackend>::SHADER = "spv"; // NOLINT(bugprone-throwing-static-initialization)
 #endif // LITEFX_BUILD_VULKAN_BACKEND
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
 template<>
-const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
+const String FileExtensions<DirectX12Backend>::SHADER = "dxi"; // NOLINT(bugprone-throwing-static-initialization)
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 template<typename TRenderBackend> requires

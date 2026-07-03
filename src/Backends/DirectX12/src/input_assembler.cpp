@@ -13,7 +13,7 @@ public:
 private:
     Dictionary<UInt32, SharedPtr<DirectX12VertexBufferLayout>> m_vertexBufferLayouts{};
     SharedPtr<DirectX12IndexBufferLayout> m_indexBufferLayout{};
-    PrimitiveTopology m_primitiveTopology{};
+    PrimitiveTopology m_primitiveTopology{ PrimitiveTopology::PointList };
     UInt32 m_controlPoints{ 0u };
 
 public:

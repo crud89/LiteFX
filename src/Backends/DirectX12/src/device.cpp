@@ -379,7 +379,7 @@ void DirectX12Device::updateGlobalDescriptors(const DirectX12DescriptorSet& desc
 	}
 }
 
-void DirectX12Device::bindDescriptorSet(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept
+void DirectX12Device::bindDescriptorSet(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const
 {
 	// Deduct, whether to set the graphics or compute descriptor tables.
 	// TODO: Maybe we could store a simple boolean on the pipeline state to make this easier.
@@ -579,20 +579,20 @@ SharedPtr<DirectX12FrameBuffer> DirectX12Device::makeFrameBuffer(StringView name
 	return DirectX12FrameBuffer::create(*this, renderArea, allocationCallback, name);
 }
 
-MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(Format format) const noexcept
+MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(Format format) const
 {
 	constexpr auto allLevels = std::array { MultiSamplingLevel::x64, MultiSamplingLevel::x32, MultiSamplingLevel::x16, MultiSamplingLevel::x8, MultiSamplingLevel::x4, MultiSamplingLevel::x2, MultiSamplingLevel::x1 };
 	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS levels{ .Format = DX12::getFormat(format) };
 
 	for (size_t level(0); level < allLevels.size(); ++level)
 	{
-		levels.SampleCount = std::to_underlying(allLevels[level]); // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+		levels.SampleCount = std::to_underlying(allLevels[level]); // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 		
 		if (FAILED(this->handle()->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &levels, sizeof(levels))))
 			continue;
 
 		if (levels.NumQualityLevels > 0)
-			return allLevels[level]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+			return allLevels[level]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 	}
 
 	LITEFX_WARNING(DIRECTX12_LOG, "No supported multi-sampling levels could be queried. Assuming that multi-sampling is disabled.");
@@ -631,7 +631,7 @@ void DirectX12Device::wait() const
 	}
 
 	// Signal the event value on the graphics queue.
-		hr = std::as_const(*m_impl->m_queues[i++]).handle()->Signal(fence.Get(), 1);
+		hr = std::as_const(*m_impl->m_queues[i++]).handle()->Signal(fence.Get(), 1); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 	
 	if (FAILED(hr))
 	{

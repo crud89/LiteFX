@@ -278,7 +278,7 @@ const Array<SharedPtr<const VulkanGraphicsAdapter>>& VulkanBackend::adapters() c
     return m_impl->m_adapters;
 }
 
-const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& adapterId) const noexcept
+const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& adapterId) const
 {
     // We create a temporary copy of the adapters array here, which we can sort by the adapter type. This way we return dedicated GPUs before integrated GPUs, before software rasterizers and so on, if no
     // adapter ID is specified.
@@ -291,7 +291,7 @@ const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& 
     return nullptr;
 }
 
-const VulkanGraphicsAdapter* VulkanBackend::findAdapter(GpuPreference preference) const noexcept
+const VulkanGraphicsAdapter* VulkanBackend::findAdapter(GpuPreference preference) const
 {
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
     // Get the first adapter for the preference.
@@ -351,7 +351,7 @@ void VulkanBackend::releaseDevice(const String& name)
     m_impl->m_devices.erase(name);
 }
 
-VulkanDevice* VulkanBackend::device(const String& name) noexcept
+VulkanDevice* VulkanBackend::device(const String& name)
 {
     if (!m_impl->m_devices.contains(name)) [[unlikely]]
         return nullptr;
@@ -359,7 +359,7 @@ VulkanDevice* VulkanBackend::device(const String& name) noexcept
     return m_impl->m_devices[name].get();
 }
 
-const VulkanDevice* VulkanBackend::device(const String& name) const noexcept
+const VulkanDevice* VulkanBackend::device(const String& name) const
 {
     if (!m_impl->m_devices.contains(name)) [[unlikely]]
         return nullptr;

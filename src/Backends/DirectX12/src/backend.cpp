@@ -105,7 +105,7 @@ const Array<SharedPtr<const DirectX12GraphicsAdapter>>& DirectX12Backend::adapte
     return m_impl->m_adapters;
 }
 
-const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UInt64>& adapterId) const noexcept
+const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UInt64>& adapterId) const
 {
     // We create a temporary copy of the adapters array here, which we can sort by the adapter type. This way we return dedicated GPUs before integrated GPUs, before software rasterizers and so on, if no
     // adapter ID is specified.
@@ -118,7 +118,7 @@ const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UIn
     return nullptr;
 }
 
-const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(GpuPreference preference) const noexcept 
+const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(GpuPreference preference) const
 {
     // Get the first adapter for the preference.
     ComPtr<IDXGIAdapter1> adapterInterface;
@@ -161,7 +161,7 @@ void DirectX12Backend::releaseDevice(const String& name)
     m_impl->m_devices.erase(name);
 }
 
-DirectX12Device* DirectX12Backend::device(const String& name) noexcept
+DirectX12Device* DirectX12Backend::device(const String& name)
 {
     if (!m_impl->m_devices.contains(name)) [[unlikely]]
         return nullptr;
@@ -169,7 +169,7 @@ DirectX12Device* DirectX12Backend::device(const String& name) noexcept
     return m_impl->m_devices[name].get();
 }
 
-const DirectX12Device* DirectX12Backend::device(const String& name) const noexcept
+const DirectX12Device* DirectX12Backend::device(const String& name) const
 {
     if (!m_impl->m_devices.contains(name)) [[unlikely]]
         return nullptr;

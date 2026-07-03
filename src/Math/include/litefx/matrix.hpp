@@ -152,7 +152,7 @@ namespace LiteFX::Math {
 			std::array<scalar_type, mat_rows * mat_cols> data { };
 
 			for (size_t i = 0; i < mat_rows && i < mat_cols; ++i)
-				data[i * mat_cols + i] = 1.0f; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+				data[i * mat_cols + i] = 1.0f; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
 			return mat_type(std::move(data));
 		}
@@ -409,7 +409,7 @@ namespace LiteFX::Math {
 		constexpr Matrix(glm::mat<mat_cols, mat_rows, scalar_type>&& mat) noexcept {
 			for (size_t r { 0 }; r < mat_rows; ++r)
 				for (size_t c { 0 }; c < mat_cols; ++c)
-					m_elements[r * mat_cols + c] = std::move(mat[c][r]); // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+					m_elements[r * mat_cols + c] = std::move(mat[c][r]); // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 		}
 
 		/// <summary>

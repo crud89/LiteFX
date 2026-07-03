@@ -4,7 +4,7 @@ using namespace LiteFX::Rendering;
 
 const IShaderModule* ShaderRecordCollection::findShaderModule(StringView name) const noexcept
 {
-	return (*m_program)[name];
+	return (*m_program)[name]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 const Array<UniquePtr<const IShaderRecord>>& ShaderRecordCollection::shaderRecords() const noexcept

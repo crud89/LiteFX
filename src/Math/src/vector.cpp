@@ -10,15 +10,15 @@ using namespace LiteFX::Math;
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 Vector1f::Vector1f(const glm::f32vec1& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector1f::Vector1f(glm::f32vec1&& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector1f::operator glm::f32vec1() const noexcept {
-    return glm::f32vec1(m_elements[0]);
+    return glm::f32vec1(m_elements[0]); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 #endif
 
@@ -42,15 +42,15 @@ Vector1f::operator DirectX::XMVECTOR() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 Vector1u::Vector1u(const glm::u32vec1& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector1u::Vector1u(glm::u32vec1&& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector1u::operator glm::u32vec1() const noexcept {
-    return glm::u32vec1(m_elements[0]);
+    return glm::u32vec1(m_elements[0]); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 #endif
 
@@ -74,15 +74,15 @@ Vector1u::operator DirectX::XMVECTOR() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 Vector2f::Vector2f(const glm::f32vec2& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector2f::Vector2f(glm::f32vec2&& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector2f::operator glm::f32vec2() const noexcept {
-    return { m_elements[0], m_elements[1] };
+    return { m_elements[0], m_elements[1] }; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 #endif
 
@@ -129,15 +129,15 @@ Vector2f::operator DirectX::XMFLOAT2() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 Vector2u::Vector2u(const glm::u32vec2& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector2u::Vector2u(glm::u32vec2&& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector2u::operator glm::u32vec2() const noexcept {
-    return { m_elements[0], m_elements[1] };
+    return { m_elements[0], m_elements[1] }; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 #endif
 
@@ -184,15 +184,15 @@ Vector2u::operator DirectX::XMUINT2() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 Vector2i::Vector2i(const glm::i32vec2& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector2i::Vector2i(glm::i32vec2&& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector2i::operator glm::i32vec2() const noexcept {
-    return { m_elements[0], m_elements[1] };
+    return { m_elements[0], m_elements[1] }; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 #endif
 
@@ -239,15 +239,15 @@ Vector2i::operator DirectX::XMINT2() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 Vector3f::Vector3f(const glm::f32vec3& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector3f::Vector3f(glm::f32vec3&& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector3f::operator glm::f32vec3() const noexcept {
-    return { m_elements[0], m_elements[1], m_elements[2] };
+    return { m_elements[0], m_elements[1], m_elements[2] }; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 #endif
 
@@ -298,15 +298,15 @@ Vector3f::operator DirectX::XMFLOAT3() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 Vector3u::Vector3u(const glm::u32vec3& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector3u::Vector3u(glm::u32vec3&& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector3u::operator glm::u32vec3() const noexcept {
-    return { m_elements[0], m_elements[1], m_elements[2] };
+    return { m_elements[0], m_elements[1], m_elements[2] }; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 #endif
 
@@ -357,15 +357,15 @@ Vector3u::operator DirectX::XMUINT3() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 Vector3i::Vector3i(const glm::i32vec3& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector3i::Vector3i(glm::i32vec3&& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector3i::operator glm::i32vec3() const noexcept {
-    return { m_elements[0], m_elements[1], m_elements[2] };
+    return { m_elements[0], m_elements[1], m_elements[2] }; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 #endif
 
@@ -416,15 +416,15 @@ Vector3i::operator DirectX::XMINT3() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 Vector4f::Vector4f(const glm::f32vec4& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector4f::Vector4f(glm::f32vec4&& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector4f::operator glm::f32vec4() const noexcept {
-    return { m_elements[0], m_elements[1], m_elements[2], m_elements[3] };
+    return { m_elements[0], m_elements[1], m_elements[2], m_elements[3] }; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 #endif
 
@@ -479,15 +479,15 @@ Vector4f::operator DirectX::XMFLOAT4() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 Vector4u::Vector4u(const glm::u32vec4& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector4u::Vector4u(glm::u32vec4&& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector4u::operator glm::u32vec4() const noexcept {
-    return { m_elements[0], m_elements[1], m_elements[2], m_elements[3] };
+    return { m_elements[0], m_elements[1], m_elements[2], m_elements[3] }; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 #endif
 
@@ -542,15 +542,15 @@ Vector4u::operator DirectX::XMUINT4() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 Vector4i::Vector4i(const glm::i32vec4& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector4i::Vector4i(glm::i32vec4&& v) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); }); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 Vector4i::operator glm::i32vec4() const noexcept {
-    return { m_elements[0], m_elements[1], m_elements[2], m_elements[3] };
+    return { m_elements[0], m_elements[1], m_elements[2], m_elements[3] }; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 #endif
 

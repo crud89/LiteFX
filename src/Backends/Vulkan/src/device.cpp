@@ -648,7 +648,7 @@ public:
         }
     }
 
-    inline void initializeResourceHeaps() noexcept
+    inline void initializeResourceHeaps()
     {
         // NOTE: Check the notes in `VulkanGraphicsFactory::createDescriptorHeap` for an explanation why we only use one descriptor heap in the Vulkan backend!
 
@@ -753,7 +753,7 @@ Span<const String> VulkanDevice::enabledExtensions() const noexcept
     return m_impl->m_extensions;
 }
 
-void VulkanDevice::setDebugName([[maybe_unused]] VkDebugReportObjectTypeEXT type, [[maybe_unused]] UInt64 handle, [[maybe_unused]] StringView name) const noexcept
+void VulkanDevice::setDebugName([[maybe_unused]] VkDebugReportObjectTypeEXT type, [[maybe_unused]] UInt64 handle, [[maybe_unused]] StringView name) const
 {
 #ifndef NDEBUG
     if (m_impl->debugMarkerSetObjectName != nullptr)
@@ -857,7 +857,7 @@ void VulkanDevice::updateGlobalDescriptors(const VulkanDescriptorSet& descriptor
             static_cast<size_t>(descriptorSet.globalHeapAllocation(DescriptorHeapType::Resource).Offset) + firstDescriptor);
 }
 
-void VulkanDevice::bindDescriptorSet(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept
+void VulkanDevice::bindDescriptorSet(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const
 {
     // Copy the descriptors to the global heaps and set the root table parameters.
     if (descriptorSet.layout().bindsResources() || descriptorSet.layout().bindsSamplers()) // Discard empty sets.
@@ -1002,7 +1002,7 @@ SharedPtr<VulkanFrameBuffer> VulkanDevice::makeFrameBuffer(StringView name, cons
     return VulkanFrameBuffer::create(*this, renderArea, allocationCallback, name);
 }
 
-MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(Format format) const noexcept
+MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(Format format) const
 {
     auto limits = m_impl->m_adapter->limits();
     VkSampleCountFlags sampleCounts = limits.framebufferColorSampleCounts;

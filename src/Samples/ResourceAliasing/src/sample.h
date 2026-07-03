@@ -133,8 +133,8 @@ public:
 		auto resources = m_device->factory().allocate(resourceInfos, AllocationBehavior::Default, canAlias)
 			| std::views::take(2)
 			| std::ranges::to<std::vector>();
-		m_depthBuffer = resources[0].image<const IImage>();
-		m_postColorBuffer = resources[1].image<const IImage>();
+		m_depthBuffer = resources[0].image<const IImage>(); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+		m_postColorBuffer = resources[1].image<const IImage>(); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 	}
 
 	void onFrameBufferResizing(const void* /*sender*/, const IFrameBuffer::ResizeEventArgs& e) {
