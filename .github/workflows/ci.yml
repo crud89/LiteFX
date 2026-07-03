@@ -160,7 +160,7 @@ jobs:
           rm '${{ github.workspace }}/dep/mesa/mesa3d-${{ env.mesaDriverVersion }}-release-msvc.7z'
             
       - name: Cache Mesa3D
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         if: steps.lookup-mesa.outputs.cache-hit != 'true'
         with:
           path: ${{ github.workspace }}/dep/mesa/
@@ -269,7 +269,7 @@ jobs:
           cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
 
       - name: Restore Mesa3D
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: ${{ github.workspace }}/dep/mesa/
           key: ${{ matrix.os }}-mesa3d-${{ env.mesaDriverVersion }}
