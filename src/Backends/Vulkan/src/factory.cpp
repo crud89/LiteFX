@@ -556,14 +556,14 @@ bool VulkanGraphicsFactory::supportsResizableBaseAddressRegister() const noexcep
 	// Check the heap sizes for all memory types that are both, DEVICE_LOCAL and HOST_VISIBLE. Default BAR size is 256 Mb. If we found a
 	// heap that has equal or less than that, we ignore it, even if it might still be ReBAR-supported, but with that small BAR memory we
 	// might as well assume non-support.
-	auto memTypes = Span{ memProps[0]->memoryTypes, memProps[0]->memoryTypeCount }; // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
+	auto memTypes = Span{ memProps[0]->memoryTypes, memProps[0]->memoryTypeCount }; // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
 	for (auto& memType : memTypes
 		| std::views::filter([](const auto& type) { return
 			(type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT &&
 			(type.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT; }))
 	{
-		if (memProps[0]->memoryHeaps[memType.heapIndex].size > DEFAULT_BAR_SIZE) // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+		if (memProps[0]->memoryHeaps[memType.heapIndex].size > DEFAULT_BAR_SIZE) // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 			return true;
 	}
 
@@ -575,10 +575,10 @@ Array<MemoryHeapStatistics> VulkanGraphicsFactory::memoryStatistics() const
 	// Query the memory properties from VMA to get the number of heaps.
 	std::array<const VkPhysicalDeviceMemoryProperties*, 1> memProps{};
 	::vmaGetMemoryProperties(m_impl->m_allocator, memProps.data());
-	auto memoryTypes = Span{ memProps[0]->memoryTypes, memProps[0]->memoryTypeCount }; // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
+	auto memoryTypes = Span{ memProps[0]->memoryTypes, memProps[0]->memoryTypeCount }; // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
 	// Allocate array for heap statistics.
-	Array<VmaBudget> heapBudgets(memProps[0]->memoryHeapCount); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
+	Array<VmaBudget> heapBudgets(memProps[0]->memoryHeapCount); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 	::vmaGetHeapBudgets(m_impl->m_allocator, heapBudgets.data());
 
 	// Convert the heap budgets to the API types.
@@ -626,8 +626,8 @@ DetailedMemoryStatistics VulkanGraphicsFactory::detailedMemoryStatistics() const
 	// Query the memory properties from VMA to get the number of heaps.
 	std::array<const VkPhysicalDeviceMemoryProperties*, 1> memProps{};
 	::vmaGetMemoryProperties(m_impl->m_allocator, memProps.data());
-	UInt32 heapCount = memProps[0]->memoryHeapCount, typeCount = memProps[0]->memoryTypeCount; // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
-	auto memoryTypes = Span{ memProps[0]->memoryTypes, memProps[0]->memoryTypeCount }; // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
+	UInt32 heapCount = memProps[0]->memoryHeapCount, typeCount = memProps[0]->memoryTypeCount; // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+	auto memoryTypes = Span{ memProps[0]->memoryTypes, memProps[0]->memoryTypeCount }; // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
 	// Query the total memory statistics.
 	VmaTotalStatistics stats{};
@@ -651,7 +651,7 @@ DetailedMemoryStatistics VulkanGraphicsFactory::detailedMemoryStatistics() const
 		.perResourceHeap = stats.memoryType
 			| std::views::take(typeCount)
 			| std::views::transform([&, i = 0](const auto& stats) mutable -> DetailedMemoryStatistics::StatisticsBlock {
-					const auto& type = memoryTypes[i++];
+					const auto& type = memoryTypes[i++]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 					return convertStats(stats, (type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (type.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 				})
 			| std::ranges::to<Array<DetailedMemoryStatistics::StatisticsBlock>>(),

@@ -20,7 +20,7 @@ public:
 private:
     Array<VulkanDescriptorLayout> m_descriptorLayouts;
     Queue<Array<Byte>> m_freeDescriptorSets;
-    ShaderStage m_stages{};
+    ShaderStage m_stages{ ShaderStage::Other };
     UInt32 m_space{}, m_maxUnboundedArraySize{};
     mutable std::mutex m_mutex;
     SharedPtr<const VulkanDevice> m_device;
@@ -295,7 +295,7 @@ public:
             m_maxUnboundedArraySize = descriptorCountSupportInfo.maxVariableDescriptorCount;
 
             // Reset the unbounded array descriptor count.
-            bindings[unboundedDescriptorIndex].descriptorCount = std::min(m_maxUnboundedArraySize, unboundedDescriptorCount);
+            bindings[unboundedDescriptorIndex].descriptorCount = std::min(m_maxUnboundedArraySize, unboundedDescriptorCount); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         }
 
         VkDescriptorSetLayout layout{};
@@ -581,7 +581,7 @@ Generator<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocate(UI
             }
 
             // Advance to next provided binding set.
-            bindings++;
+            bindings++; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         }
 
         co_yield std::move(descriptorSet);

@@ -279,7 +279,7 @@ VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice& device, c
 	this->handle() = m_impl->initialize(*this);
 }
 
-VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice& device, ShaderRecordCollection&& shaderRecords) noexcept :
+VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice& device, ShaderRecordCollection&& shaderRecords) noexcept : // NOLINT(bugprone-exception-escape)
 	VulkanPipelineState(VK_NULL_HANDLE), m_impl(device, std::move(shaderRecords))
 {
 }

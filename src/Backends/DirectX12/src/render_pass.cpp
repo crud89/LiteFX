@@ -331,7 +331,7 @@ const RenderPassDependency& DirectX12RenderPass::inputAttachment(UInt32 location
     if (location >= m_impl->m_inputAttachments.size()) [[unlikely]]
         throw ArgumentOutOfRangeException("location", std::make_pair(0uz, m_impl->m_inputAttachments.size()), static_cast<size_t>(location), "The render pass does not contain an input attachment at location {0}.", location);
 
-    return m_impl->m_inputAttachments[location];
+    return m_impl->m_inputAttachments[location]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 const Optional<DescriptorBindingPoint>& DirectX12RenderPass::inputAttachmentSamplerBinding() const noexcept 
@@ -364,7 +364,7 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
     DirectX12Barrier renderTargetBarrier(PipelineStage::None, PipelineStage::RenderTarget), depthStencilBarrier(PipelineStage::None, PipelineStage::DepthStencil);
 
     std::ranges::for_each(m_impl->m_renderTargets, [&renderTargetBarrier, &depthStencilBarrier, &frameBuffer](const RenderTarget& renderTarget) {
-        auto& image = frameBuffer[renderTarget];
+        auto& image = frameBuffer[renderTarget]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
         if (renderTarget.type() == RenderTargetType::DepthStencil)
             depthStencilBarrier.transition(image, ResourceAccess::None, ResourceAccess::DepthStencilWrite, ImageLayout::Undefined, ImageLayout::DepthWrite);
@@ -377,7 +377,7 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
     DirectX12Barrier inputAttachmentBarrier(PipelineStage::None, PipelineStage::All);
 
     std::ranges::for_each(m_impl->m_inputAttachments, [&inputAttachmentBarrier, &frameBuffer](const RenderPassDependency& dependency) {
-        inputAttachmentBarrier.transition(frameBuffer[dependency.renderTarget()], ResourceAccess::None, ResourceAccess::ShaderRead, ImageLayout::Undefined, ImageLayout::ShaderResource);
+        inputAttachmentBarrier.transition(frameBuffer[dependency.renderTarget()], ResourceAccess::None, ResourceAccess::ShaderRead, ImageLayout::Undefined, ImageLayout::ShaderResource); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
     });
 
     beginCommandBuffer->barrier(renderTargetBarrier);
@@ -426,7 +426,7 @@ UInt64 DirectX12RenderPass::end() const
 
     // If the present target is multi-sampled, we need to resolve it to the back buffer.
     const auto& backBufferImage = swapChain.image();
-    bool requiresResolve{ this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1 };
+    bool requiresResolve{ this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1 }; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
     // Transition the present and depth/stencil views.
     // NOTE: Ending the render pass implicitly barriers with legacy resource state?!
@@ -436,6 +436,7 @@ UInt64 DirectX12RenderPass::end() const
         //if (renderTarget.multiQueueAccess())
         //    return;  // Resources with simultaneous access enabled don't need to be transitioned.
 
+        // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         switch (renderTarget.type())
         {
         default:
@@ -453,6 +454,7 @@ UInt64 DirectX12RenderPass::end() const
 
             break;
         }
+        // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
     });
 
     endCommandBuffer->barrier(renderTargetBarrier);
@@ -465,7 +467,7 @@ UInt64 DirectX12RenderPass::end() const
         resolveBarrier.transition(backBufferImage, ResourceAccess::Common, ResourceAccess::ResolveWrite, ImageLayout::Common, ImageLayout::ResolveDestination);
         endCommandBuffer->barrier(resolveBarrier);
 
-        auto& multiSampledImage = frameBuffer[*m_impl->m_presentTarget];
+        auto& multiSampledImage = frameBuffer[*m_impl->m_presentTarget]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         std::as_const(*endCommandBuffer).handle()->ResolveSubresource(backBufferImage.handle().Get(), 0, multiSampledImage.handle().Get(), 0, DX12::getFormat(multiSampledImage.format()));
 
         // Transition the present target back to the present state.
@@ -480,7 +482,7 @@ UInt64 DirectX12RenderPass::end() const
         beginPresentBarrier.transition(backBufferImage, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
         endCommandBuffer->barrier(beginPresentBarrier);
 
-        auto& presentTarget = frameBuffer[*m_impl->m_presentTarget];
+        auto& presentTarget = frameBuffer[*m_impl->m_presentTarget]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         endCommandBuffer->transfer(presentTarget, backBufferImage);
 
         DirectX12Barrier endPresentBarrier(PipelineStage::Transfer, PipelineStage::None);

@@ -515,7 +515,7 @@ DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(const DirectX12Device& 
 	m_impl->initialize(*this);
 }
 
-DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(const DirectX12Device& device, ShaderRecordCollection&& shaderRecords) noexcept :
+DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(const DirectX12Device& device, ShaderRecordCollection&& shaderRecords) noexcept : // NOLINT(bugprone-exception-escape)
 	DirectX12PipelineState(nullptr), m_impl(device, std::move(shaderRecords))
 {
 }

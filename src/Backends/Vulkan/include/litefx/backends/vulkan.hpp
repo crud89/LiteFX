@@ -8,6 +8,8 @@
 #pragma warning(push)
 #pragma warning(disable:4250) // Base class members are inherited via dominance.
 
+// NOLINTBEGIN(bugprone-derived-method-shadowing-base-method)
+
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Math;
     using namespace LiteFX::Rendering;
@@ -631,13 +633,13 @@ namespace LiteFX::Rendering::Backends {
         /// Returns the shader byte code.
         /// </summary>
         /// <returns>The shader byte code.</returns>
-        virtual const Array<UInt32>& bytecode() const noexcept;
+        const Array<UInt32>& bytecode() const noexcept;
 
         /// <summary>
         /// Returns the shader stage creation info for convenience.
         /// </summary>
         /// <returns>The shader stage creation info for convenience.</returns>
-        virtual VkPipelineShaderStageCreateInfo shaderStageDefinition() const;
+        VkPipelineShaderStageCreateInfo shaderStageDefinition() const;
     };
 
     /// <summary>
@@ -708,7 +710,7 @@ namespace LiteFX::Rendering::Backends {
         const Array<UniquePtr<const VulkanShaderModule>>& modules() const noexcept override;
 
         /// <inheritdoc />
-        virtual SharedPtr<VulkanPipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints = {}) const;
+        SharedPtr<VulkanPipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints = {}) const;
 
     private:
         SharedPtr<IPipelineLayout> parsePipelineLayout(Enumerable<PipelineBindingHint> hints) const override {
@@ -764,7 +766,7 @@ namespace LiteFX::Rendering::Backends {
         /// Returns the parent descriptor set layout.
         /// </summary>
         /// <returns>The parent descriptor set layout.</returns>
-        virtual const VulkanDescriptorSetLayout& layout() const noexcept;
+        const VulkanDescriptorSetLayout& layout() const noexcept;
 
     private:
         /// <summary>
@@ -1439,7 +1441,7 @@ namespace LiteFX::Rendering::Backends {
         /// </remarks>
         /// <returns>A reference to the line width.</returns>
         /// <seealso href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#features-wideLines" />
-        virtual void updateLineWidth(Float lineWidth) noexcept;
+        void updateLineWidth(Float lineWidth) noexcept;
     };
 
     /// <summary>
@@ -1543,7 +1545,7 @@ namespace LiteFX::Rendering::Backends {
         /// Begins the command buffer as a secondary command buffer that inherits the state of <paramref name="renderPass" />.
         /// </summary>
         /// <param name="renderPass">The render pass state to inherit.</param>
-        virtual void begin(const VulkanRenderPass& renderPass) const;
+        void begin(const VulkanRenderPass& renderPass) const;
 
         // CommandBuffer interface.
     public:
@@ -2501,7 +2503,7 @@ namespace LiteFX::Rendering::Backends {
         /// Returns the query pool for the current frame.
         /// </summary>
         /// <returns>A reference of the query pool for the current frame.</returns>
-        virtual const VkQueryPool& timestampQueryPool() const noexcept;
+        const VkQueryPool& timestampQueryPool() const noexcept;
 
         // SwapChain interface.
     public:
@@ -2850,7 +2852,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="objectType">The type of the object.</param>
         /// <param name="objectHandle">The handle of the object casted to an integer.</param>
         /// <param name="name">The debug name of the object.</param>
-        void setDebugName(VkDebugReportObjectTypeEXT objectType, UInt64 objectHandle, StringView name) const noexcept;
+        void setDebugName(VkDebugReportObjectTypeEXT objectType, UInt64 objectHandle, StringView name) const;
 
     public:
         /// <summary>
@@ -2871,7 +2873,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="objectType">The type of the object.</param>
         /// <param name="name">The debug name of the object.</param>
         template <typename THandle>
-        inline void setDebugName(THandle objectHandle, VkDebugReportObjectTypeEXT objectType, StringView name) const noexcept {
+        inline void setDebugName(THandle objectHandle, VkDebugReportObjectTypeEXT objectType, StringView name) const {
             this->setDebugName(objectType, Vk::handleAddress(objectHandle), name); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         }
 
@@ -2925,7 +2927,7 @@ namespace LiteFX::Rendering::Backends {
         [[nodiscard]] SharedPtr<VulkanFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea, VulkanFrameBuffer::allocation_callback_type allocationCallback) const override;
 
         /// <inheritdoc />
-        MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept override;
+        MultiSamplingLevel maximumMultiSamplingLevel(Format format) const override;
 
         /// <inheritdoc />
         double ticksPerMillisecond() const noexcept override;
@@ -2949,7 +2951,7 @@ namespace LiteFX::Rendering::Backends {
         void updateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const override;
 
         /// <inheritdoc />
-        void bindDescriptorSet(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept override;
+        void bindDescriptorSet(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const override;
 
         /// <inheritdoc />
         void bindGlobalDescriptorHeaps(const VulkanCommandBuffer& commandBuffer) const noexcept override;
@@ -3030,7 +3032,7 @@ namespace LiteFX::Rendering::Backends {
         /// Returns the validation layers that are enabled on the backend.
         /// </summary>
         /// <returns>An array of validation layers that are enabled on the backend.</returns>
-        virtual Span<const String> getEnabledValidationLayers() const noexcept;
+        Span<const String> getEnabledValidationLayers() const noexcept;
 
 #ifdef VK_USE_PLATFORM_WIN32_KHR
         /// <summary>
@@ -3104,7 +3106,10 @@ namespace LiteFX::Rendering::Backends {
         const Array<SharedPtr<const VulkanGraphicsAdapter>>& adapters() const override;
 
         /// <inheritdoc />
-        const VulkanGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const noexcept override;
+        const VulkanGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override;
+
+        /// <inheritdoc />
+        const VulkanGraphicsAdapter* findAdapter(GpuPreference preference) const override;
 
         /// <inheritdoc />
         void registerDevice(const String& name, SharedPtr<VulkanDevice>&& device) override;
@@ -3113,12 +3118,14 @@ namespace LiteFX::Rendering::Backends {
         void releaseDevice(const String& name) override;
 
         /// <inheritdoc />
-        VulkanDevice* device(const String& name) noexcept override;
+        VulkanDevice* device(const String& name) override;
 
         /// <inheritdoc />
-        const VulkanDevice* device(const String& name) const noexcept override;
+        const VulkanDevice* device(const String& name) const override;
     };
 
 }
+
+// NOLINTEND(bugprone-derived-method-shadowing-base-method)
 
 #pragma warning(pop)

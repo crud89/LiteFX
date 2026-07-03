@@ -121,11 +121,12 @@ const Array<UInt32>& VulkanShaderModule::bytecode() const noexcept
 
 VkPipelineShaderStageCreateInfo VulkanShaderModule::shaderStageDefinition() const
 {
-	VkPipelineShaderStageCreateInfo shaderStageDefinition = {};
-	shaderStageDefinition.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	shaderStageDefinition.module = this->handle();
-	shaderStageDefinition.pName = this->entryPoint().c_str();
-	shaderStageDefinition.stage = Vk::getShaderStage(this->type());
+	VkPipelineShaderStageCreateInfo shaderStageDefinition = {
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+		.stage = Vk::getShaderStage(this->type()),
+		.module = this->handle(),
+		.pName = this->entryPoint().c_str()
+	};
 
 	return shaderStageDefinition;
 }

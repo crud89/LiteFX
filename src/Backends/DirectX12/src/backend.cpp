@@ -105,12 +105,36 @@ const Array<SharedPtr<const DirectX12GraphicsAdapter>>& DirectX12Backend::adapte
     return m_impl->m_adapters;
 }
 
-const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UInt64>& adapterId) const noexcept
+const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UInt64>& adapterId) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_adapters, [&adapterId](const auto& adapter) { return !adapterId.has_value() || adapter->uniqueId() == adapterId; }); match != m_impl->m_adapters.end()) [[likely]]
+    // We create a temporary copy of the adapters array here, which we can sort by the adapter type. This way we return dedicated GPUs before integrated GPUs, before software rasterizers and so on, if no
+    // adapter ID is specified.
+    auto adapters = m_impl->m_adapters;
+    std::ranges::sort(adapters, std::ranges::greater{}, &DirectX12GraphicsAdapter::type);
+
+    if (auto match = std::ranges::find_if(adapters, [&adapterId](const auto& adapter) { return !adapterId.has_value() || adapter->uniqueId() == adapterId; }); match != adapters.end()) [[likely]]
         return match->get();
 
     return nullptr;
+}
+
+const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(GpuPreference preference) const
+{
+    // Get the first adapter for the preference.
+    ComPtr<IDXGIAdapter1> adapterInterface;
+    
+    if (FAILED(this->handle()->EnumAdapterByGpuPreference(0u, static_cast<DXGI_GPU_PREFERENCE>(preference), IID_PPV_ARGS(&adapterInterface))))
+        return this->findAdapter();
+    
+    // Get the LUID.
+    UInt64 adapterId{};
+    DXGI_ADAPTER_DESC1 adapterDecriptor;
+    
+    if (FAILED(adapterInterface->GetDesc1(&adapterDecriptor)))
+        return this->findAdapter();
+
+    std::memcpy(&adapterId, &adapterDecriptor.AdapterLuid, sizeof(LUID));
+    return this->findAdapter(adapterId);
 }
 
 void DirectX12Backend::registerDevice(const String& name, SharedPtr<DirectX12Device>&& device)
@@ -137,7 +161,7 @@ void DirectX12Backend::releaseDevice(const String& name)
     m_impl->m_devices.erase(name);
 }
 
-DirectX12Device* DirectX12Backend::device(const String& name) noexcept
+DirectX12Device* DirectX12Backend::device(const String& name)
 {
     if (!m_impl->m_devices.contains(name)) [[unlikely]]
         return nullptr;
@@ -145,7 +169,7 @@ DirectX12Device* DirectX12Backend::device(const String& name) noexcept
     return m_impl->m_devices[name].get();
 }
 
-const DirectX12Device* DirectX12Backend::device(const String& name) const noexcept
+const DirectX12Device* DirectX12Backend::device(const String& name) const
 {
     if (!m_impl->m_devices.contains(name)) [[unlikely]]
         return nullptr;

@@ -54,7 +54,7 @@ VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, si
 		::vmaSetAllocationUserData(m_impl->m_allocator, m_impl->m_allocation.get(), static_cast<IDeviceMemory*>(this));
 }
 
-VulkanBuffer::~VulkanBuffer() noexcept
+VulkanBuffer::~VulkanBuffer() noexcept // NOLINT(bugprone-exception-escape)
 {	
 	if (m_impl->m_allocator != nullptr)
 	{

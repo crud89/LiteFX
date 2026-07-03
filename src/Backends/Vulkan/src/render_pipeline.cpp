@@ -211,14 +211,15 @@ public:
 		VkPipelineViewportStateCreateInfo viewportState = { .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
 
 		// Setup multisampling state.
-		VkPipelineMultisampleStateCreateInfo multisampling = {};
-		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-		multisampling.sampleShadingEnable = VK_FALSE;
-		multisampling.rasterizationSamples = Vk::getSamples(m_samples);
-		multisampling.minSampleShading = 1.0f;
-		multisampling.pSampleMask = nullptr;
-		multisampling.alphaToCoverageEnable = m_alphaToCoverage;
-		multisampling.alphaToOneEnable = VK_FALSE;
+		VkPipelineMultisampleStateCreateInfo multisampling = {
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+			.rasterizationSamples = Vk::getSamples(m_samples),
+			.sampleShadingEnable = VK_FALSE,
+			.minSampleShading = 1.0f,
+			.pSampleMask = nullptr,
+			.alphaToCoverageEnable = m_alphaToCoverage,
+			.alphaToOneEnable = VK_FALSE
+		};
 
 		// Setup color blend state.
 		auto renderTargets = m_renderPass->renderTargets();
@@ -399,7 +400,7 @@ public:
 				if (binding->layout().space() == dependency.binding().Space)
 				{
 					// Resolve the image and update the binding.
-					auto& image = frameBuffer[dependency.renderTarget()];
+					auto& image = frameBuffer[dependency.renderTarget()]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
 					if (image.samples() != m_samples) [[unlikely]]
 						LITEFX_WARNING(VULKAN_LOG, "The image multi sampling level {0} does not match the render pipeline multi sampling state {1}.", image.samples(), m_samples);

@@ -56,7 +56,7 @@ VulkanImage::VulkanImage(VkImage image, const Size3d& extent, Format format, Ima
 		::vmaSetAllocationUserData(m_impl->m_allocator, m_impl->m_allocation.get(), static_cast<IDeviceMemory*>(this));
 }
 
-VulkanImage::~VulkanImage() noexcept 
+VulkanImage::~VulkanImage() noexcept // NOLINT(bugprone-exception-escape)
 {
 	if (m_impl->m_allocator != nullptr)
 	{
@@ -70,7 +70,7 @@ UInt32 VulkanImage::elements() const noexcept
 	return m_impl->m_elements;
 }
 
-size_t VulkanImage::size() const noexcept
+size_t VulkanImage::size() const noexcept // NOLINT(bugprone-exception-escape)
 {
 	if (m_impl->m_allocation) [[likely]]
 		return static_cast<size_t>(m_impl->m_allocation->GetSize());
@@ -128,7 +128,7 @@ ResourceUsage VulkanImage::usage() const noexcept
 	return m_impl->m_usage;
 }
 
-UInt64 VulkanImage::virtualAddress() const noexcept
+UInt64 VulkanImage::virtualAddress() const noexcept // NOLINT(bugprone-exception-escape)
 {
 	// NOTE: There is a vendor-specific extension to support this but for the time being, we simply warn (https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkGetImageViewAddressNVX.html).
 	LITEFX_WARNING(VULKAN_LOG, "Vulkan does not allow to query virtual addresses of images.");
@@ -136,7 +136,7 @@ UInt64 VulkanImage::virtualAddress() const noexcept
 	return 0ul;
 }
 
-size_t VulkanImage::size(UInt32 level) const noexcept
+size_t VulkanImage::size(UInt32 level) const
 {
 	if (level >= m_impl->m_levels)
 		return 0;
@@ -215,7 +215,7 @@ MultiSamplingLevel VulkanImage::samples() const noexcept
 	return m_impl->m_samples;
 }
 
-VkImageAspectFlags VulkanImage::aspectMask() const noexcept
+VkImageAspectFlags VulkanImage::aspectMask() const noexcept // NOLINT(bugprone-exception-escape)
 {
 	// Get the aspect mask for all sub-resources.
 	if (::hasDepth(m_impl->m_format) && ::hasStencil(m_impl->m_format))
@@ -539,7 +539,7 @@ VulkanSampler::VulkanSampler(const VulkanDevice& device, FilterMode magFilter, F
 		this->name() = name;
 }
 
-VulkanSampler::~VulkanSampler() noexcept
+VulkanSampler::~VulkanSampler() noexcept // NOLINT(bugprone-exception-escape)
 {
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();

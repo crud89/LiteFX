@@ -55,7 +55,7 @@ DirectX12Image::DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resou
 		m_impl->m_allocation->SetPrivateData(static_cast<IDeviceMemory*>(this));
 }
 
-DirectX12Image::~DirectX12Image() noexcept
+DirectX12Image::~DirectX12Image() // NOLINT(bugprone-exception-escape)
 {
 	LITEFX_TRACE(DIRECTX12_LOG, "Destroyed image {}", this->name());
 }
@@ -65,7 +65,7 @@ UInt32 DirectX12Image::elements() const noexcept
 	return m_impl->m_elements;
 }
 
-size_t DirectX12Image::size() const noexcept
+size_t DirectX12Image::size() const noexcept // NOLINT(bugprone-exception-escape)
 {
 	// Attempt to get the pixel size. This ensures the nothrow guarantee.
 	size_t pixelSize{ };
@@ -129,7 +129,7 @@ UInt64 DirectX12Image::virtualAddress() const noexcept
 	return static_cast<UInt64>(this->handle()->GetGPUVirtualAddress());
 }
 
-size_t DirectX12Image::size(UInt32 level) const noexcept
+size_t DirectX12Image::size(UInt32 level) const
 {
 	if (level >= m_impl->m_levels)
 		return 0;

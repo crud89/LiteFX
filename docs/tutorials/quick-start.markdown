@@ -235,11 +235,7 @@ void MyApp::onInit()
     m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
     // Find the adapter, create a surface and initialize the device.
-    auto adapter = backend->findAdapter(m_adapterId);
-
-    if (adapter == nullptr)
-        adapter = backend->findAdapter(std::nullopt);
-
+    auto adapter = m_adapterId.has_value() ? backend->findAdapter(m_adapterId) : backend->findAdapter(GpuPreference::Performance);
     auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
     // Create the device.

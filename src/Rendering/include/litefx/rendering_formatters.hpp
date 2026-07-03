@@ -12,6 +12,7 @@ struct LITEFX_RENDERING_API std::formatter<GraphicsAdapterType> : std::formatter
 		using enum GraphicsAdapterType;
 		case CPU: name = "CPU"; break;
 		case GPU: name = "GPU"; break;
+		case Software: name = "Software"; break;
 		case Other: name = "Other"; break;
 		case None: name = "None"; break;
 		}

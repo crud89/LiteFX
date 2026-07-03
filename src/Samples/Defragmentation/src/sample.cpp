@@ -2,11 +2,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <random>
 
-enum DescriptorSets : UInt32 // NOLINT(performance-enum-size)
+enum DescriptorSets : UInt32 // NOLINT(performance-enum-size, cppcoreguidelines-use-enum-class)
 {
     Constant = 0,                                       // All buffers that are immutable.
     PerFrame = 1,                                       // All buffers that are updated each frame.
 };
+
+// NOLINTBEGIN(bugprone-throwing-static-initialization)
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 
 const Array<Vertex> vertices =
 {
@@ -23,8 +26,6 @@ struct Allocation {
     UInt32 lifetime{};
 };
 
-// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
-
 Array<::Allocation> allocations{};
 
 std::random_device rnd;
@@ -40,6 +41,7 @@ static struct TransformBuffer {
 } transform;
 
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
+// NOLINTEND(bugprone-throwing-static-initialization)
 
 template<typename TRenderBackend> requires
     meta::implements<TRenderBackend, IRenderBackend>
@@ -49,11 +51,11 @@ struct FileExtensions {
 
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
 template<>
-const String FileExtensions<VulkanBackend>::SHADER = "spv";
+const String FileExtensions<VulkanBackend>::SHADER = "spv"; // NOLINT(bugprone-throwing-static-initialization)
 #endif // LITEFX_BUILD_VULKAN_BACKEND
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
 template<>
-const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
+const String FileExtensions<DirectX12Backend>::SHADER = "dxi"; // NOLINT(bugprone-throwing-static-initialization)
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 static inline void setupPrepareMoveHandler(const SharedPtr<const IBuffer>& resource, ResourceAccess beforeAccess) {
@@ -242,11 +244,7 @@ void SampleApp::onInit()
         m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
         m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
-        auto adapter = backend->findAdapter(m_adapterId);
-
-        if (adapter == nullptr)
-            adapter = backend->findAdapter(std::nullopt);
-
+        auto adapter = m_adapterId.has_value() ? backend->findAdapter(m_adapterId) : backend->findAdapter(GpuPreference::Performance);
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.

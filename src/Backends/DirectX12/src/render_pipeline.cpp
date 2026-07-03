@@ -138,8 +138,8 @@ public:
 
 		// Setup render target states.
 		// NOTE: We assume, that the targets are returned sorted by location and the location range is contiguous.
-		D3D12_BLEND_DESC blendState = {};
-		D3D12_DEPTH_STENCIL_DESC1 depthStencilState = {};
+		D3D12_BLEND_DESC blendState = {}; // NOLINT(bugprone-invalid-enum-default-initialization)
+		D3D12_DEPTH_STENCIL_DESC1 depthStencilState = {}; // NOLINT(bugprone-invalid-enum-default-initialization)
 		auto targets = m_renderPass->renderTargets();
 		UInt32 renderTargets = static_cast<UInt32>(std::ranges::count_if(targets, [](auto& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }));
 		UInt32 depthStencilTargets = static_cast<UInt32>(targets.size()) - renderTargets;
@@ -182,7 +182,7 @@ public:
 			{
 				// Setup target formats.
 				UInt32 target = i++;
-				rtvFormats[target] = DX12::getFormat(renderTarget.format()); // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+				rtvFormats[target] = DX12::getFormat(renderTarget.format()); // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
 				// Setup the blend state.
 				auto& targetBlendState = blendState.RenderTarget[target];
@@ -235,6 +235,7 @@ public:
 	ComPtr<ID3D12PipelineState> initializeMeshPipeline([[maybe_unused]] const DirectX12RenderPipeline& pipeline, const D3D12_BLEND_DESC& blendState, const D3D12_RASTERIZER_DESC& rasterizerState, const D3D12_DEPTH_STENCIL_DESC1& depthStencilState, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, UINT renderTargets, const std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>& renderTargetFormats, DXGI_FORMAT depthStencilFormat, const DXGI_SAMPLE_DESC& multisamplingState, const Optional<D3D12_VIEW_INSTANCING_DESC>& viewInstancingDesc)
 	{
 		// Create a pipeline state description.
+		// NOLINTBEGIN(bugprone-invalid-enum-default-initialization)
 		D3DX12_MESH_SHADER_PIPELINE_STATE_DESC pipelineStateDescription = {
 			.pRootSignature = std::as_const(*m_layout).handle().Get(),
 			.BlendState = blendState,
@@ -245,6 +246,7 @@ public:
 			.DSVFormat = depthStencilFormat,
 			.SampleDesc = multisamplingState
 		};
+		// NOLINTEND(bugprone-invalid-enum-default-initialization)
 
 		std::memcpy(&pipelineStateDescription.RTVFormats, renderTargetFormats.data(), renderTargetFormats.size() * sizeof(DXGI_FORMAT));
 
@@ -307,6 +309,7 @@ public:
 	ComPtr<ID3D12PipelineState> initializeGraphicsPipeline([[maybe_unused]] const DirectX12RenderPipeline& pipeline, const D3D12_BLEND_DESC& blendState, const D3D12_RASTERIZER_DESC& rasterizerState, const D3D12_DEPTH_STENCIL_DESC1& depthStencilState, const D3D12_INPUT_LAYOUT_DESC& inputLayout, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, UINT renderTargets, const std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>& renderTargetFormats, DXGI_FORMAT depthStencilFormat, const DXGI_SAMPLE_DESC& multisamplingState, const Optional<D3D12_VIEW_INSTANCING_DESC>& viewInstancingDesc)
 	{
 		// Create a pipeline state description.
+		// NOLINTBEGIN(bugprone-invalid-enum-default-initialization)
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDescription = {
 			.pRootSignature = std::as_const(*m_layout).handle().Get(),
 			.BlendState = blendState,
@@ -318,6 +321,7 @@ public:
 			.DSVFormat = depthStencilFormat,
 			.SampleDesc = multisamplingState
 		};
+		// NOLINTEND(bugprone-invalid-enum-default-initialization)
 
 		std::memcpy(&pipelineStateDescription.RTVFormats, renderTargetFormats.data(), renderTargetFormats.size() * sizeof(DXGI_FORMAT));
 		
@@ -463,7 +467,7 @@ public:
 				if (binding->layout().space() == dependency.binding().Space)
 				{
 					// Resolve the image and update the binding.
-					auto& image = frameBuffer[dependency.renderTarget()];
+					auto& image = frameBuffer[dependency.renderTarget()]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
 					if (image.samples() != m_samples) [[unlikely]]
 						LITEFX_WARNING(DIRECTX12_LOG, "The image multi sampling level {0} does not match the render pipeline multi sampling state {1}.", image.samples(), m_samples);

@@ -240,7 +240,7 @@ VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, bool begin, b
 		this->begin();
 }
 
-VulkanCommandBuffer::~VulkanCommandBuffer() noexcept
+VulkanCommandBuffer::~VulkanCommandBuffer() noexcept // NOLINT(bugprone-exception-escape)
 {
 	m_impl->release(*this);
 }

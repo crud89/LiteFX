@@ -85,7 +85,7 @@ D3D12_RESOURCE_DESC1 getResourceDesc(const ResourceAllocationInfo::ImageInfo& im
 
 D3D12MA::ALLOCATION_DESC getAllocationDesc(ResourceHeap heap, AllocationBehavior allocationBehavior) {
 
-	D3D12MA::ALLOCATION_DESC allocationDesc{};
+	D3D12MA::ALLOCATION_DESC allocationDesc{ .HeapType = D3D12_HEAP_TYPE_DEFAULT };
 
 	if (allocationBehavior == AllocationBehavior::DontExpandCache)
 		allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_NEVER_ALLOCATE;
@@ -239,6 +239,7 @@ void DirectX12GraphicsFactory::beginDefragmentation(const ICommandQueue& queue, 
 
 	// Initialize a defragmentation context.
 	D3D12MA::DEFRAGMENTATION_DESC defragDesc = {
+		.Flags = D3D12MA::DEFRAGMENTATION_FLAG_ALGORITHM_BALANCED,
 		.MaxBytesPerPass = maxBytesToMove,
 		.MaxAllocationsPerPass = maxAllocationsToMove
 	};
@@ -399,6 +400,7 @@ bool DirectX12GraphicsFactory::supportsResizableBaseAddressRegister() const noex
 
 Array<MemoryHeapStatistics> DirectX12GraphicsFactory::memoryStatistics() const
 {
+	// NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 	// Query the current memory statistics.
 	auto budgets = std::array<D3D12MA::Budget, 2u>{};
 	m_impl->m_allocator->GetBudget(&budgets[0], &budgets[1]);
@@ -426,6 +428,7 @@ Array<MemoryHeapStatistics> DirectX12GraphicsFactory::memoryStatistics() const
 			.availableMemory = budgets[1].BudgetBytes
 		},
 	};
+	// NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 DetailedMemoryStatistics DirectX12GraphicsFactory::detailedMemoryStatistics() const

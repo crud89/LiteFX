@@ -181,7 +181,7 @@ public:
     {
         // NOLINTBEGIN(cppcoreguidelines-pro-type-union-access)
         // Collect the shader stages.
-        ShaderStage stages{ };
+        ShaderStage stages{ ShaderStage::Other };
         std::ranges::for_each(m_modules, [&stages](const auto& shaderModule) { stages = stages | shaderModule->type(); });
 
         // Get the root signature description.
@@ -230,7 +230,7 @@ public:
                 else
                 {
                     // Convert the descriptor to a push constant range.
-                    ShaderStage stage{ };
+                    ShaderStage stage{ ShaderStage::Other };
 
                     switch (rootParameter.ShaderVisibility)
                     {
@@ -280,7 +280,7 @@ public:
     DescriptorInfo getReflectionDescriptorDesc(D3D12_SHADER_INPUT_BIND_DESC inputDesc, TReflection* shaderReflection)
     {
         // First, create a description of the descriptor.
-        DescriptorType type{ };
+        DescriptorType type{ DescriptorType::ConstantBuffer };
         UInt32 elementSize = 0;
 
         switch (inputDesc.Type)
@@ -477,7 +477,7 @@ public:
             for (size_t i{ 0 }; i < descriptorSet.descriptors.size(); ++i)
             {
                 // Get the current descriptor.
-                auto& descriptor = descriptorSet.descriptors[i];
+                auto& descriptor = descriptorSet.descriptors[i]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
                 // See if there's a hint about the binding.
                 auto hint = PipelineBindingHint::hint_type{ };
@@ -687,7 +687,7 @@ DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device, En
     m_impl->validate();
 }
 
-DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device) noexcept :
+DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device) noexcept : // NOLINT(bugprone-exception-escape)
     m_impl(device)
 {
 }

@@ -65,7 +65,7 @@ private:
         UInt32 elementSize{};
         UInt32 elements{};
         UInt32 inputAttachmentIndex{};
-        DescriptorType type{};
+        DescriptorType type{ DescriptorType::ConstantBuffer };
         SharedPtr<IVulkanSampler> staticSampler{};
         bool unbounded{false};
 
@@ -83,7 +83,7 @@ private:
     struct DescriptorSetInfo {
     public:
         UInt32 space{};
-        ShaderStage stage{};
+        ShaderStage stage{ ShaderStage::Other };
         Array<DescriptorInfo> descriptors;
     };
 
@@ -248,7 +248,7 @@ public:
                     auto descriptor = descriptorSet->bindings[i++]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
                     // Filter the descriptor type.
-                    DescriptorType type{};
+                    DescriptorType type{ DescriptorType::ConstantBuffer };
                     UInt32 inputAttachmentIndex = 0;
 
                     switch (descriptor->descriptor_type)
@@ -336,7 +336,7 @@ public:
             for (size_t i{ 0 }; i < descriptorSet.descriptors.size(); ++i)
             {
                 // Get the current descriptor.
-                auto& descriptor = descriptorSet.descriptors[i];
+                auto& descriptor = descriptorSet.descriptors[i]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
                 // See if there's a hint about the binding.
                 auto hint = PipelineBindingHint::hint_type{ };

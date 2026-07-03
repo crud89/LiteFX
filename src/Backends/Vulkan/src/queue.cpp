@@ -100,7 +100,7 @@ VulkanQueue::VulkanQueue(const VulkanDevice& device, QueueType type, QueuePriori
 	this->handle() = m_impl->initialize(device);
 }
 
-VulkanQueue::~VulkanQueue() noexcept
+VulkanQueue::~VulkanQueue() noexcept // NOLINT(bugprone-exception-escape)
 {
 	m_impl->release();
 }

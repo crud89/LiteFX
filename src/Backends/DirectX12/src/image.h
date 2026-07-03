@@ -27,7 +27,7 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12Image(const DirectX12Image&) = delete;
 		DirectX12Image& operator=(DirectX12Image&&) noexcept = delete;
 		DirectX12Image& operator=(const DirectX12Image&) = delete;
-		~DirectX12Image() noexcept override;
+		~DirectX12Image() override;
 
 		// IDeviceMemory interface.
 	public:
@@ -55,7 +55,7 @@ namespace LiteFX::Rendering::Backends {
 		// IImage interface.
 	public:
 		/// <inheritdoc />
-		size_t size(UInt32 level) const noexcept override;
+		size_t size(UInt32 level) const override;
 
 		/// <inheritdoc />
 		Size3d extent(UInt32 level = 0) const noexcept override;

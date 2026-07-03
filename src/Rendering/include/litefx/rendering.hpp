@@ -3,6 +3,8 @@
 #include <litefx/rendering_api.hpp>
 #include <litefx/rendering_formatters.hpp>
 
+// NOLINTBEGIN(bugprone-derived-method-shadowing-base-method)
+
 namespace LiteFX::Rendering {
     using namespace LiteFX;
     using namespace LiteFX::Math;
@@ -1124,7 +1126,7 @@ namespace LiteFX::Rendering {
         CommandQueue& operator=(const CommandQueue&) = default;
 
     public:
-        ~CommandQueue() noexcept override = default;
+        ~CommandQueue() override = default;
 
     public:
         /// <inheritdoc />
@@ -1651,7 +1653,7 @@ namespace LiteFX::Rendering {
         virtual void updateGlobalDescriptors(const descriptor_set_type& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const = 0;
 
         /// <inheritdoc />
-        virtual void bindDescriptorSet(const command_buffer_type& commandBuffer, const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const noexcept = 0;
+        virtual void bindDescriptorSet(const command_buffer_type& commandBuffer, const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const = 0;
 
         /// <inheritdoc />
         virtual void bindGlobalDescriptorHeaps(const command_buffer_type& commandBuffer) const noexcept = 0;
@@ -1677,7 +1679,7 @@ namespace LiteFX::Rendering {
             this->updateGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet), binding, offset, descriptors);
         }
 
-        inline void doBindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept override {
+        inline void doBindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const override {
             this->bindDescriptorSet(dynamic_cast<const command_buffer_type&>(commandBuffer), dynamic_cast<const descriptor_set_type&>(descriptorSet), dynamic_cast<const pipeline_type&>(pipeline));
         }
 
@@ -1834,7 +1836,10 @@ namespace LiteFX::Rendering {
         virtual const Array<SharedPtr<const adapter_type>>& adapters() const = 0;
 
         /// <inheritdoc />
-        const adapter_type* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const noexcept override = 0;
+        const adapter_type* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override = 0;
+
+        /// <inheritdoc />
+        const adapter_type* findAdapter(GpuPreference preference) const override = 0;
 
         /// <inheritdoc />
         virtual void registerDevice(const String& name, SharedPtr<device_type>&& device) = 0;
@@ -1859,10 +1864,10 @@ namespace LiteFX::Rendering {
         virtual void releaseDevice(const String& name) = 0;
 
         /// <inheritdoc />
-        device_type* device(const String& name) noexcept override = 0;
+        device_type* device(const String& name) override = 0;
 
         /// <inheritdoc />
-        const device_type* device(const String& name) const noexcept override = 0;
+        const device_type* device(const String& name) const override = 0;
 
         /// <inheritdoc />
         inline const device_type* operator[](const String& name) const noexcept override {
@@ -1881,3 +1886,5 @@ namespace LiteFX::Rendering {
         }
     };
 }
+
+// NOLINTEND(bugprone-derived-method-shadowing-base-method)
