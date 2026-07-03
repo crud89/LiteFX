@@ -1,0 +1,70 @@
+name: Update Dependencies Cache
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update-cache:
+    runs-on: windows-latest
+
+    steps:
+      - name: Setup environment
+        run: echo "Setup environment"
+        env:
+          MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
+          VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
+
+          DEPENDENCY_DIR: ${{ runner.temp }}/dep/win
+          CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
+
+      - name: Restore dependency cache
+        id: cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.DEPENDENCY_DIR }}
+          key: ${{ env.CACHE_KEY }}
+      
+      - name: Create dependency directory
+        if: steps.cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: mkdir -p "${DEPENDENCY_DIR}"
+
+      # Download dependencies.
+
+      - name: Setup Vulkan SDK 
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: jakoch/install-vulkan-sdk-action@v1
+        with:
+          destination: ${{ env.DEPENDENCY_DIR }}/vulkan/
+          vulkan_version: ${{ env.VULKAN_SDK_VERSION }}
+          install_runtime: true
+          #cache: true
+          stripdown: true
+
+      - name: Download Mesa3D driver
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: robinraju/release-downloader@v1.10
+        with:
+          repository: 'pal1000/mesa-dist-win'
+          tag: '${{ env.MESA_3D_VERSION }}'
+          fileName: 'mesa3d-${{ env.MESA_3D_VERSION }}-release-msvc.7z'
+          out-file-path: ${{ env.DEPENDENCY_DIR }}/mesa/
+          extract: false  # 7zip is not supported by this extension, so we have to do it on our own later.
+          
+      - name: Decompress Mesa3D driver
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: '${{ env.DEPENDENCY_DIR }}/mesa/'
+        shell: bash
+        run: |
+          7z x '${{ env.DEPENDENCY_DIR }}/mesa/mesa3d-${{ env.MESA_3D_VERSION }}-release-msvc.7z'
+          rm '${{ env.DEPENDENCY_DIR }}/mesa/mesa3d-${{ env.MESA_3D_VERSION }}-release-msvc.7z'
+          
+      - name: Save dependency cache
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.DEPENDENCY_DIR }}
+          key: ${{ env.CACHE_KEY }}

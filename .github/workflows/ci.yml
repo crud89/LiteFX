@@ -29,12 +29,6 @@ on:
         required: true
         default: 'checks' # Case sensitive. Must contain one or more of: 'checks', 'tests', 'tidy' or 'builds'.
 
-# Environment variables control which version of dependent software to install.
-env:
-  vulkanSdkVersion: '1.4.328.1'
-  mesaDriverVersion: '24.1.1'
-  llvmVersion: '20.1.8'
-
 # The following jobs are contained in this workflow:
 # - First, the `verify-permissions` job is executed. It checks if the comment user is a contributer or maintainer and if the comment refers to a pull request. It then parses the 
 # command string. If permission is granted, the result is then passed to the subsequent jobs, which only execute if this job outputs their respective launch command.
@@ -123,48 +117,30 @@ jobs:
             os: windows-latest
           #- name: ubuntu-latest
           #  os: ubuntu-latest
-      
+
     steps:
-      - name: Setup Vulkan SDK 
-        uses: jakoch/install-vulkan-sdk-action@v1
+      - name: Setup environment
+        run: echo "Setup environment"
+        env:
+          MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
+          VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
+
+          DEPENDENCY_DIR: ${{ runner.temp }}/dep/win
+          CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
+
+      - name: Lookup dependency cache (no restore use)
+        id: cache
+        uses: actions/cache/restore@v6
         with:
-          vulkan_version: ${{ env.vulkanSdkVersion }}
-          install_runtime: true
-          cache: true
-          stripdown: true
-          
-      - name: Lookup Mesa3D cache
-        uses: actions/cache@v4
-        id: lookup-mesa
-        with:
-          key: ${{ matrix.os }}-mesa3d-${{ env.mesaDriverVersion }}
-          path: ${{ github.workspace }}/dep/mesa/
+          path: ${{ env.DEPENDENCY_DIR }}
+          key: ${{ env.CACHE_KEY }}
           lookup-only: true
 
-      - name: Download Mesa3D driver
-        uses: robinraju/release-downloader@v1.10
-        if: steps.lookup-mesa.outputs.cache-hit != 'true'
-        with:
-          repository: 'pal1000/mesa-dist-win'
-          tag: '${{ env.mesaDriverVersion }}'
-          fileName: 'mesa3d-${{ env.mesaDriverVersion }}-release-msvc.7z'
-          out-file-path: 'dep/mesa/'  # ${{ github.workspace }} is prefixed automatically.
-          extract: false  # 7zip is not supported by this extension, so we have to do it on our own later.
-          
-      - name: Decompress Mesa3D driver
-        working-directory: '${{ github.workspace }}/dep/mesa/'
-        if: steps.lookup-mesa.outputs.cache-hit != 'true'
-        shell: bash
+      - name: Ensure cache exists
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          7z x '${{ github.workspace }}/dep/mesa/mesa3d-${{ env.mesaDriverVersion }}-release-msvc.7z'
-          rm '${{ github.workspace }}/dep/mesa/mesa3d-${{ env.mesaDriverVersion }}-release-msvc.7z'
-            
-      - name: Cache Mesa3D
-        uses: actions/cache/save@v4
-        if: steps.lookup-mesa.outputs.cache-hit != 'true'
-        with:
-          path: ${{ github.workspace }}/dep/mesa/
-          key: ${{ matrix.os }}-mesa3d-${{ env.mesaDriverVersion }}
+          echo "Cache is missing. Please run 'update_dependencies.yml' workflow first."
+          exit 1
           
   # ------------------------------------- Test job             -------------------------------------
   test:
@@ -186,8 +162,18 @@ jobs:
             os: windows-latest
             compiler: clang
             configuration: windows-clang-x64-test
-
+            
     steps:
+      - name: Setup environment
+        run: echo "Setup environment"
+        env:
+          MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
+          VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
+          LLVM_VERSION: ${{ vars.LLVM_VERSION }}
+
+          DEPENDENCY_DIR: ${{ runner.temp }}/dep/win
+          CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
+
       - name: Retrieve PR info
         id: retrieve-pr-from-issue-comment
         uses: actions/github-script@v3
@@ -237,14 +223,7 @@ jobs:
           ref: ${{ env.HEAD_SHA }}
           submodules: true
 
-      - name: Setup Vulkan SDK 
-        uses: jakoch/install-vulkan-sdk-action@v1
-        with:
-          vulkan_version: ${{ env.vulkanSdkVersion }}
-          install_runtime: true
-          cache: true
-          stripdown: false
-
+      # TODO: Move this into cache as well.
       - name: Install OpenCppCoverage
         id: install-opencppcoverage
         shell: bash
@@ -256,7 +235,13 @@ jobs:
         if: ${{ matrix.compiler == 'clang' }}
         uses: KyleMayes/install-llvm-action@v2.0.9
         with:
-          version: ${{ env.llvmVersion }}
+          version: ${{ env.LLVM_VERSION }}
+          
+      - name: Restore dependency cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.DEPENDENCY_DIR }}
+          key: ${{ env.CACHE_KEY }}
 
       - name: Setup build and test environment
         id: setup-environment
@@ -264,26 +249,20 @@ jobs:
         run: |
           echo "VCPKG_FEATURE_FLAGS=manifests" >> $env:GITHUB_ENV
           echo "C:\msys64\ucrt64\bin" >> $GITHUB_PATH
-          #echo "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime" >> $GITHUB_PATH  # Somehow does not get picked up by the MSVC development environment.
-          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
-          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
-
-      - name: Restore Mesa3D
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{ github.workspace }}/dep/mesa/
-          key: ${{ matrix.os }}-mesa3d-${{ env.mesaDriverVersion }}
+          #echo "${{ env.DEPENDENCY_DIR }}/vulkan/${{ env.VULKAN_SDK_VERSION }}\runtime" >> $GITHUB_PATH  # Somehow does not get picked up by the MSVC development environment.
+          cp "${{ env.DEPENDENCY_DIR }}/vulkan/${{ env.VULKAN_SDK_VERSION }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
+          cp "${{ env.DEPENDENCY_DIR }}/vulkan/${{ env.VULKAN_SDK_VERSION }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
 
       - name: Install and Test Mesa3D driver
         working-directory: '${{ github.workspace }}/dep/mesa/'
         run: |         
-          reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v '${{ github.workspace }}\dep\mesa\x64\lvp_icd.x86_64.json' /t REG_DWORD /d 0 /f /reg:64
-          reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0 /f /reg:64
-          reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin\VkLayer_khronos_validation.json' /t REG_DWORD /d 0 /f /reg:64
-          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\Drivers" /v '${{ github.workspace }}\dep\mesa\x86\lvp_icd.x86.json' /t REG_DWORD /d 0 /f /reg:64
-          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin32\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0 /f /reg:64
-          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin32\VkLayer_khronos_validation.json' /t REG_DWORD /d 0 /f /reg:64
-          C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkaninfo.exe --summary
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v '${{ env.DEPENDENCY_DIR }}\mesa\x64\lvp_icd.x86_64.json' /t REG_DWORD /d 0 /f /reg:64
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v '${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\Bin\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0 /f /reg:64
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v '${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\Bin\VkLayer_khronos_validation.json' /t REG_DWORD /d 0 /f /reg:64
+          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\Drivers" /v '${{ env.DEPENDENCY_DIR }}\mesa\x86\lvp_icd.x86.json' /t REG_DWORD /d 0 /f /reg:64
+          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v '${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\Bin32\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0 /f /reg:64
+          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v '${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\Bin32\VkLayer_khronos_validation.json' /t REG_DWORD /d 0 /f /reg:64
+          ${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\runtime\x64\vulkaninfo.exe --summary
 
       - name: Restore or build vcpkg
         uses: lukka/run-vcpkg@v10
@@ -426,29 +405,27 @@ jobs:
         with:
           ref: ${{ env.HEAD_SHA }}
           submodules: true
-
-      - name: Setup Vulkan SDK 
-        uses: jakoch/install-vulkan-sdk-action@v1
-        with:
-          vulkan_version: ${{ env.vulkanSdkVersion }}
-          install_runtime: true
-          cache: true
-          stripdown: false
           
       - name: Update LLVM
         if: ${{ matrix.compiler == 'clang' }}
         uses: KyleMayes/install-llvm-action@v2.0.9
         with:
-          version: ${{ env.llvmVersion }}
+          version: ${{ env.LLVM_VERSION }}
         
+      - name: Restore dependency cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.DEPENDENCY_DIR }}
+          key: ${{ env.CACHE_KEY }}
+
       - name: Setup build and test environment
         id: setup-environment
         shell: bash
         run: |
           echo "VCPKG_FEATURE_FLAGS=manifests" >> $env:GITHUB_ENV
-          #echo "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime" >> $GITHUB_PATH  # Somehow does not get picked up by the MSVC development environment.
-          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
-          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
+          #echo "${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\runtime" >> $GITHUB_PATH  # Somehow does not get picked up by the MSVC development environment.
+          cp "${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
+          cp "${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
           echo "C:\msys64\ucrt64\bin" >> $GITHUB_PATH
 
       - name: Retrieve latest CMake build
@@ -532,11 +509,17 @@ jobs:
             triplet: x64-windows
             configuration: windows-clang-x64-release-static
 
-    env:
-      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}-rel
-      VCPKG_FEATURE_FLAGS: 'manifests'
-
     steps:
+      - name: Setup environment
+        run: echo "Setup environment"
+        env:
+          MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
+          VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
+          LLVM_VERSION: ${{ vars.LLVM_VERSION }}
+
+          DEPENDENCY_DIR: ${{ runner.temp }}/dep/win
+          CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
+
       - name: Retrieve PR info
         id: retrieve-pr-from-issue-comment
         uses: actions/github-script@v3
@@ -580,27 +563,25 @@ jobs:
           sha: ${{ env.HEAD_SHA }}
           status: in_progress
           
-      - name: Setup Vulkan SDK 
-        uses: jakoch/install-vulkan-sdk-action@v1
+      - name: Restore dependency cache
+        uses: actions/cache/restore@v6
         with:
-          vulkan_version: ${{ env.vulkanSdkVersion }}
-          install_runtime: true
-          cache: true
-          stripdown: false
+          path: ${{ env.DEPENDENCY_DIR }}
+          key: ${{ env.CACHE_KEY }}
           
       - name: Setup build and test environment
         id: setup-environment
         shell: bash
         run: |
-          #echo "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime" >> $GITHUB_PATH  # Somehow does not get picked up by the MSVC development environment.
-          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
-          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
+          #echo "${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\runtime" >> $GITHUB_PATH  # Somehow does not get picked up by the MSVC development environment.
+          cp "${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
+          cp "${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
           
       - name: Update LLVM
         if: ${{ matrix.compiler == 'clang' }}
         uses: KyleMayes/install-llvm-action@v2.0.9
         with:
-          version: ${{ env.llvmVersion }}
+          version: ${{ env.LLVM_VERSION }}
           
       - name: Checking out sources
         uses: actions/checkout@master
