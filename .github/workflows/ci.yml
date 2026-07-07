@@ -522,11 +522,6 @@ jobs:
       LLVM_VERSION: ${{ vars.LLVM_VERSION }}
       CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
 
-      MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
-      VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
-      LLVM_VERSION: ${{ vars.LLVM_VERSION }}
-      CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
-
     steps:
       - name: Setup dependency directory
         run: echo "DEPENDENCY_DIR=$env:RUNNER_TEMP/dep/win" >> $env:GITHUB_ENV
