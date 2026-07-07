@@ -1,11 +1,13 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-enum DescriptorSets : UInt32 // NOLINT(performance-enum-size)
+enum DescriptorSets : UInt32 // NOLINT(performance-enum-size, cppcoreguidelines-use-enum-class)
 {
     Constant = 0,                                       // All buffers that are immutable.
     PerFrame = 1,                                       // All buffers that are updated each frame.
 };
+
+// NOLINTBEGIN(bugprone-throwing-static-initialization)
 
 const Array<Vertex> vertices =
 {
@@ -17,6 +19,7 @@ const Array<Vertex> vertices =
 
 const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
 
+// NOLINTEND(bugprone-throwing-static-initialization)
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 
 static struct CameraBuffer {
@@ -37,11 +40,11 @@ struct FileExtensions {
 
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
 template<>
-const String FileExtensions<VulkanBackend>::SHADER = "spv";
+const String FileExtensions<VulkanBackend>::SHADER = "spv"; // NOLINT(bugprone-throwing-static-initialization)
 #endif // LITEFX_BUILD_VULKAN_BACKEND
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
 template<>
-const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
+const String FileExtensions<DirectX12Backend>::SHADER = "dxi"; // NOLINT(bugprone-throwing-static-initialization)
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
@@ -255,11 +258,7 @@ void SampleApp::onInit()
         m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
         m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
-        auto adapter = backend->findAdapter(m_adapterId);
-
-        if (adapter == nullptr)
-            adapter = backend->findAdapter(std::nullopt);
-
+        auto adapter = m_adapterId.has_value() ? backend->findAdapter(m_adapterId) : backend->findAdapter(GpuPreference::Performance);
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.
@@ -321,7 +320,7 @@ void SampleApp::onInit()
             auto stencilFormat = depthStencilFormats.size() > 0 && ::hasStencil(depthStencilFormats.front()) ? Vk::getFormat(depthStencilFormats.front()) : VK_FORMAT_UNDEFINED;
 
             // Setup Vulkan init info.
-            ImGui_ImplVulkan_InitInfo initInfo = {};
+            ImGui_ImplVulkan_InitInfo initInfo = {}; // NOLINT(bugprone-invalid-enum-default-initialization)
             initInfo.ApiVersion = VK_API_VERSION_1_3;
             initInfo.Instance = std::as_const(*backend).handle();
             initInfo.PhysicalDevice = std::as_const(*adapter).handle();

@@ -240,7 +240,7 @@ VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, bool begin, b
 		this->begin();
 }
 
-VulkanCommandBuffer::~VulkanCommandBuffer() noexcept
+VulkanCommandBuffer::~VulkanCommandBuffer() noexcept // NOLINT(bugprone-exception-escape)
 {
 	m_impl->release(*this);
 }
@@ -780,7 +780,7 @@ void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout,
 		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the push constants range.");
 
 	std::ranges::for_each(layout.ranges(), [&](const auto& range) { 
-		::vkCmdPushConstants(this->handle(), std::as_const(*m_impl->m_lastPipeline->layout()).handle(), static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), range->offset(), range->size(), memory);
+		::vkCmdPushConstants(this->handle(), std::as_const(*m_impl->m_lastPipeline->layout()).handle(), static_cast<VkShaderStageFlags>(std::to_underlying(range->stageMask())), range->offset(), range->size(), memory);
 	});
 }
 

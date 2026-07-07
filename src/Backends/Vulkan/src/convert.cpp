@@ -731,14 +731,24 @@ PrimitiveTopology LiteFX::Rendering::Backends::Vk::getPrimitiveTopology(const Vk
 	{
 	case VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
 		return PrimitiveTopology::LineList;
+	case VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY:
+		return PrimitiveTopology::LineListWithAdjacency;
 	case VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
 		return PrimitiveTopology::LineStrip;
+	case VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY:
+		return PrimitiveTopology::LineStripWithAdjacency;
 	case VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
 		return PrimitiveTopology::TriangleList;
+	case VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY:
+		return PrimitiveTopology::TriangleListWithAdjacency;
 	case VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
 		return PrimitiveTopology::TriangleStrip;
+	case VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY:
+		return PrimitiveTopology::TriangleStripWithAdjacency;
 	case VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
 		return PrimitiveTopology::PointList;
+	case VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_PATCH_LIST:
+		return PrimitiveTopology::PatchList;
 	default:
 		throw std::invalid_argument("Unsupported primitive topology.");
 	}
@@ -750,14 +760,24 @@ VkPrimitiveTopology LiteFX::Rendering::Backends::Vk::getPrimitiveTopology(Primit
 	{
 	case PrimitiveTopology::LineList:
 		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+	case PrimitiveTopology::LineListWithAdjacency:
+		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY;
 	case PrimitiveTopology::LineStrip:
 		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
-	case PrimitiveTopology::PointList:
-		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+	case PrimitiveTopology::LineStripWithAdjacency:
+		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY;
 	case PrimitiveTopology::TriangleList:
 		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	case PrimitiveTopology::TriangleListWithAdjacency:
+		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY;
 	case PrimitiveTopology::TriangleStrip:
 		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+	case PrimitiveTopology::TriangleStripWithAdjacency:
+		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
+	case PrimitiveTopology::PointList:
+		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+	case PrimitiveTopology::PatchList:
+		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
 	default:
 		throw std::invalid_argument("Unsupported primitive topology.");
 	}

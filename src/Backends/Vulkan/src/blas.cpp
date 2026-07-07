@@ -310,17 +310,19 @@ void VulkanBottomLevelAccelerationStructure::copy(const VulkanCommandBuffer& com
     auto device = commandBuffer.queue()->device();
 
     if (!LITEFX_FLAG_IS_SET(m_impl->m_flags, AccelerationStructureFlags::AllowCompaction))
-        device->computeAccelerationStructureSizes(*this, requiredMemory[0], requiredMemory[1], true);
+        device->computeAccelerationStructureSizes(*this, requiredMemory[0], requiredMemory[1], true);// NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
     else
         raiseIfFailed(::vkGetQueryPoolResults(device->handle(), m_impl->m_queryPool, 0, 1, sizeof(UInt64), &requiredMemory, 0, VkQueryResultFlagBits::VK_QUERY_RESULT_64_BIT), "Unable to query for compressed acceleration structure size.");
 
     // Validate the input arguments.
     auto memory = buffer;
 
+    // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
     if (buffer == nullptr)
         memory = destination.m_impl->m_buffer->size() >= requiredMemory[0] ? destination.m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, static_cast<size_t>(requiredMemory[0]), 1, ResourceUsage::AllowWrite);
     else if (buffer->size() < offset + requiredMemory[0]) [[unlikely]]
         throw ArgumentOutOfRangeException("buffer", std::make_pair<UInt64, UInt64>(0u, buffer->size()), offset + requiredMemory[0], "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
+    // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
     // Create or reset query pool on destination, if required. 
     if (LITEFX_FLAG_IS_SET(destination.flags(), AccelerationStructureFlags::AllowCompaction))
@@ -348,7 +350,7 @@ void VulkanBottomLevelAccelerationStructure::copy(const VulkanCommandBuffer& com
         .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
         .buffer = memory->handle(),
         .offset = offset,
-        .size = requiredMemory[0],
+        .size = requiredMemory[0], // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR
     };
 
@@ -357,7 +359,7 @@ void VulkanBottomLevelAccelerationStructure::copy(const VulkanCommandBuffer& com
     // Store the buffer and the offset.
     destination.m_impl->m_offset = offset;
     destination.m_impl->m_buffer = memory;
-    destination.m_impl->m_size = requiredMemory[0];
+    destination.m_impl->m_size = requiredMemory[0]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
     destination.m_impl->m_device = m_impl->m_device;
 
     // Perform the update.

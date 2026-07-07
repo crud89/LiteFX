@@ -8,6 +8,8 @@
 #pragma warning(push)
 #pragma warning(disable:4250) // Base class members are inherited via dominance.
 
+// NOLINTBEGIN(bugprone-derived-method-shadowing-base-method)
+
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Math;
     using namespace LiteFX::Rendering;
@@ -682,7 +684,7 @@ namespace LiteFX::Rendering::Backends {
         const Array<UniquePtr<const DirectX12ShaderModule>>& modules() const noexcept override;
 
         /// <inheritdoc />
-        virtual SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints = {}) const;
+        SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints = {}) const;
 
     private:
         SharedPtr<IPipelineLayout> parsePipelineLayout(Enumerable<PipelineBindingHint> hints) const override {
@@ -730,7 +732,7 @@ namespace LiteFX::Rendering::Backends {
         /// Returns the parent descriptor set layout.
         /// </summary>
         /// <returns>The parent descriptor set layout.</returns>
-        virtual const DirectX12DescriptorSetLayout& layout() const noexcept;
+        const DirectX12DescriptorSetLayout& layout() const noexcept;
 
     public:
         /// <inheritdoc />
@@ -763,7 +765,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="heapType">The type of the descriptor heap to obtain.</param>
         /// <returns>The local (CPU-visible) heap that contains the set's descriptors.</returns>
-        virtual const ComPtr<ID3D12DescriptorHeap> localHeap(DescriptorHeapType heapType) const noexcept;
+        const ComPtr<ID3D12DescriptorHeap> localHeap(DescriptorHeapType heapType) const noexcept;
     };
 
     /// <summary>
@@ -935,7 +937,7 @@ namespace LiteFX::Rendering::Backends {
         /// Returns the parent device or `nullptr`, if it has been released.
         /// </summary>
         /// <returns>A pointer to the parent device or `nullptr`, if it has been released.</returns>
-        virtual SharedPtr<const DirectX12Device> device() const noexcept;
+        SharedPtr<const DirectX12Device> device() const noexcept;
 
     public:
         /// <inheritdoc />
@@ -1056,7 +1058,7 @@ namespace LiteFX::Rendering::Backends {
         UInt32 size() const noexcept override;
 
         /// <inheritdoc />
-        ShaderStage stage() const noexcept override;
+        ShaderStage stageMask() const noexcept override;
     };
 
     /// <summary>
@@ -1108,9 +1110,6 @@ namespace LiteFX::Rendering::Backends {
     public:
         /// <inheritdoc />
         UInt32 size() const noexcept override;
-
-        /// <inheritdoc />
-        const DirectX12PushConstantsRange& range(ShaderStage stage) const override;
 
         /// <inheritdoc />
         const Array<UniquePtr<DirectX12PushConstantsRange>>& ranges() const override;
@@ -1251,13 +1250,21 @@ namespace LiteFX::Rendering::Backends {
         friend struct SharedObject::Allocator<DirectX12InputAssembler>;
 
 	private:
-		/// <summary>
-		/// Initializes a new DirectX 12 input assembler state.
-		/// </summary>
-		/// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
-		/// <param name="indexBufferLayout">The index buffer layout.</param>
-		/// <param name="primitiveTopology">The primitive topology.</param>
-		explicit DirectX12InputAssembler(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList);
+        /// <summary>
+        /// Initializes a new DirectX 12 input assembler state.
+        /// </summary>
+        /// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
+        /// <param name="controlPoints">The number of control points in a patch primitive. Ignored if <paramref name="primitiveTopology" /> is not `PrimitiveTopology::PatchList`. Must be a value between 1 and 32.</param>
+        explicit DirectX12InputAssembler(PrimitiveTopology primitiveTopology, UInt32 controlPoints = 1);
+
+        /// <summary>
+        /// Initializes a new DirectX 12 input assembler state.
+        /// </summary>
+        /// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
+        /// <param name="indexBufferLayout">The index buffer layout.</param>
+        /// <param name="primitiveTopology">The primitive topology.</param>
+        /// <param name="controlPoints">The number of control points in a patch primitive. Ignored if <paramref name="primitiveTopology" /> is not `PrimitiveTopology::PatchList`. Must be a value between 1 and 32.</param>
+        explicit DirectX12InputAssembler(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList, UInt32 controlPoints = 1);
 
         /// <summary>
         /// Initializes a new DirectX 12 input assembler state.
@@ -1275,7 +1282,7 @@ namespace LiteFX::Rendering::Backends {
         DirectX12InputAssembler& operator=(DirectX12InputAssembler&&) noexcept;
 
         /// <inheritdoc />
-        DirectX12InputAssembler& operator=(const DirectX12InputAssembler&) = delete;
+        DirectX12InputAssembler& operator=(const DirectX12InputAssembler&);
 
     public:
         /// <inheritdoc />
@@ -1285,12 +1292,23 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// Creates a new DirectX 12 input assembler state.
         /// </summary>
+        /// <param name="primitiveTopology">The primitive topology.</param>
+        /// <param name="controlPoints">The number of control points in a patch primitive. Ignored if <paramref name="primitiveTopology" /> is not `PrimitiveTopology::PatchList`. Must be a value between 1 and 32.</param>
+        /// <returns>A shared pointer to the newly created input assembler instance.</returns>
+        static inline auto create(PrimitiveTopology primitiveTopology, UInt32 controlPoints = 1) {
+            return SharedObject::create<DirectX12InputAssembler>(primitiveTopology, controlPoints);
+        }
+
+        /// <summary>
+        /// Creates a new DirectX 12 input assembler state.
+        /// </summary>
         /// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
         /// <param name="indexBufferLayout">The index buffer layout.</param>
         /// <param name="primitiveTopology">The primitive topology.</param>
+        /// <param name="controlPoints">The number of control points in a patch primitive. Ignored if <paramref name="primitiveTopology" /> is not `PrimitiveTopology::PatchList`. Must be a value between 1 and 32.</param>
         /// <returns>A shared pointer to the newly created input assembler instance.</returns>
-        static inline auto create(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList) {
-            return SharedObject::create<DirectX12InputAssembler>(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
+        static inline auto create(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList, UInt32 controlPoints = 1) {
+            return SharedObject::create<DirectX12InputAssembler>(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology, controlPoints);
         }
 
         /// <summary>
@@ -1323,6 +1341,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         PrimitiveTopology topology() const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 controlPoints() const noexcept override;
     };
 
     /// <summary>
@@ -1737,7 +1758,7 @@ namespace LiteFX::Rendering::Backends {
         /// Returns a pointer to the device that provides this queue or `nullptr`, if the device has already been released.
         /// </summary>
         /// <returns>A reference to the queue's parent device or `nullptr`, if the device has already been released.</returns>
-        virtual SharedPtr<const DirectX12Device> device() const noexcept;
+        SharedPtr<const DirectX12Device> device() const noexcept;
 
         // CommandQueue interface.
     public:
@@ -2441,13 +2462,13 @@ namespace LiteFX::Rendering::Backends {
         /// Returns <c>true</c>, if the adapter supports variable refresh rates (i.e. tearing is allowed).
         /// </summary>
         /// <returns><c>true</c>, if the adapter supports variable refresh rates (i.e. tearing is allowed).</returns>
-        virtual bool supportsVariableRefreshRate() const noexcept;
+        bool supportsVariableRefreshRate() const noexcept;
 
         /// <summary>
         /// Returns the query heap for the current frame.
         /// </summary>
         /// <returns>A pointer to the query heap for the current frame.</returns>
-        virtual ID3D12QueryHeap* timestampQueryHeap() const noexcept;
+        ID3D12QueryHeap* timestampQueryHeap() const noexcept;
 
         // SwapChain interface.
     public:
@@ -2840,7 +2861,7 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         /// <seealso href="https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_standard_multisample_quality_levels" />
-        MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept override;
+        MultiSamplingLevel maximumMultiSamplingLevel(Format format) const override;
 
         /// <inheritdoc />
         double ticksPerMillisecond() const noexcept override;
@@ -2864,7 +2885,7 @@ namespace LiteFX::Rendering::Backends {
         void updateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const override;
 
         /// <inheritdoc />
-        void bindDescriptorSet(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept override;
+        void bindDescriptorSet(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const override;
 
         /// <inheritdoc />
         void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept override;
@@ -2954,7 +2975,10 @@ namespace LiteFX::Rendering::Backends {
         const Array<SharedPtr<const DirectX12GraphicsAdapter>>& adapters() const override;
 
         /// <inheritdoc />
-        const DirectX12GraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const noexcept override;
+        const DirectX12GraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override;
+
+        /// <inheritdoc />
+        const DirectX12GraphicsAdapter* findAdapter(GpuPreference preference) const override;
 
         /// <inheritdoc />
         void registerDevice(const String& name, SharedPtr<DirectX12Device>&& device) override;
@@ -2963,10 +2987,10 @@ namespace LiteFX::Rendering::Backends {
         void releaseDevice(const String& name) override;
 
         /// <inheritdoc />
-        DirectX12Device* device(const String& name) noexcept override;
+        DirectX12Device* device(const String& name) override;
 
         /// <inheritdoc />
-        const DirectX12Device* device(const String& name) const noexcept override;
+        const DirectX12Device* device(const String& name) const override;
 
     public:
         /// <summary>
@@ -2984,9 +3008,11 @@ namespace LiteFX::Rendering::Backends {
         /// will only return WARP-compatible adapters.
         /// </remarks>
         /// <param name="enable"><c>true</c>, if advanced software rasterization should be used.</param>
-        virtual void enableAdvancedSoftwareRasterizer(bool enable = false);
+        void enableAdvancedSoftwareRasterizer(bool enable = false);
     };
 
 }
+
+// NOLINTEND(bugprone-derived-method-shadowing-base-method)
 
 #pragma warning(pop)

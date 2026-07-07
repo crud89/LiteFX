@@ -195,11 +195,11 @@ public:
 		m_currentImage = swapChain.handle()->GetCurrentBackBufferIndex();
 
 		// Wait for all rendering commands to finish on the image index (otherwise we would not be able to re-use the command buffers).
-		device->defaultQueue(QueueType::Graphics).waitFor(m_presentFences[m_currentImage]);
+		device->defaultQueue(QueueType::Graphics).waitFor(m_presentFences[m_currentImage]); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
 		// Read back the timestamps.
 		if (!m_timestamps.empty())
-			m_timingQueryReadbackBuffers[m_currentImage]->map(m_timestamps.data(), sizeof(UInt64) * m_timestamps.size(), 0, false);
+			m_timingQueryReadbackBuffers[m_currentImage]->map(m_timestamps.data(), sizeof(UInt64) * m_timestamps.size(), 0, false); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
 		return m_currentImage;
 	}
@@ -234,7 +234,7 @@ bool DirectX12SwapChain::supportsVariableRefreshRate() const noexcept
 
 ID3D12QueryHeap* DirectX12SwapChain::timestampQueryHeap() const noexcept
 {
-	return m_impl->m_timingQueryHeaps[m_impl->m_currentImage].Get();
+	return m_impl->m_timingQueryHeaps[m_impl->m_currentImage].Get(); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 const Array<SharedPtr<const TimingEvent>>& DirectX12SwapChain::timingEvents() const
@@ -247,7 +247,7 @@ SharedPtr<const TimingEvent> DirectX12SwapChain::timingEvent(UInt32 queryId) con
 	if (queryId >= m_impl->m_timingEvents.size())
 		throw ArgumentOutOfRangeException("queryId", std::make_pair(0uz, m_impl->m_timingEvents.size()), static_cast<size_t>(queryId), "No timing event has been registered for query ID {0}.", queryId);
 
-	return m_impl->m_timingEvents[queryId];
+	return m_impl->m_timingEvents[queryId]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 UInt64 DirectX12SwapChain::readTimingEvent(SharedPtr<const TimingEvent> timingEvent) const
@@ -256,7 +256,7 @@ UInt64 DirectX12SwapChain::readTimingEvent(SharedPtr<const TimingEvent> timingEv
 		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");
 
 	if (auto match = std::find(m_impl->m_timingEvents.begin(), m_impl->m_timingEvents.end(), timingEvent); match != m_impl->m_timingEvents.end()) [[likely]]
-		return m_impl->m_timestamps[std::distance(m_impl->m_timingEvents.begin(), match)];
+		return m_impl->m_timestamps[std::distance(m_impl->m_timingEvents.begin(), match)]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
 	throw InvalidArgumentException("timingEvent", "The timing event is not registered on the swap chain.");
 }
@@ -307,12 +307,12 @@ IDirectX12Image* DirectX12SwapChain::image(UInt32 backBuffer) const
 	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
 		throw ArgumentOutOfRangeException("backBuffer", std::make_pair(0uz, m_impl->m_presentImages.size()), static_cast<size_t>(backBuffer), "The back buffer must be a valid index.");
 
-	return m_impl->m_presentImages[backBuffer].get();
+	return m_impl->m_presentImages[backBuffer].get(); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 const IDirectX12Image& DirectX12SwapChain::image() const noexcept
 {
-	return *m_impl->m_presentImages[m_impl->m_currentImage];
+	return *m_impl->m_presentImages[m_impl->m_currentImage]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 const Array<SharedPtr<IDirectX12Image>>& DirectX12SwapChain::images() const noexcept
@@ -324,7 +324,7 @@ void DirectX12SwapChain::present(UInt64 fence) const
 {
 	// Store the last fence here that marks the end of the rendering to this frame buffer. Presenting is queued after rendering anyway, but when swapping the back buffers buffers,
 	// we need to wait for all commands to finish before being able to re-use the command buffers associated with queued commands.
-	m_impl->m_presentFences[m_impl->m_currentImage] = fence;
+	m_impl->m_presentFences[m_impl->m_currentImage] = fence; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
 	if (m_impl->m_vsync)
 		raiseIfFailed(this->handle()->Present(1, 0), "Unable to present swap chain");
@@ -377,8 +377,10 @@ void DirectX12SwapChain::resolveQueryHeaps(const DirectX12CommandBuffer& command
 	if (m_impl->m_timingEvents.empty())
 		return;
 
+	// NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 	commandBuffer.handle()->ResolveQueryData(
 		m_impl->m_timingQueryHeaps[m_impl->m_currentImage].Get(), 
 		D3D12_QUERY_TYPE_TIMESTAMP, 0, static_cast<UINT>(m_impl->m_timestamps.size()), 
 		std::as_const(*m_impl->m_timingQueryReadbackBuffers[m_impl->m_currentImage]).handle().Get(), 0);
+	// NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }

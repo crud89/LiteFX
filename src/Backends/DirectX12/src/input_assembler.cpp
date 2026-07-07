@@ -13,13 +13,18 @@ public:
 private:
     Dictionary<UInt32, SharedPtr<DirectX12VertexBufferLayout>> m_vertexBufferLayouts{};
     SharedPtr<DirectX12IndexBufferLayout> m_indexBufferLayout{};
-    PrimitiveTopology m_primitiveTopology{};
+    PrimitiveTopology m_primitiveTopology{ PrimitiveTopology::PointList };
+    UInt32 m_controlPoints{ 0u };
 
 public:
-    void initialize(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology)
+    void initialize(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology, UInt32 controlPoints)
     {
+        if (primitiveTopology == PrimitiveTopology::PatchList && (controlPoints < 1 || controlPoints > 32)) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            throw ArgumentOutOfRangeException("controlPoints", { 1u, 32u }, controlPoints, "The number of control points must be a value ranging from 1 and 32."); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+
         m_primitiveTopology = primitiveTopology;
         m_indexBufferLayout = std::move(indexBufferLayout);
+        m_controlPoints = controlPoints;
         auto layouts = std::move(vertexBufferLayouts);
 
         for (auto vertexBufferLayout : layouts)
@@ -39,10 +44,17 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12InputAssembler::DirectX12InputAssembler(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology) :
+DirectX12InputAssembler::DirectX12InputAssembler(PrimitiveTopology primitiveTopology, UInt32 controlPoints) :
     m_impl()
 {
-    m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
+    m_impl->initialize({}, {}, primitiveTopology, controlPoints);
+}
+
+
+DirectX12InputAssembler::DirectX12InputAssembler(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology, UInt32 controlPoints) :
+    m_impl()
+{
+    m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology, controlPoints);
 }
 
 DirectX12InputAssembler::DirectX12InputAssembler() :
@@ -51,6 +63,10 @@ DirectX12InputAssembler::DirectX12InputAssembler() :
 }
 
 DirectX12InputAssembler::DirectX12InputAssembler(const DirectX12InputAssembler&) = default;
+DirectX12InputAssembler::DirectX12InputAssembler(DirectX12InputAssembler&&) noexcept = default;
+DirectX12InputAssembler& DirectX12InputAssembler::operator=(const DirectX12InputAssembler&) = default;
+DirectX12InputAssembler& DirectX12InputAssembler::operator=(DirectX12InputAssembler&&) noexcept = default;
+
 DirectX12InputAssembler::~DirectX12InputAssembler() noexcept = default;
 
 Enumerable<const DirectX12VertexBufferLayout&> DirectX12InputAssembler::vertexBufferLayouts() const
@@ -76,6 +92,11 @@ PrimitiveTopology DirectX12InputAssembler::topology() const noexcept
     return m_impl->m_primitiveTopology;
 }
 
+UInt32 DirectX12InputAssembler::controlPoints() const noexcept
+{
+    return m_impl->m_controlPoints;
+}
+
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
@@ -89,7 +110,6 @@ public:
 private:
     Array<SharedPtr<DirectX12VertexBufferLayout>> m_vertexBufferLayouts{};
     SharedPtr<DirectX12IndexBufferLayout> m_indexBufferLayout{};
-    PrimitiveTopology m_primitiveTopology{};
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -105,7 +125,7 @@ DirectX12InputAssemblerBuilder::~DirectX12InputAssemblerBuilder() noexcept = def
 
 void DirectX12InputAssemblerBuilder::build()
 {
-    this->instance()->m_impl->initialize(this->state().vertexBufferLayouts | std::views::as_rvalue, std::move(this->state().indexBufferLayout), this->state().topology);
+    this->instance()->m_impl->initialize(this->state().vertexBufferLayouts | std::views::as_rvalue, std::move(this->state().indexBufferLayout), this->state().topology, this->state().controlPoints);
 }
 
 DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)

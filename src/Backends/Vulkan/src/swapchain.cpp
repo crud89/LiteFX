@@ -166,7 +166,7 @@ public:
 		::vkGetSwapchainImagesKHR(device.handle(), swapChain, &images, imageChain.data());
 
 		m_presentImages = imageChain |
-			std::views::transform([&actualRenderArea, &selectedFormat](const VkImage& image) { return VulkanImage::create(image, Size3d{ actualRenderArea.width(), actualRenderArea.height(), 1 }, selectedFormat, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination, {}); }) |
+			std::views::transform([&actualRenderArea, &selectedFormat](const VkImage& image) { return VulkanImage::create(image, Size3d{ actualRenderArea.width(), actualRenderArea.height(), 1 }, selectedFormat, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination, {}); }) | // NOLINT(bugprone-invalid-enum-default-initialization)
 			std::ranges::to<Array<SharedPtr<IVulkanImage>>>();
 
 		// Store state variables.
@@ -395,7 +395,7 @@ private:
 		ImageResource& operator=(ImageResource&&) noexcept = default;
 		ImageResource& operator=(const ImageResource&) = delete;
 
-		~ImageResource() noexcept
+		~ImageResource() // NOLINT(bugprone-exception-escape)
 		{
 			image.Reset();
 			::vkFreeMemory(device, memory, nullptr);
@@ -458,7 +458,7 @@ public:
 	VulkanSwapChainImpl& operator=(VulkanSwapChainImpl&&) noexcept = default;
 	VulkanSwapChainImpl& operator=(const VulkanSwapChainImpl&) = delete;
 
-	~VulkanSwapChainImpl()
+	~VulkanSwapChainImpl() // NOLINT(bugprone-exception-escape)
 	{
 		// Check if the device is still valid.
 		auto device = m_device.lock();
@@ -647,8 +647,10 @@ public:
 
 		for (UInt32 i{ 0 }; i < images; ++i)
 		{
+			// NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 			D3D::raiseIfFailed(m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_presentCommandAllocators[i])), "Unable to create command allocator for present queue commands.");
 			D3D::raiseIfFailed(m_d3dDevice->CreateCommandList1(0, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&m_presentCommandLists[i])), "Unable to create command list for present queue commands.");
+			// NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 		}
 	}
 
@@ -718,8 +720,10 @@ public:
 
 		for (UInt32 i{ 0 }; i < images; ++i)
 		{
+			// NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 			D3D::raiseIfFailed(m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_presentCommandAllocators[i])), "Unable to create command allocator for present queue commands.");
 			D3D::raiseIfFailed(m_d3dDevice->CreateCommandList1(0, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&m_presentCommandLists[i])), "Unable to create command list for present queue commands.");
+			// NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 		}
 
 		// Store vsync flag.
@@ -828,12 +832,14 @@ public:
 			raiseIfFailed(::vkBindImageMemory(device.handle(), backBuffer, imageMemory, 0), "Unable to bind back-buffer.");
 
 			// Return the image instance.
+			// NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 			m_imageResources[image].device = device.handle();
 			m_imageResources[image].memory = imageMemory;
 			m_imageResources[image].handle = resourceHandle;
 			m_imageResources[image].image = std::move(resource);
+			// NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
-			return VulkanImage::create(backBuffer, Size3d{ imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth }, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination, {});
+			return VulkanImage::create(backBuffer, Size3d{ imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth }, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination, {}); // NOLINT(bugprone-invalid-enum-default-initialization)
 		});
 
 		// Store state variables.
@@ -882,6 +888,7 @@ public:
 
 	UInt32 swapBackBuffer()
 	{
+		// NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 		// Check if the device is still valid.
 		auto device = m_device.lock();
 
@@ -919,6 +926,8 @@ public:
 			::vkResetQueryPool(device->handle(), m_timingQueryPools[m_currentImage], 0, static_cast<UInt32>(m_timestamps.size()));
 		}
 
+		// NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+
 		// Return the new back buffer index.
 		return m_currentImage;
 	}
@@ -927,6 +936,7 @@ public:
 	{
 		// Wait for all commands to finish on the default graphics queue. We assume that this is the last queue that receives (synchronized) workloads, as it is expected to
 		// handle presentation by convention. Note that this performs a GPU-side wait for the fence and does not block.
+		// NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 		m_presentQueue->Wait(m_workloadFence.Get(), m_presentFences[m_currentImage] = fence);
 
 		// Copy shared images to back buffers. See `createImages` for details on why we do this.
@@ -986,11 +996,12 @@ public:
 			D3D::raiseIfFailed(m_swapChain->Present(0, m_supportsTearing ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to queue present event on swap chain.");
 
 		D3D::raiseIfFailed(m_presentQueue->Signal(m_presentationFence.Get(), m_presentFences[m_currentImage]), "Unable to signal presentation fence.");
+		// NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 	}
 	
 	const VkQueryPool& currentTimestampQueryPool()
 	{
-		return m_timingQueryPools[m_currentImage];
+		return m_timingQueryPools[m_currentImage]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 	}
 
 public:
@@ -1085,7 +1096,7 @@ SharedPtr<const TimingEvent> VulkanSwapChain::timingEvent(UInt32 queryId) const
 	if (queryId >= m_impl->m_timingEvents.size())
 		throw ArgumentOutOfRangeException("queryId", std::make_pair(0uz, m_impl->m_timingEvents.size()), static_cast<size_t>(queryId), "No timing event has been registered for query ID {0}.", queryId);
 
-	return m_impl->m_timingEvents[queryId];
+	return m_impl->m_timingEvents[queryId]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 UInt64 VulkanSwapChain::readTimingEvent(SharedPtr<const TimingEvent> timingEvent) const
@@ -1097,7 +1108,7 @@ UInt64 VulkanSwapChain::readTimingEvent(SharedPtr<const TimingEvent> timingEvent
 		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");
 
 	if (auto match = std::find(m_impl->m_timingEvents.begin(), m_impl->m_timingEvents.end(), timingEvent); match != m_impl->m_timingEvents.end()) [[likely]]
-		return m_impl->m_timestamps[std::distance(m_impl->m_timingEvents.begin(), match)];
+		return m_impl->m_timestamps[std::distance(m_impl->m_timingEvents.begin(), match)]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
 	throw InvalidArgumentException("timingEvent", "The timing event is not registered on the swap chain.");
 }
@@ -1151,12 +1162,12 @@ IVulkanImage* VulkanSwapChain::image(UInt32 backBuffer) const
 	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
 		throw ArgumentOutOfRangeException("backBuffer", std::make_pair(0uz, m_impl->m_presentImages.size()), static_cast<size_t>(backBuffer), "The back buffer must be a valid index.");
 
-	return m_impl->m_presentImages[backBuffer].get();
+	return m_impl->m_presentImages[backBuffer].get(); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 const IVulkanImage& VulkanSwapChain::image() const noexcept
 {
-	return *m_impl->m_presentImages[m_impl->m_currentImage];
+	return *m_impl->m_presentImages[m_impl->m_currentImage]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 const Array<SharedPtr<IVulkanImage>>& VulkanSwapChain::images() const noexcept

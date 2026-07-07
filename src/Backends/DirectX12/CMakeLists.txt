@@ -90,7 +90,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi Microsoft::DirectX12-Agility Microsoft::DirectXShaderCompiler Microsoft::DXIL 
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi dxcore Microsoft::DirectX12-Agility Microsoft::DirectXShaderCompiler Microsoft::DXIL
     PRIVATE GPUOpen::D3D12MemoryAllocator
 )
 

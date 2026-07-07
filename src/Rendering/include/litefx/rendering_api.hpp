@@ -77,22 +77,47 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// The adapter is not a valid graphics adapter.
         /// </summary>
-        None = 0x00000000,
-        
-        /// <summary>
-        /// The adapter is a dedicated GPU or integrated CPU adapter.
-        /// </summary>
-        GPU = 0x00000001,
-
-        /// <summary>
-        /// The adapter is a software driver.
-        /// </summary>
-        CPU = 0x00000002,
+        None = 0,
 
         /// <summary>
         /// The adapter type is not captured by this enum. This value is used internally to mark invalid adapters and should not be used.
         /// </summary>
-        Other = 0x7FFFFFFF,
+        Other = 1,
+
+        /// <summary>
+        /// The adapter is a software driver.
+        /// </summary>
+        Software = 2,
+
+        /// <summary>
+        /// The adapter is a GPU integrated into the CPU.
+        /// </summary>
+        CPU = 3,
+        
+        /// <summary>
+        /// The adapter is a dedicated or external GPU.
+        /// </summary>
+        GPU = 4,
+    };
+
+    /// <summary>
+    /// Provides a preference setting when selecting an adapter.
+    /// </summary>
+    enum class GpuPreference {
+        /// <summary>
+        /// Returns the first adapter in the list without any preference.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Returns the preferred adapter for minimum power consumption.
+        /// </summary>
+        Power = 1,
+
+        /// <summary>
+        /// Returns the preferred adapter for maximum performance.
+        /// </summary>
+        Performance = 2
     };
 
     /// <summary>
@@ -947,22 +972,51 @@ namespace LiteFX::Rendering {
         LineList = 0x00020001,
 
         /// <summary>
+        /// A list of lines where each vertex pair refers to the start and end points of a line and where vertices also store adjacency data.
+        /// </summary>
+        /// <seealso cref="LineList" />
+        LineListWithAdjacency = 0x00020011,
+
+        /// <summary>
         /// A list of triangles, where each triplet of vertices refers to a whole triangle.
         /// </summary>
         /// <seealso cref="TriangleStrip" />
         TriangleList = 0x00040001,
 
         /// <summary>
+        /// A list of triangles, where each triplet of vertices refers to a whole triangle and where vertices also store adjacency data.
+        /// </summary>
+        /// <seealso cref="TriangleList" />
+        TriangleListWithAdjacency = 0x00040011,
+
+        /// <summary>
         /// A strip of lines where each vertex (except the first one) refers to the end point for the next line segment.
         /// </summary>
         /// <seealso cref="LineList" />
         LineStrip = 0x00020002,
+
+        /// <summary>
+        /// A strip of lines where each vertex (except the first one) refers to the end point for the next line segment.
+        /// </summary>
+        /// <seealso cref="LineStrip" />
+        LineStripWithAdjacency = 0x00020012,
         
         /// <summary>
-        /// A strip of triangles, where each vertex (except the first two) refers to the third vertex of the next triangle segment.
+        /// A strip of triangles, where each vertex (except the first two) refers to the third vertex of the next triangle segment and where vertices also store adjacency data..
         /// </summary>
         /// <seealso cref="TriangleList" />
-        TriangleStrip = 0x00040002
+        TriangleStrip = 0x00040002,
+
+        /// <summary>
+        /// A strip of triangles, where each vertex (except the first two) refers to the third vertex of the next triangle segment and where vertices also store adjacency data..
+        /// </summary>
+        /// <seealso cref="TriangleStrip" />
+        TriangleStripWithAdjacency = 0x00040012,
+
+        /// <summary>
+        /// A list of patches used in combination with tessellation.
+        /// </summary>
+        PatchList = 0x00080001
     };
 
     /// <summary>
@@ -3107,6 +3161,16 @@ namespace LiteFX::Rendering {
             [[nodiscard]] virtual Allocation allocate(UInt64 size, UInt32 alignment = 1u, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const = 0;
 
             /// <summary>
+            /// Attempts to allocate a piece of memory of <paramref name="size" /> bytes, aligned to <paramref name="alignment" />. If the allocation fails `std::nullopt` is returned.
+            /// </summary>
+            /// <param name="size">The size (in bytes) of the resource to place in the allocation.</param>
+            /// <param name="alignment">The alignment requirements of the resource.</param>
+            /// <param name="strategy">The strategy to look for a place to put the allocation in.</param>
+            /// <param name="privateData">A pointer to an object that should be internally associated with the allocation.</param>
+            /// <returns>An object that contains details about the allocation, or `std::nullopt` if the allocation fails.</returns>
+            [[nodiscard]] virtual Optional<Allocation> tryAllocate(UInt64 size, UInt32 alignment = 1u, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const = 0;
+
+            /// <summary>
             /// Releases an allocation from the allocator, so that its memory can be re-used later.
             /// </summary>
             /// <param name="allocation">The allocation to release.</param>
@@ -3189,6 +3253,18 @@ namespace LiteFX::Rendering {
         /// <returns>An object that contains details about the allocation.</returns>
         [[nodiscard]] inline Allocation allocate(UInt64 size, UInt32 alignment = 1u, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const {
             return m_impl->allocate(size, alignment, strategy, privateData);
+        }
+
+        /// <summary>
+        /// Attempts to allocate a piece of memory of <paramref name="size" /> bytes, aligned to <paramref name="alignment" />. If the allocation fails `std::nullopt` is returned.
+        /// </summary>
+        /// <param name="size">The size (in bytes) of the resource to place in the allocation.</param>
+        /// <param name="alignment">The alignment requirements of the resource.</param>
+        /// <param name="strategy">The strategy to look for a place to put the allocation in.</param>
+        /// <param name="privateData">A pointer to an object that should be internally associated with the allocation.</param>
+        /// <returns>An object that contains details about the allocation, or `std::nullopt` if the allocation fails.</returns>
+        [[nodiscard]] Optional<Allocation> tryAllocate(UInt64 size, UInt32 alignment = 1u, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const {
+            return m_impl->tryAllocate(size, alignment, strategy, privateData);
         }
 
         /// <summary>
@@ -3913,26 +3989,26 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Destroys a depth/stencil state.
         /// </summary>
-        virtual ~DepthStencilState() noexcept;
+        ~DepthStencilState() noexcept;
 
     public:
         /// <summary>
         /// Returns the depth state.
         /// </summary>
         /// <returns>The depth state.</returns>
-        virtual DepthState& depthState() const noexcept;
+        DepthState& depthState() const noexcept;
 
         /// <summary>
         /// Returns the depth bias.
         /// </summary>
         /// <returns>The depth bias.</returns>
-        virtual DepthBias& depthBias() const noexcept;
+        DepthBias& depthBias() const noexcept;
 
         /// <summary>
         /// Returns the stencil state.
         /// </summary>
         /// <returns>The stencil state.</returns>
-        virtual StencilState& stencilState() const noexcept;
+        StencilState& stencilState() const noexcept;
     };
 
     /// <summary>
@@ -4482,7 +4558,7 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Releases the buffer attribute instance.
         /// </summary>
-        virtual ~BufferAttribute() noexcept;
+        ~BufferAttribute() noexcept;
 
     public:
         /// <summary>
@@ -4492,19 +4568,19 @@ namespace LiteFX::Rendering {
         /// Locations can only be specified in Vulkan and are implicitly generated based on semantics for DirectX. However, it is a good practice to provide them anyway.
         /// </remarks>
         /// <returns>The location of the buffer attribute.</returns>
-        virtual UInt32 location() const noexcept;
+        UInt32 location() const noexcept;
 
         /// <summary>
         /// Returns the format of the buffer attribute.
         /// </summary>
         /// <returns>The format of the buffer attribute.</returns>
-        virtual BufferFormat format() const noexcept;
+        BufferFormat format() const noexcept;
 
         /// <summary>
         /// Returns the offset of the buffer attribute.
         /// </summary>
         /// <returns>The offset of the buffer attribute.</returns>
-        virtual UInt32 offset() const noexcept;
+        UInt32 offset() const noexcept;
 
         /// <summary>
         /// Returns the semantic of the buffer attribute.
@@ -4514,7 +4590,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The semantic of the buffer attribute.</returns>
         /// <seealso cref="semanticIndex" />
-        virtual AttributeSemantic semantic() const noexcept;
+        AttributeSemantic semantic() const noexcept;
 
         /// <summary>
         /// Returns the semantic index of the buffer attribute.
@@ -4524,7 +4600,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The semantic index of the buffer attribute.</returns>
         /// <seealso cref="semantic" />
-        virtual UInt32 semanticIndex() const noexcept;
+        UInt32 semanticIndex() const noexcept;
     };
 
     /// <summary>
@@ -5040,7 +5116,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="level">The mip map level to return the size for.</param>
         /// <returns>The size (in bytes) of an image at a specified mip map level.</returns>
-        virtual size_t size(UInt32 level) const noexcept = 0;
+        virtual size_t size(UInt32 level) const = 0;
 
         /// <summary>
         /// Gets the extent of the image at a certain mip-map level.
@@ -6600,7 +6676,7 @@ namespace LiteFX::Rendering {
         /// Returns the shader stage(s), the range is accessible from.
         /// </summary>
         /// <returns>The shader stage(s), the range is accessible from.</returns>
-        virtual ShaderStage stage() const noexcept = 0;
+        virtual ShaderStage stageMask() const noexcept = 0;
     };
 
     /// <summary>
@@ -6623,16 +6699,6 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The size (in bytes) of the push constants backing memory.</returns>
         virtual UInt32 size() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the push constant range associated with the shader stage provided in <paramref name="stage" />.
-        /// </summary>
-        /// <param name="stage">The shader stage to request the associated push constant range for. Specifying multiple stages is not supported and will raise an exception.</param>
-        /// <returns>The push constant range associated with the provided shader stage.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if no range is mapped to the provided shader stage.</exception>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="stage" /> contains multiple shader stages.</exception>
-        /// <seealso cref="ranges" />
-        virtual const IPushConstantsRange& range(ShaderStage stage) const = 0;
 
         /// <summary>
         /// Returns all push constant ranges.
@@ -6701,7 +6767,7 @@ namespace LiteFX::Rendering {
         /// Returns the type of the shader record.
         /// </summary>
         /// <returns>The type of the shader record.</returns>
-        constexpr ShaderRecordType type() const noexcept {
+        constexpr ShaderRecordType type() const {
             const auto& group = this->shaderGroup();
 
             if (std::holds_alternative<MeshGeometryHitGroup>(group))
@@ -7245,7 +7311,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// A mask that contains the shader stages, that the descriptor set should be accessible from.
             /// </summary>
-            ShaderStage Stages{ };
+            ShaderStage Stages{ ShaderStage::Other };
         };
 
         /// <summary>
@@ -7523,7 +7589,7 @@ namespace LiteFX::Rendering {
         /// Builds a shader record collection based on the current shader program.
         /// </summary>
         /// <returns>The shader record collection instance.</returns>
-        [[nodiscard]] inline ShaderRecordCollection buildShaderRecordCollection() const noexcept {
+        [[nodiscard]] inline ShaderRecordCollection buildShaderRecordCollection() const {
             return { this->shared_from_this() };
         }
 
@@ -7632,6 +7698,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The primitive topology.</returns>
         virtual PrimitiveTopology topology() const noexcept = 0;
+
+        /// <summary>
+        /// The number of control points for a patch, if the <see cref="topology" /> is set to `PrimitiveTopology::PatchList`.
+        /// </summary>
+        /// <returns>The number of control points for a patch.</returns>
+        virtual UInt32 controlPoints() const noexcept = 0;
 
     private:
         virtual Enumerable<const IVertexBufferLayout&> getVertexBufferLayouts() const = 0;
@@ -11172,7 +11244,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="format">The target (i.e. back-buffer) format.</param>
         /// <returns>The maximum multi-sampling level.</returns>
-        virtual MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept = 0;
+        virtual MultiSamplingLevel maximumMultiSamplingLevel(Format format) const = 0;
 
         /// <summary>
         /// Returns the number of GPU ticks per milliseconds.
@@ -11261,7 +11333,7 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffer">The command buffer to bind the descriptor set on.</param>
         /// <param name="descriptorSet">The descriptor set to bind.</param>
         /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
-        inline void bindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept {
+        inline void bindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const {
             this->doBindDescriptorSet(commandBuffer, descriptorSet, pipeline);
         }
 
@@ -11279,7 +11351,7 @@ namespace LiteFX::Rendering {
         virtual VirtualAllocator::Allocation doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const = 0;
         virtual void doReleaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const = 0;
         virtual void doUpdateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const = 0;
-        virtual void doBindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept = 0;
+        virtual void doBindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const = 0;
         virtual void doBindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept = 0;
 
     public:
@@ -11333,21 +11405,35 @@ namespace LiteFX::Rendering {
         /// <param name="adapterId">The unique ID of the adapter, or <c>std::nullopt</c> to find the default adapter.</param>
         /// <returns>A pointer to a graphics adapter, or <c>nullptr</c>, if no adapter could be found.</returns>
         /// <seealso cref="IGraphicsAdapter" />
-        virtual const IGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const noexcept = 0;
+        virtual const IGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const = 0;
+
+        /// <summary>
+        /// Finds an adapter using a preference setting, based on the user preferences made in the operating system settings.
+        /// </summary>
+        /// <remarks>
+        /// Note that the backend might return any adapter if the operating system does not support GPU preference settings, or if the backend does not support querying
+        /// adapters from such a setting.
+        /// 
+        /// The Vulkan backend only supports this method if the DirectX 12 backend is also available, as it performs the query through DXGI.
+        /// </remarks>
+        /// <param name="preference">The profile for the preferred adapter.</param>
+        /// <returns>A pointer to a graphics adapter, or <c>nullptr</c>, if no adapter could be found.</returns>
+        /// <seealso cref="IGraphicsAdapter" />
+        virtual const IGraphicsAdapter* findAdapter(GpuPreference preference) const = 0;
 
         /// <summary>
         /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
         /// </summary>
         /// <param name="name">The name of the device.</param>
         /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
-        virtual IGraphicsDevice* device(const String& name) noexcept = 0;
+        virtual IGraphicsDevice* device(const String& name) = 0;
 
         /// <summary>
         /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
         /// </summary>
         /// <param name="name">The name of the device.</param>
         /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
-        virtual const IGraphicsDevice* device(const String& name) const noexcept = 0;
+        virtual const IGraphicsDevice* device(const String& name) const = 0;
 
         /// <summary>
         /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.

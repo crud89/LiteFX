@@ -1120,7 +1120,7 @@ namespace LiteFX {
 		/// Returns a shared pointer to the current object instance.
 		/// </summary>
 		template <typename TSelf>
-		[[nodiscard]] auto inline shared_from_this(this TSelf&& self) noexcept
+		[[nodiscard]] auto inline shared_from_this(this TSelf&& self)
 		{
 			// TODO: In C++26 we should be able to use `std::is_virtual_base_of<SharedObject, TSelf>` here to prefer a `static_pointer_cast`, if possible.
 

@@ -8,6 +8,8 @@
 #pragma warning(push)
 #pragma warning(disable:4250) // Base class members are inherited via dominance.
 
+// NOLINTBEGIN(bugprone-derived-method-shadowing-base-method)
+
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Math;
     using namespace LiteFX::Rendering;
@@ -631,13 +633,13 @@ namespace LiteFX::Rendering::Backends {
         /// Returns the shader byte code.
         /// </summary>
         /// <returns>The shader byte code.</returns>
-        virtual const Array<UInt32>& bytecode() const noexcept;
+        const Array<UInt32>& bytecode() const noexcept;
 
         /// <summary>
         /// Returns the shader stage creation info for convenience.
         /// </summary>
         /// <returns>The shader stage creation info for convenience.</returns>
-        virtual VkPipelineShaderStageCreateInfo shaderStageDefinition() const;
+        VkPipelineShaderStageCreateInfo shaderStageDefinition() const;
     };
 
     /// <summary>
@@ -708,7 +710,7 @@ namespace LiteFX::Rendering::Backends {
         const Array<UniquePtr<const VulkanShaderModule>>& modules() const noexcept override;
 
         /// <inheritdoc />
-        virtual SharedPtr<VulkanPipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints = {}) const;
+        SharedPtr<VulkanPipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints = {}) const;
 
     private:
         SharedPtr<IPipelineLayout> parsePipelineLayout(Enumerable<PipelineBindingHint> hints) const override {
@@ -764,7 +766,7 @@ namespace LiteFX::Rendering::Backends {
         /// Returns the parent descriptor set layout.
         /// </summary>
         /// <returns>The parent descriptor set layout.</returns>
-        virtual const VulkanDescriptorSetLayout& layout() const noexcept;
+        const VulkanDescriptorSetLayout& layout() const noexcept;
 
     private:
         /// <summary>
@@ -1071,12 +1073,12 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// Initializes a new push constants range.
         /// </summary>
-        /// <param name="shaderStage">The shader stage, that access the push constants from the range.</param>
+        /// <param name="shaderStage">The shader stages, that access the push constants from the range.</param>
         /// <param name="offset">The offset relative to the parent push constants backing memory that marks the beginning of the range.</param>
         /// <param name="size">The size of the push constants range.</param>
         /// <param name="space">The space from which the push constants of the range will be accessible in the shader.</param>
         /// <param name="binding">The register from which the push constants of the range will be accessible in the shader.</param>
-        explicit VulkanPushConstantsRange(ShaderStage shaderStage, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding);
+        explicit VulkanPushConstantsRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding);
 
         /// <inheritdoc />
         VulkanPushConstantsRange(VulkanPushConstantsRange&&) noexcept;
@@ -1107,7 +1109,7 @@ namespace LiteFX::Rendering::Backends {
         UInt32 size() const noexcept override;
 
         /// <inheritdoc />
-        ShaderStage stage() const noexcept override;
+        ShaderStage stageMask() const noexcept override;
     };
 
     /// <summary>
@@ -1154,9 +1156,6 @@ namespace LiteFX::Rendering::Backends {
     public:
         /// <inheritdoc />
         UInt32 size() const noexcept override;
-
-        /// <inheritdoc />
-        const VulkanPushConstantsRange& range(ShaderStage stage) const override;
 
         /// <inheritdoc />
         const Array<UniquePtr<VulkanPushConstantsRange>>& ranges() const override;
@@ -1256,13 +1255,21 @@ namespace LiteFX::Rendering::Backends {
         friend struct SharedObject::Allocator<VulkanInputAssembler>;
 
 	private:
+        /// <summary>
+        /// Initializes a new Vulkan input assembler state.
+        /// </summary>
+        /// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
+        /// <param name="controlPoints">The number of control points in a patch primitive. Ignored if <paramref name="primitiveTopology" /> is not `PrimitiveTopology::PatchList`. Must be a value between 1 and 32.</param>
+        explicit VulkanInputAssembler(PrimitiveTopology primitiveTopology, UInt32 controlPoints = 1);
+
 		/// <summary>
 		/// Initializes a new Vulkan input assembler state.
 		/// </summary>
 		/// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
 		/// <param name="indexBufferLayout">The index buffer layout.</param>
 		/// <param name="primitiveTopology">The primitive topology.</param>
-		explicit VulkanInputAssembler(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList);
+        /// <param name="controlPoints">The number of control points in a patch primitive. Ignored if <paramref name="primitiveTopology" /> is not `PrimitiveTopology::PatchList`. Must be a value between 1 and 32.</param>
+		explicit VulkanInputAssembler(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList, UInt32 controlPoints = 1);
 
         /// <summary>
         /// Initializes a new Vulkan input assembler state.
@@ -1271,16 +1278,16 @@ namespace LiteFX::Rendering::Backends {
 
     private:
         /// <inheritdoc />
-        VulkanInputAssembler(VulkanInputAssembler&&) noexcept = delete;
+        VulkanInputAssembler(VulkanInputAssembler&&) noexcept;
 
         /// <inheritdoc />
 		VulkanInputAssembler(const VulkanInputAssembler&);
 
         /// <inheritdoc />
-        VulkanInputAssembler& operator=(VulkanInputAssembler&&) noexcept = delete;
+        VulkanInputAssembler& operator=(VulkanInputAssembler&&) noexcept;
 
         /// <inheritdoc />
-        VulkanInputAssembler& operator=(const VulkanInputAssembler&) = delete;
+        VulkanInputAssembler& operator=(const VulkanInputAssembler&);
 
     public:
         /// <inheritdoc />
@@ -1290,12 +1297,23 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// Creates a new Vulkan input assembler state.
         /// </summary>
+        /// <param name="primitiveTopology">The primitive topology.</param>
+        /// <param name="controlPoints">The number of control points in a patch primitive. Ignored if <paramref name="primitiveTopology" /> is not `PrimitiveTopology::PatchList`. Must be a value between 1 and 32.</param>
+        /// <returns>A shared pointer to the newly created input assembler instance.</returns>
+        static inline auto create(PrimitiveTopology primitiveTopology, UInt32 controlPoints = 1) {
+            return SharedObject::create<VulkanInputAssembler>(primitiveTopology, controlPoints);
+        }
+
+        /// <summary>
+        /// Creates a new Vulkan input assembler state.
+        /// </summary>
         /// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
         /// <param name="indexBufferLayout">The index buffer layout.</param>
         /// <param name="primitiveTopology">The primitive topology.</param>
+        /// <param name="controlPoints">The number of control points in a patch primitive. Ignored if <paramref name="primitiveTopology" /> is not `PrimitiveTopology::PatchList`. Must be a value between 1 and 32.</param>
         /// <returns>A shared pointer to the newly created input assembler instance.</returns>
-        static inline auto create(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList) {
-            return SharedObject::create<VulkanInputAssembler>(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
+        static inline auto create(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList, UInt32 controlPoints = 1) {
+            return SharedObject::create<VulkanInputAssembler>(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology, controlPoints);
         }
 
         /// <summary>
@@ -1328,6 +1346,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         PrimitiveTopology topology() const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 controlPoints() const noexcept override;
     };
 
     /// <summary>
@@ -1420,7 +1441,7 @@ namespace LiteFX::Rendering::Backends {
         /// </remarks>
         /// <returns>A reference to the line width.</returns>
         /// <seealso href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#features-wideLines" />
-        virtual void updateLineWidth(Float lineWidth) noexcept;
+        void updateLineWidth(Float lineWidth) noexcept;
     };
 
     /// <summary>
@@ -1524,7 +1545,7 @@ namespace LiteFX::Rendering::Backends {
         /// Begins the command buffer as a secondary command buffer that inherits the state of <paramref name="renderPass" />.
         /// </summary>
         /// <param name="renderPass">The render pass state to inherit.</param>
-        virtual void begin(const VulkanRenderPass& renderPass) const;
+        void begin(const VulkanRenderPass& renderPass) const;
 
         // CommandBuffer interface.
     public:
@@ -1860,15 +1881,15 @@ namespace LiteFX::Rendering::Backends {
         /// Initializes a new Vulkan render pipeline.
         /// </summary>
         /// <param name="renderPass">The parent render pass.</param>
-        /// <param name="shaderProgram">The shader program used by the pipeline.</param>
         /// <param name="layout">The layout of the pipeline.</param>
+        /// <param name="shaderProgram">The shader program used by the pipeline.</param>
         /// <param name="inputAssembler">The input assembler state of the pipeline.</param>
         /// <param name="rasterizer">The rasterizer state of the pipeline.</param>
         /// <param name="samples">The initial multi-sampling level of the render pipeline.</param>
         /// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
         /// <param name="name">The optional name of the render pipeline.</param>
-        explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const SharedPtr<VulkanShaderProgram>& shaderProgram, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanInputAssembler>& inputAssembler, const SharedPtr<VulkanRasterizer>& rasterizer, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool enableAlphaToCoverage = false, const String& name = "");
-
+        explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanShaderProgram>& shaderProgram, const SharedPtr<VulkanInputAssembler>& inputAssembler, const SharedPtr<VulkanRasterizer>& rasterizer, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool enableAlphaToCoverage = false, const String& name = "");
+        
         /// <inheritdoc />
         VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 
@@ -2482,7 +2503,7 @@ namespace LiteFX::Rendering::Backends {
         /// Returns the query pool for the current frame.
         /// </summary>
         /// <returns>A reference of the query pool for the current frame.</returns>
-        virtual const VkQueryPool& timestampQueryPool() const noexcept;
+        const VkQueryPool& timestampQueryPool() const noexcept;
 
         // SwapChain interface.
     public:
@@ -2760,6 +2781,11 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// Initializes the device instance.
         /// </summary>
+        /// <remarks>
+        /// Providing an extension chain using <paramref name="deviceExtensionObjects" /> allows to customize which extensions to load and enable. User-defined extensions provided this way will be picked up
+        /// and patched with the required settings accordingly. Settings enabled by the user will not be disabled this way, with the exception of features that are controlled by the <paramref name="features" /> 
+        /// property.
+        /// </remarks>
         /// <param name="backend">The backend from which the device is created.</param>
         /// <param name="adapter">The adapter the device uses for drawing.</param>
         /// <param name="surface">The surface, the device should draw to.</param>
@@ -2775,6 +2801,11 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// Initializes the device instance.
         /// </summary>
+        /// <remarks>
+        /// Providing an extension chain using <paramref name="deviceExtensionObjects" /> allows to customize which extensions to load and enable. User-defined extensions provided this way will be picked up
+        /// and patched with the required settings accordingly. Settings enabled by the user will not be disabled this way, with the exception of features that are controlled by the <paramref name="features" /> 
+        /// property.
+        /// </remarks>
         /// <param name="backend">The backend from which the device is created.</param>
         /// <param name="adapter">The adapter the device uses for drawing.</param>
         /// <param name="surface">The surface, the device should draw to.</param>
@@ -2821,7 +2852,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="objectType">The type of the object.</param>
         /// <param name="objectHandle">The handle of the object casted to an integer.</param>
         /// <param name="name">The debug name of the object.</param>
-        void setDebugName(VkDebugReportObjectTypeEXT objectType, UInt64 objectHandle, StringView name) const noexcept;
+        void setDebugName(VkDebugReportObjectTypeEXT objectType, UInt64 objectHandle, StringView name) const;
 
     public:
         /// <summary>
@@ -2842,7 +2873,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="objectType">The type of the object.</param>
         /// <param name="name">The debug name of the object.</param>
         template <typename THandle>
-        inline void setDebugName(THandle objectHandle, VkDebugReportObjectTypeEXT objectType, StringView name) const noexcept {
+        inline void setDebugName(THandle objectHandle, VkDebugReportObjectTypeEXT objectType, StringView name) const {
             this->setDebugName(objectType, Vk::handleAddress(objectHandle), name); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         }
 
@@ -2896,7 +2927,7 @@ namespace LiteFX::Rendering::Backends {
         [[nodiscard]] SharedPtr<VulkanFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea, VulkanFrameBuffer::allocation_callback_type allocationCallback) const override;
 
         /// <inheritdoc />
-        MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept override;
+        MultiSamplingLevel maximumMultiSamplingLevel(Format format) const override;
 
         /// <inheritdoc />
         double ticksPerMillisecond() const noexcept override;
@@ -2920,7 +2951,7 @@ namespace LiteFX::Rendering::Backends {
         void updateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const override;
 
         /// <inheritdoc />
-        void bindDescriptorSet(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept override;
+        void bindDescriptorSet(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const override;
 
         /// <inheritdoc />
         void bindGlobalDescriptorHeaps(const VulkanCommandBuffer& commandBuffer) const noexcept override;
@@ -3001,7 +3032,7 @@ namespace LiteFX::Rendering::Backends {
         /// Returns the validation layers that are enabled on the backend.
         /// </summary>
         /// <returns>An array of validation layers that are enabled on the backend.</returns>
-        virtual Span<const String> getEnabledValidationLayers() const noexcept;
+        Span<const String> getEnabledValidationLayers() const noexcept;
 
 #ifdef VK_USE_PLATFORM_WIN32_KHR
         /// <summary>
@@ -3075,7 +3106,10 @@ namespace LiteFX::Rendering::Backends {
         const Array<SharedPtr<const VulkanGraphicsAdapter>>& adapters() const override;
 
         /// <inheritdoc />
-        const VulkanGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const noexcept override;
+        const VulkanGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override;
+
+        /// <inheritdoc />
+        const VulkanGraphicsAdapter* findAdapter(GpuPreference preference) const override;
 
         /// <inheritdoc />
         void registerDevice(const String& name, SharedPtr<VulkanDevice>&& device) override;
@@ -3084,12 +3118,14 @@ namespace LiteFX::Rendering::Backends {
         void releaseDevice(const String& name) override;
 
         /// <inheritdoc />
-        VulkanDevice* device(const String& name) noexcept override;
+        VulkanDevice* device(const String& name) override;
 
         /// <inheritdoc />
-        const VulkanDevice* device(const String& name) const noexcept override;
+        const VulkanDevice* device(const String& name) const override;
     };
 
 }
+
+// NOLINTEND(bugprone-derived-method-shadowing-base-method)
 
 #pragma warning(pop)

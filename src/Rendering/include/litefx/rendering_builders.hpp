@@ -103,7 +103,7 @@ namespace LiteFX::Rendering {
             /// <param name="parent">The parent builder instance.</param>
             /// <param name="buffer">The buffer for this barrier.</param>
             /// <param name="access">The resource access state of the buffer to wait for with this barrier.</param>
-            constexpr BufferBarrierBuilder(TParent&& parent, IBuffer& buffer, ResourceAccess access) noexcept :
+            constexpr BufferBarrierBuilder(TParent&& parent, IBuffer& buffer, ResourceAccess access) :
                 m_parent(std::move(parent)), m_buffer(buffer.shared_from_this()), m_access(access) { }
 
         public:
@@ -145,7 +145,7 @@ namespace LiteFX::Rendering {
             /// <param name="layer">The layer of the first sub-resource to transition.</param>
             /// <param name="layers">The number of layers to transition.</param>
             /// <param name="plane">The plane of the sub-resource to transition.</param>
-            constexpr ImageLayoutBarrierBuilder(TParent&& parent, IImage& image, ResourceAccess access, ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane) noexcept :
+            constexpr ImageLayoutBarrierBuilder(TParent&& parent, IImage& image, ResourceAccess access, ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane) :
                 m_parent(std::move(parent)), m_access(access), m_image(image.shared_from_this()), m_layout(layout), m_level(level), m_levels(levels), m_layer(layer), m_layers(layers), m_plane(plane) { }
 
         public:
@@ -181,7 +181,7 @@ namespace LiteFX::Rendering {
             /// <param name="parent">The parent builder instance.</param>
             /// <param name="image">The image for this barrier.</param>
             /// <param name="access">The resource access state of the sub-resources in the image to wait for with this barrier.</param>
-            constexpr ImageBarrierBuilder(TParent&& parent, IImage& image, ResourceAccess access) noexcept :
+            constexpr ImageBarrierBuilder(TParent&& parent, IImage& image, ResourceAccess access) :
                 m_parent(std::move(parent)), m_access(access), m_image(image.shared_from_this()) { }
 
         public:
@@ -1065,7 +1065,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The shader stages, the descriptor set is accessible from.
             /// </summary>
-            ShaderStage stages{};
+            ShaderStage stages{ ShaderStage::Other };
 
             /// <summary>
             /// The layouts of the descriptors within the descriptor set.
@@ -1541,7 +1541,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The primitive topology.
             /// </summary>
-            PrimitiveTopology topology{};
+            PrimitiveTopology topology{ PrimitiveTopology::PointList };
 
             /// <summary>
             /// The vertex buffer layouts.
@@ -1552,6 +1552,11 @@ namespace LiteFX::Rendering {
             /// The index buffer layout.
             /// </summary>
             SharedPtr<index_buffer_layout_type> indexBufferLayout{};
+
+            /// <summary>
+            /// The number of control points in a `PrimitiveType::PatchList`.
+            /// </summary>
+            UInt32 controlPoints{ 1u };
         } m_state;
 
     protected:
@@ -1592,6 +1597,16 @@ namespace LiteFX::Rendering {
         template <typename TSelf>
         constexpr auto use(this TSelf&& self, SharedPtr<index_buffer_layout_type>&& layout) -> TSelf&& {
             self.m_state.indexBufferLayout = std::move(layout);
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Specifies the number of control points to initialize the input assembler with.
+        /// </summary>
+        /// <param name="controlPoints">The control points to initialize the input assembler with.</param>
+        template <typename TSelf>
+        constexpr auto topology(this TSelf&& self, UInt32 controlPoints) -> TSelf&& {
+            self.m_state.controlPoints = controlPoints;
             return std::forward<TSelf>(self);
         }
     };

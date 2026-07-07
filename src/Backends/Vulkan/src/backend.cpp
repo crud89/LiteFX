@@ -1,5 +1,10 @@
 #include <litefx/backends/vulkan.hpp>
 
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
+#include <dxgi1_6.h>
+#include <wrl/client.h>
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
+
 using namespace LiteFX::Rendering::Backends;
 
 // Exported extensions (we should probably find a better solution for this).
@@ -273,12 +278,53 @@ const Array<SharedPtr<const VulkanGraphicsAdapter>>& VulkanBackend::adapters() c
     return m_impl->m_adapters;
 }
 
-const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& adapterId) const noexcept
+const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& adapterId) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_adapters, [&adapterId](const auto& adapter) { return !adapterId.has_value() || adapter->uniqueId() == adapterId; }); match != m_impl->m_adapters.end()) [[likely]]
+    // We create a temporary copy of the adapters array here, which we can sort by the adapter type. This way we return dedicated GPUs before integrated GPUs, before software rasterizers and so on, if no
+    // adapter ID is specified.
+    auto adapters = m_impl->m_adapters;
+    std::ranges::sort(adapters, std::ranges::greater{}, &VulkanGraphicsAdapter::type);
+
+    if (auto match = std::ranges::find_if(adapters, [&adapterId](const auto& adapter) { return !adapterId.has_value() || adapter->uniqueId() == adapterId; }); match != adapters.end()) [[likely]]
         return match->get();
 
     return nullptr;
+}
+
+const VulkanGraphicsAdapter* VulkanBackend::findAdapter(GpuPreference preference) const
+{
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
+    // Get the first adapter for the preference.
+    Microsoft::WRL::ComPtr<IDXGIFactory7> factory;
+    Microsoft::WRL::ComPtr<IDXGIAdapter1> adapterInterface;
+
+    if (FAILED(::CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory))))
+    {
+        LITEFX_WARNING(VULKAN_LOG, "Unable to create DXGI factory for retrieving adapter preferences. Falling back to default adapter order.");
+        return this->findAdapter();
+    }
+
+    if (FAILED(factory->EnumAdapterByGpuPreference(0u, static_cast<DXGI_GPU_PREFERENCE>(preference), IID_PPV_ARGS(&adapterInterface))))
+    {
+        LITEFX_WARNING(VULKAN_LOG, "Unable acquire adapter preferences. Falling back to default adapter order.");
+        return this->findAdapter();
+    }
+
+    // Get the LUID.
+    UInt64 adapterId{};
+    DXGI_ADAPTER_DESC1 adapterDecriptor;
+
+    if (FAILED(adapterInterface->GetDesc1(&adapterDecriptor)))
+    {
+        LITEFX_WARNING(VULKAN_LOG, "Unable obtain LUID from preferred adapter. Falling back to default adapter order.");
+        return this->findAdapter();
+    }
+
+    std::memcpy(&adapterId, &adapterDecriptor.AdapterLuid, sizeof(LUID));
+    return this->findAdapter(adapterId);
+#else  // LITEFX_BUILD_DIRECTX_12_BACKEND
+    return this->findAdapter();
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
 void VulkanBackend::registerDevice(const String& name, SharedPtr<VulkanDevice>&& device)
@@ -305,7 +351,7 @@ void VulkanBackend::releaseDevice(const String& name)
     m_impl->m_devices.erase(name);
 }
 
-VulkanDevice* VulkanBackend::device(const String& name) noexcept
+VulkanDevice* VulkanBackend::device(const String& name)
 {
     if (!m_impl->m_devices.contains(name)) [[unlikely]]
         return nullptr;
@@ -313,7 +359,7 @@ VulkanDevice* VulkanBackend::device(const String& name) noexcept
     return m_impl->m_devices[name].get();
 }
 
-const VulkanDevice* VulkanBackend::device(const String& name) const noexcept
+const VulkanDevice* VulkanBackend::device(const String& name) const
 {
     if (!m_impl->m_devices.contains(name)) [[unlikely]]
         return nullptr;

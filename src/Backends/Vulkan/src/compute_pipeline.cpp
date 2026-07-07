@@ -76,7 +76,7 @@ VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device, const S
 	this->handle() = m_impl->initialize(*this);
 }
 
-VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device) noexcept :
+VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device) noexcept : // NOLINT(bugprone-exception-escape)
 	VulkanPipelineState(VK_NULL_HANDLE), m_impl(device)
 {
 }

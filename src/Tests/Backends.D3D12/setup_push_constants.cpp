@@ -75,7 +75,12 @@ void TestApp::onInit()
         if (std::ranges::distance(renderPipeline->layout()->pushConstants()->ranges()) != 1)
             LITEFX_TEST_FAIL("std::ranges::distance(renderPipeline->layout()->pushConstants()->ranges()) != 1");
 
-        auto& range = renderPipeline->layout()->pushConstants()->range(ShaderStage::Vertex);
+        auto& ranges = renderPipeline->layout()->pushConstants()->ranges();
+
+        if (ranges.size() != 1)
+            LITEFX_TEST_FAIL("ranges.size() != 1");
+
+        auto& range = *ranges.front();
 
         if (range.binding() != 0)
             LITEFX_TEST_FAIL("range.binding() != 0");
@@ -86,7 +91,7 @@ void TestApp::onInit()
         if (range.offset() != 0)
             LITEFX_TEST_FAIL("range.offset() != 0");
 
-        if (range.stage() != ShaderStage::Vertex)
+        if (range.stageMask() != ShaderStage::Vertex)
             LITEFX_TEST_FAIL("range.stage() != ShaderStage::Vertex");
 
         if (range.size() != sizeof(float) * 4 * 4)

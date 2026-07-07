@@ -73,7 +73,7 @@ public:
         {
             rangeHandles = pushConstantsLayout->ranges()
                 | std::views::transform([](const auto& range) -> VkPushConstantRange {
-                        return { .stageFlags = static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), .offset = range->offset(), .size = range->size() };
+                        return { .stageFlags = static_cast<VkShaderStageFlags>(std::to_underlying(range->stageMask())), .offset = range->offset(), .size = range->size() };
                     })
                 | std::ranges::to<Array<VkPushConstantRange>>();
         }
@@ -109,7 +109,7 @@ VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, const Enu
     this->handle() = m_impl->initialize(*this, descriptorSetLayouts | std::ranges::to<std::vector>(), std::move(pushConstantsLayout));
 }
 
-VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device) noexcept :
+VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device) noexcept : // NOLINT(bugprone-exception-escape)
     Resource<VkPipelineLayout>(VK_NULL_HANDLE), m_impl(device)
 {
 }

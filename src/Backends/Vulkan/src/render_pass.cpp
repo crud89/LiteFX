@@ -171,7 +171,7 @@ public:
                 };
 
                 // Get the image and check if we need to resolve it.
-                if (renderTarget.type() == RenderTargetType::Present && frameBuffer[renderTarget].samples() > MultiSamplingLevel::x1)
+                if (renderTarget.type() == RenderTargetType::Present && frameBuffer[renderTarget].samples() > MultiSamplingLevel::x1) // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
                 {
                     auto getImageView = [&](const IVulkanImage& image) -> VkImageView {
                         VkImageViewCreateInfo createInfo = {
@@ -360,7 +360,7 @@ const RenderPassDependency& VulkanRenderPass::inputAttachment(UInt32 location) c
     if (location >= m_impl->m_inputAttachments.size()) [[unlikely]]
         throw ArgumentOutOfRangeException("location", std::make_pair(0uz, m_impl->m_inputAttachments.size()), static_cast<size_t>(location), "The render pass does not contain an input attachment at location {0}.", location);
 
-    return m_impl->m_inputAttachments[location];
+    return m_impl->m_inputAttachments[location]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }
 
 const Optional<DescriptorBindingPoint>& VulkanRenderPass::inputAttachmentSamplerBinding() const noexcept
@@ -410,7 +410,7 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
     VulkanBarrier renderTargetBarrier(PipelineStage::None, PipelineStage::RenderTarget), depthStencilBarrier(PipelineStage::None, PipelineStage::DepthStencil);
 
     std::ranges::for_each(m_impl->m_renderTargets, [&renderTargetBarrier, &depthStencilBarrier, &frameBuffer](const RenderTarget& renderTarget) {
-        auto& image = frameBuffer[renderTarget];
+        auto& image = frameBuffer[renderTarget]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
         if (renderTarget.type() == RenderTargetType::DepthStencil)
             depthStencilBarrier.transition(image, ResourceAccess::None, ResourceAccess::DepthStencilWrite, ImageLayout::DepthRead, ImageLayout::DepthWrite);
@@ -420,7 +420,7 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
 
     // If the present target is multi-sampled, transition the back buffer image into resolve state.
     const auto& backBufferImage = m_impl->m_device->swapChain().image();
-    bool requiresResolve{ this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1 };
+    bool requiresResolve{ this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1 }; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
     if (requiresResolve)
     {
@@ -466,12 +466,13 @@ UInt64 VulkanRenderPass::end() const
 
     // If the present target is multi-sampled, we need to resolve it to the back buffer.
     const auto& backBufferImage = swapChain.image();
-    bool requiresResolve{ this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1 };
+    bool requiresResolve{ this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1 }; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
     // Transition the present and depth/stencil views.
     VulkanBarrier renderTargetBarrier(PipelineStage::RenderTarget, PipelineStage::None), depthStencilBarrier(PipelineStage::DepthStencil, PipelineStage::None),
         resolveBarrier(PipelineStage::RenderTarget, PipelineStage::None), presentBarrier(PipelineStage::RenderTarget, PipelineStage::Transfer);
     std::ranges::for_each(m_impl->m_renderTargets, [&](const RenderTarget& renderTarget) {
+        // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         switch (renderTarget.type())
         {
         default:
@@ -489,6 +490,7 @@ UInt64 VulkanRenderPass::end() const
 
             break;
         }
+        // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
     });
 
     primaryCommandBuffer->barrier(renderTargetBarrier);
@@ -511,7 +513,7 @@ UInt64 VulkanRenderPass::end() const
         beginPresentBarrier.transition(backBufferImage, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
         primaryCommandBuffer->barrier(beginPresentBarrier);
 
-        auto& presentTarget = frameBuffer[*m_impl->m_presentTarget];
+        auto& presentTarget = frameBuffer[*m_impl->m_presentTarget]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         primaryCommandBuffer->transfer(presentTarget, backBufferImage);
 
         VulkanBarrier endPresentBarrier(PipelineStage::Transfer, PipelineStage::None);

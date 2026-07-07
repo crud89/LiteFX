@@ -94,8 +94,10 @@ namespace LiteFX::Math {
         constexpr Vector(T x, T y) noexcept requires(DIM == 2)
         {
             // NOLINTBEGIN(cppcoreguidelines-pro-bounds-constant-array-index)
+            // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
             m_elements[0] = x;
             m_elements[1] = y;
+            // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
             // NOLINTEND(cppcoreguidelines-pro-bounds-constant-array-index)
         }
 
@@ -108,9 +110,11 @@ namespace LiteFX::Math {
         constexpr Vector(T x, T y, T z) noexcept requires(DIM == 3)
         {
             // NOLINTBEGIN(cppcoreguidelines-pro-bounds-constant-array-index)
+            // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
             m_elements[0] = x;
             m_elements[1] = y;
             m_elements[2] = z;
+            // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
             // NOLINTEND(cppcoreguidelines-pro-bounds-constant-array-index)
         }
 
@@ -124,10 +128,12 @@ namespace LiteFX::Math {
         constexpr Vector(T x, T y, T z, T w) noexcept requires(DIM == 4)
         {
             // NOLINTBEGIN(cppcoreguidelines-pro-bounds-constant-array-index)
+            // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
             m_elements[0] = x;
             m_elements[1] = y;
             m_elements[2] = z;
             m_elements[3] = w;
+            // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
             // NOLINTEND(cppcoreguidelines-pro-bounds-constant-array-index)
         }
 
@@ -250,7 +256,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <returns>The value of the x component of the vector.</returns>
         constexpr scalar_type x() const noexcept requires (DIM > 0) {
-            return m_elements[0]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+            return m_elements[0]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         }
 
         /// <summary>
@@ -258,7 +264,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <returns>The a reference of the value of the x component of the vector.</returns>
         constexpr scalar_type& x() noexcept requires (DIM > 0) {
-            return m_elements[0]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+            return m_elements[0]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         }
 
         /// <summary>
@@ -266,7 +272,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <returns>The value of the y component of the vector.</returns>
         constexpr scalar_type y() const noexcept requires (DIM > 1) {
-            return m_elements[1]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+            return m_elements[1]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         }
 
         /// <summary>
@@ -274,7 +280,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <returns>The a reference of the value of the y component of the vector.</returns>
         constexpr scalar_type& y() noexcept requires (DIM > 1) {
-            return m_elements[1]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+            return m_elements[1]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         }
 
         /// <summary>
@@ -282,7 +288,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <returns>The value of the z component of the vector.</returns>
         constexpr scalar_type z() const noexcept requires (DIM > 2) {
-            return m_elements[2]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+            return m_elements[2]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         }
 
         /// <summary>
@@ -290,7 +296,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <returns>The a reference of the value of the z component of the vector.</returns>
         constexpr scalar_type& z() noexcept requires (DIM > 2) {
-            return m_elements[2]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+            return m_elements[2]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         }
 
         /// <summary>
@@ -298,7 +304,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <returns>The value of the w component of the vector.</returns>
         constexpr scalar_type w() const noexcept requires (DIM > 3) {
-            return m_elements[3]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+            return m_elements[3]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         }
 
         /// <summary>
@@ -306,7 +312,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <returns>The a reference of the value of the w component of the vector.</returns>
         constexpr scalar_type& w() noexcept requires (DIM > 3) {
-            return m_elements[3]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+            return m_elements[3]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         }
     };
 

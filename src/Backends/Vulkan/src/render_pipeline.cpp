@@ -144,6 +144,7 @@ public:
 		// Setup input assembler state.
 		VkPipelineVertexInputStateCreateInfo inputState = { .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly = { .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
+		VkPipelineTessellationStateCreateInfo tessellationInfo = { .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO };
 		Array<VkVertexInputBindingDescription> vertexInputBindings;
 		Array<VkVertexInputAttributeDescription> vertexInputAttributes;
 
@@ -152,6 +153,9 @@ public:
 		// Set primitive topology.
 		inputAssembly.topology = Vk::getPrimitiveTopology(m_inputAssembler->topology());
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+		if (m_inputAssembler->topology() == PrimitiveTopology::PatchList)
+			tessellationInfo.patchControlPoints = m_inputAssembler->controlPoints();
 
 #ifndef NDEBUG
 		auto vertexLayouts = std::ranges::distance(m_inputAssembler->vertexBufferLayouts());
@@ -207,14 +211,15 @@ public:
 		VkPipelineViewportStateCreateInfo viewportState = { .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
 
 		// Setup multisampling state.
-		VkPipelineMultisampleStateCreateInfo multisampling = {};
-		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-		multisampling.sampleShadingEnable = VK_FALSE;
-		multisampling.rasterizationSamples = Vk::getSamples(m_samples);
-		multisampling.minSampleShading = 1.0f;
-		multisampling.pSampleMask = nullptr;
-		multisampling.alphaToCoverageEnable = m_alphaToCoverage;
-		multisampling.alphaToOneEnable = VK_FALSE;
+		VkPipelineMultisampleStateCreateInfo multisampling = {
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+			.rasterizationSamples = Vk::getSamples(m_samples),
+			.sampleShadingEnable = VK_FALSE,
+			.minSampleShading = 1.0f,
+			.pSampleMask = nullptr,
+			.alphaToCoverageEnable = m_alphaToCoverage,
+			.alphaToOneEnable = VK_FALSE
+		};
 
 		// Setup color blend state.
 		auto renderTargets = m_renderPass->renderTargets();
@@ -294,6 +299,7 @@ public:
 			.pStages = shaderStages.data(),
 			.pVertexInputState = &inputState,
 			.pInputAssemblyState = &inputAssembly,
+			.pTessellationState = &tessellationInfo,
 			.pViewportState = &viewportState,
 			.pRasterizationState = &rasterizerState,
 			.pMultisampleState = &multisampling,
@@ -394,7 +400,7 @@ public:
 				if (binding->layout().space() == dependency.binding().Space)
 				{
 					// Resolve the image and update the binding.
-					auto& image = frameBuffer[dependency.renderTarget()];
+					auto& image = frameBuffer[dependency.renderTarget()]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
 					if (image.samples() != m_samples) [[unlikely]]
 						LITEFX_WARNING(VULKAN_LOG, "The image multi sampling level {0} does not match the render pipeline multi sampling state {1}.", image.samples(), m_samples);
@@ -471,7 +477,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const SharedPtr<VulkanShaderProgram>& shaderProgram, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanInputAssembler>& inputAssembler, const SharedPtr<VulkanRasterizer>& rasterizer, MultiSamplingLevel samples, bool enableAlphaToCoverage, const String& name) :
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanShaderProgram>& shaderProgram, const SharedPtr<VulkanInputAssembler>& inputAssembler, const SharedPtr<VulkanRasterizer>& rasterizer, MultiSamplingLevel samples, bool enableAlphaToCoverage, const String& name) :
 	VulkanPipelineState(VK_NULL_HANDLE), m_impl(renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer)
 {
 	this->handle() = m_impl->initialize(*this, samples);

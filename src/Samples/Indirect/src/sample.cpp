@@ -6,13 +6,14 @@
 
 constexpr UInt32 NUM_INSTANCES = 163840u;  // 10 * 128 * 128
 
-enum DescriptorSets : UInt32 // NOLINT(performance-enum-size)
+enum DescriptorSets : UInt32 // NOLINT(performance-enum-size, cppcoreguidelines-use-enum-class)
 {
     PerFrame = 0,
     Constant = 1,
     Indirect = 2
 };
 
+// NOLINTBEGIN(bugprone-throwing-static-initialization)
 const Array<Vertex> vertices =
 {
     { { -0.5f, -0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
@@ -23,6 +24,7 @@ const Array<Vertex> vertices =
 
 const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
 
+// NOLINTEND(bugprone-throwing-static-initialization)
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 // NOLINTBEGIN(cppcoreguidelines-avoid-c-arrays)
 
@@ -59,11 +61,11 @@ struct FileExtensions {
 
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
 template<>
-const String FileExtensions<VulkanBackend>::SHADER = "spv";
+const String FileExtensions<VulkanBackend>::SHADER = "spv"; // NOLINT(bugprone-throwing-static-initialization)
 #endif // LITEFX_BUILD_VULKAN_BACKEND
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
 template<>
-const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
+const String FileExtensions<DirectX12Backend>::SHADER = "dxi"; // NOLINT(bugprone-throwing-static-initialization)
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 static constexpr glm::vec4 normalizePlane(const glm::vec4& plane) {
@@ -71,7 +73,7 @@ static constexpr glm::vec4 normalizePlane(const glm::vec4& plane) {
 }
 
 static inline void initializeObjects() {
-    std::srand(static_cast<UInt32>(std::time(nullptr)));
+    std::srand(static_cast<UInt32>(std::time(nullptr))); // NOLINT(bugprone-random-generator-seed)
 
     for (int i{ 0 }; i < static_cast<int>(NUM_INSTANCES); ++i)
     {
@@ -277,7 +279,7 @@ void SampleApp::updateCamera(IBuffer& buffer, UInt32 backBuffer) const
     camera.FarPlane = farPlane;
     
     // Compute frustum side planes.
-    // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+    // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
     auto projectionTransposed = glm::transpose(camera.ViewProjection); // GLM uses column-major matrices, transpose lets us index rows.
     camera.Frustum[0] = ::normalizePlane(projectionTransposed[3] + projectionTransposed[0]);  // Left
     camera.Frustum[1] = ::normalizePlane(projectionTransposed[3] - projectionTransposed[0]);  // Right
@@ -285,7 +287,7 @@ void SampleApp::updateCamera(IBuffer& buffer, UInt32 backBuffer) const
     camera.Frustum[3] = ::normalizePlane(projectionTransposed[3] - projectionTransposed[1]);  // Top
     camera.Frustum[4] = ::normalizePlane(projectionTransposed[3] + projectionTransposed[2]);  // Near
     camera.Frustum[5] = ::normalizePlane(projectionTransposed[3] - projectionTransposed[2]);  // Far
-    // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
+    // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
     buffer.map(static_cast<const void*>(&camera), sizeof(camera), backBuffer);
@@ -339,11 +341,7 @@ void SampleApp::onInit()
         m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
         m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
-        auto adapter = backend->findAdapter(m_adapterId);
-
-        if (adapter == nullptr)
-            adapter = backend->findAdapter(std::nullopt);
-
+        auto adapter = m_adapterId.has_value() ? backend->findAdapter(m_adapterId) : backend->findAdapter(GpuPreference::Performance);
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.

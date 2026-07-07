@@ -86,7 +86,7 @@ DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device& device
 	this->handle() = m_impl->initialize(*this);
 }
 
-DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device& device) noexcept :
+DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device& device) noexcept : // NOLINT(bugprone-exception-escape)
 	DirectX12PipelineState(nullptr), m_impl(device)
 {
 }
