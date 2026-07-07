@@ -20,6 +20,7 @@
 #   COMPILE_AS DXIL 
 #   SHADER_MODEL 6_3 
 #   COMPILER DXC
+#   ENTRY_POINT "main"
 #   INCLUDES "a.hlsli" "b.hlsli"
 # )
 #
@@ -41,6 +42,9 @@
 #
 # The COMPILER parameter specifies which compiler to use. GLSL shaders can only be compiled with GLSLC, while HLSL shaders can be also compiled with DXC. On the
 # other hand, DXC can target both, DXIL and SPIRV, whilst GLSLC can only target SPIRV.
+#
+# The ENTRY_POINT parameter specifies the shader entry point, i.e., the name of the function at which the shader executes. If it is not set, the entry point will
+# default to "main". Note that setting an entry point is only supported when using the DXC compiler.
 #
 # Finally the INCLUDES parameter lists additional include sources. Those are not required and only used to be added to the target, so that they are accessible 
 # from the IDE. Note that their names are also relative to the CMAKE_CURRENT_SOURCE_DIR.
@@ -72,7 +76,7 @@ SET(DXIL_DEFAULT_SUFFIX ".dxi" CACHE STRING "Default file extension for DXIL sha
 SET(SPIRV_DEFAULT_SUFFIX ".spv" CACHE STRING "Default file extension for SPIR-V shaders.")
 
 
-FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as compile_with shader_type compile_options)
+FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as compile_with shader_type entry_point compile_options)
   GET_FILENAME_COMPONENT(out_name ${shader_source} NAME_WE)
 
   SET(SHADER_SOURCES ${shader_source})
@@ -109,6 +113,10 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       MESSAGE(SEND_ERROR "Unsupported shader type: ${shader_type}. Valid shader types are: VERTEX, GEOMETRY, HULL/TESSELATION_CONTROL, DOMAIN/TESSELLATION_EVALUATION, FRAGMENT/PIXEL, COMPUTE, TASK/AMPLIFICATION, MESH and RAYTRACING.")
     ENDIF(${shader_type} STREQUAL "VERTEX")
     
+    IF(NOT ${entry_point} STREQUAL "main")
+      MESSAGE(WARNING "Setting the entry point is only supported when compiling using DXC. The entry point will default to 'main'.")
+    ENDIF(NOT ${entry_point} STREQUAL "main")
+    
     IF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
       SET(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR})
     ELSE()
@@ -131,7 +139,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
 
     ADD_CUSTOM_COMMAND(TARGET ${target_name} POST_BUILD
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND ${LITEFX_BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=bin -fshader-stage=${SHADER_STAGE} -DSPIRV -x hlsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      COMMAND ${LITEFX_BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=bin -fshader-stage=${SHADER_STAGE} -DSPIRV -x hlsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/$<TARGET_PROPERTY:${target_name},OUTPUT_NAME>$<TARGET_PROPERTY:${target_name},SUFFIX>" -MD
     )
 
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
@@ -189,7 +197,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
 
       ADD_CUSTOM_COMMAND(TARGET ${target_name} POST_BUILD
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND ${LITEFX_BUILD_DXC_COMPILER} -spirv -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> ${compiler_options} -fspv-target-env=vulkan1.3 ${shader_source}
+        COMMAND ${LITEFX_BUILD_DXC_COMPILER} -spirv -T ${SHADER_PROFILE} -E ${entry_point} -Fo "${OUTPUT_DIR}/$<TARGET_PROPERTY:${target_name},OUTPUT_NAME>$<TARGET_PROPERTY:${target_name},SUFFIX>" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> ${compiler_options} -fspv-target-env=vulkan1.3 ${shader_source}
       )
     
       SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
@@ -209,7 +217,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       
       ADD_CUSTOM_COMMAND(TARGET ${target_name} POST_BUILD
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND ${LITEFX_BUILD_DXC_COMPILER} -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${DXIL_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> $<IF:$<CONFIG:Debug,RelWithDebInfo>,-Qembed_debug,-Qstrip_debug> ${compiler_options} ${shader_source} -Wno-ignored-attributes
+        COMMAND ${LITEFX_BUILD_DXC_COMPILER} -T ${SHADER_PROFILE} -E ${entry_point} -Fo "${OUTPUT_DIR}/$<TARGET_PROPERTY:${target_name},OUTPUT_NAME>$<TARGET_PROPERTY:${target_name},SUFFIX>" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> $<IF:$<CONFIG:Debug,RelWithDebInfo>,-Qembed_debug,-Qstrip_debug> ${compiler_options} ${shader_source} -Wno-ignored-attributes
       )
     
       SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
@@ -224,10 +232,10 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
   ELSE()
     MESSAGE(SEND_ERROR "Unrecognized compiler: ${compile_with}. Only DXC and GLSLC are allowed.")
   ENDIF(${compile_with} STREQUAL "GLSLC")
-ENDFUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as compile_with shader_type compile_options)
+ENDFUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as compile_with shader_type entry_point compile_options)
 
 
-FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with shader_type compile_options)
+FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with shader_type entry_point compile_options)
   GET_FILENAME_COMPONENT(out_name ${shader_source} NAME_WE)
 
   SET(SHADER_SOURCES ${shader_source})
@@ -263,6 +271,10 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
     ELSE()
       MESSAGE(SEND_ERROR "Unsupported shader type: ${shader_type}. Valid shader types are: VERTEX, GEOMETRY, HULL/TESSELATION_CONTROL, DOMAIN/TESSELLATION_EVALUATION, FRAGMENT/PIXEL, COMPUTE and RAYTRACING.")
     ENDIF(${shader_type} STREQUAL "VERTEX")
+
+    IF(NOT ${entry_point} STREQUAL "main")
+      MESSAGE(WARNING "Setting the entry point is only supported when compiling using DXC. The entry point will default to 'main'.")
+    ENDIF(NOT ${entry_point} STREQUAL "main")
     
     IF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
       SET(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR})
@@ -286,7 +298,7 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
 
     ADD_CUSTOM_COMMAND(TARGET ${target_name} POST_BUILD
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND ${LITEFX_BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=bin -fshader-stage=${SHADER_STAGE} -DSPIRV -x glsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      COMMAND ${LITEFX_BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=bin -fshader-stage=${SHADER_STAGE} -DSPIRV -x glsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/$<TARGET_PROPERTY:${target_name},OUTPUT_NAME>$<TARGET_PROPERTY:${target_name},SUFFIX>" -MD
     )
     
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
@@ -296,20 +308,24 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
       RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR}
     )
   ENDIF(NOT ${compile_with} STREQUAL "GLSLC")
-ENDFUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with shader_type compile_options)
+ENDFUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with shader_type entry_point compile_options)
 
 
 FUNCTION(ADD_SHADER_MODULE module_name)
-  CMAKE_PARSE_ARGUMENTS(SHADER "" "SOURCE;LANGUAGE;COMPILE_AS;SHADER_MODEL;TYPE;COMPILER;LIBRARY;COMPILE_OPTIONS" "INCLUDES" ${ARGN})
+  CMAKE_PARSE_ARGUMENTS(SHADER "" "SOURCE;LANGUAGE;COMPILE_AS;SHADER_MODEL;TYPE;COMPILER;LIBRARY;ENTRY_POINT;COMPILE_OPTIONS" "INCLUDES" ${ARGN})
+
+  IF(NOT SHADER_ENTRY_POINT)
+    SET(SHADER_ENTRY_POINT "main")
+  ENDIF(NOT SHADER_ENTRY_POINT)
 
   IF(NOT SHADER_COMPILE_OPTIONS)
     SET(SHADER_COMPILE_OPTIONS " ")  # This must be set to some valid value, since all variable arguments are reserved for shader includes. A whitespace does not hurt.
   ENDIF(NOT SHADER_COMPILE_OPTIONS)
 
   IF(${SHADER_LANGUAGE} STREQUAL "GLSL")
-    TARGET_GLSL_SHADERS(${module_name} ${SHADER_SOURCE} ${SHADER_COMPILE_AS} ${SHADER_COMPILER} ${SHADER_TYPE} ${SHADER_COMPILE_OPTIONS} ${SHADER_INCLUDES})
+    TARGET_GLSL_SHADERS(${module_name} ${SHADER_SOURCE} ${SHADER_COMPILE_AS} ${SHADER_COMPILER} ${SHADER_TYPE} ${SHADER_ENTRY_POINT} ${SHADER_COMPILE_OPTIONS} ${SHADER_INCLUDES})
   ELSEIF(${SHADER_LANGUAGE} STREQUAL "HLSL")
-    TARGET_HLSL_SHADERS(${module_name} ${SHADER_SOURCE} ${SHADER_SHADER_MODEL} ${SHADER_COMPILE_AS} ${SHADER_COMPILER} ${SHADER_TYPE} ${SHADER_COMPILE_OPTIONS} ${SHADER_INCLUDES})
+    TARGET_HLSL_SHADERS(${module_name} ${SHADER_SOURCE} ${SHADER_SHADER_MODEL} ${SHADER_COMPILE_AS} ${SHADER_COMPILER} ${SHADER_TYPE} ${SHADER_ENTRY_POINT} ${SHADER_COMPILE_OPTIONS} ${SHADER_INCLUDES})
   ELSE()
     MESSAGE(SEND_ERROR "Unsupported shader language: ${SHADER_LANGUAGE}.")
   ENDIF(${SHADER_LANGUAGE} STREQUAL "GLSL")
@@ -336,12 +352,8 @@ FUNCTION(TARGET_LINK_SHADERS target_name)
   ADD_DEPENDENCIES(${target_name} ${SHADER_SHADERS})
 
   FOREACH(shader_module ${SHADER_SHADERS})
-    GET_TARGET_PROPERTY(SHADER_PROGRAM_NAME ${shader_module} OUTPUT_NAME)
-    GET_TARGET_PROPERTY(SHADER_PROGRAM_SUFFIX ${shader_module} SUFFIX)
-    GET_TARGET_PROPERTY(SHADER_PROGRAM_BINARY_DIR ${shader_module} RUNTIME_OUTPUT_DIRECTORY)
-    
     CMAKE_PATH(SET SHADER_INSTALL_DEST NORMALIZE ${CMAKE_INSTALL_PREFIX}/${SHADER_INSTALL_DESTINATION})
-    INSTALL(FILES "${SHADER_PROGRAM_BINARY_DIR}/${SHADER_PROGRAM_NAME}${SHADER_PROGRAM_SUFFIX}" DESTINATION ${SHADER_INSTALL_DEST})
+    INSTALL(FILES "$<TARGET_PROPERTY:${shader_module},RUNTIME_OUTPUT_DIRECTORY>/$<TARGET_PROPERTY:${shader_module},OUTPUT_NAME>$<TARGET_PROPERTY:${shader_module},SUFFIX>" DESTINATION ${SHADER_INSTALL_DEST})
   ENDFOREACH(shader_module ${SHADER_SHADERS})
 ENDFUNCTION(TARGET_LINK_SHADERS target_name)
 
