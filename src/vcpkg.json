@@ -37,7 +37,7 @@
       "dependencies": [ "winpixevent" ]
     },
     "imgui": {
-      "description": "Adds ",
+      "description": "Adds a dependency to DearImGui, that is only used in the samples though.",
       "supports": "windows & !x86 & !uwp",
       "dependencies": [
         {

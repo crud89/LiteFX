@@ -56,14 +56,16 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/blas.cpp"
     "src/tlas.cpp"
     "src/virtual_allocator.hpp"
-
-    ".natvis"
 )
 
-# Add shared library project.
-ADD_LIBRARY(${PROJECT_NAME}
-    ${DIRECTX12_BACKEND_HEADERS}
-    ${DIRECTX12_BACKEND_SOURCES}
+# Add library project.
+LITEFX_ADD_LIBRARY(${PROJECT_NAME}
+    EXPORT_NAME DirectX12
+    SOURCES ${DIRECTX12_BACKEND_SOURCES}
+    HEADERS ${DIRECTX12_BACKEND_HEADERS}
+    EXPORT_MACRO LITEFX_DIRECTX12_API
+    EXPORT_HEADER "litefx/backends/dx12_export.h"
+    NATVIS ".natvis"
 )
 
 # Create source groups for better code organization.
@@ -73,31 +75,16 @@ SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${DIRECTX12_BACKEND_HEADERS}
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
     FOLDER "Backends"
     VERSION ${LITEFX_VERSION}
-    SOVERSION ${LITEFX_YEAR}
-    PUBLIC_HEADER "${DIRECTX12_BACKEND_HEADERS}"
-    MAP_IMPORTED_CONFIG_RELWITHDEBINFO "Debug"
-    MAP_IMPORTED_CONFIG_MINSIZEREL "Release"
 )
 
 # Setup target include directories.
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} 
-    PRIVATE 
-        "src/"
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
-)
+TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PRIVATE "src/")
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi dxcore Microsoft::DirectX12-Agility Microsoft::DirectXShaderCompiler Microsoft::DXIL
+    PUBLIC LiteFX::Core LiteFX::Math LiteFX::Rendering LiteFX::AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi dxcore Microsoft::DirectX12-Agility Microsoft::DirectXShaderCompiler
     PRIVATE GPUOpen::D3D12MemoryAllocator
 )
-
-# Pre-define export specifier, to prevent dllimport/dllexport from being be emitted.
-IF(NOT BUILD_SHARED_LIBS)
-    TARGET_COMPILE_DEFINITIONS(${PROJECT_NAME} PUBLIC -DLITEFX_DIRECTX12_API=)
-ENDIF(NOT BUILD_SHARED_LIBS)
 
 # Link PIX runtime, if available.
 IF(LITEFX_BUILD_WITH_PIX_RUNTIME)
@@ -105,20 +92,5 @@ IF(LITEFX_BUILD_WITH_PIX_RUNTIME)
     TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE Microsoft::WinPixEventRuntime)
 ENDIF(LITEFX_BUILD_WITH_PIX_RUNTIME)
 
-# Re-use pre-compiled core header.
-IF(LITEFX_BUILD_PRECOMPILED_HEADERS)
-    TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} REUSE_FROM LiteFX.Core)
-ENDIF(LITEFX_BUILD_PRECOMPILED_HEADERS)
-
 # Setup installer.
-INSTALL(TARGETS ${PROJECT_NAME} EXPORT EXPORT LiteFX
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINARY_DIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR}/litefx/backends
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR}
-)
-
-# Export config.
-INSTALL(EXPORT LiteFX DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
-EXPORT(TARGETS ${PROJECT_NAME} FILE LiteFXBackendsDirectX12Config.cmake)
+INSTALL(TARGETS ${PROJECT_NAME} EXPORT LiteFX FILE_SET HEADERS)

@@ -80,7 +80,7 @@ FUNCTION(LITEFX_DEPLOY_RUNTIME target)
   ENDIF()
 
   # Copy DirectX 12 Agility SDK.
-  IF(TARGET LiteFX.Backends.DirectX12)
+  IF(TARGET LiteFX::DirectX12)
     IF(NOT TARGET Microsoft::DirectX12-Core)
       FIND_PACKAGE(directx12-agility CONFIG REQUIRED)
     ENDIF()
@@ -111,7 +111,7 @@ FUNCTION(LITEFX_DEPLOY_RUNTIME target)
   ENDIF()
 
   # DirectX Shader Compiler runtime.
-  IF(TARGET LiteFX.Backends.DirectX12)
+  IF(TARGET LiteFX::DirectX12)
     IF(NOT TARGET Microsoft::DirectXShaderCompiler)
       FIND_PACKAGE(directx-dxc CONFIG REQUIRED)
     ENDIF()

@@ -23,7 +23,7 @@ SET(@PROJECT_NAME@_GLM_FOUND ${LITEFX_HAS_GLM})
 SET(@PROJECT_NAME@_PIX_FOUND ${LITEFX_HAS_PIX_RUNTIME})
 
 # Keep track of the imported libraries for convenience.
-SET(LITEFX_DEPENDENCIES LiteFX.Core LiteFX.Logging LiteFX.AppModel LiteFX.Math LiteFX.Graphics LiteFX.Rendering)
+SET(LITEFX_DEPENDENCIES LiteFX::Core LiteFX::Logging LiteFX::AppModel LiteFX::Math LiteFX::Graphics LiteFX::Rendering)
 
 # Lookup package dependencies.
 INCLUDE(CMakeFindDependencyMacro)
@@ -32,7 +32,7 @@ INCLUDE(CMakeFindDependencyMacro)
 FIND_DEPENDENCY(spdlog CONFIG)
 
 IF(LITEFX_HAS_DIRECTX12_BACKEND)
-  LIST(APPEND LITEFX_DEPENDENCIES LiteFX.Backends.DirectX12)
+  LIST(APPEND LITEFX_DEPENDENCIES LiteFX::DirectX12)
 
   FIND_DEPENDENCY(directx-headers CONFIG)
   FIND_DEPENDENCY(directx12-agility CONFIG)
@@ -41,7 +41,7 @@ IF(LITEFX_HAS_DIRECTX12_BACKEND)
 ENDIF(LITEFX_HAS_DIRECTX12_BACKEND)
 
 IF(LITEFX_HAS_VULKAN_BACKEND)
-  LIST(APPEND LITEFX_DEPENDENCIES LiteFX.Backends.Vulkan)
+  LIST(APPEND LITEFX_DEPENDENCIES LiteFX::Vulkan)
 
   FIND_DEPENDENCY(Vulkan)
   FIND_DEPENDENCY(VulkanMemoryAllocator CONFIG)

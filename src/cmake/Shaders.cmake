@@ -65,7 +65,7 @@
 #
 # This will define a dependency for the specified target for all shader module targets. Furthermore, it automatically creates an install command for the shader module 
 # binaries. The source file is build from the RUNTIME_OUTPUT_DIRECTORY, OUTPUT_NAME and SUFFIX properties of each shader module target. The install destination can be 
-# provided by the INSTALL_DESTINATION parameter. Note that it is always prepended with the CMAKE_INSTALL_PREFIX.
+# provided by the (optional) INSTALL_DESTINATION parameter.
 
 SET(SHADER_DEFAULT_SUBDIR "shaders" CACHE STRING "Default subdirectory for shader module binaries within the current binary directory (CMAKE_CURRENT_BINARY_DIR).")
 SET(DXIL_DEFAULT_SUFFIX ".dxi" CACHE STRING "Default file extension for DXIL shaders.")
@@ -335,14 +335,15 @@ FUNCTION(TARGET_LINK_SHADERS target_name)
   
   ADD_DEPENDENCIES(${target_name} ${SHADER_SHADERS})
 
-  FOREACH(shader_module ${SHADER_SHADERS})
-    GET_TARGET_PROPERTY(SHADER_PROGRAM_NAME ${shader_module} OUTPUT_NAME)
-    GET_TARGET_PROPERTY(SHADER_PROGRAM_SUFFIX ${shader_module} SUFFIX)
-    GET_TARGET_PROPERTY(SHADER_PROGRAM_BINARY_DIR ${shader_module} RUNTIME_OUTPUT_DIRECTORY)
-    
-    CMAKE_PATH(SET SHADER_INSTALL_DEST NORMALIZE ${CMAKE_INSTALL_PREFIX}/${SHADER_INSTALL_DESTINATION})
-    INSTALL(FILES "${SHADER_PROGRAM_BINARY_DIR}/${SHADER_PROGRAM_NAME}${SHADER_PROGRAM_SUFFIX}" DESTINATION ${SHADER_INSTALL_DEST})
-  ENDFOREACH(shader_module ${SHADER_SHADERS})
+  IF(SHADER_INSTALL_DESTINATION)
+    FOREACH(shader_module ${SHADER_SHADERS})
+      GET_TARGET_PROPERTY(SHADER_PROGRAM_NAME ${shader_module} OUTPUT_NAME)
+      GET_TARGET_PROPERTY(SHADER_PROGRAM_SUFFIX ${shader_module} SUFFIX)
+      GET_TARGET_PROPERTY(SHADER_PROGRAM_BINARY_DIR ${shader_module} RUNTIME_OUTPUT_DIRECTORY)
+
+      INSTALL(FILES "${SHADER_PROGRAM_BINARY_DIR}/${SHADER_PROGRAM_NAME}${SHADER_PROGRAM_SUFFIX}" DESTINATION ${SHADER_INSTALL_DESTINATION})
+    ENDFOREACH(shader_module ${SHADER_SHADERS})
+  ENDIF(SHADER_INSTALL_DESTINATION)
 ENDFUNCTION(TARGET_LINK_SHADERS target_name)
 
 

@@ -26,181 +26,149 @@ SET_TARGET_PROPERTIES(Tests.Vk.Shaders.RM PROPERTIES    FOLDER "Tests/Shaders/Vu
 
 DEFINE_TEST("app_should_accept_vk_backend" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_app_init_test" 
 	SOURCES "common.h" "app_init.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan 
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 DEFINE_TEST("device_sets_up_vk_input_assembler" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_input_assembler_test" 
 	SOURCES "common.h" "input_assembler.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
-DEFINE_TEST("device_sets_up_vk_rasterizer" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_irasterizer_test" 
+DEFINE_TEST("device_sets_up_vk_rasterizer" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_rasterizer_test" 
 	SOURCES "common.h" "rasterizer.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 DEFINE_TEST("device_sets_up_vk_render_pass" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_create_render_pass_test" 
 	SOURCES "common.h" "create_render_pass.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 DEFINE_TEST("device_sets_up_vk_frame_buffer" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_create_frame_buffer_test" 
 	SOURCES "common.h" "create_frame_buffer.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 DEFINE_TEST("device_resizes_vk_frame_buffer" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_resize_frame_buffer_test" 
 	SOURCES "common.h" "resize_frame_buffer.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 # TODO: Test occasionally times out in CI and may fail on some drivers, if the render area is not supported. Disabled for now, 
 #       but we should look for a proper fix.
 #DEFINE_TEST("device_resets_vk_swap_chain" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_reset_swap_chain_test" 
 #	SOURCES "common.h" "reset_swap_chain.cpp"
-#	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+#	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 #)
 
 DEFINE_TEST("render_target_maps_to_vk_frame_buffer" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_map_render_target_to_frame_buffer_test" 
 	SOURCES "common.h" "map_frame_buffer_render_target.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 DEFINE_TEST("device_sets_up_vk_shader_program" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_create_shader_program_test" 
 	SOURCES "common.h" "create_shader_program.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
     
 TARGET_LINK_SHADERS(vk_create_shader_program_test
-    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
     SHADERS Tests.Vk.Shaders.VS Tests.Vk.Shaders.FS
 )
 
 DEFINE_TEST("device_sets_up_vk_render_pipeline" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_create_render_pipeline_test" 
 	SOURCES "common.h" "create_render_pipeline.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 TARGET_LINK_SHADERS(vk_create_render_pipeline_test
-    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
     SHADERS Tests.Vk.Shaders.VS Tests.Vk.Shaders.FS
 )
 
 DEFINE_TEST("shader_program_reflects_vk_render_pipeline" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_reflect_render_pipeline_test" 
 	SOURCES "common.h" "reflect_render_pipeline.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 TARGET_LINK_SHADERS(vk_reflect_render_pipeline_test
-    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
     SHADERS Tests.Vk.Shaders.VS Tests.Vk.Shaders.FS
 )
 
 DEFINE_TEST("device_sets_up_vk_render_pipeline_with_push_constants" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_push_constants_test" 
 	SOURCES "common.h" "setup_push_constants.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 TARGET_LINK_SHADERS(vk_push_constants_test
-    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
     SHADERS Tests.Vk.Shaders.PC.VS Tests.Vk.Shaders.FS
 )
 
 DEFINE_TEST("device_sets_up_vk_compute_pipeline" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_compute_test" 
 	SOURCES "common.h" "setup_compute_pipeline.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 TARGET_LINK_SHADERS(vk_compute_test
-    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
     SHADERS Tests.Vk.Shaders.CS
 )
 
 DEFINE_TEST("device_allocates_vk_descriptor_sets" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_alloc_descriptor_set_test" 
 	SOURCES "common.h" "alloc_descriptor_set.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 TARGET_LINK_SHADERS(vk_alloc_descriptor_set_test
-    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
     SHADERS Tests.Vk.Shaders.VS Tests.Vk.Shaders.FS
 )
 
 DEFINE_TEST("device_sets_up_vk_ray_tracing_pipeline" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_ray_tracing_test" 
 	SOURCES "common.h" "setup_raytracing_pipeline.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 TARGET_LINK_SHADERS(vk_ray_tracing_test
-    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
     SHADERS Tests.Vk.Shaders.RG Tests.Vk.Shaders.RH Tests.Vk.Shaders.RM
 )
 
 DEFINE_TEST("device_sets_up_vk_acceleration_structures" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_acceleration_structure_test" 
 	SOURCES "common.h" "setup_acceleration_structure.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 DEFINE_TEST("shader_program_reflects_vk_render_pipeline_with_dynamic_descriptors" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_reflect_dynamic_descriptors_pipeline_test" 
 	SOURCES "common.h" "reflect_dynamic_descriptors.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 TARGET_LINK_SHADERS(vk_reflect_dynamic_descriptors_pipeline_test
-    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
     SHADERS Tests.Vk.Shaders.DD.VS Tests.Vk.Shaders.FS
 )
 
 DEFINE_TEST("device_allocates_vk_buffers" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_alloc_buffer_test" 
 	SOURCES "common.h" "alloc_buffer.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 DEFINE_TEST("device_allocates_vk_vertex_buffers" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_alloc_vertex_buffer_test" 
 	SOURCES "common.h" "alloc_vertex_buffer.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 DEFINE_TEST("device_allocates_vk_index_buffers" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_alloc_index_buffer_test" 
 	SOURCES "common.h" "alloc_index_buffer.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 DEFINE_TEST("device_allocates_vk_images" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_alloc_image_test" 
 	SOURCES "common.h" "alloc_image.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
 # Unfortunately, VK_EXT_conservative_rasterization is currently unsupported by llvmpipe, so we'll disable it for now.
-#DEFINE_TEST("vk_backend_sets_up_conservative_raterization" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_conservative_rasterization_test" 
+#DEFINE_TEST("vk_backend_sets_up_conservative_rasterization" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_conservative_rasterization_test" 
 #	SOURCES "common.h" "conservative_rasterization.cpp"
-#	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+#	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 #)
 
 #TARGET_LINK_SHADERS(vk_conservative_rasterization_test
-#    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
 #    SHADERS Tests.Vk.Shaders.VS Tests.Vk.Shaders.CR.FS
 #)
-
-LITEFX_DEPLOY_RUNTIME(vk_app_init_test)
-LITEFX_DEPLOY_RUNTIME(vk_input_assembler_test)
-LITEFX_DEPLOY_RUNTIME(vk_irasterizer_test)
-LITEFX_DEPLOY_RUNTIME(vk_create_render_pass_test)
-LITEFX_DEPLOY_RUNTIME(vk_create_frame_buffer_test)
-LITEFX_DEPLOY_RUNTIME(vk_resize_frame_buffer_test)
-#LITEFX_DEPLOY_RUNTIME(vk_reset_swap_chain_test)
-LITEFX_DEPLOY_RUNTIME(vk_map_render_target_to_frame_buffer_test)
-LITEFX_DEPLOY_RUNTIME(vk_create_shader_program_test)
-LITEFX_DEPLOY_RUNTIME(vk_create_render_pipeline_test)
-LITEFX_DEPLOY_RUNTIME(vk_reflect_render_pipeline_test)
-LITEFX_DEPLOY_RUNTIME(vk_push_constants_test)
-LITEFX_DEPLOY_RUNTIME(vk_compute_test)
-LITEFX_DEPLOY_RUNTIME(vk_alloc_descriptor_set_test)
-LITEFX_DEPLOY_RUNTIME(vk_ray_tracing_test)
-LITEFX_DEPLOY_RUNTIME(vk_acceleration_structure_test)
-LITEFX_DEPLOY_RUNTIME(vk_reflect_dynamic_descriptors_pipeline_test)
-LITEFX_DEPLOY_RUNTIME(vk_alloc_buffer_test)
-LITEFX_DEPLOY_RUNTIME(vk_alloc_vertex_buffer_test)
-LITEFX_DEPLOY_RUNTIME(vk_alloc_index_buffer_test)
-LITEFX_DEPLOY_RUNTIME(vk_alloc_image_test)
-#LITEFX_DEPLOY_RUNTIME(vk_conservative_rasterization_test)

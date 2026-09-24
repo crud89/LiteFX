@@ -43,18 +43,11 @@ ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 # Setup build artifact directory.
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "$<1:${CMAKE_BINARY_DIR}/binaries/>")
 
-# Setup installation directories.
-INCLUDE(GNUInstallDirs)
-
-# TODO: Replace the occurrences with the builtin variables.
-SET(CMAKE_INSTALL_BINARY_DIR "${CMAKE_INSTALL_BINDIR}")
-SET(CMAKE_INSTALL_LIBRARY_DIR "${CMAKE_INSTALL_LIBDIR}")
-SET(CMAKE_INSTALL_INCLUDE_DIR "${CMAKE_INSTALL_INCLUDEDIR}")
-
-SET(CMAKE_INSTALL_EXPORT_DIR  "cmake")
-
 # Make sure the target export configuration proxy and helper scripts get installed.
+INCLUDE(GNUInstallDirs)
 INCLUDE(CMakePackageConfigHelpers)
+
+SET(CMAKE_INSTALL_EXPORT_DIR "cmake")
 
 CONFIGURE_PACKAGE_CONFIG_FILE("${CMAKE_CURRENT_LIST_DIR}/LiteFXConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/LiteFXConfig.cmake" 
     INSTALL_DESTINATION "${CMAKE_INSTALL_EXPORT_DIR}"
