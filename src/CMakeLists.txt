@@ -11,16 +11,19 @@ IF("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
    MESSAGE(SEND_ERROR "In-source builds are not allowed.")
 ENDIF("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 
+# Include version.
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Version.cmake")
+
 # Declare top-level project.
-PROJECT(LiteFX LANGUAGES CXX)
+PROJECT(LiteFX VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 
 # Include configuration files.
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Modules.cmake")
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Version.cmake")
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Options.cmake")
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Config.cmake") 
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Shaders.cmake")
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Assets.cmake")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules.cmake")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Options.cmake")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Runtime.cmake")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Shaders.cmake")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Assets.cmake")
 
 # Include sub-projects.
 ADD_SUBDIRECTORY(Core)
@@ -74,4 +77,4 @@ IF(LITEFX_BUILD_TESTS)
 ENDIF(LITEFX_BUILD_TESTS)
 
 # Install license notice.
-INSTALL(FILES "${CMAKE_SOURCE_DIR}/../LICENSE" "${CMAKE_SOURCE_DIR}/../NOTICE" DESTINATION "/")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE" "${CMAKE_CURRENT_SOURCE_DIR}/../NOTICE" DESTINATION ".")

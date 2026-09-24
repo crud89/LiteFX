@@ -28,3 +28,9 @@ DEFINE_TEST("enumerable_should_store_unique_pointers" FOLDER "Tests/Core" EXECUT
 	SOURCES "common.h" "unique_ptrs.cpp"
 	DEPENDENCIES LiteFX.Core
 )
+
+LITEFX_DEPLOY_RUNTIME(core_trivial_elements)
+LITEFX_DEPLOY_RUNTIME(core_references)
+LITEFX_DEPLOY_RUNTIME(core_returns)
+LITEFX_DEPLOY_RUNTIME(core_shared_ptrs)
+LITEFX_DEPLOY_RUNTIME(core_unique_ptrs)

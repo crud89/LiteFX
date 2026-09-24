@@ -332,7 +332,7 @@ void SampleApp::onInit()
             initInfo.MinImageCount = backBuffers;
             initInfo.ImageCount = backBuffers;
             initInfo.UseDynamicRendering = true;
-            initInfo.PipelineRenderingCreateInfo = {
+            initInfo.PipelineInfoMain.PipelineRenderingCreateInfo = {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
                 .colorAttachmentCount = static_cast<UInt32>(formats.size()),
                 .pColorAttachmentFormats = formats.data(),
