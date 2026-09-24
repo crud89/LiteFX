@@ -1,33 +1,43 @@
+#Requires -Version 7.0
+<#
+.SYNOPSIS
+    Writes the LiteFX version to src/cmake/VersionVariables.cmake and the Doxygen configuration.
+.EXAMPLE
+    ./write-version.ps1 -major 0 -minor 5 -build 1
+#>
 Param(
-  [int] $major,
-  [int] $minor,
-  [int] $build = 1,
-  [int] $year = (Get-Date).year
+  [Parameter(Mandatory)] [ValidateRange(0, [int]::MaxValue)] [int] $major,
+  [Parameter(Mandatory)] [ValidateRange(0, [int]::MaxValue)] [int] $minor,
+  [ValidateRange(0, [int]::MaxValue)] [int] $build = 1,
+  [ValidateRange(2000, 9999)] [int] $year = (Get-Date).ToUniversalTime().Year
 )
 
+$ErrorActionPreference = 'Stop'
+
+# Resolve paths relative to the script.
+$versionFile = Join-Path $PSScriptRoot 'src' 'cmake' 'VersionVariables.cmake'
+$doxyFile    = Join-Path $PSScriptRoot '.doxyfile'
+
 # Update the VersionVariables.cmake file.
-$output = @'
-SET(LITEFX_YEAR {0})
-SET(LITEFX_RELEASE {1})
-SET(LITEFX_PATCH {2})
-SET(LITEFX_BUILD {3})
-'@ -f $year, $major, $minor, $build
+$content = @"
+SET(LITEFX_YEAR $year)
+SET(LITEFX_RELEASE $major)
+SET(LITEFX_PATCH $minor)
+SET(LITEFX_BUILD $build)
 
-$output | Out-File -Encoding "UTF8" -FilePath .\src\cmake\VersionVariables.cmake
+"@
 
-# Load the doxyfile.
-$output = ""
+Set-Content -Path $versionFile -Value $content -NoNewline -Encoding utf8NoBOM
 
-Get-Content .\.doxyfile | ForEach-Object {
-    if($_.StartsWith("PROJECT_NUMBER")) {
-        $output += "PROJECT_NUMBER         = {0}.{1}.{2}.{3}`n" -f $major, $minor, $build, $year
-    } else {
-        $output += "{0}`n" -f $_
-    }
+# Update the project number in the Doxygen configuration.
+$version = "$major.$minor.$build.$year"
+$doxygen = Get-Content -Path $doxyFile -Raw
+$updated = $doxygen -replace '(?m)^PROJECT_NUMBER[ \t]*=[^\r\n]*', "PROJECT_NUMBER         = $version"
+
+if ($updated -eq $doxygen -and $doxygen -notmatch "(?m)^PROJECT_NUMBER[ \t]*=[ \t]*$([regex]::Escape($version))") {
+  throw "PROJECT_NUMBER not found in $doxyFile."
 }
 
-$output.Substring(0, $output.Length - 1) | Out-File -Encoding "UTF8" -FilePath .\.doxyfile
+Set-Content -Path $doxyFile -Value $updated -NoNewline -Encoding utf8NoBOM
 
-# Write new version to console.
-$output = "Updated Version to {0}.{1}.{2}.{3}" -f $major, $minor, $build, $year
-Write-Host -ForegroundColor Green $output
+Write-Host -ForegroundColor Green "Updated version to $major.$minor.$build.$year."

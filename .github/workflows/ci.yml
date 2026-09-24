@@ -1,633 +1,131 @@
 # Copyright (c) 2024 Carsten Rudolph
 name: Pull Request Checks
 
-# Workflow triggers either manually or by creating or editing a comment on a pull request. When triggering manually, a pull request ID is required. Apart from that, a comment must 
-# be provided. When commenting on a PR, the comment is first checked to start with `Run:`. If this evaluates to true, the rest of the comment is checked to contain either of the
-# supported commands. Those are:
+# Triggered manually or by commenting on a pull request with `Run: <commands>`, where commands contains one or more of:
 #
 # - `tests`: runs tests
 # - `tidy`: runs static code analysis
-# - `builds`: builds all targets.
-# - `checks`: runs everything of the above.
+# - `builds`: builds all targets
+# - `checks`: runs everything of the above
 #
-# Commands are restricted to be issued by maintainers or previous contributors.
-# Note that commands are case-sensitive. Also note that you could do wild shenanigans with this, like writing poems containing command keywords after the `Run:` string, but for the
-# sake of brevity please refrain from doing so! :-)
+# Commands can only be issued by the repository owner, members, collaborators or previous contributors.
 on:
   issue_comment:
-    types:
-      - created
-      - edited
-      
+    types: [ created, edited ]
+
   workflow_dispatch:
     inputs:
       pullRequest:
         description: 'Pull Request ID'
         required: true
       command:
-        description: 'Command'
+        description: 'Command (one or more of: checks, tests, tidy, builds)'
         required: true
-        default: 'checks' # Case sensitive. Must contain one or more of: 'checks', 'tests', 'tidy' or 'builds'.
+        default: 'checks'
 
-# The following jobs are contained in this workflow:
-# - First, the `verify-permissions` job is executed. It checks if the comment user is a contributer or maintainer and if the comment refers to a pull request. It then parses the 
-# command string. If permission is granted, the result is then passed to the subsequent jobs, which only execute if this job outputs their respective launch command.
-# - The `tests` job executes the tests.
-# - The `tidy` job executes static code analysis.
+permissions:
+  contents: read
+
 jobs:
+  # ------------------------------------- Verification        -------------------------------------
   verify:
     name: verify-permissions
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.issue.pull_request && startsWith(github.event.comment.body, 'Run:')) }}
     permissions:
-      issues: write
       pull-requests: write
-    if: "${{ (github.event_name == 'workflow_dispatch') || ( github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, 'Run:') ) }}"
+      issues: write
     outputs:
-      commands: ${{ steps.emit-command.outputs.match }}
-      
+      commands: ${{ steps.parse.outputs.commands }}
+      sha: ${{ steps.pr.outputs.sha }}
+
     steps:
-      - name: Check persmission
-        uses: actions-cool/check-user-permission@v2
-        id: check-permission
+      - name: Check permission
         if: ${{ github.event_name == 'issue_comment' }}
+        shell: bash
+        env:
+          ASSOCIATION: ${{ github.event.comment.author_association }}
+        run: |
+          case "$ASSOCIATION" in
+            OWNER|MEMBER|COLLABORATOR|CONTRIBUTOR) ;;
+            *) echo "::error::Insufficient permission ($ASSOCIATION). Only existing contributors may trigger CI runs."; exit 1 ;;
+          esac
+
+      - name: Parse command
+        id: parse
+        shell: bash
+        env:
+          COMMAND: ${{ github.event_name == 'issue_comment' && github.event.comment.body || inputs.command }}
+        run: |
+          commands=()
+          [[ "$COMMAND" == *checks* || "$COMMAND" == *tests*  ]] && commands+=(test)
+          [[ "$COMMAND" == *checks* || "$COMMAND" == *tidy*   ]] && commands+=(tidy)
+          [[ "$COMMAND" == *checks* || "$COMMAND" == *builds* ]] && commands+=(build)
+          echo "commands=$(IFS=,; echo "${commands[*]}")" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve pull request
+        id: pr
+        uses: actions/github-script@v9
+        env:
+          PR_NUMBER: ${{ github.event.issue.number || inputs.pullRequest }}
         with:
-          username: ${{ github.event.comment.user.login }}
-          check-contributor: true
+          script: |
+            const { data } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: Number(process.env.PR_NUMBER)
+            });
+            core.info(`HEAD SHA = ${data.head.sha}, REF = ${data.head.ref}`);
+            core.setOutput('sha', data.head.sha);
 
-      - name: Validate permission
-        if: ${{ github.event_name == 'issue_comment' && steps.check.outputs.require-result }}
-        run: |
-          echo "::error Insufficient permission. Only existing contributers may trigger CI runs."
-          exit 1
-
-      - name: Retrieve command
-        id: retrieve-command
-        shell: bash
-        run: |
-          if [[ '${{ github.event_name }}' == 'issue_comment' ]]
-          then
-            echo "command=${{ github.event.comment.body }}" >> $GITHUB_OUTPUT
-          else
-            echo "command=${{ github.event.inputs.command }}" >> $GITHUB_OUTPUT
-          fi
-            
-      - name: Parse for 'checks'
-        id: parse-checks
-        if: ${{ contains(steps.retrieve-command.outputs.command, 'checks') }}
-        shell: bash
-        run: |
-            echo "command=test,tidy,build" >> $GITHUB_OUTPUT
-
-      - name: Parse individual commands
-        id: parse-commands
-        if: ${{ steps.parse-checks.conclusion == 'skipped' }}
-        shell: bash
-        run: |
-            echo "command=${{ (contains(steps.retrieve-command.outputs.command, 'tidy') && 'tidy') || '' }},${{ (contains(steps.retrieve-command.outputs.command, 'tests') && 'test') || '' }},${{ (contains(steps.retrieve-command.outputs.command, 'builds') && 'builds') || '' }}" >> $GITHUB_OUTPUT
-  
-      - name: Emit command
-        id: emit-command
-        uses: thaitype/actions-switch-case@v1
-        with:
-          default: "none"
-          conditionals-with-values: |
-            ${{ steps.parse-checks.conclusion == 'success' }} => ${{ steps.parse-checks.outputs.command }}
-            ${{ steps.parse-commands.conclusion == 'success' }} => ${{ steps.parse-commands.outputs.command }}
-            
       - name: Confirm run
-        uses: peter-evans/create-or-update-comment@v4
         if: ${{ github.event_name == 'issue_comment' }}
+        uses: peter-evans/create-or-update-comment@v5
         with:
           comment-id: ${{ github.event.comment.id }}
-          reactions: 'rocket'
+          reactions: rocket
 
-  # ------------------------------------- Toolchain setup      -------------------------------------
-  setup:
-    name: run-setup
+  # ------------------------------------- Checks              -------------------------------------
+  # Pull request runs never write to the vcpkg binary cache, to prevent untrusted code from poisoning it.
+  tests:
     needs: verify
-    if: ${{ contains(needs.verify.outputs.commands, 'test') || contains(needs.verify.outputs.commands, 'tidy') || contains(needs.verify.outputs.commands, 'build') }}
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
-    strategy:
-      fail-fast: true
-      matrix:
-        name: [ windows-latest ]
-        include:
-          - name: windows-latest
-            os: windows-latest
-          #- name: ubuntu-latest
-          #  os: ubuntu-latest
-
-    env:
-      MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
-      VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
-      CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
-
-    steps:
-      - name: Setup dependency directory
-        run: echo "DEPENDENCY_DIR=$env:RUNNER_TEMP/dep/win" >> $env:GITHUB_ENV
-
-      - name: Lookup dependency cache (no restore use)
-        id: cache
-        uses: actions/cache/restore@v6
-        with:
-          path: ${{ env.DEPENDENCY_DIR }}
-          key: ${{ env.CACHE_KEY }}
-          lookup-only: true
-
-      - name: Ensure cache exists
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          echo "Cache is missing. Please run 'update_dependencies.yml' workflow first."
-          exit 1
-          
-  # ------------------------------------- Test job             -------------------------------------
-  test:
-    name: run-tests
-    needs: [ verify, setup ]
     if: ${{ contains(needs.verify.outputs.commands, 'test') }}
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        name: [ windows-latest-msvc, windows-latest-clang ]
-        include:
-          - name: windows-latest-msvc
-            os: windows-latest
-            compiler: msvc
-            configuration: windows-msvc-x64-test
-          - name: windows-latest-clang
-            os: windows-latest
-            compiler: clang
-            configuration: windows-clang-x64-test
-            
-    env:
-      MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
-      VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
-      LLVM_VERSION: ${{ vars.LLVM_VERSION }}
-      CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
+    permissions:
+      contents: read
+      checks: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/build.yml
+    with:
+      purpose: test
+      ref: ${{ needs.verify.outputs.sha }}
+      check-sha: ${{ needs.verify.outputs.sha }}
 
-    steps:
-      - name: Setup dependency directory
-        run: echo "DEPENDENCY_DIR=$env:RUNNER_TEMP/dep/win" >> $env:GITHUB_ENV
-
-      - name: Retrieve PR info
-        id: retrieve-pr-from-issue-comment
-        uses: actions/github-script@v3
-        if: ${{ github.event_name == 'issue_comment' }}
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            console.log('Retrieving HEAD REF for PR #${{ github.event.issue.number }}')
-            const pull_request = await github.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: ${{ github.event.issue.number }}
-            })
-            console.log('HEAD SHA = ' + pull_request.data.head.sha + ', REF = ' + pull_request.data.head.ref)
-            core.exportVariable('HEAD_SHA', pull_request.data.head.sha)
-            core.exportVariable('HEAD_REF', pull_request.data.head.ref)
-
-      - name: Retrieve PR info
-        id: retrieve-pr-from-workflow-dispatch
-        uses: actions/github-script@v3
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            console.log('Retrieving HEAD REF for PR #${{ github.event.inputs.pullRequest }}')
-            const pull_request = await github.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: ${{ github.event.inputs.pullRequest }}
-            })
-            console.log('HEAD SHA = ' + pull_request.data.head.sha + ', REF = ' + pull_request.data.head.ref)
-            core.exportVariable('HEAD_SHA', pull_request.data.head.sha)
-            core.exportVariable('HEAD_REF', pull_request.data.head.ref)
-            
-      - name: Create checks
-        uses: LouisBrunner/checks-action@v2.0.0
-        id: create-checks
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: run-tests (${{ matrix.name }})
-          sha: ${{ env.HEAD_SHA }}
-          status: in_progress
-    
-      - name: Checking out sources
-        uses: actions/checkout@master
-        with:
-          ref: ${{ env.HEAD_SHA }}
-          submodules: true
-
-      # TODO: Move this into cache as well.
-      - name: Install OpenCppCoverage
-        id: install-opencppcoverage
-        shell: bash
-        run: | 
-          choco install opencppcoverage
-          echo "C:\Program Files\OpenCppCoverage" >> $GITHUB_PATH
-
-      - name: Update LLVM
-        if: ${{ matrix.compiler == 'clang' }}
-        uses: KyleMayes/install-llvm-action@v2.0.9
-        with:
-          version: ${{ env.LLVM_VERSION }}
-          
-      - name: Restore dependency cache
-        uses: actions/cache/restore@v6
-        with:
-          path: ${{ env.DEPENDENCY_DIR }}
-          key: ${{ env.CACHE_KEY }}
-
-      - name: Setup build and test environment
-        id: setup-environment
-        shell: bash
-        run: |
-          echo "VCPKG_FEATURE_FLAGS=manifests" >> $env:GITHUB_ENV
-          echo "C:\msys64\ucrt64\bin" >> $GITHUB_PATH
-          #echo "${{ env.DEPENDENCY_DIR }}/vulkan/${{ env.VULKAN_SDK_VERSION }}\runtime" >> $GITHUB_PATH  # Somehow does not get picked up by the MSVC development environment.
-          cp "${{ env.DEPENDENCY_DIR }}/vulkan/${{ env.VULKAN_SDK_VERSION }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
-          cp "${{ env.DEPENDENCY_DIR }}/vulkan/${{ env.VULKAN_SDK_VERSION }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
-
-      - name: Install and Test Mesa3D driver
-        working-directory: '${{ env.DEPENDENCY_DIR }}/mesa/'
-        run: |         
-          reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v '${{ env.DEPENDENCY_DIR }}\mesa\x64\lvp_icd.x86_64.json' /t REG_DWORD /d 0 /f /reg:64
-          reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v '${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\Bin\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0 /f /reg:64
-          reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v '${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\Bin\VkLayer_khronos_validation.json' /t REG_DWORD /d 0 /f /reg:64
-          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\Drivers" /v '${{ env.DEPENDENCY_DIR }}\mesa\x86\lvp_icd.x86.json' /t REG_DWORD /d 0 /f /reg:64
-          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v '${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\Bin32\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0 /f /reg:64
-          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v '${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\Bin32\VkLayer_khronos_validation.json' /t REG_DWORD /d 0 /f /reg:64
-          ${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\runtime\x64\vulkaninfo.exe --summary
-
-      - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@v10
-        with:
-          vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
-          vcpkgJsonGlob: '**/src/vcpkg.json'
-
-      - name: Build Runtime and Tests
-        uses: lukka/run-cmake@v10
-        with:
-          cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
-          configurePreset: '${{ matrix.configuration }}'
-          buildPreset: '${{ matrix.configuration }}'
-
-      - name: Run tests
-        working-directory: "${{ github.workspace }}/out/build/${{ matrix.configuration }}"
-        shell: pwsh
-        run: |
-          OpenCppCoverage.exe --quiet --export_type=html:__coverage\html --export_type=binary:__coverage\bin --cover_children --sources='${{ github.workspace }}\src\' --modules=binaries\ -- ctest.exe ${{ matrix.configuration }} --output-on-failure --timeout 10
-  
-      - name: Collect test results
-        id: collect-test-results
-        if: always()
-        shell: bash
-        working-directory: "${{ github.workspace }}/out/build/${{ matrix.configuration }}"
-        run: |
-          test_results=$(cat Testing/Temporary/LastTest.log)
-          echo "summary<<EOF"$'\n'"# Test Results 🧪"$'\n```\n'"$test_results"$'\n```'$'\n'EOF >> "$GITHUB_OUTPUT"
-          
-      - name: Upload test results
-        if: success() || failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: LiteFX-${{ matrix.name }}-test-results
-          path: '${{ github.workspace }}/out/build/${{ matrix.configuration }}/Testing/Temporary/LastTest.log'
-
-      - name: Upload coverage results
-        if: success() || failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: LiteFX-${{ matrix.name }}-coverage-results
-          path: '${{ github.workspace }}/out/build/${{ matrix.configuration }}/__coverage/'
-          
-      - name: Install with CMake
-        working-directory: '${{ github.workspace }}/out/build/${{ matrix.configuration }}'
-        run: cmake --install .
-          
-      - name: Sign binaries
-        if: ${{ github.event.inputs.signArtifacts == 'true' }}
-        uses: dlemstra/code-sign-action@v1
-        with:
-          certificate: '${{ secrets.SIGN_CERTIFICATE_BASE64 }}'
-          password: '${{ secrets.SIGN_CERTIFICATE_PASSWORD }}'
-          folder: '${{ github.workspace }}/out/install/'
-          recursive: true
-
-      - name: Upload install artifacts
-        if: ${{ github.event.inputs.uploadArtifacts == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: LiteFX-${{ matrix.name }}-install
-          path: '${{ github.workspace }}/out/install/${{ matrix.configuration }}'
-
-      - name: Update checks
-        uses: LouisBrunner/checks-action@v2.0.0
-        if: always()
-        env:
-          SUMMARY: ${{ steps.collect-test-results.outputs.summary }}
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          check_id: ${{ steps.create-checks.outputs.check_id }}
-          sha: ${{ env.HEAD_SHA }}
-          conclusion: ${{ job.status }}
-          output: |
-            { "summary": ${{ toJSON(env.SUMMARY) }} }
-            
-  # ------------------------------------- Static code analysis -------------------------------------
   tidy:
-    name: run-tidy
-    needs: [ verify, setup ]
+    needs: verify
     if: ${{ contains(needs.verify.outputs.commands, 'tidy') }}
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
-    strategy:
-      fail-fast: false
-      matrix:
-        name: [ windows-latest-clang ]
-        include:
-          - name: windows-latest-clang
-            os: windows-latest
-            compiler: clang
-            configuration: windows-clangcl-x64-release
+    permissions:
+      contents: read
+      checks: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/build.yml
+    with:
+      purpose: tidy
+      ref: ${{ needs.verify.outputs.sha }}
+      check-sha: ${{ needs.verify.outputs.sha }}
 
-    env:
-      MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
-      VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
-      LLVM_VERSION: ${{ vars.LLVM_VERSION }}
-      CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
-
-    steps:
-      - name: Setup dependency directory
-        run: echo "DEPENDENCY_DIR=$env:RUNNER_TEMP/dep/win" >> $env:GITHUB_ENV
-
-      - name: Retrieve PR info
-        id: retrieve-pr-from-issue-comment
-        uses: actions/github-script@v3
-        if: ${{ github.event_name == 'issue_comment' }}
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            console.log('Retrieving HEAD REF for PR #${{ github.event.issue.number }}')
-            const pull_request = await github.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: ${{ github.event.issue.number }}
-            })
-            console.log('HEAD SHA = ' + pull_request.data.head.sha + ', REF = ' + pull_request.data.head.ref)
-            core.exportVariable('HEAD_SHA', pull_request.data.head.sha)
-            core.exportVariable('HEAD_REF', pull_request.data.head.ref)
-
-      - name: Retrieve PR info
-        id: retrieve-pr-from-workflow-dispatch
-        uses: actions/github-script@v3
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            console.log('Retrieving HEAD REF for PR #${{ github.event.inputs.pullRequest }}')
-            const pull_request = await github.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: ${{ github.event.inputs.pullRequest }}
-            })
-            console.log('HEAD SHA = ' + pull_request.data.head.sha + ', REF = ' + pull_request.data.head.ref)
-            core.exportVariable('HEAD_SHA', pull_request.data.head.sha)
-            core.exportVariable('HEAD_REF', pull_request.data.head.ref)
-            
-      - name: Create checks
-        uses: LouisBrunner/checks-action@v2.0.0
-        id: create-checks
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: run-tidy (${{ matrix.name }})
-          sha: ${{ env.HEAD_SHA }}
-          status: in_progress
-    
-      - name: Checking out sources
-        uses: actions/checkout@master
-        with:
-          ref: ${{ env.HEAD_SHA }}
-          submodules: true
-          
-      - name: Update LLVM
-        if: ${{ matrix.compiler == 'clang' }}
-        uses: KyleMayes/install-llvm-action@v2.0.9
-        with:
-          version: ${{ env.LLVM_VERSION }}
-        
-      - name: Restore dependency cache
-        uses: actions/cache/restore@v6
-        with:
-          path: ${{ env.DEPENDENCY_DIR }}
-          key: ${{ env.CACHE_KEY }}
-
-      - name: Setup build and test environment
-        id: setup-environment
-        shell: bash
-        run: |
-          echo "VCPKG_FEATURE_FLAGS=manifests" >> $env:GITHUB_ENV
-          #echo "${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\runtime" >> $GITHUB_PATH  # Somehow does not get picked up by the MSVC development environment.
-          cp "${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
-          cp "${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
-          echo "C:\msys64\ucrt64\bin" >> $GITHUB_PATH
-
-      - name: Retrieve latest CMake build
-        uses: lukka/get-cmake@latest
-
-      - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@v10
-        with:
-          vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
-          vcpkgJsonGlob: '**/src/vcpkg.json'
-
-      - name: Build Runtime and Samples
-        id: build-with-cmake
-        uses: lukka/run-cmake@v10
-        with:
-          cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
-          configurePreset: '${{ matrix.configuration }}'
-          buildPreset: '${{ matrix.configuration }}'
-
-      - name: Collect code analysis results
-        id: collect-tidy-results
-        if: always()
-        shell: bash
-        working-directory: "${{ github.workspace }}/out/build/${{ matrix.configuration }}"
-        run: |
-          echo "summary<<EOF"$'\n'"# Code Analysis Results 🧪"$'\n```\n'"${{ steps.build-with-cmake.outputs.stdout }}"$'\n```'$'\n'EOF >> "$GITHUB_OUTPUT"
-          
-      - name: Update checks
-        uses: LouisBrunner/checks-action@v2.0.0
-        if: always()
-        env:
-          SUMMARY: ${{ steps.collect-tidy-results.outputs.summary }}
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          check_id: ${{ steps.create-checks.outputs.check_id }}
-          sha: ${{ env.HEAD_SHA }}
-          conclusion: ${{ job.status }}
-          output: |
-            { "summary": ${{ toJSON(env.SUMMARY) }} }
-            
-  # ------------------------------------- Builds               ------------------------------------- 
-  build:
-    name: run-builds
-    needs: [ verify, setup ]
+  builds:
+    needs: verify
     if: ${{ contains(needs.verify.outputs.commands, 'build') }}
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        name: [ windows-msvc-x64, windows-msvc-x64-static, windows-msvc-x86, windows-msvc-x86-static, windows-clang-x64, windows-clang-x64-static ]
-        include:
-          - name: windows-msvc-x64
-            os: windows-latest
-            compiler: msvc
-            triplet: x64-windows
-            configuration: windows-msvc-x64-release
-          - name: windows-msvc-x64-static
-            os: windows-latest
-            compiler: msvc
-            triplet: x64-windows
-            configuration: windows-msvc-x64-release-static
-          - name: windows-msvc-x86
-            os: windows-latest
-            compiler: msvc
-            triplet: x86-windows
-            configuration: windows-msvc-x86-release
-          - name: windows-msvc-x86-static
-            os: windows-latest
-            compiler: msvc
-            triplet: x86-windows
-            configuration: windows-msvc-x86-release-static
-          - name: windows-clang-x64
-            os: windows-latest
-            compiler: clang
-            triplet: x64-windows
-            configuration: windows-clang-x64-release
-          - name: windows-clang-x64-static
-            os: windows-latest
-            compiler: clang
-            triplet: x64-windows
-            configuration: windows-clang-x64-release-static
-            
-    env:
-      MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
-      VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
-      LLVM_VERSION: ${{ vars.LLVM_VERSION }}
-      CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
-
-    steps:
-      - name: Setup dependency directory
-        run: echo "DEPENDENCY_DIR=$env:RUNNER_TEMP/dep/win" >> $env:GITHUB_ENV
-
-      - name: Retrieve PR info
-        id: retrieve-pr-from-issue-comment
-        uses: actions/github-script@v3
-        if: ${{ github.event_name == 'issue_comment' }}
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            console.log('Retrieving HEAD REF for PR #${{ github.event.issue.number }}')
-            const pull_request = await github.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: ${{ github.event.issue.number }}
-            })
-            console.log('HEAD SHA = ' + pull_request.data.head.sha + ', REF = ' + pull_request.data.head.ref)
-            core.exportVariable('HEAD_SHA', pull_request.data.head.sha)
-            core.exportVariable('HEAD_REF', pull_request.data.head.ref)
-
-      - name: Retrieve PR info
-        id: retrieve-pr-from-workflow-dispatch
-        uses: actions/github-script@v3
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            console.log('Retrieving HEAD REF for PR #${{ github.event.inputs.pullRequest }}')
-            const pull_request = await github.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: ${{ github.event.inputs.pullRequest }}
-            })
-            console.log('HEAD SHA = ' + pull_request.data.head.sha + ', REF = ' + pull_request.data.head.ref)
-            core.exportVariable('HEAD_SHA', pull_request.data.head.sha)
-            core.exportVariable('HEAD_REF', pull_request.data.head.ref)
-            
-      - name: Create checks
-        uses: LouisBrunner/checks-action@v2.0.0
-        id: create-checks
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: run-builds (${{ matrix.name }})
-          sha: ${{ env.HEAD_SHA }}
-          status: in_progress
-          
-      - name: Restore dependency cache
-        uses: actions/cache/restore@v6
-        with:
-          path: ${{ env.DEPENDENCY_DIR }}
-          key: ${{ env.CACHE_KEY }}
-          
-      - name: Setup build and test environment
-        id: setup-environment
-        shell: bash
-        run: |
-          #echo "${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\runtime" >> $GITHUB_PATH  # Somehow does not get picked up by the MSVC development environment.
-          cp "${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
-          cp "${{ env.DEPENDENCY_DIR }}\vulkan\${{ env.VULKAN_SDK_VERSION }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
-          
-      - name: Update LLVM
-        if: ${{ matrix.compiler == 'clang' }}
-        uses: KyleMayes/install-llvm-action@v2.0.9
-        with:
-          version: ${{ env.LLVM_VERSION }}
-          
-      - name: Checking out sources
-        uses: actions/checkout@master
-        with:
-          ref: ${{ env.HEAD_SHA }}
-          submodules: true
-          
-      - name: Retrieve latest CMake build
-        uses: lukka/get-cmake@latest
-
-
-      - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
-          vcpkgJsonGlob: '**/src/vcpkg.json'
-
-      - name: Build with CMake
-        id: do-build
-        uses: lukka/run-cmake@v10
-        with:
-          cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
-          configurePreset: '${{ matrix.configuration }}'
-          buildPreset: '${{ matrix.configuration }}'
-          
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.name }}-build
-          path: '${{ github.workspace }}/out/build/${{ matrix.configuration }}'
-          
-      - name: Update checks
-        uses: LouisBrunner/checks-action@v2.0.0
-        if: always()
-        env:
-          SUMMARY: ${{ steps.do-build.outputs.summary }}
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          check_id: ${{ steps.create-checks.outputs.check_id }}
-          sha: ${{ env.HEAD_SHA }}
-          conclusion: ${{ job.status }}
-          output: |
-            { "summary": ${{ toJSON(env.SUMMARY) }} }
+    permissions:
+      contents: read
+      checks: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/build.yml
+    with:
+      purpose: build
+      ref: ${{ needs.verify.outputs.sha }}
+      check-sha: ${{ needs.verify.outputs.sha }}
+      upload-build: true
