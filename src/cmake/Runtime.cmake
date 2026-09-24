@@ -129,3 +129,21 @@ FUNCTION(LITEFX_DEPLOY_RUNTIME target)
     ENDIF()
   ENDIF()
 ENDFUNCTION()
+
+# Obtains the current runtime directory.
+FUNCTION(LITEFX_GET_RUNTIME_DIRECTORY out_var)
+  IF(DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY AND NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY STREQUAL "")
+    SET(_dir "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+  ELSE()
+    SET(_dir "${CMAKE_CURRENT_BINARY_DIR}")
+  ENDIF()
+
+  # Multi-config generators append the configuration, unless the directory contains a generator expression.
+  GET_PROPERTY(_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+
+  IF(_multi_config AND NOT _dir MATCHES "\\$<")
+    STRING(APPEND _dir "/$<CONFIG>")
+  ENDIF()
+
+  SET(${out_var} "${_dir}" PARENT_SCOPE)
+ENDFUNCTION()

@@ -77,9 +77,9 @@ INCLUDE("${CMAKE_CURRENT_LIST_DIR}/LiteFX.cmake")
 
 # Also include helper scripts here. Set LITEFX_WITHOUT_HELPERS to ON, to prevent those scripts from being imported.
 IF(NOT LITEFX_WITHOUT_HELPERS)
+  INCLUDE("${CMAKE_CURRENT_LIST_DIR}/Runtime.cmake")
   INCLUDE("${CMAKE_CURRENT_LIST_DIR}/Assets.cmake")
   INCLUDE("${CMAKE_CURRENT_LIST_DIR}/Shaders.cmake")
-  INCLUDE("${CMAKE_CURRENT_LIST_DIR}/Runtime.cmake")
 ENDIF(NOT LITEFX_WITHOUT_HELPERS)
 
 CHECK_REQUIRED_COMPONENTS("@PROJECT_NAME@")
