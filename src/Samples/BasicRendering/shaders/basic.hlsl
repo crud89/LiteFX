@@ -1,18 +1,21 @@
 #pragma pack_matrix(row_major)
 
+struct VertexInput
+{
+    float3 Position : POSITION;
+    float4 Color : COLOR;
+};
+
 struct VertexData 
 {
     float4 Position : SV_POSITION;
     float4 Color : COLOR;
 }; 
 
-struct VertexInput
+struct FragmentData
 {
-    //[[vk::location(0)]] 
-    float3 Position : POSITION;
-    
-    //[[vk::location(1)]]
-    float4 Color : COLOR;
+    float4 Color : SV_TARGET;
+    float Depth : SV_DEPTH;
 };
 
 struct CameraData
@@ -25,10 +28,10 @@ struct TransformData
     float4x4 Model;
 };
 
-ConstantBuffer<CameraData>    camera    : register(b0, space0);
+ConstantBuffer<CameraData> camera       : register(b0, space0);
 ConstantBuffer<TransformData> transform : register(b0, space1);
 
-VertexData main(in VertexInput input)
+VertexData VSMain(in VertexInput input)
 {
     VertexData vertex;
     
@@ -38,4 +41,14 @@ VertexData main(in VertexInput input)
     vertex.Color = input.Color;
  
     return vertex;
+}
+
+FragmentData PSMain(VertexData input)
+{
+    FragmentData fragment;
+    
+    fragment.Depth = input.Position.z;
+    fragment.Color = input.Color;
+
+    return fragment;
 }

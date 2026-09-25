@@ -30,7 +30,7 @@ D3D12_RESOURCE_DESC1 getResourceDesc(const ResourceAllocationInfo::BufferInfo& b
 
 		break;
 	case BufferType::AccelerationStructure:
-		flags |= D3D12_RESOURCE_FLAG_RAYTRACING_ACCELERATION_STRUCTURE;
+		flags |= D3D12_RESOURCE_FLAG_RAYTRACING_ACCELERATION_STRUCTURE | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 		[[fallthrough]];
 	default:
 		elementAlignment = D3D12_RAW_UAV_SRV_BYTE_ALIGNMENT;
