@@ -199,7 +199,6 @@ namespace LiteFX {
 	/// <summary>
 	/// Describes an intermediate container for elements of type <typeparamref name="T" />.
 	/// </summary>
-	/// <remarks>
 	/// <typeparam name="T">The type of the container elements.</typeparam>
 	/// <typeparam name="TVal">The type of the yielded value.</typeparam>
 	template <typename T, typename TVal = void>

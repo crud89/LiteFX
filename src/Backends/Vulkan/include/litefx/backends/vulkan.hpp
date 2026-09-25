@@ -2564,7 +2564,7 @@ namespace LiteFX::Rendering::Backends {
     /// A graphics factory that produces objects for a <see cref="VulkanDevice" />.
     /// </summary>
     /// <remarks>
-    /// Internally this factory implementation is based on <a href="https://gpuopen.com/vulkan-memory-allocator/" target="_blank">Vulkan Memory Allocator</a>.
+    /// Internally this factory implementation is based on [Vulkan Memory Allocator](https://gpuopen.com/vulkan-memory-allocator/).
     /// </remarks>
     class LITEFX_VULKAN_API VulkanGraphicsFactory final : public GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure> {
         LITEFX_IMPLEMENTATION(VulkanGraphicsFactoryImpl);

@@ -463,7 +463,7 @@ namespace LiteFX::Rendering {
         /// A shader storage buffer object in Vulkan. Maps to a structured buffer in DirectX.
         /// </summary>
         /// <remarks>
-        /// A storage buffer is read-only by default. If you want to create a writable storage buffer, use <see cref="WritableStorage"> instead.
+        /// A storage buffer is read-only by default. If you want to create a writable storage buffer, use <see cref="WritableStorage" /> instead.
         /// 
         /// In GLSL, use the <c>buffer</c> keyword to access storage buffers. In HLSL, use the <c>StructuredBuffer</c> keyword.
         /// 
@@ -486,7 +486,7 @@ namespace LiteFX::Rendering {
         /// A read-only sampled image.
         /// </summary>
         /// <remarks>
-        /// Textures are read-only by default. If you want to create a writable texture, use the <see cref="WritableTexture"> instead.
+        /// Textures are read-only by default. If you want to create a writable texture, use the <see cref="WritableTexture" /> instead.
         /// 
         /// In GLSL, use the <c>uniform texture</c> keywords to access the texture. In HLSL, use the <c>Texture</c> keywords.
         /// 
@@ -499,7 +499,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <remarks>
         /// In GLSL, use the <c>uniform image</c> keywords to access the texture. In HLSL, use the <c>RWTexture</c> keywords.
-        /// </remaks>
+        /// </remarks>
         RWTexture = 0x00000013,
         
         /// <summary>
@@ -2092,7 +2092,7 @@ namespace LiteFX::Rendering {
         ForceOpaque = 0x04,
 
         /// <summary>
-        /// If this flag is set, each geometry of the instance will ignore the <seealso cref="GeometryFlags::Opaque" /> setting.
+        /// If this flag is set, each geometry of the instance will ignore the <see cref="GeometryFlags::Opaque" /> setting.
         /// </summary>
         /// <remarks>
         /// This flag must not be set in combination with <see cref="ForceOpaque" />.
@@ -3663,7 +3663,7 @@ namespace LiteFX::Rendering {
         /// Initializes the render target.
         /// </summary>
         /// <remarks>
-        /// This overload uses the <paramname ref="name" /> parameter to compute the <see cref="identifier" />.
+        /// This overload uses the <paramref name="name" /> parameter to compute the <see cref="identifier" />.
         /// </remarks>
         /// <param name="name">The unique name of the render target.</param>
         /// <param name="location">The location of the render target output attachment.</param>
@@ -4287,7 +4287,7 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Sets the rectangle that defines the scissor region.
         /// </summary>
-        /// <param name="rectangle">The rectangle that defines the scissor region.</rectangle>
+        /// <param name="rectangle">The rectangle that defines the scissor region.</param>
         virtual void setRectangle(const RectF& rectangle) noexcept = 0;
     };
 
@@ -4429,7 +4429,7 @@ namespace LiteFX::Rendering {
     /// 
     /// Note that timing events are only supported on graphics and compute <see cref="ICommandQueue" />s.
     /// </remarks>
-    /// <seeaslo cref="ISwapChain" />
+    /// <seealso cref="ISwapChain" />
     class LITEFX_RENDERING_API TimingEvent final : public SharedObject {
         LITEFX_IMPLEMENTATION(TimingEventImpl);
         friend class ISwapChain;
@@ -5674,7 +5674,7 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">If not `nullptr`, the destination acceleration structure will be written into the provided buffer. Otherwise a new buffer is allocated, or the existing one is used depending on the available size.</param>
         /// <param name="offset">The offset at which to store the copy within <paramref name="buffer" />. Must be a multiple of 256. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
         /// <param name="copyBuildInfo">If `true`, the mesh data or bounding box data is copied into the acceleration structure.</param>
-        /// <excetpion cref="InvalidArgumentException">Thrown, if <paramref name="compress" /> is set to `true`, but the current acceleration structure has not been created with the <see cref="AccelerationStructureFlags::AllowCompaction" /> flag.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="compress" /> is set to `true`, but the current acceleration structure has not been created with the <see cref="AccelerationStructureFlags::AllowCompaction" /> flag.</exception>
         /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and does not fully contain the required memory to store the copy, starting at <paramref name="offset" />.</exception>
         inline void copy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress = false, const SharedPtr<const IBuffer>& buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const {
@@ -5883,7 +5883,7 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">If not `nullptr`, the destination acceleration structure will be written into the provided buffer. Otherwise a new buffer is allocated, or the existing one is used depending on the available size.</param>
         /// <param name="offset">The offset at which to store the copy within <paramref name="buffer" />. Must be a multiple of 256. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
         /// <param name="copyBuildInfo">If `true`, the mesh data or bounding box data is copied into the acceleration structure.</param>
-        /// <excetpion cref="InvalidArgumentException">Thrown, if <paramref name="compress" /> is set to `true`, but the current acceleration structure has not been created with the <see cref="AccelerationStructureFlags::AllowCompaction" /> flag.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="compress" /> is set to `true`, but the current acceleration structure has not been created with the <see cref="AccelerationStructureFlags::AllowCompaction" /> flag.</exception>
         /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and does not fully contain the required memory to store the copy, starting at <paramref name="offset" />.</exception>
         inline void copy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress = false, const SharedPtr<const IBuffer>& buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const {
@@ -8905,12 +8905,13 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Returns the maximum size of a single ray attribute.
         /// </summary>
+        /// <remarks>
         /// A ray attribute is the data that is passed to a hit shader for a specific event. Different to ray payloads, it only contains the data that describe the event (such as 
         /// the hit coordinates, etc.).
         /// 
         /// This property can currently not be queried from reflection.
         /// </remarks>
-        /// <returns></returns>
+        /// <returns>The maximum size of the ray attribute.</returns>
         virtual UInt32 maxAttributeSize() const noexcept = 0;
 
         /// <summary>
@@ -9090,7 +9091,7 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Returns the current height of the frame buffer.
         /// </summary>
-        /// <returns>The current height of the frame buffer.</returns
+        /// <returns>The current height of the frame buffer.</returns>
         /// <seealso cref="width" />
         /// <seealso cref="size" />
         /// <seealso cref="resize" />

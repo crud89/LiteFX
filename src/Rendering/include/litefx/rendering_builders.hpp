@@ -391,7 +391,7 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data for ray-tracing shaders.</param>
-        /// <returns>The shader module instance.</return>
+        /// <returns>The shader module instance.</returns>
         constexpr virtual UniquePtr<shader_module_type> makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) = 0;
 
         /// <summary>
@@ -402,7 +402,7 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data for ray-tracing shaders.</param>
-        /// <returns>The shader module instance.</return>
+        /// <returns>The shader module instance.</returns>
         constexpr virtual UniquePtr<shader_module_type> makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) = 0;
 
     public:
@@ -1582,7 +1582,7 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds a vertex buffer layout to the input assembler. Can be called multiple times.
         /// </summary>
-        /// <param name="layout">The layout to add to the input assembler.</param>
+        /// <param name="layout">The vertex buffer layout to add to the input assembler.</param>
         template <typename TSelf>
         constexpr auto use(this TSelf&& self, SharedPtr<vertex_buffer_layout_type>&& layout) -> TSelf&& {
             self.m_state.vertexBufferLayouts.push_back(std::move(layout));
@@ -1592,8 +1592,8 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds an index buffer layout to the input assembler. Can only be called once.
         /// </summary>
-        /// <param name="layout"></param>
-        /// <exception cref="RuntimeException">Thrown if another index buffer layout has already been specified.</excpetion>
+        /// <param name="layout">The index buffer layout to add to the input assembler.</param>
+        /// <exception cref="RuntimeException">Thrown if another index buffer layout has already been specified.</exception>
         template <typename TSelf>
         constexpr auto use(this TSelf&& self, SharedPtr<index_buffer_layout_type>&& layout) -> TSelf&& {
             self.m_state.indexBufferLayout = std::move(layout);

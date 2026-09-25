@@ -2532,7 +2532,7 @@ namespace LiteFX::Rendering::Backends {
     /// A graphics factory that produces objects for a <see cref="DirectX12Device" />.
     /// </summary>
     /// <remarks>
-    /// The DX12 graphics factory is implemented using <a href="https://gpuopen.com/d3d12-memory-allocator/" target="_blank">D3D12 Memory Allocator</a>.
+    /// The DX12 graphics factory is implemented using [D3D12 Memory Allocator](https://gpuopen.com/d3d12-memory-allocator/).
     /// </remarks>
     class LITEFX_DIRECTX12_API DirectX12GraphicsFactory final : public GraphicsFactory<DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure> {
         LITEFX_IMPLEMENTATION(DirectX12GraphicsFactoryImpl);
@@ -3001,7 +3001,7 @@ namespace LiteFX::Rendering::Backends {
         UniquePtr<DirectX12Surface> createSurface(const HWND& hwnd) const;
 
         /// <summary>
-        /// Enables <a href="https://docs.microsoft.com/en-us/windows/win32/direct3darticles/directx-warp" target="_blank">Windows Advanced Software Rasterization (WARP)</a>.
+        /// Enables [Windows Advanced Software Rasterization (WARP)](https://docs.microsoft.com/en-us/windows/win32/direct3darticles/directx-warp).
         /// </summary>
         /// <remarks>
         /// Enabling software rasterization disables hardware rasterization. Requesting adapters using <see cref="findAdapter" /> or <see cref="listAdapters" />
