@@ -1,0 +1,24 @@
+get_filename_component(_dxwarp_root "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
+
+if(NOT EXISTS "${_dxwarp_root}/bin/d3d10warp.dll")
+    set(directx-warp_FOUND FALSE)
+    set(directx-warp_NOT_FOUND_MESSAGE "d3d10warp.dll not found in ${_dxwarp_root}/bin.")
+    unset(_dxwarp_root)
+    return()
+endif()
+
+if(NOT TARGET Microsoft::DirectX-WARP)
+    add_library(Microsoft::DirectX-WARP MODULE IMPORTED)
+    set_target_properties(Microsoft::DirectX-WARP PROPERTIES
+        IMPORTED_LOCATION "${_dxwarp_root}/bin/d3d10warp.dll")
+endif()
+
+function(directx_warp_deploy target)
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:Microsoft::DirectX-WARP>" "$<TARGET_FILE_DIR:${target}>"
+        COMMENT "Deploying DirectX WARP for ${target}"
+        VERBATIM)
+endfunction()
+
+set(directx-warp_FOUND TRUE)
+unset(_dxwarp_root)

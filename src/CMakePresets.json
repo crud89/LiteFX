@@ -1,8 +1,8 @@
 {
   "version": 4,
   "cmakeMinimumRequired": {
-    "major": 3,
-    "minor": 27,
+    "major": 4,
+    "minor": 0,
     "patch": 0
   },
   "include": [
@@ -40,7 +40,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "BUILD_SHARED_LIBS": "OFF",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md",
         "VCPKG_MANIFEST_FEATURES": "pix-support;imgui",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
@@ -76,7 +76,7 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-rel",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-release",
         "VCPKG_MANIFEST_FEATURES": "imgui"
       }
     },
@@ -93,7 +93,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "BUILD_SHARED_LIBS": "OFF",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static-rel",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md-release",
         "VCPKG_MANIFEST_FEATURES": "imgui"
       }
     },
@@ -126,7 +126,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "BUILD_SHARED_LIBS": "OFF",
-        "VCPKG_TARGET_TRIPLET": "x86-windows-static",
+        "VCPKG_TARGET_TRIPLET": "x86-windows-static-md",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
     },
@@ -160,7 +160,7 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "VCPKG_TARGET_TRIPLET": "x86-windows-rel"
+        "VCPKG_TARGET_TRIPLET": "x86-windows-release"
       }
     },
     {
@@ -176,7 +176,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "BUILD_SHARED_LIBS": "OFF",
-        "VCPKG_TARGET_TRIPLET": "x86-windows-static-rel"
+        "VCPKG_TARGET_TRIPLET": "x86-windows-static-md-release"
       }
     },
     {
@@ -242,7 +242,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "BUILD_SHARED_LIBS": "OFF",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md",
         "VCPKG_MANIFEST_FEATURES": "pix-support;imgui",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
@@ -278,7 +278,7 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-rel",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-release",
         "VCPKG_MANIFEST_FEATURES": "imgui"
       }
     },
@@ -295,7 +295,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "BUILD_SHARED_LIBS": "OFF",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static-rel",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md-release",
         "VCPKG_MANIFEST_FEATURES": "imgui"
       }
     }

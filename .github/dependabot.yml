@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: "vcpkg"
+    directory: "/src"
+    schedule:
+      interval: "monthly"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+
+# npm is intentionally not listed. The npm packages in docs/ are build-time
+# tooling for the static documentation site (Hugo/Docsy), which is built
+# locally and published as static files. They are updated manually alongside
+# Docsy upgrades rather than through Dependabot.

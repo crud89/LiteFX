@@ -1,0 +1,5 @@
+The DirectX WARP package provides the imported target Microsoft::DirectX-WARP and a helper
+that copies d3d10warp.dll next to an executable:
+
+    find_package(directx-warp CONFIG REQUIRED)
+    directx_warp_deploy(main)

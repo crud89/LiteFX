@@ -1,6 +1,7 @@
 {
   "name": "litefx",
-  "version-string": "0.5.1.2025",
+  "version-string": "source",
+  "builtin-baseline": "9e593bb18ea69cc5095e012465dcd675a822ed0d",
   "maintainers": [
     "Carsten Rudolph <18394207+crud89@users.noreply.github.com>"
   ],
@@ -10,12 +11,16 @@
   "license": "MIT",
   "supports": "windows & !arm",
   "dependencies": [
+    {
+      "name": "spdlog",
+      "default-features": false,
+      "features": [ "tz-offset" ]
+    },
     "cli11",
     "directxmath",
     "directx-headers",
     "glfw3",
     "glm",
-    "spdlog",
     "stb",
     "vulkan",
     "spirv-reflect",
@@ -32,7 +37,7 @@
       "dependencies": [ "winpixevent" ]
     },
     "imgui": {
-      "description": "Adds ",
+      "description": "Adds a dependency to DearImGui, that is only used in the samples though.",
       "supports": "windows & !x86 & !uwp",
       "dependencies": [
         {

@@ -3,6 +3,8 @@
 #define LITEFX_AUTO_IMPORT_BACKEND_HEADERS
 #include <litefx/litefx.h>
 #include <litefx/graphics.hpp>
+#include <litefx/backends/dx12_api.hpp>
+#include <litefx/backends/vulkan_api.hpp>
 
 #if (defined _WIN32 || defined WINCE)
 #  define GLFW_EXPOSE_NATIVE_WIN32

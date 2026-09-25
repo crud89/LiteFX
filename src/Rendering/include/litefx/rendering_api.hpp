@@ -1,23 +1,9 @@
 ﻿#pragma once
 
 #include <litefx/config.h>
-
-#if !defined (LITEFX_RENDERING_API)
-#  if defined(LiteFX_Rendering_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_RENDERING_API __declspec(dllexport)
-#  elif (defined(LiteFX_Rendering_EXPORTS) || defined(__APPLE__)) && defined __GNUC__ && __GNUC__ >= 4
-#    define LITEFX_RENDERING_API __attribute__ ((visibility ("default")))
-#  elif !defined(LiteFX_Rendering_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_RENDERING_API __declspec(dllimport)
-#  endif
-#endif 
-
-#ifndef LITEFX_RENDERING_API
-#  define LITEFX_RENDERING_API
-#endif
-
 #include <litefx/app.hpp>
 #include <litefx/math.hpp>
+#include <litefx/rendering_export.h>
 
 namespace LiteFX::Rendering {
     using namespace LiteFX;

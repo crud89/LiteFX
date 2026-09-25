@@ -1,5 +1,7 @@
-vcpkg_minimum_required(VERSION 2022-10-12) # for ${VERSION}
 vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
+
+set(VCPKG_POLICY_DLLS_WITHOUT_LIBS enabled)
+set(VCPKG_POLICY_EMPTY_INCLUDE_FOLDER enabled)
 
 vcpkg_download_distfile(ARCHIVE
     URLS "https://www.nuget.org/api/v2/package/Microsoft.Direct3D.WARP/${VERSION}"
@@ -13,21 +15,18 @@ vcpkg_extract_source_archive(
     NO_REMOVE_ONE_LEVEL
 )
 
-set(VCPKG_POLICY_DLLS_WITHOUT_LIBS enabled)
-set(VCPKG_POLICY_EMPTY_INCLUDE_FOLDER enabled)
-
 if(VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
-    file(COPY "${PACKAGE_PATH}/build/native/amd64/d3d10warp.dll" DESTINATION "${CURRENT_PACKAGES_DIR}/bin")
-    file(COPY "${PACKAGE_PATH}/build/native/amd64/d3d10warp.pdb" DESTINATION "${CURRENT_PACKAGES_DIR}/bin")
+    set(WARP_ARCH amd64)
 else()
-    file(COPY "${PACKAGE_PATH}/build/native/${VCPKG_TARGET_ARCHITECTURE}/d3d10warp.dll" DESTINATION "${CURRENT_PACKAGES_DIR}/bin")
-    file(COPY "${PACKAGE_PATH}/build/native/${VCPKG_TARGET_ARCHITECTURE}/d3d10warp.pdb" DESTINATION "${CURRENT_PACKAGES_DIR}/bin")
+    set(WARP_ARCH ${VCPKG_TARGET_ARCHITECTURE})
 endif()
 
-# Create debug binaries as a copy of the release binaries
-file(MAKE_DIRECTORY "${CURRENT_PACKAGES_DIR}/debug")
-file(COPY "${CURRENT_PACKAGES_DIR}/bin" DESTINATION "${CURRENT_PACKAGES_DIR}/debug")
+set(WARP_DIR "${PACKAGE_PATH}/build/native/${WARP_ARCH}")
 
-file(INSTALL "${PACKAGE_PATH}/LICENSE.txt" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
+foreach(_dir IN ITEMS "bin" "debug/bin")
+    file(COPY "${WARP_DIR}/d3d10warp.dll" "${WARP_DIR}/d3d10warp.pdb" DESTINATION "${CURRENT_PACKAGES_DIR}/${_dir}")
+endforeach()
 
-configure_file("${CMAKE_CURRENT_LIST_DIR}/dxwarp-config.cmake.in" "${CURRENT_PACKAGES_DIR}/share/${PORT}/${PORT}-config.cmake" COPYONLY)
+configure_file("${CMAKE_CURRENT_LIST_DIR}/directx-warp-config.cmake.in" "${CURRENT_PACKAGES_DIR}/share/${PORT}/${PORT}-config.cmake" @ONLY)
+file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
+vcpkg_install_copyright(FILE_LIST "${PACKAGE_PATH}/LICENSE.txt")

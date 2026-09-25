@@ -1,0 +1,125 @@
+name: Setup Toolchain
+description: Sets up CMake, the compiler environment and the runner's pre-installed vcpkg with binary caching.
+
+inputs:
+  platform:
+    description: 'Target platform: windows, linux or mingw.'
+    required: true
+  compiler:
+    description: 'Compiler: msvc, clang, clangcl, gcc or mingw.'
+    required: true
+  arch:
+    description: 'Target architecture: x64 or x86.'
+    required: true
+  triplet:
+    description: 'vcpkg target triplet (used to partition the binary cache).'
+    required: true
+  llvm-version:
+    description: 'Optional LLVM version to install. If empty, the LLVM version of the runner image is used.'
+    required: false
+    default: ''
+  cache-write:
+    description: 'Whether newly built vcpkg packages are saved to the cache. Only enable for trusted (non-PR) runs.'
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup CMake and Ninja
+      uses: lukka/get-cmake@latest
+
+    # ----------------------------------- Windows (MSVC, clang, clang-cl) -----------------------------------
+    - name: Setup MSVC environment
+      if: ${{ inputs.platform == 'windows' }}
+      shell: pwsh
+      run: |
+        $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+        $vs = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+
+        if (-not $vs) {
+          Write-Output "::error::No Visual Studio installation with C++ tools found."
+          exit 1
+        }
+
+        $arch = if ('${{ inputs.arch }}' -eq 'x86') { 'amd64_x86' } else { 'amd64' }
+        $before = @{}
+        Get-ChildItem env: | ForEach-Object { $before[$_.Name] = $_.Value }
+
+        cmd /c "`"$vs\VC\Auxiliary\Build\vcvarsall.bat`" $arch >nul 2>&1 && set" | ForEach-Object {
+          if ($_ -match '^([^=]+)=(.*)$' -and $before[$matches[1]] -ne $matches[2]) {
+            "$($matches[1])=$($matches[2])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          }
+        }
+        
+    - name: Setup LLVM
+      if: ${{ inputs.platform == 'windows' && inputs.llvm-version != '' && (inputs.compiler == 'clang' || inputs.compiler == 'clangcl') }}
+      shell: pwsh
+      run: |
+        choco install llvm --version=${{ inputs.llvm-version }} --allow-downgrade --no-progress -y
+        "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+    # ----------------------------------- Linux (reserved) -----------------------------------
+    - name: Setup Linux toolchain
+      if: ${{ inputs.platform == 'linux' }}
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build pkg-config libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl-dev
+        if [[ '${{ inputs.compiler }}' == 'clang' ]]; then
+          echo "CC=clang" >> "$GITHUB_ENV"
+          echo "CXX=clang++" >> "$GITHUB_ENV"
+        fi
+
+    # ----------------------------------- MinGW (reserved) -----------------------------------
+    - name: Setup MinGW toolchain
+      if: ${{ inputs.platform == 'mingw' }}
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: UCRT64
+        update: true
+        install: mingw-w64-ucrt-x86_64-toolchain
+
+    - name: Add MinGW to PATH
+      if: ${{ inputs.platform == 'mingw' }}
+      shell: bash
+      run: echo "${RUNNER_TEMP}/msys64/ucrt64/bin" >> "$GITHUB_PATH"
+
+    # ----------------------------------- vcpkg -----------------------------------
+    - name: Setup vcpkg
+      shell: bash
+      run: |
+        if [[ -z "${VCPKG_INSTALLATION_ROOT}" ]]; then
+          echo "::error::No pre-installed vcpkg found on this runner (VCPKG_INSTALLATION_ROOT is not set)."
+          exit 1
+        fi
+
+        cache_dir="${RUNNER_TEMP}/vcpkg-cache"
+        mkdir -p "${cache_dir}"
+
+        echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> "$GITHUB_ENV"
+        echo "VCPKG_BINARY_SOURCES=clear;files,${cache_dir},readwrite" >> "$GITHUB_ENV"
+        echo "VCPKG_CACHE_DIR=${cache_dir}" >> "$GITHUB_ENV"
+        "${VCPKG_INSTALLATION_ROOT}/vcpkg" version
+
+    # The key contains the run id, so that the cache is updated with new packages on every trusted run. Restore
+    # falls back to the latest cache with the same manifest, and then to the latest cache for the triplet.
+    - name: Restore and save vcpkg binary cache
+      if: ${{ inputs.cache-write == 'true' }}
+      uses: actions/cache@v6
+      with:
+        path: ${{ env.VCPKG_CACHE_DIR }}
+        key: vcpkg-${{ runner.os }}-${{ inputs.triplet }}-${{ hashFiles('src/vcpkg.json', 'src/vcpkg-configuration.json', 'src/Modules/overlay-*/**') }}-${{ github.run_id }}
+        restore-keys: |
+          vcpkg-${{ runner.os }}-${{ inputs.triplet }}-${{ hashFiles('src/vcpkg.json', 'src/vcpkg-configuration.json', 'src/Modules/overlay-*/**') }}-
+          vcpkg-${{ runner.os }}-${{ inputs.triplet }}-
+
+    - name: Restore vcpkg binary cache
+      if: ${{ inputs.cache-write != 'true' }}
+      uses: actions/cache/restore@v6
+      with:
+        path: ${{ env.VCPKG_CACHE_DIR }}
+        key: vcpkg-${{ runner.os }}-${{ inputs.triplet }}-${{ hashFiles('src/vcpkg.json', 'src/vcpkg-configuration.json', 'src/Modules/overlay-*/**') }}-${{ github.run_id }}
+        restore-keys: |
+          vcpkg-${{ runner.os }}-${{ inputs.triplet }}-${{ hashFiles('src/vcpkg.json', 'src/vcpkg-configuration.json', 'src/Modules/overlay-*/**') }}-
+          vcpkg-${{ runner.os }}-${{ inputs.triplet }}-

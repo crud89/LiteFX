@@ -4,23 +4,26 @@
 #####                                                                                         #####
 ###################################################################################################
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.27)
+CMAKE_MINIMUM_REQUIRED(VERSION 4.0)
 
 # Check if the build dir does not match the source dir (disallow in-source builds).
 IF("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
    MESSAGE(SEND_ERROR "In-source builds are not allowed.")
 ENDIF("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 
+# Include version.
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Version.cmake")
+
 # Declare top-level project.
-PROJECT(LiteFX LANGUAGES CXX)
+PROJECT(LiteFX VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 
 # Include configuration files.
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Modules.cmake")
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Version.cmake")
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Options.cmake")
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Config.cmake") 
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Shaders.cmake")
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Assets.cmake")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules.cmake")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Options.cmake")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Runtime.cmake")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Shaders.cmake")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Assets.cmake")
 
 # Include sub-projects.
 ADD_SUBDIRECTORY(Core)
@@ -45,26 +48,7 @@ ENDIF(LITEFX_BUILD_EXAMPLES AND NOT LITEFX_BUILD_DEFINE_BUILDERS)
 
 # Include samples.
 IF(LITEFX_BUILD_EXAMPLES)
-    ADD_SUBDIRECTORY(Samples/BasicRendering)
-    ADD_SUBDIRECTORY(Samples/RenderPasses)
-    ADD_SUBDIRECTORY(Samples/PushConstants)
-    ADD_SUBDIRECTORY(Samples/UniformArrays)
-    ADD_SUBDIRECTORY(Samples/Textures)
-    ADD_SUBDIRECTORY(Samples/Multisampling)
-    ADD_SUBDIRECTORY(Samples/Multithreading)
-    ADD_SUBDIRECTORY(Samples/Bindless)
-    ADD_SUBDIRECTORY(Samples/DynamicDescriptors)
-    ADD_SUBDIRECTORY(Samples/Compute)
-    ADD_SUBDIRECTORY(Samples/Indirect)
-    ADD_SUBDIRECTORY(Samples/MeshShader)
-    ADD_SUBDIRECTORY(Samples/RayTracing)
-    ADD_SUBDIRECTORY(Samples/RayQueries)
-    ADD_SUBDIRECTORY(Samples/Defragmentation)
-    ADD_SUBDIRECTORY(Samples/ResourceAliasing)
-
-    IF(LITEFX_BUILD_WITH_IMGUI_SAMPLE)
-        ADD_SUBDIRECTORY(Samples/ImGui)
-    ENDIF(LITEFX_BUILD_WITH_IMGUI_SAMPLE)
+    ADD_SUBDIRECTORY(Samples)
 ENDIF(LITEFX_BUILD_EXAMPLES)
 
 # Include tests.
@@ -74,4 +58,7 @@ IF(LITEFX_BUILD_TESTS)
 ENDIF(LITEFX_BUILD_TESTS)
 
 # Install license notice.
-INSTALL(FILES "${CMAKE_SOURCE_DIR}/../LICENSE" "${CMAKE_SOURCE_DIR}/../NOTICE" DESTINATION "/")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE" "${CMAKE_CURRENT_SOURCE_DIR}/../NOTICE" DESTINATION ".")
+
+# Export package config.
+INSTALL(EXPORT LiteFX FILE LiteFX.cmake NAMESPACE LiteFX:: DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})

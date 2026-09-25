@@ -1,22 +1,8 @@
 #pragma once
 
 #include <litefx/config.h>
-
-#if !defined (LITEFX_LOGGING_API)
-#  if defined(LiteFX_Logging_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_LOGGING_API __declspec(dllexport)
-#  elif (defined(LiteFX_Logging_EXPORTS) || defined(__APPLE__)) && defined __GNUC__ && __GNUC__ >= 4
-#    define LITEFX_LOGGING_API __attribute__ ((visibility ("default")))
-#  elif !defined(LiteFX_Logging_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_LOGGING_API __declspec(dllimport)
-#  endif
-#endif 
-
-#ifndef LITEFX_LOGGING_API
-#  define LITEFX_LOGGING_API
-#endif
-
 #include <litefx/core.h>
+#include <litefx/logging_export.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/sink.h>
 

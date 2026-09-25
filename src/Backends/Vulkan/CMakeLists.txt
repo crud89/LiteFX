@@ -25,7 +25,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/image.h"
     "src/convert.cpp"
     "src/backend.cpp"
-    "src/adaper.cpp"
+    "src/adapter.cpp"
     "src/device.cpp"
     "src/factory.cpp"
     "src/queue.cpp"
@@ -55,14 +55,16 @@ SET(VULKAN_BACKEND_SOURCES
     "src/blas.cpp"
     "src/tlas.cpp"
     "src/virtual_allocator.hpp"
-
-    ".natvis"
 )
 
-# Add shared library project.
-ADD_LIBRARY(${PROJECT_NAME}
-    ${VULKAN_BACKEND_HEADERS}
-    ${VULKAN_BACKEND_SOURCES}
+# Add library project.
+LITEFX_ADD_LIBRARY(${PROJECT_NAME}
+    EXPORT_NAME Vulkan
+    SOURCES ${VULKAN_BACKEND_SOURCES}
+    HEADERS ${VULKAN_BACKEND_HEADERS}
+    EXPORT_MACRO LITEFX_VULKAN_API
+    EXPORT_HEADER "litefx/backends/vulkan_export.h"
+    NATVIS ".natvis"
 )
 
 # Create source groups for better code organization.
@@ -72,52 +74,21 @@ SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VULKAN_BACKEND_HEADERS} ${
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
     FOLDER "Backends"
     VERSION ${LITEFX_VERSION}
-    SOVERSION ${LITEFX_YEAR}
-    PUBLIC_HEADER "${VULKAN_BACKEND_HEADERS}"
-    MAP_IMPORTED_CONFIG_RELWITHDEBINFO "Debug"
-    MAP_IMPORTED_CONFIG_MINSIZEREL "Release"
 )
 
 # Setup target include directories.
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} 
-    PRIVATE
-        "src/"
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
-)
+TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PRIVATE "src/")
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Vulkan::Vulkan
+    PUBLIC LiteFX::Core LiteFX::Math LiteFX::Rendering LiteFX::AppModel Vulkan::Vulkan
     PRIVATE GPUOpen::VulkanMemoryAllocator unofficial::spirv-reflect
 )
 
-# Pre-define export specifier, to prevent dllimport/dllexport from being be emitted.
-IF(NOT BUILD_SHARED_LIBS)
-    TARGET_COMPILE_DEFINITIONS(${PROJECT_NAME} PUBLIC -DLITEFX_VULKAN_API=)
-ENDIF(NOT BUILD_SHARED_LIBS)
-
 # Link against D3D12 to enable flip-model swap chains.
 IF(LITEFX_BUILD_DIRECTX_12_BACKEND)
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC LiteFX.Backends.DirectX12)
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC LiteFX::DirectX12)
 ENDIF(LITEFX_BUILD_DIRECTX_12_BACKEND)
 
-
-# Re-use pre-compiled core header.
-IF(LITEFX_BUILD_PRECOMPILED_HEADERS)
-    TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} REUSE_FROM LiteFX.Core)
-ENDIF(LITEFX_BUILD_PRECOMPILED_HEADERS)
-
 # Setup installer.
-INSTALL(TARGETS ${PROJECT_NAME} EXPORT EXPORT LiteFX
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINARY_DIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR}/litefx/backends
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR}
-)
-
-# Export config.
-INSTALL(EXPORT LiteFX DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
-EXPORT(TARGETS ${PROJECT_NAME} FILE LiteFXBackendsVulkanConfig.cmake)
+INSTALL(TARGETS ${PROJECT_NAME} EXPORT LiteFX FILE_SET HEADERS)

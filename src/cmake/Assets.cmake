@@ -21,8 +21,8 @@
 # directory, if CMAKE_RUNTIME_OUTPUT_DIRECTORY is not empty, or in CMAKE_CURRENT_BINARY_DIR directory, if it is empty. The directory and 
 # possible subdirectories are defined by the NAME parameter.
 #
-# The INSTALL_DESTINATION specifies the destination, the directory will be installed to by the created install command. Note that the parameter
-# is always prepended by CMAKE_INSTALL_PREFIX.
+# The INSTALL_DESTINATION specifies the destination, the directory will be installed to by the created install command. The destination is
+# relative to the install prefix.
 #
 # The ASSETS parameter defines a list of the files that are copied to the directory during the build. Note that you have to ensure, that no two 
 # file names are the same, since it would result in one of the files being overwritten.
@@ -33,12 +33,9 @@ FUNCTION(TARGET_ADD_ASSET_DIRECTORY target_name)
   SET(directory_target_name "${target_name}-${directory_target_name}")
 
   GET_TARGET_PROPERTY(folder_name ${target_name} FOLDER)
-  
-  IF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
-    SET(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${ASSET_DIRECTORY_NAME})
-  ELSE()
-    SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${ASSET_DIRECTORY_NAME})
-  ENDIF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
+
+  LITEFX_GET_RUNTIME_DIRECTORY(OUTPUT_DIR)
+  SET(OUTPUT_DIR "${OUTPUT_DIR}/${ASSET_DIRECTORY_NAME}")
 
   ADD_CUSTOM_TARGET(${directory_target_name}
     COMMENT "Copying assets to runtime directory '${OUTPUT_DIR}'..."
@@ -62,8 +59,7 @@ FUNCTION(TARGET_ADD_ASSET_DIRECTORY target_name)
     )
   ENDFOREACH(ASSET_FILE ${ASSET_DIRECTORY_ASSETS})
 
-  CMAKE_PATH(SET ASSET_INSTALL_DEST NORMALIZE ${CMAKE_INSTALL_PREFIX}/${ASSET_DIRECTORY_INSTALL_DESTINATION})
-  INSTALL(DIRECTORY ${OUTPUT_DIR} DESTINATION ${ASSET_INSTALL_DEST})
+  INSTALL(DIRECTORY ${OUTPUT_DIR} DESTINATION ${ASSET_DIRECTORY_INSTALL_DESTINATION})
 
   ADD_DEPENDENCIES(${target_name} ${directory_target_name})
 ENDFUNCTION(TARGET_ADD_ASSET_DIRECTORY target_name)
