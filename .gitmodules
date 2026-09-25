@@ -1,6 +1,3 @@
-[submodule "src/Modules/vcpkg"]
-	path = src/Modules/vcpkg
-	url = https://github.com/microsoft/vcpkg.git
 [submodule "docs/modules/doxygen-awesome-css"]
 	path = docs/modules/doxygen-awesome-css
 	url = https://github.com/jothepro/doxygen-awesome-css.git

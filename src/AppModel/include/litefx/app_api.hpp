@@ -1,23 +1,10 @@
 #pragma once
 
 #include <litefx/config.h>
-
-#if !defined (LITEFX_APPMODEL_API)
-#  if defined(LiteFX_AppModel_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_APPMODEL_API __declspec(dllexport)
-#  elif (defined(LiteFX_AppModel_EXPORTS) || defined(__APPLE__)) && defined __GNUC__ && __GNUC__ >= 4
-#    define LITEFX_APPMODEL_API __attribute__ ((visibility ("default")))
-#  elif !defined(LiteFX_AppModel_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_APPMODEL_API __declspec(dllimport)
-#  endif
-#endif 
-
-#ifndef LITEFX_APPMODEL_API
-#  define LITEFX_APPMODEL_API
-#endif
-
 #include <litefx/core.h>
 #include <litefx/logging.hpp>
+
+#include <litefx/app_export.h>
 
 namespace LiteFX {
 

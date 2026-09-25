@@ -1,0 +1,319 @@
+# Copyright (c) 2026 Carsten Rudolph
+name: Build (reusable)
+
+# Reusable workflow that builds, tests or analyzes all enabled entries of `.github/build-matrix.json` for a given purpose.
+on:
+  workflow_call:
+    inputs:
+      purpose:
+        description: 'Matrix purpose to run: build, test, tidy or release.'
+        type: string
+        required: true
+      ref:
+        description: 'Git ref or SHA to build. Defaults to the triggering ref.'
+        type: string
+        default: ''
+      check-sha:
+        description: 'If set, a check run is created and updated for this commit SHA.'
+        type: string
+        default: ''
+      version:
+        description: 'If set (<major>.<minor>.<build>.<year>), the version is written before building.'
+        type: string
+        default: ''
+      cache-write:
+        description: 'Whether vcpkg binary cache entries are saved. Only enable for trusted runs.'
+        type: boolean
+        default: false
+      install:
+        description: 'Whether to install the build and upload the install tree as artifact.'
+        type: boolean
+        default: false
+      upload-build:
+        description: 'Whether to upload the build tree as artifact.'
+        type: boolean
+        default: false
+      signing:
+        description: 'Sign the installed binaries (Windows only): `none` or `certificate`'
+        type: string
+        default: 'none'
+    secrets:
+      SIGN_CERTIFICATE_BASE64:
+        description: 'Base64-encoded PFX code signing certificate (signing method `certificate`).'
+        required: false
+      SIGN_CERTIFICATE_PASSWORD:
+        description: 'Password of the code signing certificate (signing method `certificate`).'
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  # ------------------------------------- Matrix              -------------------------------------
+  matrix:
+    name: matrix (${{ inputs.purpose }})
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.filter.outputs.matrix }}
+
+    steps:
+      - name: Checkout matrix definition
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+          sparse-checkout: .github/build-matrix.json
+          sparse-checkout-cone-mode: false
+
+      - name: Filter matrix
+        id: filter
+        shell: bash
+        env:
+          PURPOSE: ${{ inputs.purpose }}
+        run: |
+          matrix=$(jq -c --arg p "$PURPOSE" '[ .[] | select(.enabled and (.purposes | index($p))) ]' .github/build-matrix.json)
+
+          if [[ "$(jq 'length' <<< "$matrix")" == "0" ]]; then
+            echo "::error::No enabled matrix entries for purpose '$PURPOSE'."
+            exit 1
+          fi
+
+          echo "matrix={\"include\":${matrix}}" >> "$GITHUB_OUTPUT"
+
+  # ------------------------------------- Build               -------------------------------------
+  run:
+    name: ${{ inputs.purpose }} (${{ matrix.name }})
+    needs: matrix
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      checks: write
+      id-token: write
+      attestations: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.matrix.outputs.matrix) }}
+
+    env:
+      BUILD_DIR: ${{ github.workspace }}/out/build/${{ matrix.preset }}
+      INSTALL_DIR: ${{ github.workspace }}/out/install/${{ matrix.preset }}
+
+    steps:
+      - name: Create check
+        id: create-check
+        if: ${{ inputs.check-sha != '' }}
+        uses: LouisBrunner/checks-action@v3
+        with:
+          token: ${{ github.token }}
+          name: ${{ inputs.purpose }} (${{ matrix.name }})
+          sha: ${{ inputs.check-sha }}
+          status: in_progress
+
+      - name: Checkout sources
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Update version
+        if: ${{ inputs.version != '' }}
+        shell: pwsh
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          $major, $minor, $build, $year = $env:VERSION.Split('.')
+          ./write-version.ps1 -major $major -minor $minor -build $build -year $year
+
+      - name: Setup toolchain
+        uses: ./.github/actions/setup-toolchain
+        with:
+          platform: ${{ matrix.platform }}
+          compiler: ${{ matrix.compiler }}
+          arch: ${{ matrix.arch }}
+          triplet: ${{ matrix.triplet }}
+          llvm-version: ${{ vars.LLVM_VERSION }}
+          cache-write: ${{ inputs.cache-write }}
+
+      - name: Setup test environment
+        if: ${{ inputs.purpose == 'test' }}
+        uses: ./.github/actions/setup-test-environment
+        with:
+          platform: ${{ matrix.platform }}
+          vulkan-sdk-version: ${{ vars.VULKAN_SDK_VERSION }}
+          mesa-version: ${{ vars.MESA_3D_VERSION }}
+
+      # PowerShell is used for all platforms, as Git Bash on Windows shadows MSVC tools (e.g. link.exe) on the PATH.
+      - name: Configure
+        working-directory: src
+        shell: pwsh
+        run: cmake --preset "${{ matrix.preset }}"
+
+      - name: Build
+        id: build
+        working-directory: src
+        shell: pwsh
+        run: |
+          cmake --build --preset "${{ matrix.preset }}" 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP/build.log"
+          exit $LASTEXITCODE
+
+      - name: Run tests
+        if: ${{ inputs.purpose == 'test' }}
+        working-directory: ${{ env.BUILD_DIR }}
+        shell: pwsh
+        run: |
+          $log = Join-Path $env:RUNNER_TEMP 'test.log'
+
+          if ($IsWindows) {
+            OpenCppCoverage.exe --quiet --export_type=html:__coverage\html --export_type=binary:__coverage\bin --cover_children --sources="${{ github.workspace }}\src\" --modules=binaries\ -- ctest --test-dir . --output-on-failure --timeout 10 2>&1 | Tee-Object -FilePath $log
+          } else {
+            ctest --test-dir . --output-on-failure --timeout 10 2>&1 | Tee-Object -FilePath $log
+          }
+
+          exit $LASTEXITCODE
+
+      - name: Upload test results
+        if: ${{ always() && inputs.purpose == 'test' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: LiteFX-${{ matrix.name }}-test-results
+          path: |
+            ${{ env.BUILD_DIR }}/Testing/Temporary/LastTest.log
+            ${{ env.BUILD_DIR }}/__coverage/
+          if-no-files-found: ignore
+
+      - name: Upload build artifacts
+        id: upload-build
+        if: ${{ inputs.upload-build }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: LiteFX-${{ matrix.name }}-build
+          path: ${{ env.BUILD_DIR }}
+
+      - name: Attest build artifacts
+        if: ${{ inputs.upload-build }}
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: LiteFX-${{ matrix.name }}-build.zip
+          subject-digest: sha256:${{ steps.upload-build.outputs.artifact-digest }}
+
+      - name: Install
+        if: ${{ inputs.install }}
+        shell: pwsh
+        run: cmake --install "$env:BUILD_DIR"
+
+      # ---------------------------------- Signing -------------------------------------
+      - name: Sign binaries (certificate)
+        if: ${{ inputs.install && inputs.signing == 'certificate' && runner.os == 'Windows' }}
+        shell: pwsh
+        env:
+          CERTIFICATE: ${{ secrets.SIGN_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.SIGN_CERTIFICATE_PASSWORD }}
+          TIMESTAMP_URL: http://timestamp.digicert.com
+        run: |
+          if (-not $env:CERTIFICATE) {
+            Write-Error "Signing requested, but the SIGN_CERTIFICATE_BASE64 secret is not available."
+          }
+
+          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" |
+            Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName
+
+          $files = Get-ChildItem $env:INSTALL_DIR -Recurse -Include 'LiteFX*.dll', 'LiteFX*.exe' |
+            Where-Object { (Get-AuthenticodeSignature $_.FullName).Status -eq 'NotSigned' } |
+            Select-Object -ExpandProperty FullName
+
+          if (-not $files) {
+            Write-Host "No unsigned binaries found."
+            exit 0
+          }
+
+          $pfx = Join-Path $env:RUNNER_TEMP 'certificate.pfx'
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String(($env:CERTIFICATE -replace '\s', '')))
+
+          try {
+            & $signtool sign /f $pfx /p $env:CERTIFICATE_PASSWORD /fd SHA256 /tr $env:TIMESTAMP_URL /td SHA256 /v $files
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          } finally {
+            Remove-Item $pfx -Force
+          }
+
+      - name: Upload install artifacts
+        id: upload-install
+        if: ${{ inputs.install }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: LiteFX-${{ matrix.package }}-install
+          path: ${{ env.INSTALL_DIR }}
+          if-no-files-found: error
+
+      - name: Attest install artifacts
+        if: ${{ inputs.install }}
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: LiteFX-${{ matrix.package }}-install.zip
+          subject-digest: sha256:${{ steps.upload-install.outputs.artifact-digest }}
+          
+      - name: Collect summary
+        id: summary
+        if: ${{ always() && inputs.check-sha != '' }}
+        shell: bash
+        env:
+          PURPOSE: ${{ inputs.purpose }}
+          NAME: ${{ matrix.name }}
+          PRESET: ${{ matrix.preset }}
+          STATUS: ${{ job.status }}
+        run: |
+          if [[ "$PURPOSE" == 'test' ]]; then log="${RUNNER_TEMP}/test.log"; else log="${RUNNER_TEMP}/build.log"; fi
+          summary="${RUNNER_TEMP}/check-summary.md"
+          details="${RUNNER_TEMP}/check-details.md"
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+          {
+            echo "**${PURPOSE}** \`${NAME}\` (preset \`${PRESET}\`): **${STATUS}**"
+            echo
+
+            if [[ ! -f "$log" ]]; then
+              echo "No output available, the job failed before this stage."
+            elif [[ "$PURPOSE" == 'test' ]]; then
+              grep -E 'tests passed|Total Test time' "$log" || true
+              if grep -q 'The following tests FAILED' "$log"; then
+                echo; echo '```'
+                sed -n '/The following tests FAILED/,$p' "$log" | head -n 25
+                echo '```'
+              fi
+            else
+              warnings=$(grep -cE ': warning( [A-Z]+[0-9]+)?:' "$log" || true)
+              errors=$(grep -cE ': (fatal )?error( [A-Z]+[0-9]+)?:|^FAILED:' "$log" || true)
+              echo "Warnings: ${warnings}, errors: ${errors}"
+
+              if [[ "$errors" -gt 0 ]]; then
+                echo; echo 'First errors:'; echo '```'
+                grep -E ': (fatal )?error( [A-Z]+[0-9]+)?:|^FAILED:' "$log" | cut -c1-300 | head -n 10
+                echo '```'
+              elif [[ "$PURPOSE" == 'tidy' && "$warnings" -gt 0 ]]; then
+                echo; echo 'Warnings (unique, first 20):'; echo '```'
+                grep -E ': warning( [A-Z]+[0-9]+)?:' "$log" | cut -c1-300 | sort -u | head -n 20
+                echo '```'
+              fi
+            fi
+
+            echo; echo "[Full log](${run_url})"
+          } | head -c 16000 > "$summary"
+
+          if [[ -f "$log" ]]; then
+            { echo '```'; tail -c 50000 "$log"; echo; echo '```'; } > "$details"
+          else
+            echo 'No output available.' > "$details"
+          fi
+
+          echo "output=$(jq -cn --rawfile summary "$summary" '{ summary: $summary }')" >> "$GITHUB_OUTPUT"
+          echo "details=${details}" >> "$GITHUB_OUTPUT"
+
+      - name: Update check
+        if: ${{ always() && inputs.check-sha != '' }}
+        uses: LouisBrunner/checks-action@v3
+        with:
+          token: ${{ github.token }}
+          check_id: ${{ steps.create-check.outputs.check_id }}
+          sha: ${{ inputs.check-sha }}
+          conclusion: ${{ job.status }}
+          output: ${{ steps.summary.outputs.output }}
+          output_text_description_file: ${{ steps.summary.outputs.details }}

@@ -1,20 +1,7 @@
 #pragma once
 
 #include <litefx/core.h>
-
-#if !defined (LITEFX_MATH_API)
-#  if defined(LiteFX_Math_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_MATH_API __declspec(dllexport)
-#  elif (defined(LiteFX_Math_EXPORTS) || defined(__APPLE__)) && defined __GNUC__ && __GNUC__ >= 4
-#    define LITEFX_MATH_API __attribute__ ((visibility ("default")))
-#  elif !defined(LiteFX_Math_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_MATH_API __declspec(dllimport)
-#  endif
-#endif 
-
-#ifndef LITEFX_MATH_API
-#  define LITEFX_MATH_API
-#endif
+#include <litefx/math_export.h>
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 #include <glm/glm.hpp>

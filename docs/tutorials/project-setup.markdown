@@ -123,6 +123,8 @@ ADD_EXECUTABLE(MyApp
 )
 
 TARGET_LINK_LIBRARIES(MyApp PRIVATE LiteFX.Backends.Vulkan LiteFX.Backends.DirectX12 glfw)
+
+LITEFX_DEPLOY_RUNTIME(MyApp)
 ```
 
 ## Performing a build.

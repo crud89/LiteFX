@@ -1,0 +1,67 @@
+name: Setup Test Environment
+description: Provides the Vulkan runtime and a software rasterizer (Mesa lavapipe) to run tests on GitHub action runners.
+
+inputs:
+  platform:
+    description: 'Target platform: windows, linux or mingw.'
+    required: true
+  vulkan-sdk-version:
+    description: 'Vulkan SDK version (see update_dependencies.yml).'
+    required: true
+  mesa-version:
+    description: 'Mesa3D version (see update_dependencies.yml).'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    # ----------------------------------- Windows -----------------------------------
+    - name: Restore dependency cache
+      if: ${{ inputs.platform != 'linux' }}
+      id: cache
+      uses: actions/cache/restore@v6
+      with:
+        path: ${{ runner.temp }}/dep/win
+        key: windows-dependencies-mesa-${{ inputs.mesa-version }}-vulkan-${{ inputs.vulkan-sdk-version }}
+
+    - name: Ensure dependency cache exists
+      if: ${{ inputs.platform != 'linux' && steps.cache.outputs.cache-hit != 'true' }}
+      shell: bash
+      run: |
+        echo "::error::Dependency cache is missing. Please run the 'update_dependencies.yml' workflow first."
+        exit 1
+
+    - name: Install Vulkan runtime and Mesa driver
+      if: ${{ inputs.platform != 'linux' }}
+      shell: pwsh
+      run: |
+        $dep    = "${{ runner.temp }}\dep\win"
+        $vulkan = "$dep\vulkan\${{ inputs.vulkan-sdk-version }}"
+
+        Copy-Item "$vulkan\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
+        Copy-Item "$vulkan\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
+
+        reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "$dep\mesa\x64\lvp_icd.x86_64.json" /t REG_DWORD /d 0 /f /reg:64
+        reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v "$vulkan\Bin\VkLayer_khronos_synchronization2.json" /t REG_DWORD /d 0 /f /reg:64
+        reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v "$vulkan\Bin\VkLayer_khronos_validation.json" /t REG_DWORD /d 0 /f /reg:64
+        reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\Drivers" /v "$dep\mesa\x86\lvp_icd.x86.json" /t REG_DWORD /d 0 /f /reg:64
+        reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v "$vulkan\Bin32\VkLayer_khronos_synchronization2.json" /t REG_DWORD /d 0 /f /reg:64
+        reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v "$vulkan\Bin32\VkLayer_khronos_validation.json" /t REG_DWORD /d 0 /f /reg:64
+
+        & "$vulkan\runtime\x64\vulkaninfo.exe" --summary
+
+    - name: Install OpenCppCoverage
+      if: ${{ inputs.platform == 'windows' }}
+      shell: pwsh
+      run: |
+        choco install opencppcoverage --no-progress -y
+        "C:\Program Files\OpenCppCoverage" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+    # ----------------------------------- Linux (reserved) -----------------------------------
+    - name: Install Vulkan runtime and Mesa driver
+      if: ${{ inputs.platform == 'linux' }}
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mesa-vulkan-drivers libvulkan1 vulkan-tools vulkan-validationlayers
+        vulkaninfo --summary

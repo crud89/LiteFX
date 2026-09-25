@@ -69,7 +69,7 @@
 #
 # This will define a dependency for the specified target for all shader module targets. Furthermore, it automatically creates an install command for the shader module 
 # binaries. The source file is build from the RUNTIME_OUTPUT_DIRECTORY, OUTPUT_NAME and SUFFIX properties of each shader module target. The install destination can be 
-# provided by the INSTALL_DESTINATION parameter. Note that it is always prepended with the CMAKE_INSTALL_PREFIX.
+# provided by the (optional) INSTALL_DESTINATION parameter.
 
 SET(SHADER_DEFAULT_SUBDIR "shaders" CACHE STRING "Default subdirectory for shader module binaries within the current binary directory (CMAKE_CURRENT_BINARY_DIR).")
 SET(DXIL_DEFAULT_SUFFIX ".dxi" CACHE STRING "Default file extension for DXIL shaders.")
@@ -116,12 +116,9 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
     IF(NOT ${entry_point} STREQUAL "main")
       MESSAGE(WARNING "Setting the entry point is only supported when compiling using DXC. The entry point will default to 'main'.")
     ENDIF(NOT ${entry_point} STREQUAL "main")
-    
-    IF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
-      SET(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR})
-    ELSE()
-      SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
-    ENDIF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+
+    LITEFX_GET_RUNTIME_DIRECTORY(OUTPUT_DIR)
+    SET(OUTPUT_DIR "${OUTPUT_DIR}/${SHADER_DEFAULT_SUBDIR}")
     
     SET(compiler_options ${compile_options})
     SEPARATE_ARGUMENTS(compiler_options)
@@ -173,11 +170,8 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
 
     SET(SHADER_PROFILE "${SHADER_STAGE}_${shader_model}")
     
-    IF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
-      SET(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR})
-    ELSE()
-      SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
-    ENDIF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+    LITEFX_GET_RUNTIME_DIRECTORY(OUTPUT_DIR)
+    SET(OUTPUT_DIR "${OUTPUT_DIR}/${SHADER_DEFAULT_SUBDIR}")
     
     SET(compiler_options ${compile_options})
     SEPARATE_ARGUMENTS(compiler_options)
@@ -271,16 +265,13 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
     ELSE()
       MESSAGE(SEND_ERROR "Unsupported shader type: ${shader_type}. Valid shader types are: VERTEX, GEOMETRY, HULL/TESSELATION_CONTROL, DOMAIN/TESSELLATION_EVALUATION, FRAGMENT/PIXEL, COMPUTE and RAYTRACING.")
     ENDIF(${shader_type} STREQUAL "VERTEX")
-
+    
     IF(NOT ${entry_point} STREQUAL "main")
       MESSAGE(WARNING "Setting the entry point is only supported when compiling using DXC. The entry point will default to 'main'.")
     ENDIF(NOT ${entry_point} STREQUAL "main")
-    
-    IF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
-      SET(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR})
-    ELSE()
-      SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
-    ENDIF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+
+    LITEFX_GET_RUNTIME_DIRECTORY(OUTPUT_DIR)
+    SET(OUTPUT_DIR "${OUTPUT_DIR}/${SHADER_DEFAULT_SUBDIR}")
     
     SET(compiler_options ${compile_options})
     SEPARATE_ARGUMENTS(compiler_options)
@@ -351,10 +342,11 @@ FUNCTION(TARGET_LINK_SHADERS target_name)
   
   ADD_DEPENDENCIES(${target_name} ${SHADER_SHADERS})
 
-  FOREACH(shader_module ${SHADER_SHADERS})
-    CMAKE_PATH(SET SHADER_INSTALL_DEST NORMALIZE ${CMAKE_INSTALL_PREFIX}/${SHADER_INSTALL_DESTINATION})
-    INSTALL(FILES "$<TARGET_PROPERTY:${shader_module},RUNTIME_OUTPUT_DIRECTORY>/$<TARGET_PROPERTY:${shader_module},OUTPUT_NAME>$<TARGET_PROPERTY:${shader_module},SUFFIX>" DESTINATION ${SHADER_INSTALL_DEST})
-  ENDFOREACH(shader_module ${SHADER_SHADERS})
+  IF(SHADER_INSTALL_DESTINATION)
+    FOREACH(shader_module ${SHADER_SHADERS})
+      INSTALL(FILES "$<TARGET_PROPERTY:${shader_module},RUNTIME_OUTPUT_DIRECTORY>/$<TARGET_PROPERTY:${shader_module},OUTPUT_NAME>$<TARGET_PROPERTY:${shader_module},SUFFIX>" DESTINATION ${SHADER_INSTALL_DESTINATION})
+    ENDFOREACH(shader_module ${SHADER_SHADERS})
+  ENDIF(SHADER_INSTALL_DESTINATION)
 ENDFUNCTION(TARGET_LINK_SHADERS target_name)
 
 

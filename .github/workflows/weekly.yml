@@ -1,149 +1,42 @@
-# Copyright (c) 2023 Carsten Rudolph
 name: Weekly
 
 on:
   workflow_dispatch:
     inputs:
       uploadBuildArtifacts:
-        description: 'Upload Build Artifacts'
-        required: true
-        default: 'false'
-        
-  schedule: 
-    - cron: '1 0 * * 1'         # Run every monday night at 00:01 AM (UTC).
-    
+        description: 'Upload build artifacts'
+        type: boolean
+        default: false
+
+  schedule:
+    - cron: '1 0 * * 1'         # Every monday at 00:01 AM (UTC).
+
+permissions:
+  contents: read
+
 jobs:
-  # ------------------------------------- Toolchain setup      -------------------------------------
-  setup:
-    name: run-setup
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
-    strategy:
-      fail-fast: true
-      matrix:
-        name: [ windows-latest ]
-        include:
-          - name: windows-latest
-            os: windows-latest
-          #- name: ubuntu-latest
-          #  os: ubuntu-latest
-          
-    env:
-      MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
-      VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
-      CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
-      
-    steps:
-      - name: Setup dependency directory
-        run: echo "DEPENDENCY_DIR=$env:RUNNER_TEMP/dep/win" >> $env:GITHUB_ENV
+  # Weekly runs build the default branch, so they are trusted to update the vcpkg binary cache.
+  weekly:
+    permissions:
+      contents: read
+      checks: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/build.yml
+    with:
+      purpose: build
+      cache-write: true
+      install: true
+      upload-build: ${{ inputs.uploadBuildArtifacts == true }}
 
-      - name: Lookup dependency cache (no restore use)
-        id: cache
-        uses: actions/cache/restore@v6
-        with:
-          path: ${{ env.DEPENDENCY_DIR }}
-          key: ${{ env.CACHE_KEY }}
-          lookup-only: true
-
-      - name: Ensure cache exists
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          echo "Cache is missing. Please run 'update_dependencies.yml' workflow first."
-          exit 1
-          
-  # ------------------------------------- Build job            -------------------------------------
-  job:
-    name: windows-latest-weekly
-    needs: [ setup ]
-    runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        profile: [ windows-x64-msvc, windows-x86-msvc, windows-x64-clang ]
-        include:
-          - profile: windows-x64-msvc
-            compiler: msvc
-            triplet: x64-windows
-            configuration: windows-msvc-x64-release
-            architecture: x64
-          - profile: windows-x86-msvc
-            compiler: msvc
-            triplet: x86-windows
-            configuration: windows-msvc-x86-release
-            architecture: x86
-          - profile: windows-x64-clang
-            compiler: clang
-            triplet: x64-windows
-            configuration: windows-clang-x64-release
-            architecture: x64
-
-    env:
-      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}-rel
-      VCPKG_FEATURE_FLAGS: 'manifests'
-          
-      MESA_3D_VERSION: ${{ vars.MESA_3D_VERSION }}
-      VULKAN_SDK_VERSION: ${{ vars.VULKAN_SDK_VERSION }}
-      LLVM_VERSION: ${{ vars.LLVM_VERSION }}
-      CACHE_KEY: windows-dependencies-mesa-${{ vars.MESA_3D_VERSION }}-vulkan-${{ vars.VULKAN_SDK_VERSION }}
-
-    steps:
-      - name: Setup dependency directory
-        run: echo "DEPENDENCY_DIR=$env:RUNNER_TEMP/dep/win" >> $env:GITHUB_ENV
-
-      - name: Restore dependency cache
-        uses: actions/cache/restore@v6
-        with:
-          path: ${{ env.DEPENDENCY_DIR }}
-          key: ${{ env.CACHE_KEY }}
-
-      - name: Setup build environment
-        id: setup-environment
-        run: |
-          cp "${{ env.DEPENDENCY_DIR }}/vulkan/${{ env.VULKAN_SDK_VERSION }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
-          cp "${{ env.DEPENDENCY_DIR }}/vulkan/${{ env.VULKAN_SDK_VERSION }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
-          
-      - name: Update LLVM
-        if: ${{ matrix.compiler == 'clang' }}
-        uses: KyleMayes/install-llvm-action@v2.0.9
-        with:
-          version: ${{ env.LLVM_VERSION }}
-
-      - name: Checking out sources
-        uses: actions/checkout@master
-        with:
-          submodules: true
-          
-      - name: Retrieve latest CMake build
-        uses: lukka/get-cmake@latest
-
-      - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
-          vcpkgJsonGlob: '**/src/vcpkg.json'
-
-      - name: Build with CMake and Ninja
-        id: build-with-cmake
-        uses: lukka/run-cmake@v10
-        with:
-          cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
-          configurePreset: '${{ matrix.configuration }}'
-          buildPreset: '${{ matrix.configuration }}'
-          
-      - name: Upload build artifacts
-        if: ${{ github.event.inputs.uploadBuildArtifacts == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: LiteFX-${{ matrix.profile }}-build
-          path: '${{ github.workspace }}/out/build/${{ matrix.configuration }}'
-          
-      - name: Install with CMake
-        run: |
-          Set-Location '${{ github.workspace }}/out/build/${{ matrix.configuration }}'
-          cmake --install .
-
-      - name: Upload install artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: LiteFX-${{ matrix.profile }}-install
-          path: '${{ github.workspace }}/out/install/${{ matrix.configuration }}'
+  # Also run the tests, which refreshes the cache for the test triplets.
+  tests:
+    permissions:
+      contents: read
+      checks: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/build.yml
+    with:
+      purpose: test
+      cache-write: true

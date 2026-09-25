@@ -21,8 +21,8 @@
 # directory, if CMAKE_RUNTIME_OUTPUT_DIRECTORY is not empty, or in CMAKE_CURRENT_BINARY_DIR directory, if it is empty. The directory and 
 # possible subdirectories are defined by the NAME parameter.
 #
-# The INSTALL_DESTINATION specifies the destination, the directory will be installed to by the created install command. Note that the parameter
-# is always prepended by CMAKE_INSTALL_PREFIX.
+# The INSTALL_DESTINATION specifies the destination, the directory will be installed to by the created install command. The destination is
+# relative to the install prefix.
 #
 # The ASSETS parameter defines a list of the files that are copied to the directory during the build. Note that you have to ensure, that no two 
 # file names are the same, since it would result in one of the files being overwritten.
@@ -32,37 +32,38 @@ FUNCTION(TARGET_ADD_ASSET_DIRECTORY target_name)
   STRING(REPLACE "/" "-" directory_target_name ${ASSET_DIRECTORY_NAME})
   SET(directory_target_name "${target_name}-${directory_target_name}")
 
-  GET_TARGET_PROPERTY(folder_name ${target_name} FOLDER)
-  
-  IF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
-    SET(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${ASSET_DIRECTORY_NAME})
-  ELSE()
-    SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${ASSET_DIRECTORY_NAME})
-  ENDIF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
+  LITEFX_GET_RUNTIME_DIRECTORY(OUTPUT_DIR)
+  SET(OUTPUT_DIR "${OUTPUT_DIR}/${ASSET_DIRECTORY_NAME}")
 
   ADD_CUSTOM_TARGET(${directory_target_name}
-    COMMENT "Copying assets to runtime directory '${OUTPUT_DIR}'..."
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${OUTPUT_DIR}"
+    COMMENT "Copying assets to runtime directory '${ASSET_DIRECTORY_NAME}'..."
     SOURCES ${ASSET_DIRECTORY_ASSETS}
+    VERBATIM
   )
 
-  ADD_CUSTOM_COMMAND(TARGET ${directory_target_name} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR}
-  )
-    
-  SET_TARGET_PROPERTIES(${directory_target_name} PROPERTIES 
-    RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR}
-    FOLDER ${folder_name}
-  )
+  SET_TARGET_PROPERTIES(${directory_target_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
+  GET_TARGET_PROPERTY(folder_name ${target_name} FOLDER)
+
+  IF(folder_name)
+    SET_TARGET_PROPERTIES(${directory_target_name} PROPERTIES FOLDER "${folder_name}")
+  ENDIF(folder_name)
 
   FOREACH(ASSET_FILE ${ASSET_DIRECTORY_ASSETS})
-    GET_FILENAME_COMPONENT(ASSET_NAME ${ASSET_FILE} NAME)
+    CMAKE_PATH(ABSOLUTE_PATH ASSET_FILE BASE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" OUTPUT_VARIABLE ASSET_PATH)
+    CMAKE_PATH(GET ASSET_FILE FILENAME ASSET_NAME)
+
     ADD_CUSTOM_COMMAND(TARGET ${directory_target_name} POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/${ASSET_FILE} ${OUTPUT_DIR}/${ASSET_NAME}
+      COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${ASSET_PATH}" "${OUTPUT_DIR}/${ASSET_NAME}"
+      VERBATIM
     )
   ENDFOREACH(ASSET_FILE ${ASSET_DIRECTORY_ASSETS})
 
-  CMAKE_PATH(SET ASSET_INSTALL_DEST NORMALIZE ${CMAKE_INSTALL_PREFIX}/${ASSET_DIRECTORY_INSTALL_DESTINATION})
-  INSTALL(DIRECTORY ${OUTPUT_DIR} DESTINATION ${ASSET_INSTALL_DEST})
+  IF(ASSET_DIRECTORY_INSTALL_DESTINATION)
+    CMAKE_PATH(GET ASSET_DIRECTORY_NAME PARENT_PATH ASSET_PARENT_DIR)
+    CMAKE_PATH(APPEND ASSET_DIRECTORY_INSTALL_DESTINATION "${ASSET_PARENT_DIR}" OUTPUT_VARIABLE ASSET_INSTALL_DIR)
+    INSTALL(DIRECTORY "${OUTPUT_DIR}" DESTINATION "${ASSET_INSTALL_DIR}")
+  ENDIF(ASSET_DIRECTORY_INSTALL_DESTINATION)
 
   ADD_DEPENDENCIES(${target_name} ${directory_target_name})
 ENDFUNCTION(TARGET_ADD_ASSET_DIRECTORY target_name)
