@@ -6,10 +6,37 @@
 
 # The script exports the following functions:
 #
-# - ADD_SHADER_MODULE: Creates a shader module target.
+# - TARGET_ADD_SHADER_PROGRAM: Defines all shader modules of a shader program for one or more backends and links them to a target (recommended).
+# - ADD_SHADER_MODULE: Creates a single shader module target.
 # - TARGET_LINK_SHADERS: Links a set of shader module targets to another target.
 # - ADD_SHADER_LIBRARY: Creates a shader library, i.e., a header that embeds the binaries of a set of shader modules.
 # - TARGET_LINK_SHADER_LIBRARIES: Links a set of shader libraries to another target.
+#
+# In most cases, TARGET_ADD_SHADER_PROGRAM is sufficient. It defines a shader program, i.e., a set of shader modules for different stages, compiles it for each
+# backend and links the resulting modules to a target:
+#
+# TARGET_ADD_SHADER_PROGRAM(${PROJECT_NAME}
+#   VERTEX "shaders/basic_vs.hlsl"
+#   PIXEL "shaders/basic_fs.hlsl"
+#   SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL}
+#   FOLDER "Samples/Shaders"
+#   INSTALL_DESTINATION "${CMAKE_INSTALL_BINDIR}/${SHADER_DEFAULT_SUBDIR}"
+# )
+#
+# Each stage keyword (VERTEX, GEOMETRY, HULL/TESSELLATION_CONTROL, DOMAIN/TESSELLATION_EVALUATION, FRAGMENT/PIXEL, COMPUTE, TASK/AMPLIFICATION, MESH and
+# RAYTRACING) accepts one or more source files. Each source file becomes one shader module per backend. Shader modules with identical settings are shared, so
+# multiple programs (also of different targets) can use the same source file, e.g. a common vertex shader. A source file can, however, only be compiled with
+# one set of settings (stage, compile options, includes, ...) per backend, since the binary is named after the source file.
+#
+# The SPIRV and DXIL flags select the backends to compile for. If none is set, the program is compiled for all backends LiteFX has been built with (SPIR-V
+# only for GLSL). LANGUAGE defaults to HLSL and COMPILER to DXC (HLSL) or GLSLC (GLSL). SHADER_MODEL, INCLUDES and LIBRARY are forwarded to each shader
+# module (see ADD_SHADER_MODULE). COMPILE_OPTIONS are passed for all backends, while SPIRV_COMPILE_OPTIONS and DXIL_COMPILE_OPTIONS are only passed for
+# the respective backend.
+#
+# The shader module targets are named `<target>.<Vk|Dx>.Shaders.<source file name>`. If FOLDER is provided, they are placed in the IDE folders
+# `<folder>/Vulkan` and `<folder>/DirectX 12`. If INSTALL_DESTINATION is provided, the shader binaries are installed to it.
+#
+# For shader modules that need individual settings (e.g. a custom entry point), use ADD_SHADER_MODULE and TARGET_LINK_SHADERS directly.
 #
 # Shader modules are built from one source file and (optionally) multiple includes. Those includes may be used by multiple shader module targets simultaneously.
 # The output of a shader module target is a single binary file. You have to call ADD_SHADER_MODULE for each shader you want to compile and then link all shaders
@@ -26,6 +53,7 @@
 #   COMPILE_OPTIONS "-HV 2021"
 #   INCLUDES "a.hlsli" "b.hlsli"
 #   LIBRARY ${PROJECT_NAME}.Shaders
+#   FOLDER "Shaders"
 # )
 #
 # The first parameter is the unique name of the shader module target. The SOURCE parameter provides a file name relative to CMAKE_CURRENT_SOURCE_DIR, that
@@ -56,6 +84,8 @@
 # if one of them changes. Note that their names are also relative to the CMAKE_CURRENT_SOURCE_DIR. For GLSLC, includes are also tracked automatically.
 #
 # The LIBRARY parameter optionally adds the shader module to a shader library (see ADD_SHADER_LIBRARY).
+#
+# The FOLDER parameter optionally sets the IDE folder of the shader module target.
 #
 # Shader modules are built into a subdirectory of the runtime output directory (see LITEFX_GET_RUNTIME_DIRECTORY in Runtime.cmake). The subdirectory name can be
 # set using SHADER_DEFAULT_SUBDIR. Shaders are only rebuilt, if their source or one of their includes changes. The following properties are set for a shader
@@ -88,10 +118,10 @@
 
 INCLUDE_GUARD(GLOBAL)
 
-SET(SHADER_DEFAULT_SUBDIR       "shaders"   CACHE STRING "Default subdirectory for shader module binaries within the runtime output directory.")
-SET(DXIL_DEFAULT_SUFFIX         ".dxi"      CACHE STRING "Default file extension for DXIL shaders.")
-SET(SPIRV_DEFAULT_SUFFIX        ".spv"      CACHE STRING "Default file extension for SPIR-V shaders.")
-SET(SPIRV_DEFAULT_TARGET_ENV    "vulkan1.3" CACHE STRING "Default Vulkan target environment for SPIR-V shaders.")
+SET(SHADER_DEFAULT_SUBDIR "shaders" CACHE STRING "Default subdirectory for shader module binaries within the runtime output directory.")
+SET(DXIL_DEFAULT_SUFFIX ".dxi" CACHE STRING "Default file extension for DXIL shaders.")
+SET(SPIRV_DEFAULT_SUFFIX ".spv" CACHE STRING "Default file extension for SPIR-V shaders.")
+SET(SPIRV_DEFAULT_TARGET_ENV "vulkan1.3" CACHE STRING "Default Vulkan target environment for SPIR-V shaders.")
 
 # _LITEFX_SHADER_STAGE(<compiler> <type> <out-var>)
 #
@@ -124,7 +154,7 @@ ENDFUNCTION()
 
 
 FUNCTION(ADD_SHADER_MODULE module_name)
-  CMAKE_PARSE_ARGUMENTS(PARSE_ARGV 1 SHADER "" "SOURCE;LANGUAGE;COMPILE_AS;SHADER_MODEL;TYPE;COMPILER;LIBRARY;ENTRY_POINT;COMPILE_OPTIONS" "INCLUDES")
+  CMAKE_PARSE_ARGUMENTS(PARSE_ARGV 1 SHADER "" "SOURCE;LANGUAGE;COMPILE_AS;SHADER_MODEL;TYPE;COMPILER;LIBRARY;ENTRY_POINT;COMPILE_OPTIONS;FOLDER" "INCLUDES")
 
   # Validate arguments.
   IF(SHADER_UNPARSED_ARGUMENTS)
@@ -163,12 +193,12 @@ FUNCTION(ADD_SHADER_MODULE module_name)
 
   # Resolve input and output files.
   GET_FILENAME_COMPONENT(out_name "${SHADER_SOURCE}" NAME_WE)
-  CMAKE_PATH(ABSOLUTE_PATH SHADER_SOURCE BASE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" OUTPUT_VARIABLE source_file)
+  CMAKE_PATH(ABSOLUTE_PATH SHADER_SOURCE BASE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" NORMALIZE OUTPUT_VARIABLE source_file)
 
   SET(include_files "")
 
   FOREACH(include_file ${SHADER_INCLUDES})
-    CMAKE_PATH(ABSOLUTE_PATH include_file BASE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" OUTPUT_VARIABLE include_path)
+    CMAKE_PATH(ABSOLUTE_PATH include_file BASE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" NORMALIZE OUTPUT_VARIABLE include_path)
     LIST(APPEND include_files "${include_path}")
   ENDFOREACH()
 
@@ -181,6 +211,16 @@ FUNCTION(ADD_SHADER_MODULE module_name)
   LITEFX_GET_RUNTIME_DIRECTORY(output_dir)
   SET(output_dir "${output_dir}/${SHADER_DEFAULT_SUBDIR}")
   SET(output_file "${output_dir}/${out_name}${suffix}")
+
+  # Shader binaries are named after their source file. Two modules building the same binary would overwrite each other, so this is reported as an error.
+  STRING(MD5 output_key "${output_file}")
+  GET_PROPERTY(output_owner GLOBAL PROPERTY _LITEFX_SHADER_OUTPUT_${output_key})
+
+  IF(output_owner)
+    MESSAGE(FATAL_ERROR "ADD_SHADER_MODULE(${module_name}): The shader binary '${out_name}${suffix}' is already built by the shader module '${output_owner}'. Shader binaries are named after their source file, so each source file can only be compiled once per intermediate language.")
+  ENDIF()
+
+  SET_PROPERTY(GLOBAL PROPERTY _LITEFX_SHADER_OUTPUT_${output_key} ${module_name})
 
   SEPARATE_ARGUMENTS(compile_options UNIX_COMMAND "${SHADER_COMPILE_OPTIONS}")
 
@@ -247,6 +287,10 @@ FUNCTION(ADD_SHADER_MODULE module_name)
     RUNTIME_OUTPUT_DIRECTORY "${output_dir}"
   )
 
+  IF(SHADER_FOLDER)
+    SET_TARGET_PROPERTIES(${module_name} PROPERTIES FOLDER "${SHADER_FOLDER}")
+  ENDIF()
+
   # If a library is specified, add the shader module to it.
   IF(SHADER_LIBRARY)
     ADD_DEPENDENCIES(${SHADER_LIBRARY} ${module_name})
@@ -276,6 +320,141 @@ FUNCTION(TARGET_LINK_SHADERS target_name)
     ENDFOREACH(shader_module ${SHADER_SHADERS})
   ENDIF(SHADER_INSTALL_DESTINATION)
 ENDFUNCTION(TARGET_LINK_SHADERS target_name)
+
+
+FUNCTION(TARGET_ADD_SHADER_PROGRAM target_name)
+  SET(stage_keywords VERTEX GEOMETRY HULL TESSELLATION_CONTROL DOMAIN TESSELLATION_EVALUATION FRAGMENT PIXEL COMPUTE TASK AMPLIFICATION MESH RAYTRACING)
+  CMAKE_PARSE_ARGUMENTS(PARSE_ARGV 1 PROGRAM
+    "SPIRV;DXIL"
+    "LANGUAGE;COMPILER;SHADER_MODEL;FOLDER;INSTALL_DESTINATION;LIBRARY;COMPILE_OPTIONS;SPIRV_COMPILE_OPTIONS;DXIL_COMPILE_OPTIONS"
+    "INCLUDES;${stage_keywords}")
+
+  IF(PROGRAM_UNPARSED_ARGUMENTS)
+    MESSAGE(FATAL_ERROR "TARGET_ADD_SHADER_PROGRAM(${target_name}): Unknown arguments: ${PROGRAM_UNPARSED_ARGUMENTS}")
+  ENDIF()
+
+  # Apply defaults.
+  IF(NOT PROGRAM_LANGUAGE)
+    SET(PROGRAM_LANGUAGE HLSL)
+  ENDIF()
+
+  IF(NOT PROGRAM_COMPILER)
+    IF(PROGRAM_LANGUAGE STREQUAL "GLSL")
+      SET(PROGRAM_COMPILER GLSLC)
+    ELSE()
+      SET(PROGRAM_COMPILER DXC)
+    ENDIF()
+  ENDIF()
+
+  # Select backends: explicitly requested ones, or all backends LiteFX has been built with (LITEFX_BUILD_* within the project, LITEFX_HAS_* for applications).
+  SET(backends "")
+
+  IF(PROGRAM_SPIRV OR PROGRAM_DXIL)
+    IF(PROGRAM_SPIRV)
+      LIST(APPEND backends SPIRV)
+    ENDIF()
+
+    IF(PROGRAM_DXIL)
+      LIST(APPEND backends DXIL)
+    ENDIF()
+  ELSE()
+    IF(LITEFX_BUILD_VULKAN_BACKEND OR LITEFX_HAS_VULKAN_BACKEND)
+      LIST(APPEND backends SPIRV)
+    ENDIF()
+
+    IF((LITEFX_BUILD_DIRECTX_12_BACKEND OR LITEFX_HAS_DIRECTX12_BACKEND) AND NOT PROGRAM_LANGUAGE STREQUAL "GLSL")
+      LIST(APPEND backends DXIL)
+    ENDIF()
+  ENDIF()
+
+  IF(NOT backends)
+    MESSAGE(FATAL_ERROR "TARGET_ADD_SHADER_PROGRAM(${target_name}): No backend to compile for. Set SPIRV and/or DXIL explicitly.")
+  ENDIF()
+
+  # Resolve includes relative to the calling directory, so that they identify the same files when modules are shared between directories.
+  SET(include_paths "")
+
+  FOREACH(include_file IN LISTS PROGRAM_INCLUDES)
+    CMAKE_PATH(ABSOLUTE_PATH include_file BASE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" NORMALIZE OUTPUT_VARIABLE include_path)
+    LIST(APPEND include_paths "${include_path}")
+  ENDFOREACH()
+
+  SET(modules "")
+
+  FOREACH(backend IN LISTS backends)
+    IF(backend STREQUAL "SPIRV")
+      SET(prefix "Vk")
+      SET(folder_suffix "Vulkan")
+    ELSE()
+      SET(prefix "Dx")
+      SET(folder_suffix "DirectX 12")
+    ENDIF()
+
+    # Arguments shared by all shader modules of this backend. Empty values are omitted, so that ADD_SHADER_MODULE applies its defaults.
+    STRING(STRIP "${PROGRAM_COMPILE_OPTIONS} ${PROGRAM_${backend}_COMPILE_OPTIONS}" compile_options)
+    SET(module_args LANGUAGE ${PROGRAM_LANGUAGE} COMPILER ${PROGRAM_COMPILER} COMPILE_AS ${backend})
+
+    IF(PROGRAM_SHADER_MODEL)
+      LIST(APPEND module_args SHADER_MODEL ${PROGRAM_SHADER_MODEL})
+    ENDIF()
+
+    IF(compile_options)
+      LIST(APPEND module_args COMPILE_OPTIONS "${compile_options}")
+    ENDIF()
+
+    IF(PROGRAM_LIBRARY)
+      LIST(APPEND module_args LIBRARY ${PROGRAM_LIBRARY})
+    ENDIF()
+
+    IF(include_paths)
+      LIST(APPEND module_args INCLUDES ${include_paths})
+    ENDIF()
+
+    FOREACH(stage IN LISTS stage_keywords)
+      FOREACH(source IN LISTS PROGRAM_${stage})
+        # Shader modules with identical settings are shared between programs and targets (e.g. a common vertex shader). The IDE folder is not part of
+        # the settings, and synonymous stages (e.g. FRAGMENT and PIXEL) are treated as equal.
+        CMAKE_PATH(ABSOLUTE_PATH source BASE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" NORMALIZE OUTPUT_VARIABLE source_path)
+        _LITEFX_SHADER_STAGE(${PROGRAM_COMPILER} ${stage} stage_name)
+        STRING(MD5 module_key "${source_path}|${stage_name}|${module_args}")
+        GET_PROPERTY(shared_module GLOBAL PROPERTY _LITEFX_SHADER_MODULE_${module_key})
+
+        IF(shared_module)
+          LIST(APPEND modules ${shared_module})
+          CONTINUE()
+        ENDIF()
+
+        GET_FILENAME_COMPONENT(source_name "${source}" NAME_WE)
+        SET(module_name "${target_name}.${prefix}.Shaders.${source_name}")
+
+        IF(TARGET ${module_name})
+          MESSAGE(FATAL_ERROR "TARGET_ADD_SHADER_PROGRAM(${target_name}): The shader module '${module_name}' already exists with different settings (e.g. another stage or other compile options). Each source file can only be compiled with one set of settings per intermediate language.")
+        ENDIF()
+
+        IF(PROGRAM_FOLDER)
+          ADD_SHADER_MODULE(${module_name} SOURCE "${source}" TYPE ${stage} ${module_args} FOLDER "${PROGRAM_FOLDER}/${folder_suffix}")
+        ELSE()
+          ADD_SHADER_MODULE(${module_name} SOURCE "${source}" TYPE ${stage} ${module_args})
+        ENDIF()
+
+        SET_PROPERTY(GLOBAL PROPERTY _LITEFX_SHADER_MODULE_${module_key} ${module_name})
+        LIST(APPEND modules ${module_name})
+      ENDFOREACH()
+    ENDFOREACH()
+  ENDFOREACH()
+
+  IF(NOT modules)
+    MESSAGE(FATAL_ERROR "TARGET_ADD_SHADER_PROGRAM(${target_name}): No shader sources provided.")
+  ENDIF()
+
+  LIST(REMOVE_DUPLICATES modules)
+
+  IF(PROGRAM_INSTALL_DESTINATION)
+    TARGET_LINK_SHADERS(${target_name} SHADERS ${modules} INSTALL_DESTINATION "${PROGRAM_INSTALL_DESTINATION}")
+  ELSE()
+    TARGET_LINK_SHADERS(${target_name} SHADERS ${modules})
+  ENDIF()
+ENDFUNCTION(TARGET_ADD_SHADER_PROGRAM target_name)
 
 
 FUNCTION(ADD_SHADER_LIBRARY library_name)
