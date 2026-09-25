@@ -56,141 +56,89 @@ namespace LiteFX::Rendering {
 
     // NOLINTBEGIN(performance-enum-size)
 
-    /// <summary>
-    /// Defines different types of graphics adapters.
-    /// </summary>
+    /// @brief Defines different types of graphics adapters.
     enum class GraphicsAdapterType {
-        /// <summary>
-        /// The adapter is not a valid graphics adapter.
-        /// </summary>
+        /// @brief The adapter is not a valid graphics adapter.
         None = 0,
 
-        /// <summary>
-        /// The adapter type is not captured by this enum. This value is used internally to mark invalid adapters and should not be used.
-        /// </summary>
+        /// @brief The adapter type is not captured by this enum. This value is used internally to mark invalid adapters and should not be used.
         Other = 1,
 
-        /// <summary>
-        /// The adapter is a software driver.
-        /// </summary>
+        /// @brief The adapter is a software driver.
         Software = 2,
 
-        /// <summary>
-        /// The adapter is a GPU integrated into the CPU.
-        /// </summary>
+        /// @brief The adapter is a GPU integrated into the CPU.
         CPU = 3,
         
-        /// <summary>
-        /// The adapter is a dedicated or external GPU.
-        /// </summary>
+        /// @brief The adapter is a dedicated or external GPU.
         GPU = 4,
     };
 
-    /// <summary>
-    /// Provides a preference setting when selecting an adapter.
-    /// </summary>
+    /// @brief Provides a preference setting when selecting an adapter.
     enum class GpuPreference {
-        /// <summary>
-        /// Returns the first adapter in the list without any preference.
-        /// </summary>
+        /// @brief Returns the first adapter in the list without any preference.
         None = 0,
 
-        /// <summary>
-        /// Returns the preferred adapter for minimum power consumption.
-        /// </summary>
+        /// @brief Returns the preferred adapter for minimum power consumption.
         Power = 1,
 
-        /// <summary>
-        /// Returns the preferred adapter for maximum performance.
-        /// </summary>
+        /// @brief Returns the preferred adapter for maximum performance.
         Performance = 2
     };
 
-    /// <summary>
-    /// Represents the type of a <see cref="CommandQueue" />.
-    /// </summary>
-    /// <remarks>
-    /// There are three major queue types: `Graphics`, `Compute` and `Transfer`. Each queue type has a larger subset of commands it is allowed to execute. For example, a 
-    /// graphics queue can be used to execute transfer or compute commands, whilst a compute queue may not execute graphics commands (such as *draw*). 
-    /// 
-    /// You should always aim to use a queue that is dedicated for the workload you want to submit. For example, if you want to upload resources to the GPU, use the a
-    /// dedicated transfer queue and synchronize access to the resource by waiting for the queue to finish at the point of time you need to access the resource. You can,
-    /// however, also use the graphics queue for transfers. This can be more efficient, if you have resources that require to be updated with each frame. The performance 
-    /// impact of synchronizing two queues may be larger than simply using the graphics queue to begin with.
-    /// 
-    /// The advantage of using dedicated queues is, that they do not necessarily block execution. For example, when performing a compute or transfer workload on a 
-    /// graphics queue, you do not need to synchronize in order to wait for the result, however this also means that no rendering can take place until the workloads have
-    /// finished.
-    /// </remarks>
+    /// @brief Represents the type of a @ref CommandQueue.
+    ///
+    /// There are three major queue types: `Graphics`, `Compute` and `Transfer`. Each queue type has a larger subset of commands it is allowed to execute. For example, a graphics queue can be used to execute
+    /// transfer or compute commands, whilst a compute queue may not execute graphics commands (such as *draw*).
+    ///
+    /// You should always aim to use a queue that is dedicated for the workload you want to submit. For example, if you want to upload resources to the GPU, use the a dedicated transfer queue and synchronize
+    /// access to the resource by waiting for the queue to finish at the point of time you need to access the resource. You can, however, also use the graphics queue for transfers. This can be more efficient,
+    /// if you have resources that require to be updated with each frame. The performance impact of synchronizing two queues may be larger than simply using the graphics queue to begin with.
+    ///
+    /// The advantage of using dedicated queues is, that they do not necessarily block execution. For example, when performing a compute or transfer workload on a graphics queue, you do not need to
+    /// synchronize in order to wait for the result, however this also means that no rendering can take place until the workloads have finished.
     enum class QueueType : UInt32 {
-        /// <summary>
-        /// Describes an unspecified command queue. It is not valid to create a queue instance with this type.
-        /// </summary>
+        /// @brief Describes an unspecified command queue. It is not valid to create a queue instance with this type.
         None = 0x00000000,
 
-        /// <summary>
-        /// Represents a queue that can execute graphics, compute and transfer workloads.
-        /// </summary>
+        /// @brief Represents a queue that can execute graphics, compute and transfer workloads.
         Graphics = 0x00000001,
 
-        /// <summary>
-        /// Represents a queue that can execute compute and transfer workloads.
-        /// </summary>
+        /// @brief Represents a queue that can execute compute and transfer workloads.
         Compute = 0x00000002,
 
-        /// <summary>
-        /// Represents a queue that can execute only transfer workloads.
-        /// </summary>
+        /// @brief Represents a queue that can execute only transfer workloads.
         Transfer = 0x00000004,
 
-        /// <summary>
-        /// Represents a queue that can perform hardware video decoding.
-        /// </summary>
-        /// <remarks>
+        /// @brief Represents a queue that can perform hardware video decoding.
+        ///
         /// Video encoding/decoding is currently not a supported feature, but knowing all the capabilities of a queue is useful to select the best queue family for a particular task.
-        /// </remarks>
         VideoDecode = 0x00000010,
 
-        /// <summary>
-        /// Represents a queue that can perform hardware video encoding.
-        /// </summary>
-        /// <remarks>
+        /// @brief Represents a queue that can perform hardware video encoding.
+        ///
         /// Video encoding/decoding is currently a supported feature, but knowing all the capabilities of a queue is useful to select the best queue family for a particular task.
-        /// </remarks>
         VideoEncode = 0x00000020,
 
-        /// <summary>
-        /// Represents an invalid queue type.
-        /// </summary>
+        /// @brief Represents an invalid queue type.
         Other = 0x7FFFFFFF
     };
 
-    /// <summary>
-    /// Specifies the priority with which a queue is scheduled on the GPU.
-    /// </summary>
+    /// @brief Specifies the priority with which a queue is scheduled on the GPU.
     enum class QueuePriority {
-        /// <summary>
-        /// The default queue priority.
-        /// </summary>
+        /// @brief The default queue priority.
         Normal = 33,
 
-        /// <summary>
-        /// A high queue priority.
-        /// </summary>
+        /// @brief A high queue priority.
         High = 66,
 
-        /// <summary>
-        /// The highest possible queue priority. Submitting work to this queue might block other queues.
-        /// </summary>
-        /// <remarks>
+        /// @brief The highest possible queue priority. Submitting work to this queue might block other queues.
+        ///
         /// Do not use this queue priority when creating queues, as it is reserved for the default (built-in) queues.
-        /// </remarks>
         Realtime = 100
     };
 
-    /// <summary>
-    /// Describes a texel format.
-    /// </summary>
+    /// @brief Describes a texel format.
     enum class Format {
         None = 0x00000000,
         R4G4_UNORM,
@@ -342,12 +290,11 @@ namespace LiteFX::Rendering {
         Other = 0x7FFFFFFF
     };
 
-    /// <summary>
-    /// Describes a buffer attribute format.
-    /// </summary>
-    /// <seealso cref="getBufferFormatChannels" />
-    /// <seealso cref="getBufferFormatChannelSize" />
-    /// <seealso cref="getBufferFormatType" />
+    /// @brief Describes a buffer attribute format.
+    ///
+    /// @see getBufferFormatChannels
+    /// @see getBufferFormatChannelSize
+    /// @see getBufferFormatType
     enum class BufferFormat : UInt32 {
         None = 0x00000000,
         X16F = 0x10000101,
@@ -376,1146 +323,753 @@ namespace LiteFX::Rendering {
         XYZW32U = 0x20000404
     };
 
-    /// <summary>
-    /// Describes the semantic of a buffer attribute.
-    /// </summary>
-    /// <seealso cref="BufferAttribute" />
+    /// @brief Describes the semantic of a buffer attribute.
+    ///
+    /// @see BufferAttribute
     enum class AttributeSemantic : UInt32 {
-        /// <summary>
-        /// The attribute contains a bi-normal vector.
-        /// </summary>
+        /// @brief The attribute contains a bi-normal vector.
         Binormal = 0x00000001,
 
-        /// <summary>
-        /// The attribute contains blend indices.
-        /// </summary>
+        /// @brief The attribute contains blend indices.
         BlendIndices = 0x00000002,
 
-        /// <summary>
-        /// The attribute contains blend weights.
-        /// </summary>
+        /// @brief The attribute contains blend weights.
         BlendWeight = 0x00000003,
 
-        /// <summary>
-        /// The attribute contains a color value.
-        /// </summary>
+        /// @brief The attribute contains a color value.
         Color = 0x00000004,
 
-        /// <summary>
-        /// The attribute contains a normal vector.
-        /// </summary>
+        /// @brief The attribute contains a normal vector.
         Normal = 0x00000005,
 
-        /// <summary>
-        /// The attribute contains a position vector.
-        /// </summary>
+        /// @brief The attribute contains a position vector.
         Position = 0x00000006,
 
-        /// <summary>
-        /// The attribute contains a pre-transformed position vector.
-        /// </summary>
+        /// @brief The attribute contains a pre-transformed position vector.
         TransformedPosition = 0x00000007,
 
-        /// <summary>
-        /// The attribute contains a point size.
-        /// </summary>
+        /// @brief The attribute contains a point size.
         PointSize = 0x00000008,
 
-        /// <summary>
-        /// The attribute contains a tangent vector.
-        /// </summary>
+        /// @brief The attribute contains a tangent vector.
         Tangent = 0x00000009,
 
-        /// <summary>
-        /// The attribute contains a texture coordinate.
-        /// </summary>
+        /// @brief The attribute contains a texture coordinate.
         TextureCoordinate = 0x0000000A,
 
-        /// <summary>
-        /// The attribute contains arbitrary data, that does not have any semantic associated with it.
-        /// </summary>
+        /// @brief The attribute contains arbitrary data, that does not have any semantic associated with it.
         Arbitrary = 0x0000000B,
 
-        /// <summary>
-        /// The attribute is a generic, unknown semantic.
-        /// </summary>
+        /// @brief The attribute is a generic, unknown semantic.
         Unknown = 0x7FFFFFFF
     };
 
-    /// <summary>
-    /// Describes the type of a <see cref="IDescriptor" />.
-    /// </summary>
-    /// <remarks>
+    /// @brief Describes the type of a @ref IDescriptor.
+    ///
     /// Note that, while in theory you can declare a writable descriptor in any format, the rendering back-end might not necessarily support writing in a specific format.
-    /// </remarks>
-    /// <seealso cref="IDescriptorLayout" />
-    /// <seealso href="https://docs.microsoft.com/en-us/windows/win32/direct3d12/typed-unordered-access-view-loads#supported-formats-and-api-calls" />
+    ///
+    /// @see IDescriptorLayout
+    /// @see https://docs.microsoft.com/en-us/windows/win32/direct3d12/typed-unordered-access-view-loads#supported-formats-and-api-calls
     enum class DescriptorType {
-        /// <summary>
-        /// A uniform buffer in Vulkan. Maps to a constant buffer in DirectX.
-        /// </summary>
-        /// <remarks>
-        /// A uniform or constant buffer is read-only. In GLSL, use the <c>uniform</c> keyword to access a uniform buffer. In HLSL, use the <c>ConstantBuffer</c> keyword.
-        /// </remarks>
+        /// @brief A uniform buffer in Vulkan. Maps to a constant buffer in DirectX.
+        ///
+        /// A uniform or constant buffer is read-only. In GLSL, use the `uniform` keyword to access a uniform buffer. In HLSL, use the `ConstantBuffer` keyword.
         ConstantBuffer = 0x00000001,
 
-        /// <summary>
-        /// A shader storage buffer object in Vulkan. Maps to a structured buffer in DirectX.
-        /// </summary>
-        /// <remarks>
-        /// A storage buffer is read-only by default. If you want to create a writable storage buffer, use <see cref="WritableStorage" /> instead.
-        /// 
-        /// In GLSL, use the <c>buffer</c> keyword to access storage buffers. In HLSL, use the <c>StructuredBuffer</c> keyword.
-        /// 
-        /// The difference between <see cref="Uniform" /> and storage buffers is, that storage buffers can have variable length. However, they are typically less efficient.
-        /// </remarks>
+        /// @brief A shader storage buffer object in Vulkan. Maps to a structured buffer in DirectX.
+        ///
+        /// A storage buffer is read-only by default. If you want to create a writable storage buffer, use @ref WritableStorage instead.
+        ///
+        /// In GLSL, use the `buffer` keyword to access storage buffers. In HLSL, use the `StructuredBuffer` keyword.
+        ///
+        /// The difference between @ref Uniform and storage buffers is, that storage buffers can have variable length. However, they are typically less efficient.
         StructuredBuffer = 0x00000002,
 
-        /// <summary>
-        /// A writable shader storage object in Vulkan. Maps to a read/write structured buffer in DirectX.
-        /// </summary>
-        /// <remarks>
-        /// In GLSL, use the <c>buffer</c> keyword to access storage buffers. In HLSL, use the <c>RWStructuredBuffer</c> keyword.
-        /// 
-        /// When using shader reflection on `AppendStructuredBuffer`/`ConsumeStructuredBuffer`, this descriptor type will be deduced, but support for those constructs is not
-        /// implemented. Instead, use a separate <see cref="RWByteAddressBuffer" /> descriptor and call `InterlockedAdd` on it.
-        /// </remarks>
+        /// @brief A writable shader storage object in Vulkan. Maps to a read/write structured buffer in DirectX.
+        ///
+        /// In GLSL, use the `buffer` keyword to access storage buffers. In HLSL, use the `RWStructuredBuffer` keyword.
+        ///
+        /// When using shader reflection on `AppendStructuredBuffer`/`ConsumeStructuredBuffer`, this descriptor type will be deduced, but support for those constructs is not implemented. Instead, use a separate
+        /// @ref RWByteAddressBuffer descriptor and call `InterlockedAdd` on it.
         RWStructuredBuffer = 0x00000012,
 
-        /// <summary>
-        /// A read-only sampled image.
-        /// </summary>
-        /// <remarks>
-        /// Textures are read-only by default. If you want to create a writable texture, use the <see cref="WritableTexture" /> instead.
-        /// 
-        /// In GLSL, use the <c>uniform texture</c> keywords to access the texture. In HLSL, use the <c>Texture</c> keywords.
-        /// 
-        /// Note, that textures are typically not be accessed directly, but instead are sampled using a <see cref="Sampler" />.
-        /// </remarks>
+        /// @brief A read-only sampled image.
+        ///
+        /// Textures are read-only by default. If you want to create a writable texture, use the @ref WritableTexture instead.
+        ///
+        /// In GLSL, use the `uniform texture` keywords to access the texture. In HLSL, use the `Texture` keywords.
+        ///
+        /// Note, that textures are typically not be accessed directly, but instead are sampled using a @ref Sampler.
         Texture = 0x00000003,
 
-        /// <summary>
-        /// A writable image.
-        /// </summary>
-        /// <remarks>
-        /// In GLSL, use the <c>uniform image</c> keywords to access the texture. In HLSL, use the <c>RWTexture</c> keywords.
-        /// </remarks>
+        /// @brief A writable image.
+        ///
+        /// In GLSL, use the `uniform image` keywords to access the texture. In HLSL, use the `RWTexture` keywords.
         RWTexture = 0x00000013,
         
-        /// <summary>
-        /// A sampler state of a texture or image.
-        /// </summary>
+        /// @brief A sampler state of a texture or image.
         Sampler = 0x00000004,
 
-        /// <summary>
-        /// The result of a render target from an earlier render pass. Maps to a <c>SubpassInput</c> in HLSL.
-        /// </summary>
+        /// @brief The result of a render target from an earlier render pass. Maps to a `SubpassInput` in HLSL.
         InputAttachment = 0x00000005,
 
-        /// <summary>
-        /// Represents a read-only texel buffer (uniform texel buffer).
-        /// </summary>
-        /// <remarks>
-        /// Use the <c>uniform imageBuffer</c> keyword in GLSL to access the buffer. In HLSL, use the <c>Buffer</c> keyword.
-        /// </remarks>
+        /// @brief Represents a read-only texel buffer (uniform texel buffer).
+        ///
+        /// Use the `uniform imageBuffer` keyword in GLSL to access the buffer. In HLSL, use the `Buffer` keyword.
         Buffer = 0x00000006,
 
-        /// <summary>
-        /// Represents a writable texel buffer (storage texel buffer).
-        /// </summary>
-        /// <remarks>
-        /// Use the <c>uniform imageBuffer</c> keyword in GLSL to access the buffer. In HLSL, use the <c>RWBuffer</c> keyword.
-        /// </remarks>
+        /// @brief Represents a writable texel buffer (storage texel buffer).
+        ///
+        /// Use the `uniform imageBuffer` keyword in GLSL to access the buffer. In HLSL, use the `RWBuffer` keyword.
         RWBuffer = 0x00000016,
 
-        /// <summary>
-        /// Represents an unformatted buffer.
-        /// </summary>
-        /// <remarks>
-        /// In GLSL, use the <c>buffer</c> keyword to access byte address buffers. In HLSL, use the <c>ByteAddressBuffer</c> keyword.
-        /// </remarks>
+        /// @brief Represents an unformatted buffer.
+        ///
+        /// In GLSL, use the `buffer` keyword to access byte address buffers. In HLSL, use the `ByteAddressBuffer` keyword.
         ByteAddressBuffer = 0x00000007,
 
-        /// <summary>
-        /// Represents an unformatted writable buffer.
-        /// </summary>
-        /// <remarks>
-        /// In GLSL, use the <c>buffer</c> keyword to access byte address buffers. In HLSL, use the <c>RWByteAddressBuffer</c> keyword.
-        /// </remarks>
+        /// @brief Represents an unformatted writable buffer.
+        ///
+        /// In GLSL, use the `buffer` keyword to access byte address buffers. In HLSL, use the `RWByteAddressBuffer` keyword.
         RWByteAddressBuffer = 0x00000017,
 
-        /// <summary>
-        /// Represents a ray-tracing acceleration structure.
-        /// </summary>
+        /// @brief Represents a ray-tracing acceleration structure.
         AccelerationStructure = 0x00000008,
 
-        /// <summary>
-        /// Special descriptor type, that can bind all resources besides constant buffers, acceleration structures and samplers, which then can be directly indexed from the global resource heap.
-        /// </summary>
-        /// <remarks>
-        /// This descriptor type does not directly map to an underlying resource type and instead denotes a descriptor binding, that accepts any resource descriptor besides constant buffers and
-        /// acceleration structures. Samplers are also disallowed, as they need to be bound to a descriptor of the <see cref="GlobalSamplerHeap" /> type. The existence of such a descriptor as a
-        /// part of a descriptor set, indicates that the pipeline layout uses direct descriptor indexing (see <see cref="IPipelineLayout::directlyIndexResources" />). A descriptor set containing
-        /// a descriptor of this type does not allocate any space on the respective global descriptor heap. Instead, it acts as a proxy set, that binds any of the aforementioned buffers. When
-        /// binding to this descriptor, a single uncached descriptor address will be allocated for the resource on the global descriptor heap. On the shader side, this descriptor can be retrieved 
-        /// by calling the <see cref="IDescriptorSet::bindToHeap" /> method.
-        /// 
-        /// As there's no underlying descriptor set or binding when using this descriptor type, you should only ever have on descriptor of this type in a <see cref="IPipelineLayout" />. In the
-        /// DirectX 12 backend, it is sufficient to have a descriptor of this type in a pipeline to access any descriptor on the global resource heap. In Vulkan, this descriptor type creates a
-        /// descriptor set containing an unbounded runtime array to emulate this behavior. This array is special, as it uses the `VK_EXT_mutable_descriptor_type` extension to bind arbitrary 
-        /// resources to a descriptor. However, this is only allowed for descriptors created this way, so indexing only works within the range of the proxy descriptor set. It is therefore good
-        /// practice not to use indices obtained outside a binding created from the proxy descriptor sets. Furthermore, the use of mutable descriptor types is considered less efficient than the
-        /// traditional binding procedure, as it might prevent certain fast paths. For this reason, consider alternative approaches, like multiple unbounded descriptor arrays first. Directly
-        /// indexing into the global descriptor heap this way can be beneficial, if it allows you to re-use the same pipeline state where you would otherwise have to switch between multiple 
-        /// states, however, especially in combination with indirect drawing.
-        /// </remarks>
-        /// <seealso cref="DescriptorType::GlobalSamplerHeap" />
-        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        /// @brief Special descriptor type, that can bind all resources besides constant buffers, acceleration structures and samplers, which then can be directly indexed from the global resource heap.
+        ///
+        /// This descriptor type does not directly map to an underlying resource type and instead denotes a descriptor binding, that accepts any resource descriptor besides constant buffers and acceleration
+        /// structures. Samplers are also disallowed, as they need to be bound to a descriptor of the @ref GlobalSamplerHeap type. The existence of such a descriptor as a part of a descriptor set, indicates that
+        /// the pipeline layout uses direct descriptor indexing (see @ref IPipelineLayout::directlyIndexResources). A descriptor set containing a descriptor of this type does not allocate any space on the
+        /// respective global descriptor heap. Instead, it acts as a proxy set, that binds any of the aforementioned buffers. When binding to this descriptor, a single uncached descriptor address will be
+        /// allocated for the resource on the global descriptor heap. On the shader side, this descriptor can be retrieved by calling the @ref IDescriptorSet::bindToHeap method.
+        ///
+        /// As there's no underlying descriptor set or binding when using this descriptor type, you should only ever have on descriptor of this type in a @ref IPipelineLayout. In the DirectX 12 backend, it is
+        /// sufficient to have a descriptor of this type in a pipeline to access any descriptor on the global resource heap. In Vulkan, this descriptor type creates a descriptor set containing an unbounded
+        /// runtime array to emulate this behavior. This array is special, as it uses the `VK_EXT_mutable_descriptor_type` extension to bind arbitrary resources to a descriptor. However, this is only allowed for
+        /// descriptors created this way, so indexing only works within the range of the proxy descriptor set. It is therefore good practice not to use indices obtained outside a binding created from the proxy
+        /// descriptor sets. Furthermore, the use of mutable descriptor types is considered less efficient than the traditional binding procedure, as it might prevent certain fast paths. For this reason, consider
+        /// alternative approaches, like multiple unbounded descriptor arrays first. Directly indexing into the global descriptor heap this way can be beneficial, if it allows you to re-use the same pipeline
+        /// state where you would otherwise have to switch between multiple states, however, especially in combination with indirect drawing.
+        ///
+        /// @see DescriptorType::GlobalSamplerHeap
+        /// @see GraphicsDeviceFeature::DynamicDescriptors
         ResourceDescriptorHeap = 0x00000009,
 
-        /// <summary>
-        /// A special descriptor type that allows indexed access to the a portion of the global sampler heap.
-        /// </summary>
-        /// <remarks>
-        /// This descriptor type is equivalent to <see cref="DescriptorType::GlobalResourceHeap" />, except that it enables access to the global sampler heap instead. The same conceptual design
-        /// as for the resource heap applies here, with the same limitations, listed in the remarks for the `GlobalResourceHeap` descriptor type.
-        /// </remarks>
-        /// <seealso cref="DescriptorType::GlobalResourceHeap" />
-        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        /// @brief A special descriptor type that allows indexed access to the a portion of the global sampler heap.
+        ///
+        /// This descriptor type is equivalent to @ref DescriptorType::GlobalResourceHeap, except that it enables access to the global sampler heap instead. The same conceptual design as for the resource heap
+        /// applies here, with the same limitations, listed in the remarks for the `GlobalResourceHeap` descriptor type.
+        ///
+        /// @see DescriptorType::GlobalResourceHeap
+        /// @see GraphicsDeviceFeature::DynamicDescriptors
         SamplerDescriptorHeap = 0x0000000A
     };
 
-    /// <summary>
-    /// The target heap type for a descriptor.
-    /// </summary>
+    /// @brief The target heap type for a descriptor.
     enum class DescriptorHeapType {
-        /// <summary>
-        /// Indicates an invalid heap.
-        /// </summary>
+        /// @brief Indicates an invalid heap.
         None = 0x00,
 
-        /// <summary>
-        /// Binds all non-sampler resource views.
-        /// </summary>
+        /// @brief Binds all non-sampler resource views.
         Resource = 0x01,
 
-        /// <summary>
-        /// Binds all sampler states.
-        /// </summary>
+        /// @brief Binds all sampler states.
         Sampler = 0x02
     };
 
-    /// <summary>
-    /// Describes the type of a <see cref="IBuffer" />.
-    /// </summary>
-    /// <seealso cref="IBufferLayout" />
+    /// @brief Describes the type of a @ref IBuffer.
+    ///
+    /// @see IBufferLayout
     enum class BufferType {
-        /// <summary>
-        /// Describes a vertex buffer.
-        /// </summary>
+        /// @brief Describes a vertex buffer.
         Vertex = 0x00000001,
         
-        /// <summary>
-        /// Describes an index buffer.
-        /// </summary>
+        /// @brief Describes an index buffer.
         Index = 0x00000002,
 
-        /// <summary>
-        /// Describes an uniform buffer object (Vulkan) or constant buffer view (DirectX).
-        /// </summary>
-        /// <remarks>
+        /// @brief Describes an uniform buffer object (Vulkan) or constant buffer view (DirectX).
+        ///
         /// Buffers of this type can be bound to `ConstantBuffer` descriptors.
-        /// </remarks>
         Uniform = 0x00000003,
 
-        /// <summary>
-        /// Describes a shader storage buffer object (Vulkan) or unordered access view (DirectX).
-        /// </summary>
-        /// <remarks>
+        /// @brief Describes a shader storage buffer object (Vulkan) or unordered access view (DirectX).
+        ///
         /// Buffers of this type can be bound to `StructuredBuffer`/`RWStructuredBuffer` or `ByteAddressBuffer`/`RWByteAddressBuffer` descriptors.
-        /// </remarks>
         Storage = 0x00000004,
 
-        /// <summary>
-        /// Describes a shader texel storage buffer object (Vulkan) or unordered access view (DirectX).
-        /// </summary>
-        /// <remarks>
+        /// @brief Describes a shader texel storage buffer object (Vulkan) or unordered access view (DirectX).
+        ///
         /// Buffers of this type can be bound to `Buffer`/`RWBuffer` descriptors.
-        /// </remarks>
         Texel = 0x00000005,
 
-        /// <summary>
-        /// Describes an acceleration structure buffer.
-        /// </summary>
-        /// <seealso cref="ICommandBuffer::buildAccelerationStructure" />
-        /// <seealso cref="IBottomLevelAccelerationStructure" />
-        /// <seealso cref="ITopLevelAccelerationStructure" />
+        /// @brief Describes an acceleration structure buffer.
+        ///
+        /// @see ICommandBuffer::buildAccelerationStructure
+        /// @see IBottomLevelAccelerationStructure
+        /// @see ITopLevelAccelerationStructure
         AccelerationStructure = 0x00000006,
 
-        /// <summary>
-        /// Describes a shader binding table for ray-tracing.
-        /// </summary>
+        /// @brief Describes a shader binding table for ray-tracing.
         ShaderBindingTable = 0x00000007,
 
-        /// <summary>
-        /// Describes a buffer that stores data to generate indirect draw calls.
-        /// </summary>
-        /// <remarks>
-        /// An indirect buffer refers to a buffer that contains a set of information used to generate dispatch or draw calls. A single dispatch or draw call in this 
-        /// context is referred to as a *batch*. An indirect buffer must only contain one type of batches, e.g., it is not allowed to mix indexed and non-indexed batches
-        /// in a single indirect buffer. Batches need to be densely packed within the buffer, i.e., the stride between elements is always assumed to be `0`.
-        /// 
-        /// Indirect buffers can be written from shaders, which enables use cases like GPU-culling, where a compute shader writes the batches in an indirect buffer, that
-        /// is then passed to an indirect draw call. In such situations, the number of batches in the buffer is typically not known beforehand, so an additional buffer
-        /// is used to store the number of draw calls in.
-        /// 
-        /// Note that indirect drawing support is currently limited in how data can be passed to draw calls. This is due to Vulkan not providing an adequate interface for
-        /// describing per-draw bindings in the indirect signature. In DirectX 12, it is possible for batches to provide different vertex and index buffers, as well as 
-        /// resource bindings for each draw call. Vulkan does only support draw calls that target already bound descriptors. Due to this limitation, it is currently best
-        /// practice to use bind-less descriptor arrays to pass per-draw data to draws and use a vertex attribute to index into the descriptor array.
-        /// </remarks>
+        /// @brief Describes a buffer that stores data to generate indirect draw calls.
+        ///
+        /// An indirect buffer refers to a buffer that contains a set of information used to generate dispatch or draw calls. A single dispatch or draw call in this context is referred to as a *batch*. An
+        /// indirect buffer must only contain one type of batches, e.g., it is not allowed to mix indexed and non-indexed batches in a single indirect buffer. Batches need to be densely packed within the buffer,
+        /// i.e., the stride between elements is always assumed to be `0`.
+        ///
+        /// Indirect buffers can be written from shaders, which enables use cases like GPU-culling, where a compute shader writes the batches in an indirect buffer, that is then passed to an indirect draw call.
+        /// In such situations, the number of batches in the buffer is typically not known beforehand, so an additional buffer is used to store the number of draw calls in.
+        ///
+        /// Note that indirect drawing support is currently limited in how data can be passed to draw calls. This is due to Vulkan not providing an adequate interface for describing per-draw bindings in the
+        /// indirect signature. In DirectX 12, it is possible for batches to provide different vertex and index buffers, as well as resource bindings for each draw call. Vulkan does only support draw calls that
+        /// target already bound descriptors. Due to this limitation, it is currently best practice to use bind-less descriptor arrays to pass per-draw data to draws and use a vertex attribute to index into the
+        /// descriptor array.
         Indirect = 0x00000008,
 
-        /// <summary>
-        /// Describes another type of buffer, such as samplers or images.
-        /// </summary>
-        /// <remarks>
+        /// @brief Describes another type of buffer, such as samplers or images.
+        ///
         /// Buffers of this type must not be bound to any descriptor, but can be used as copy/transfer targets and sources.
-        /// </remarks>
         Other = 0x7FFFFFFF
     };
 
-    /// <summary>
-    /// Defines where a resource (buffer or image) memory is located and from where it can be accessed.
-    /// </summary>
-    /// <remarks>
+    /// @brief Defines where a resource (buffer or image) memory is located and from where it can be accessed.
+    ///
     /// There are three common memory usage scenarios that are supported by the engine:
     ///
-    /// <list type="number">
-    /// <item>
-    /// <description>
-    /// <strong>Static resources</strong>: such as vertex/index/constant buffers, textures or other infrequently updated buffers. In this case, the most efficient 
-    /// approach is to create a buffer using <see cref="ResourceHeap::Staging" /> and map it from the CPU. Create a second buffer using 
-    /// <see cref="ResourceHeap::Resource" /> and transfer the staging buffer into it.
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <description>
-    /// <strong>Dynamic resources</strong>: such as deformable meshes or buffers that need to be updated every frame. For such buffers use the
-    /// <see cref="ResourceHeap::Dynamic" /> mode to prevent regular transfer overhead.
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <description>
-    /// <strong>Readbacks</strong>: or resources that are written on the GPU and read by the CPU. The usage mode <see cref="ResourceHeap::Readback" /> is designed to 
-    /// provide the best performance for this special case.
-    /// </description>
-    /// </item>
-    /// </list>
-    /// 
-    /// Note that image resources cannot be created on heaps different to <see cref="ResourceHeap::Resource" />. For this very reason, the graphics factory does not 
-    /// allow to specify the resource heap when creating images or attachments.
-    /// </remarks>
-    /// <seealso cref="IGraphicsFactory" />
-    /// <seealso cref="IBuffer" />
+    /// 1. **Static resources**: such as vertex/index/constant buffers, textures or other infrequently updated buffers. In this case, the most efficient approach is to create a buffer using @ref ResourceHeap::Staging and map it from the CPU. Create a second buffer using @ref ResourceHeap::Resource and transfer the staging buffer into it.
+    /// 2. **Dynamic resources**: such as deformable meshes or buffers that need to be updated every frame. For such buffers use the @ref ResourceHeap::Dynamic mode to prevent regular transfer overhead.
+    /// 3. **Readbacks**: or resources that are written on the GPU and read by the CPU. The usage mode @ref ResourceHeap::Readback is designed to provide the best performance for this special case.
+    ///
+    /// Note that image resources cannot be created on heaps different to @ref ResourceHeap::Resource. For this very reason, the graphics factory does not allow to specify the resource heap when creating
+    /// images or attachments.
+    ///
+    /// @see IGraphicsFactory
+    /// @see IBuffer
     enum class ResourceHeap {
-        /// <summary>
-        /// Creates a resource that can be mapped from the CPU in order to be transferred to the GPU later.
-        /// </summary>
-        /// <remarks>
-        /// The memory for the resource will be allocated in the DRAM (CPU or host memory). It can be optimally accessed by the CPU in order to be written. However,
-        /// reading it from the GPU is not supported. This usage mode should be used to create a staging buffer, i.e. a buffer that is written infrequently and
-        /// then transferred to another buffer, that uses <see cref="ResourceHeap::Resource" />.
-        /// </remarks>
+        /// @brief Creates a resource that can be mapped from the CPU in order to be transferred to the GPU later.
+        ///
+        /// The memory for the resource will be allocated in the DRAM (CPU or host memory). It can be optimally accessed by the CPU in order to be written. However, reading it from the GPU is not supported. This
+        /// usage mode should be used to create a staging buffer, i.e. a buffer that is written infrequently and then transferred to another buffer, that uses @ref ResourceHeap::Resource.
         Staging = 0x00000001,
 
-        /// <summary>
-        /// Creates a resource that can be read by the GPU.
-        /// </summary>
-        /// <remarks>
-        /// The memory for the resource will be allocated on the VRAM (GPU or device memory). It can be optimally accessed by the GPU in order to be read frequently.
-        /// It can be written by a transfer call, but is inaccessible from the CPU.
-        /// </remarks>
+        /// @brief Creates a resource that can be read by the GPU.
+        ///
+        /// The memory for the resource will be allocated on the VRAM (GPU or device memory). It can be optimally accessed by the GPU in order to be read frequently. It can be written by a transfer call, but is
+        /// inaccessible from the CPU.
         Resource = 0x00000002,
 
-        /// <summary>
-        /// Creates a resource that can be mapped from the CPU and read by the GPU.
-        /// </summary>
-        /// <remarks>
-        /// Dynamic buffers are used when the content is expected to be changed every frame. They do not require transfer calls, but may not be read as efficiently
-        /// as <see cref="ResourceHeap::Resource" /> buffers.
-        /// </remarks>
+        /// @brief Creates a resource that can be mapped from the CPU and read by the GPU.
+        ///
+        /// Dynamic buffers are used when the content is expected to be changed every frame. They do not require transfer calls, but may not be read as efficiently as @ref ResourceHeap::Resource buffers.
         Dynamic = 0x00000010,
 
-        /// <summary>
-        /// Creates a buffer that can be written on the GPU and read by the CPU.
-        /// </summary>
+        /// @brief Creates a buffer that can be written on the GPU and read by the CPU.
         Readback = 0x00000100,
 
-        /// <summary>
-        /// Creates a buffer that is directly allocated in GPU memory, but that can be efficiently written from the CPU.
-        /// </summary>
-        /// <remarks>
-        /// This heap uses the resizable base address register (ReBAR) of the GPU to create the buffer. However, this is only possible, if the GPU supports it. To 
-        /// check support for it, you can query <see cref="IGraphicsFactory::supportsResizableBaseAddressRegister" />. In case this feature is not supported, you may
-        /// want to fall back to a <see cref="Dynamic" /> resource.
-        /// </remarks>
+        /// @brief Creates a buffer that is directly allocated in GPU memory, but that can be efficiently written from the CPU.
+        ///
+        /// This heap uses the resizable base address register (ReBAR) of the GPU to create the buffer. However, this is only possible, if the GPU supports it. To check support for it, you can query @ref
+        /// IGraphicsFactory::supportsResizableBaseAddressRegister. In case this feature is not supported, you may want to fall back to a @ref Dynamic resource.
         GPUUpload = 0x00001000
     };
 
-    /// <summary>
-    /// Describes the intended usage for a resource.
-    /// </summary>
-    /// <seealso cref="IGraphicsFactory" />
-    /// <seealso cref="IBuffer" />
-    /// <seealso cref="IImage" />
+    /// @brief Describes the intended usage for a resource.
+    ///
+    /// @see IGraphicsFactory
+    /// @see IBuffer
+    /// @see IImage
     enum class ResourceUsage {
-        /// <summary>
-        /// The resource is created without any special usage settings.
-        /// </summary>
+        /// @brief The resource is created without any special usage settings.
         None = 0x0000,
 
-        /// <summary>
-        /// Allows the resource to be written to.
-        /// </summary>
-        /// <remarks>
-        /// This flag is not allowed for vertex buffers (<see cref="BufferType::Vertex" />), index buffers (<see cref="BufferType::Index" />) and uniform buffers (<see cref="BufferType::Uniform" />).
-        /// </remarks>
-        /// <seealso cref="IDeviceMemory::writable" />
+        /// @brief Allows the resource to be written to.
+        ///
+        /// This flag is not allowed for vertex buffers (@ref BufferType::Vertex), index buffers (@ref BufferType::Index) and uniform buffers (@ref BufferType::Uniform).
+        ///
+        /// @see IDeviceMemory::writable
         AllowWrite = 0x0001,
 
-        /// <summary>
-        /// Allows the resource data to be copied into another resource.
-        /// </summary>
-        /// <remarks>
-        /// This flag is implicitly set for resources created with <see cref="ResourceHeap::Staging" /> and for render target images (attachments).
-        /// </remarks>
+        /// @brief Allows the resource data to be copied into another resource.
+        ///
+        /// This flag is implicitly set for resources created with @ref ResourceHeap::Staging and for render target images (attachments).
         TransferSource = 0x0010,
 
-        /// <summary>
-        /// Allows the resource data to be copied from another resource.
-        /// </summary>
-        /// <remarks>
-        /// This flag is implicitly set for resources created with <see cref="ResourceHeap::Readback" /> and for render target images (attachments).
-        /// </remarks>
+        /// @brief Allows the resource data to be copied from another resource.
+        ///
+        /// This flag is implicitly set for resources created with @ref ResourceHeap::Readback and for render target images (attachments).
         TransferDestination = 0x0020,
 
-        /// <summary>
-        /// Allows the resource to be used as a render target.
-        /// </summary>
+        /// @brief Allows the resource to be used as a render target.
         RenderTarget = 0x0040,
 
-        /// <summary>
-        /// Allows the resource to be used to build acceleration structures.
-        /// </summary>
-        /// <remarks>
-        /// This flag is not allowed for images and other acceleration structures (<see cref="BufferType::AccelerationStructure" />).
-        /// </remarks>
-        /// <seealso cref="IAccelerationStructure" />
+        /// @brief Allows the resource to be used to build acceleration structures.
+        ///
+        /// This flag is not allowed for images and other acceleration structures (@ref BufferType::AccelerationStructure).
+        ///
+        /// @see IAccelerationStructure
         AccelerationStructureBuildInput = 0x0100,
 
-        /// <summary>
-        /// Shortcut for commonly used `TransferSource | TransferDestination` combination.
-        /// </summary>
+        /// @brief Shortcut for commonly used `TransferSource | TransferDestination` combination.
         Default = TransferSource | TransferDestination,
 
-        /// <summary>
-        /// Default usage for frame buffer images.
-        /// </summary>
-        /// <seealso cref="IFrameBuffer" />
+        /// @brief Default usage for frame buffer images.
+        ///
+        /// @see IFrameBuffer
         FrameBufferImage = TransferSource | RenderTarget,
 
-        /// <summary>
-        /// Causes the contents of the resource to not be copied during defragmentation.
-        /// </summary>
-        /// <seealso cref="IGraphicsFactory::beginDefragmentation" />
-        /// <seealso cref="IDeviceMemory::volatileMove" />
-        /// <seealso cref="IDeviceMemory::moving" />
-        /// <seealso cref="IDeviceMemory::moved" />
+        /// @brief Causes the contents of the resource to not be copied during defragmentation.
+        ///
+        /// @see IGraphicsFactory::beginDefragmentation
+        /// @see IDeviceMemory::volatileMove
+        /// @see IDeviceMemory::moving
+        /// @see IDeviceMemory::moved
         Volatile = 0x1000
     };
 
-    /// <summary>
-    /// Controls the allocation behavior of <see cref="IGraphicsFactory" />.
-    /// </summary>
+    /// @brief Controls the allocation behavior of @ref IGraphicsFactory.
     enum class AllocationBehavior : UInt32 {
-        /// <summary>
-        /// Represents the default behavior, which might fall back to slower memory types, if required.
-        /// </summary>
+        /// @brief Represents the default behavior, which might fall back to slower memory types, if required.
         Default = 0x00,
 
-        /// <summary>
-        /// Stays within heap budgets. If the desired resource heap is out of memory, allocation will fail. Use this behavior for resources that are not required to
-        /// prevent them from being allocated in potentially slower memory heaps.
-        /// </summary>
+        /// @brief Stays within heap budgets. If the desired resource heap is out of memory, allocation will fail. Use this behavior for resources that are not required to prevent them from being allocated in
+        /// potentially slower memory heaps.
         StayWithinBudget = 0x01,
 
-        /// <summary>
-        /// Does not resize heap cache, if no more pre-allocated memory is available and will fail, if available memory is exceeded. Use this in situations, where you 
-        /// can potentially delay an allocation to a less time-critical point.
-        /// </summary>
+        /// @brief Does not resize heap cache, if no more pre-allocated memory is available and will fail, if available memory is exceeded. Use this in situations, where you can potentially delay an allocation to
+        /// a less time-critical point.
         DontExpandCache = 0x02
     };
 
-    /// <summary>
-    /// The allocation algorithm used by <see cref="VirtualAllocator"/>s.
-    /// </summary>
+    /// @brief The allocation algorithm used by @ref VirtualAllocators.
     enum class AllocationAlgorithm : UInt32 {
-        /// <summary>
-        /// The default algorithm without any constraints on the memory layout.
-        /// </summary>
+        /// @brief The default algorithm without any constraints on the memory layout.
         Default = 0x01,
 
-        /// <summary>
-        /// A linear allocation algorithm, that allocates memory blocks sequentially.
-        /// </summary>
-        /// <seealso href="https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/custom_memory_pools.html#linear_algorithm" />
-        /// <seealso href="https://gpuopen-librariesandsdks.github.io/D3D12MemoryAllocator/html/linear_algorithm.html" />
+        /// @brief A linear allocation algorithm, that allocates memory blocks sequentially.
+        ///
+        /// @see https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/custom_memory_pools.html#linear_algorithm
+        /// @see https://gpuopen-librariesandsdks.github.io/D3D12MemoryAllocator/html/linear_algorithm.html
         Linear = 0x02
     };
 
-    /// <summary>
-    /// The allocation strategy used by allocators (<see cref="IGraphicsFactory" /> and <see cref="VirtualAllocator" />) when allocating new chunks of memory.
-    /// </summary>
+    /// @brief The allocation strategy used by allocators (@ref IGraphicsFactory and @ref VirtualAllocator) when allocating new chunks of memory.
     enum class AllocationStrategy : UInt32 {
-        /// <summary>
-        /// Prefers good packing over allocation time and reduces fragmentation.
-        /// </summary>
+        /// @brief Prefers good packing over allocation time and reduces fragmentation.
         OptimizePacking = 0x01,
 
-        /// <summary>
-        /// Prefers allocation time over packing.
-        /// </summary>
+        /// @brief Prefers allocation time over packing.
         OptimizeTime = 0x02,
     };
 
-    /// <summary>
-    /// The strategy to apply to a defragmentation pass.
-    /// </summary>
-    /// <seealso cref="IGraphicsFactory::beginDefragmentation" />
-    /// <seealso cref="IGraphicsFactory::defragment" />
+    /// @brief The strategy to apply to a defragmentation pass.
+    ///
+    /// @see IGraphicsFactory::beginDefragmentation
+    /// @see IGraphicsFactory::defragment
     enum class DefragmentationStrategy : UInt32 {
-        /// <summary>
-        /// Provides fast fragment computation, but potentially suboptimal packing.
-        /// </summary>
+        /// @brief Provides fast fragment computation, but potentially suboptimal packing.
         Fast = 0x01,
 
-        /// <summary>
-        /// Provides a balance between fragment computation time and packing efficiency.
-        /// </summary>
+        /// @brief Provides a balance between fragment computation time and packing efficiency.
         Balanced = 0x02,
 
-        /// <summary>
-        /// Provides optimal packing at the cost of potentially more copies.
-        /// </summary>
+        /// @brief Provides optimal packing at the cost of potentially more copies.
         Full = 0x03
     };
 
-    /// <summary>
-    /// Describes the element type of an index buffer.
-    /// </summary>
+    /// @brief Describes the element type of an index buffer.
     enum class IndexType : UInt32 {
-        /// <summary>
-        /// Indices are stored as 2 byte unsigned integers.
-        /// </summary>
+        /// @brief Indices are stored as 2 byte unsigned integers.
         UInt16 = 0x00000010,
 
-        /// <summary>
-        /// Indices are stored as 4 byte unsigned integers.
-        /// </summary>
+        /// @brief Indices are stored as 4 byte unsigned integers.
         UInt32 = 0x00000020
     };
 
-    /// <summary>
-    /// The rate at which a vertex buffer of a certain <see cref="IVertexBufferLayout" /> is made available for vertex shaders.
-    /// </summary>
-    /// <seealso cref="IVertexBufferLayout" />
+    /// @brief The rate at which a vertex buffer of a certain @ref IVertexBufferLayout is made available for vertex shaders.
+    ///
+    /// @see IVertexBufferLayout
     enum class VertexBufferInputRate : UInt32 {
-        /// <summary>
-        /// The vertex buffer layout describes data that is made available per individual vertex.
-        /// </summary>
+        /// @brief The vertex buffer layout describes data that is made available per individual vertex.
         Vertex = 0,
 
-        /// <summary>
-        /// The vertex buffer layout describes data that is made available per instance.
-        /// </summary>
+        /// @brief The vertex buffer layout describes data that is made available per instance.
         Instance = 1
     };
 
-    /// <summary>
-    /// Describes the topology of a mesh primitive.
-    /// </summary>
+    /// @brief Describes the topology of a mesh primitive.
     enum class PrimitiveTopology {
-        /// <summary>
-        /// A list of points where each vertex refers to an individual point.
-        /// </summary>
+        /// @brief A list of points where each vertex refers to an individual point.
         PointList = 0x00010001,
 
-        /// <summary>
-        /// A list of lines where each vertex pair refers to the start and end points of a line.
-        /// </summary>
-        /// <seealso cref="LineStrip" />
+        /// @brief A list of lines where each vertex pair refers to the start and end points of a line.
+        ///
+        /// @see LineStrip
         LineList = 0x00020001,
 
-        /// <summary>
-        /// A list of lines where each vertex pair refers to the start and end points of a line and where vertices also store adjacency data.
-        /// </summary>
-        /// <seealso cref="LineList" />
+        /// @brief A list of lines where each vertex pair refers to the start and end points of a line and where vertices also store adjacency data.
+        ///
+        /// @see LineList
         LineListWithAdjacency = 0x00020011,
 
-        /// <summary>
-        /// A list of triangles, where each triplet of vertices refers to a whole triangle.
-        /// </summary>
-        /// <seealso cref="TriangleStrip" />
+        /// @brief A list of triangles, where each triplet of vertices refers to a whole triangle.
+        ///
+        /// @see TriangleStrip
         TriangleList = 0x00040001,
 
-        /// <summary>
-        /// A list of triangles, where each triplet of vertices refers to a whole triangle and where vertices also store adjacency data.
-        /// </summary>
-        /// <seealso cref="TriangleList" />
+        /// @brief A list of triangles, where each triplet of vertices refers to a whole triangle and where vertices also store adjacency data.
+        ///
+        /// @see TriangleList
         TriangleListWithAdjacency = 0x00040011,
 
-        /// <summary>
-        /// A strip of lines where each vertex (except the first one) refers to the end point for the next line segment.
-        /// </summary>
-        /// <seealso cref="LineList" />
+        /// @brief A strip of lines where each vertex (except the first one) refers to the end point for the next line segment.
+        ///
+        /// @see LineList
         LineStrip = 0x00020002,
 
-        /// <summary>
-        /// A strip of lines where each vertex (except the first one) refers to the end point for the next line segment.
-        /// </summary>
-        /// <seealso cref="LineStrip" />
+        /// @brief A strip of lines where each vertex (except the first one) refers to the end point for the next line segment.
+        ///
+        /// @see LineStrip
         LineStripWithAdjacency = 0x00020012,
         
-        /// <summary>
-        /// A strip of triangles, where each vertex (except the first two) refers to the third vertex of the next triangle segment and where vertices also store adjacency data..
-        /// </summary>
-        /// <seealso cref="TriangleList" />
+        /// @brief A strip of triangles, where each vertex (except the first two) refers to the third vertex of the next triangle segment and where vertices also store adjacency data..
+        ///
+        /// @see TriangleList
         TriangleStrip = 0x00040002,
 
-        /// <summary>
-        /// A strip of triangles, where each vertex (except the first two) refers to the third vertex of the next triangle segment and where vertices also store adjacency data..
-        /// </summary>
-        /// <seealso cref="TriangleStrip" />
+        /// @brief A strip of triangles, where each vertex (except the first two) refers to the third vertex of the next triangle segment and where vertices also store adjacency data..
+        ///
+        /// @see TriangleStrip
         TriangleStripWithAdjacency = 0x00040012,
 
-        /// <summary>
-        /// A list of patches used in combination with tessellation.
-        /// </summary>
+        /// @brief A list of patches used in combination with tessellation.
         PatchList = 0x00080001
     };
 
-    /// <summary>
-    /// Describes the valid shader stages of a graphics pipeline.
-    /// </summary>
+    /// @brief Describes the valid shader stages of a graphics pipeline.
     enum class ShaderStage : UInt32 {
-        /// <summary>
-        /// Represents the vertex shader stage.
-        /// </summary>
+        /// @brief Represents the vertex shader stage.
         Vertex = 0x00000001,
 
-        /// <summary>
-        /// Represents the tessellation control or hull shader stage.
-        /// </summary>
+        /// @brief Represents the tessellation control or hull shader stage.
         TessellationControl = 0x00000002,
 
-        /// <summary>
-        /// Represents the tessellation evaluation or domain shader stage.
-        /// </summary>
+        /// @brief Represents the tessellation evaluation or domain shader stage.
         TessellationEvaluation = 0x00000004,
 
-        /// <summary>
-        /// Represents the geometry shader stage.
-        /// </summary>
-        /// <remarks>
+        /// @brief Represents the geometry shader stage.
+        ///
         /// Note that geometry shaders come with a performance penalty and might not be supported on all platforms. If you can, avoid using them.
-        /// </remarks>
         Geometry = 0x00000008,
 
-        /// <summary>
-        /// Represents the fragment or pixel shader stage.
-        /// </summary>
+        /// @brief Represents the fragment or pixel shader stage.
         Fragment = 0x00000010,
 
-        /// <summary>
-        /// Represents the compute shader stage.
-        /// </summary>
+        /// @brief Represents the compute shader stage.
         Compute = 0x00000020,
 
-        /// <summary>
-        /// Represents the task or amplification shader stage.
-        /// </summary>
+        /// @brief Represents the task or amplification shader stage.
         Task = 0x00000040,
 
-        /// <summary>
-        /// Represents the mesh shader stage.
-        /// </summary>
+        /// @brief Represents the mesh shader stage.
         Mesh = 0x00000080,
 
-        /// <summary>
-        /// Represents the ray generation shader stage.
-        /// </summary>
+        /// @brief Represents the ray generation shader stage.
         RayGeneration = 0x00000100,
 
-        /// <summary>
-        /// Represents the any-hit shader stage.
-        /// </summary>
+        /// @brief Represents the any-hit shader stage.
         AnyHit = 0x00000200,
 
-        /// <summary>
-        /// Represents the closest-hit shader stage.
-        /// </summary>
+        /// @brief Represents the closest-hit shader stage.
         ClosestHit = 0x00000400,
 
-        /// <summary>
-        /// Represents the miss shader stage.
-        /// </summary>
+        /// @brief Represents the miss shader stage.
         Miss = 0x00000800,
 
-        /// <summary>
-        /// Represents the intersection shader stage.
-        /// </summary>
+        /// @brief Represents the intersection shader stage.
         Intersection = 0x00001000,
 
-        /// <summary>
-        /// Represents the callable shader stage.
-        /// </summary>
+        /// @brief Represents the callable shader stage.
         Callable = 0x00002000,
 
-        /// <summary>
-        /// Represents the complete rasterization pipeline.
-        /// </summary>
+        /// @brief Represents the complete rasterization pipeline.
         RasterizationPipeline = Vertex | Geometry | TessellationControl | TessellationEvaluation | Fragment,
 
-        /// <summary>
-        /// Represents the complete mesh shading pipeline.
-        /// </summary>
+        /// @brief Represents the complete mesh shading pipeline.
         MeshPipeline = Task | Mesh | Fragment,
 
-        /// <summary>
-        /// Represents the complete ray-tracing pipeline.
-        /// </summary>
+        /// @brief Represents the complete ray-tracing pipeline.
         RayTracingPipeline = RayGeneration | AnyHit | ClosestHit | Miss | Intersection | Callable,
 
-        /// <summary>
-        /// Enables all supported shader stages.
-        /// </summary>
+        /// @brief Enables all supported shader stages.
         Any = Vertex | TessellationControl | TessellationEvaluation | Geometry | Fragment | Compute | Task | Mesh | RayGeneration | AnyHit | ClosestHit | Miss | Intersection | Callable,
 
-        /// <summary>
-        /// Represents an unknown shader stage.
-        /// </summary>
+        /// @brief Represents an unknown shader stage.
         Other = 0x7FFFFFFF
     };
 
-    /// <summary>
-    /// Describes the type of a shader module record within a shader collection or shader binting table.
-    /// </summary>
-    /// <seealso cref="IShaderRecord" />
+    /// @brief Describes the type of a shader module record within a shader collection or shader binting table.
+    ///
+    /// @see IShaderRecord
     enum class ShaderRecordType {
-        /// <summary>
-        /// Represents a ray generation shader record.
-        /// </summary>
+        /// @brief Represents a ray generation shader record.
         RayGeneration = 0x01,
 
-        /// <summary>
-        /// Represents a hit group shader record.
-        /// </summary>
+        /// @brief Represents a hit group shader record.
         HitGroup = 0x02,
 
-        /// <summary>
-        /// Represents an intersection shader record.
-        /// </summary>
+        /// @brief Represents an intersection shader record.
         Intersection = 0x03,
 
-        /// <summary>
-        /// Represents a miss shader record.
-        /// </summary>
+        /// @brief Represents a miss shader record.
         Miss = 0x04,
 
-        /// <summary>
-        /// Represents a callable shader record.
-        /// </summary>
+        /// @brief Represents a callable shader record.
         Callable = 0x05,
 
-        /// <summary>
-        /// Represents a shader record that contains a module of an unsupported shader stage.
-        /// </summary>
+        /// @brief Represents a shader record that contains a module of an unsupported shader stage.
         Invalid = 0x7FFFFFFF
     };
 
-    /// <summary>
-    /// Describes a group or combination of groups of a shader binding table.
-    /// </summary>
-    /// <seealso cref="IRayTracingPipeline::allocateShaderBindingTable" />
+    /// @brief Describes a group or combination of groups of a shader binding table.
+    ///
+    /// @see IRayTracingPipeline::allocateShaderBindingTable
     enum class ShaderBindingGroup : UInt32 {
-        /// <summary>
-        /// Refers to the group of the shader binding table that stores the ray generation shader.
-        /// </summary>
+        /// @brief Refers to the group of the shader binding table that stores the ray generation shader.
         RayGeneration = 0x01,
 
-        /// <summary>
-        /// Refers to the group of the shader binding table that stores the geometry hit shaders.
-        /// </summary>
+        /// @brief Refers to the group of the shader binding table that stores the geometry hit shaders.
         HitGroup = 0x02,
 
-        /// <summary>
-        /// Refers to the group of the shader binding table that stores the miss shaders.
-        /// </summary>
+        /// @brief Refers to the group of the shader binding table that stores the miss shaders.
         Miss = 0x04,
 
-        /// <summary>
-        /// Refers to the group of the shader binding table that stores the callable shaders.
-        /// </summary>
+        /// @brief Refers to the group of the shader binding table that stores the callable shaders.
         Callable = 0x08,
 
-        /// <summary>
-        /// Refers to a combination of all possible groups that can be stored in a shader binding table.
-        /// </summary>
+        /// @brief Refers to a combination of all possible groups that can be stored in a shader binding table.
         All = RayGeneration | HitGroup | Miss | Callable
     };
 
-    /// <summary>
-    /// Describes the draw mode for polygons.
-    /// </summary>
-    /// <seealso cref="InputAssembler" />
+    /// @brief Describes the draw mode for polygons.
+    ///
+    /// @see InputAssembler
     enum class PolygonMode {
-        /// <summary>
-        /// Polygons are drawn as solid surfaces.
-        /// </summary>
+        /// @brief Polygons are drawn as solid surfaces.
         Solid = 0x00000001,
 
-        /// <summary>
-        /// Polygons are only drawn as wire-frames.
-        /// </summary>
+        /// @brief Polygons are only drawn as wire-frames.
         Wireframe = 0x00000002,
 
-        /// <summary>
-        /// Polygons are drawn as points at the vertex positions.
-        /// </summary>
+        /// @brief Polygons are drawn as points at the vertex positions.
         Point = 0x00000004
     };
 
-    /// <summary>
-    /// Describes which faces are culled by the <see cref="Rasterizer" /> stage.
-    /// </summary>
-    /// <seealso cref="Rasterizer" />
+    /// @brief Describes which faces are culled by the @ref Rasterizer stage.
+    ///
+    /// @see Rasterizer
     enum class CullMode {
-        /// <summary>
-        /// The rasterizer will discard front-facing polygons.
-        /// </summary>
+        /// @brief The rasterizer will discard front-facing polygons.
         FrontFaces = 0x00000001,
 
-        /// <summary>
-        /// The rasterizer will discard back-facing polygons.
-        /// </summary>
+        /// @brief The rasterizer will discard back-facing polygons.
         BackFaces = 0x00000002,
 
-        /// <summary>
-        /// The rasterizer will discard front and back-facing polygons.
-        /// </summary>
+        /// @brief The rasterizer will discard front and back-facing polygons.
         Both = 0x00000004,
 
-        /// <summary>
-        /// The rasterizer will not discard any polygons.
-        /// </summary>
+        /// @brief The rasterizer will not discard any polygons.
         Disabled = 0x0000000F
     };
 
-    /// <summary>
-    /// Describes the order or vertex winding, that is used to determine, whether a polygon is facing towards or away from the camera.
-    /// </summary>
-    /// <seealso cref="CullMode" />
-    /// <seealso cref="Rasterizer" />
+    /// @brief Describes the order or vertex winding, that is used to determine, whether a polygon is facing towards or away from the camera.
+    ///
+    /// @see CullMode
+    /// @see Rasterizer
     enum class CullOrder {
-        /// <summary>
-        /// Vertices are evaluated in a clock-wise manner.
-        /// </summary>
+        /// @brief Vertices are evaluated in a clock-wise manner.
         ClockWise = 0x00000001,
 
-        /// <summary>
-        /// Vertices are evaluated in a counter clock-wise manner.
-        /// </summary>
+        /// @brief Vertices are evaluated in a counter clock-wise manner.
         CounterClockWise = 0x00000002
     };
 
-    /// <summary>
-    /// Describes the type of a render target.
-    /// </summary>
+    /// @brief Describes the type of a render target.
     enum class RenderTargetType {
-        /// <summary>
-        /// Represents a color target.
-        /// </summary>
+        /// @brief Represents a color target.
         Color = 0x00000001,
 
-        /// <summary>
-        /// Represents a depth/stencil target.
-        /// </summary>
+        /// @brief Represents a depth/stencil target.
         DepthStencil = 0x00000002,
 
-        /// <summary>
-        /// Represents a color target that should be presented.
-        /// </summary>
-        /// <remarks>
-        /// This is similar to <see cref="RenderTargetType::Color" />, but is used to optimize the memory layout of the target for it to be pushed to a swap chain.
-        /// </remarks>
+        /// @brief Represents a color target that should be presented.
+        ///
+        /// This is similar to @ref RenderTargetType::Color, but is used to optimize the memory layout of the target for it to be pushed to a swap chain.
         Present = 0x00000004
     };
 
-    /// <summary>
-    /// Describes the behavior of render targets.
-    /// </summary>
+    /// @brief Describes the behavior of render targets.
     enum class RenderTargetFlags {
-        /// <summary>
-        /// No flags are enabled.
-        /// </summary>
+        /// @brief No flags are enabled.
         None = 0x00,
 
-        /// <summary>
-        /// If enabled, color or depth (depending on the render target type) are cleared when starting a render pass that renders to the render target.
-        /// </summary>
+        /// @brief If enabled, color or depth (depending on the render target type) are cleared when starting a render pass that renders to the render target.
         Clear = 0x01,
 
-        /// <summary>
-        /// If enabled and the render target format supports stencil storage, the stencil part is cleared when the render pass that renders to the render target is started.
-        /// </summary>
+        /// @brief If enabled and the render target format supports stencil storage, the stencil part is cleared when the render pass that renders to the render target is started.
         ClearStencil = 0x02,
 
-        /// <summary>
-        /// If enabled, the render target is discarded after ending the render pass.
-        /// </summary>
-        /// <remarks>
-        /// When this flag is set, the render target storage is freed after the render pass has finished. The main use of this is to have depth/stencil targets on a render 
-        /// pass that are only required during this render pass. It is not valid to attempt accessing the render target before or after the render pass.
-        /// </remarks>
+        /// @brief If enabled, the render target is discarded after ending the render pass.
+        ///
+        /// When this flag is set, the render target storage is freed after the render pass has finished. The main use of this is to have depth/stencil targets on a render pass that are only required during this
+        /// render pass. It is not valid to attempt accessing the render target before or after the render pass.
         Volatile = 0x04
     };
 
-    /// <summary>
-    /// Describes the dimensions of a image resource, i.e. the dimensions that are required to access a texel or describe the image extent.
-    /// </summary>
-    /// <seealso cref="IImage" />
+    /// @brief Describes the dimensions of a image resource, i.e. the dimensions that are required to access a texel or describe the image extent.
+    ///
+    /// @see IImage
     enum class ImageDimensions {
-        /// <summary>
-        /// Represents a 1D image.
-        /// </summary>
+        /// @brief Represents a 1D image.
         DIM_1 = 0x01,
 
-        /// <summary>
-        /// Represents a 2D image.
-        /// </summary>
+        /// @brief Represents a 2D image.
         DIM_2 = 0x02,
 
-        /// <summary>
-        /// Represents a 3D image.
-        /// </summary>
+        /// @brief Represents a 3D image.
         DIM_3 = 0x03,
 
-        /// <summary>
-        /// Represents a set of six 2D images that are used to build a cube map.
-        /// </summary>
+        /// @brief Represents a set of six 2D images that are used to build a cube map.
         CUBE = 0x04
     };
 
-    /// <summary>
-    /// Describes the number of samples with which a <see cref="IImage" /> is sampled.
-    /// </summary>
+    /// @brief Describes the number of samples with which a @ref IImage is sampled.
     enum class MultiSamplingLevel : UInt32 {
-        /// <summary>
-        /// The default number of samples. Multi-sampling will be deactivated, if this sampling level is used.
-        /// </summary>
+        /// @brief The default number of samples. Multi-sampling will be deactivated, if this sampling level is used.
         x1 = 0x00000001,
 
-        /// <summary>
-        /// Use 2 samples per pixel.
-        /// </summary>
+        /// @brief Use 2 samples per pixel.
         x2 = 0x00000002,
 
-        /// <summary>
-        /// Use 4 samples per pixel.
-        /// </summary>
+        /// @brief Use 4 samples per pixel.
         x4 = 0x00000004,
 
-        /// <summary>
-        /// Use 8 samples per pixel.
-        /// </summary>
+        /// @brief Use 8 samples per pixel.
         x8 = 0x00000008,
 
-        /// <summary>
-        /// Use 16 samples per pixel.
-        /// </summary>
+        /// @brief Use 16 samples per pixel.
         x16 = 0x00000010,
 
-        /// <summary>
-        /// Use 32 samples per pixel.
-        /// </summary>
+        /// @brief Use 32 samples per pixel.
         x32 = 0x00000020,
 
-        /// <summary>
-        /// Use 64 samples per pixel.
-        /// </summary>
+        /// @brief Use 64 samples per pixel.
         x64 = 0x00000040
     };
 
-    /// <summary>
-    /// Describes the filter operation when accessing a pixel from a texture coordinate.
-    /// </summary>
-    /// <seealso cref="IImage" />
+    /// @brief Describes the filter operation when accessing a pixel from a texture coordinate.
+    ///
+    /// @see IImage
     enum class FilterMode {
-        /// <summary>
-        /// Take the nearest texel with respect to the texture coordinate.
-        /// </summary>
+        /// @brief Take the nearest texel with respect to the texture coordinate.
         Nearest = 0x00000001,
 
-        /// <summary>
-        /// Linearly interpolate between the two closest texels with respect to the texture coordinate.
-        /// </summary>
+        /// @brief Linearly interpolate between the two closest texels with respect to the texture coordinate.
         Linear = 0x00000002
     };
 
-    /// <summary>
-    /// Describes the filter operation between two mip-map levels.
-    /// </summary>
-    /// <seealso cref="IImage" />
-    /// <seealso cref="FilterMode" />
+    /// @brief Describes the filter operation between two mip-map levels.
+    ///
+    /// @see IImage
+    /// @see FilterMode
     enum class MipMapMode {
-        /// <summary>
-        /// Take the texel from the mip-map level that is closest to the actual depth.
-        /// </summary>
+        /// @brief Take the texel from the mip-map level that is closest to the actual depth.
         Nearest = 0x00000001,
 
-        /// <summary>
-        /// Linearly interpolate between the texels of the two neighboring mip-map levels.
-        /// </summary>
+        /// @brief Linearly interpolate between the texels of the two neighboring mip-map levels.
         Linear = 0x00000002
     };
 
-    /// <summary>
-    /// Describes how to treat texture coordinates that are outside the domain `[0..1]`.
-    /// </summary>
+    /// @brief Describes how to treat texture coordinates that are outside the domain `[0..1]`.
     enum class BorderMode {
-        /// <summary>
-        /// Repeat the texture.
-        /// </summary>
+        /// @brief Repeat the texture.
         Repeat = 0x00000001,
 
-        /// <summary>
-        /// Mirror the texture.
-        /// </summary>
+        /// @brief Mirror the texture.
         RepeatMirrored = 0x00010001,
 
-        /// <summary>
-        /// Take the closest edge texel.
-        /// </summary>
+        /// @brief Take the closest edge texel.
         ClampToEdge = 0x00000002,
 
-        /// <summary>
-        /// Take the closest edge texel from the opposite site.
-        /// </summary>
+        /// @brief Take the closest edge texel from the opposite site.
         ClampToEdgeMirrored = 0x00010002,
 
-        /// <summary>
-        /// Return a pre-specified border color.
-        /// </summary>
+        /// @brief Return a pre-specified border color.
         ClampToBorder = 0x00000003,
     };
 
-    /// <summary>
-    /// Describes the operation used to compare depth or stencil values during depth/stencil tests.
-    /// </summary>
-    /// <seealso cref="DepthStencilState" />
+    /// @brief Describes the operation used to compare depth or stencil values during depth/stencil tests.
+    ///
+    /// @see DepthStencilState
     enum class CompareOperation {
-        /// <summary>
-        /// The test always fails.
-        /// </summary>
+        /// @brief The test always fails.
         Never = 0x00000000,
 
-        /// <summary>
-        /// The test succeeds, if the current value is less than the stencil ref or previous depth value.
-        /// </summary>
+        /// @brief The test succeeds, if the current value is less than the stencil ref or previous depth value.
         Less = 0x00000001,
 
-        /// <summary>
-        /// The test succeeds, if the current value is greater than the stencil ref or previous depth value.
-        /// </summary>
+        /// @brief The test succeeds, if the current value is greater than the stencil ref or previous depth value.
         Greater = 0x0000002,
 
-        /// <summary>
-        /// The test succeeds, if the current value is equal to the stencil ref or previous depth value.
-        /// </summary>
+        /// @brief The test succeeds, if the current value is equal to the stencil ref or previous depth value.
         Equal = 0x00000003,
 
-        /// <summary>
-        /// The test succeeds, if the current value is less or equal to the stencil ref or previous depth value.
-        /// </summary>
+        /// @brief The test succeeds, if the current value is less or equal to the stencil ref or previous depth value.
         LessEqual = 0x00000004,
 
-        /// <summary>
-        /// The test succeeds, if the current value is greater or equal to the stencil ref or previous depth value.
-        /// </summary>
+        /// @brief The test succeeds, if the current value is greater or equal to the stencil ref or previous depth value.
         GreaterEqual = 0x00000005,
 
-        /// <summary>
-        /// The test succeeds, if the current value is not equal to the stencil ref or previous depth value.
-        /// </summary>
+        /// @brief The test succeeds, if the current value is not equal to the stencil ref or previous depth value.
         NotEqual = 0x00000006,
 
-        /// <summary>
-        /// The test always succeeds.
-        /// </summary>
+        /// @brief The test always succeeds.
         Always = 0x00000007
     };
 
-    /// <summary>
-    /// An operation that is applied to the stencil buffer.
-    /// </summary>
-    /// <seealso cref="DepthStencilState" />
+    /// @brief An operation that is applied to the stencil buffer.
+    ///
+    /// @see DepthStencilState
     enum class StencilOperation {
-        /// <summary>
-        /// Keep the current stencil value.
-        /// </summary>
+        /// @brief Keep the current stencil value.
         Keep = 0x00000000,
         
-        /// <summary>
-        /// Set the stencil value to `0`.
-        /// </summary>
+        /// @brief Set the stencil value to `0`.
         Zero = 0x00000001,
 
-        /// <summary>
-        /// Replace the current stencil value with the stencil ref.
-        /// </summary>
+        /// @brief Replace the current stencil value with the stencil ref.
         Replace = 0x00000002,
 
-        /// <summary>
-        /// Increment the current stencil value.
-        /// </summary>
+        /// @brief Increment the current stencil value.
         IncrementClamp = 0x00000003,
 
-        /// <summary>
-        /// Decrement the current stencil value.
-        /// </summary>
+        /// @brief Decrement the current stencil value.
         DecrementClamp = 0x00000004,
 
-        /// <summary>
-        /// Bitwise invert the current stencil value.
-        /// </summary>
+        /// @brief Bitwise invert the current stencil value.
         Invert = 0x00000005,
 
-        /// <summary>
-        /// Increment the current stencil value and wrap it, if it goes out of bounds.
-        /// </summary>
+        /// @brief Increment the current stencil value and wrap it, if it goes out of bounds.
         IncrementWrap = 0x00000006,
 
-        /// <summary>
-        /// Decrement the current stencil value and wrap it, if it goes out of bounds.
-        /// </summary>
+        /// @brief Decrement the current stencil value and wrap it, if it goes out of bounds.
         DecrementWrap = 0x00000007
     };
 
-    /// <summary>
-    /// Specifies a blend factor.
-    /// </summary>
-    /// <seealso cref="DepthStencilState" />
+    /// @brief Specifies a blend factor.
+    ///
+    /// @see DepthStencilState
     enum class BlendFactor {
         Zero = 0,
         One = 1,
@@ -1538,36 +1092,26 @@ namespace LiteFX::Rendering {
         OneMinusSource1Alpha = 18
     };
 
-    /// <summary>
-    /// Specifies a write mask for a color buffer.
-    /// </summary>
-    /// <seealso cref="RenderTargetType" />
+    /// @brief Specifies a write mask for a color buffer.
+    ///
+    /// @see RenderTargetType
     enum class WriteMask {
-        /// <summary>
-        /// Write into the red channel.
-        /// </summary>
+        /// @brief Write into the red channel.
         R = 0x01,
 
-        /// <summary>
-        /// Write into the green channel.
-        /// </summary>
+        /// @brief Write into the green channel.
         G = 0x02,
 
-        /// <summary>
-        /// Write into the blue channel.
-        /// </summary>
+        /// @brief Write into the blue channel.
         B = 0x04,
 
-        /// <summary>
-        /// Write into the alpha channel.
-        /// </summary>
+        /// @brief Write into the alpha channel.
         A = 0x08
     };
 
-    /// <summary>
-    /// Specifies a blend operation.
-    /// </summary>
-    /// <seealso cref="DepthStencilState" />
+    /// @brief Specifies a blend operation.
+    ///
+    /// @see DepthStencilState
     enum class BlendOperation {
         Add = 0x01,
         Subtract = 0x02,
@@ -1576,528 +1120,357 @@ namespace LiteFX::Rendering {
         Maximum = 0x05
     };
 
-    /// <summary>
-    /// Defines pipeline stages as points where synchronization may occur.
-    /// </summary>
-    /// <seealso cref="IBarrier" />
-    /// <seealso cref="ResourceAccess" />
-    /// <seealso cref="ImageLayout" />
+    /// @brief Defines pipeline stages as points where synchronization may occur.
+    ///
+    /// @see IBarrier
+    /// @see ResourceAccess
+    /// @see ImageLayout
     enum class PipelineStage {
-        /// <summary>
-        /// Represents no-blocking behavior.
-        /// </summary>
-        /// <remarks>
+        /// @brief Represents no-blocking behavior.
+        ///
         /// Translates to `VK_PIPELINE_STAGE_NONE` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_NONE` in DirectX 12 ❎.
-        /// 
+        ///
         /// This stage flag is special, as it cannot be combined with other stage flags.
-        /// </remarks>
         None = 0x00000000,
 
-        /// <summary>
-        /// Waits for all previous commands to be finished, or blocks all following commands until the barrier is executed.
-        /// </summary>
-        /// <remarks>
+        /// @brief Waits for all previous commands to be finished, or blocks all following commands until the barrier is executed.
+        ///
         /// Translates to `VK_PIPELINE_STAGE_ALL_COMMANDS_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_ALL` in DirectX 12 ❎.
-        /// 
+        ///
         /// This stage flag is special, as it cannot be combined with other stage flags.
-        /// </remarks>
         All = 0x00000001,
 
-        /// <summary>
-        /// Waits for previous commands to finish all graphics stages, or blocks following commands until the graphics stages has finished.
-        /// </summary>
-        /// <remarks>
+        /// @brief Waits for previous commands to finish all graphics stages, or blocks following commands until the graphics stages has finished.
+        ///
         /// Translates to `VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_DRAW` in DirectX 12 ❎.
-        /// 
+        ///
         /// This stage flag is special, as it cannot be combined with other stage flags.
-        /// </remarks>
         Draw = 0x00000002,
 
-        /// <summary>
-        /// Waits for previous commands to finish the input assembly stage, or blocks following commands until the input assembly stage has finished.
-        /// </summary>
-        /// <remarks>
+        /// @brief Waits for previous commands to finish the input assembly stage, or blocks following commands until the input assembly stage has finished.
+        ///
         /// Translates to `VK_PIPELINE_STAGE_VERTEX_INPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_INDEX_INPUT` in DirectX 12 ❎.
-        /// </remarks>
         InputAssembly = 0x00000004,
 
-        /// <summary>
-        /// Waits for previous commands to finish the vertex shader stage, or blocks following commands until the vertex shader stage has finished.
-        /// </summary>
-        /// <remarks>
+        /// @brief Waits for previous commands to finish the vertex shader stage, or blocks following commands until the vertex shader stage has finished.
+        ///
         /// Translates to `VK_PIPELINE_STAGE_VERTEX_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
-        /// </remarks>
         Vertex = 0x00000006,
 
-        /// <summary>
-        /// Waits for previous commands to finish the tessellation control/hull shader stage, or blocks following commands until the tessellation control/hull shader stage has finished.
-        /// </summary>
-        /// <remarks>
+        /// @brief Waits for previous commands to finish the tessellation control/hull shader stage, or blocks following commands until the tessellation control/hull shader stage has finished.
+        ///
         /// Translates to `VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
-        /// </remarks>
         TessellationControl = 0x00000008,
 
-        /// <summary>
-        /// Waits for previous commands to finish the tessellation evaluation/domain shader stage, or blocks following commands until the tessellation evaluation/domain shader stage has finished.
-        /// </summary>
-        /// <remarks>
+        /// @brief Waits for previous commands to finish the tessellation evaluation/domain shader stage, or blocks following commands until the tessellation evaluation/domain shader stage has finished.
+        ///
         /// Translates to `VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
-        /// </remarks>
         TessellationEvaluation = 0x00000010,
 
-        /// <summary>
-        /// Waits for previous commands to finish the geometry shader stage, or blocks following commands until the geometry shader stage has finished.
-        /// </summary>
-        /// <remarks>
+        /// @brief Waits for previous commands to finish the geometry shader stage, or blocks following commands until the geometry shader stage has finished.
+        ///
         /// Translates to `VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
-        /// </remarks>
         Geometry = 0x00000020,
 
-        /// <summary>
-        /// Waits for previous commands to finish the fragment/pixel shader stage, or blocks following commands until the fragment/pixel shader stage has finished.
-        /// </summary>
-        /// <remarks>
+        /// @brief Waits for previous commands to finish the fragment/pixel shader stage, or blocks following commands until the fragment/pixel shader stage has finished.
+        ///
         /// Translates to `VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_PIXEL_SHADING` in DirectX 12 ❎.
-        /// </remarks>
         Fragment = 0x00000040,
 
-        /// <summary>
-        /// Waits for previous commands to finish the depth/stencil stage, or blocks following commands until the depth/stencil stage has finished.
-        /// </summary>
-        /// <remarks>
+        /// @brief Waits for previous commands to finish the depth/stencil stage, or blocks following commands until the depth/stencil stage has finished.
+        ///
         /// Translates to `VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_DEPTH_STENCIL` in DirectX 12 ❎.
-        /// </remarks>
         DepthStencil = 0x00000080,
 
-        /// <summary>
-        /// Waits for previous commands to finish the draw indirect stage, or blocks following commands until the draw indirect stage has finished.
-        /// </summary>
-        /// <remarks>
+        /// @brief Waits for previous commands to finish the draw indirect stage, or blocks following commands until the draw indirect stage has finished.
+        ///
         /// Translates to `VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_EXECUTE_INDIRECT` in DirectX 12 ❎.
-        /// </remarks>
         Indirect = 0x00000100,
 
-        /// <summary>
-        /// Waits for previous commands to finish the output merger stage, or blocks following commands until the output merger stage has finished.
-        /// </summary>
-        /// <remarks>
+        /// @brief Waits for previous commands to finish the output merger stage, or blocks following commands until the output merger stage has finished.
+        ///
         /// Translates to `VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_RENDER_TARGET` in DirectX 12 ❎.
-        /// </remarks>
         RenderTarget = 0x00000200,
 
-        /// <summary>
-        /// Waits for previous commands to finish the compute shader stage, or blocks following commands until the compute shader stage has finished.
-        /// </summary>
-        /// <remarks>
+        /// @brief Waits for previous commands to finish the compute shader stage, or blocks following commands until the compute shader stage has finished.
+        ///
         /// Translates to `VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_COMPUTE_SHADING` in DirectX 12 ❎.
-        /// 
+        ///
         /// This stage flag is special, as it cannot be combined with other stage flags.
-        /// </remarks>
         Compute = 0x00000400,
 
-        /// <summary>
-        /// Waits for previous commands to finish the transfer stage, or blocks following commands until the transfer stage has finished.
-        /// </summary>
-        /// <remarks>
+        /// @brief Waits for previous commands to finish the transfer stage, or blocks following commands until the transfer stage has finished.
+        ///
         /// Translates to `VK_PIPELINE_STAGE_TRANSFER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_COPY` in DirectX 12 ❎.
-        /// </remarks>
         Transfer = 0x00000800,
 
-        /// <summary>
-        /// Waits for previous commands to finish the multi-sampling resolution stage, or blocks following commands until the multi-sampling resolution stage has finished.
-        /// </summary>
-        /// <remarks>
+        /// @brief Waits for previous commands to finish the multi-sampling resolution stage, or blocks following commands until the multi-sampling resolution stage has finished.
+        ///
         /// Translates to `VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_RESOLVE` in DirectX 12 ❎.
-        /// </remarks>
         Resolve = 0x00001000,
 
-        /// <summary>
-        /// Waits for previous commands to finish the building stage for an acceleration structure, or blocks the following commands until the building has finished.
-        /// </summary>
-        /// <remarks>
-        /// This flag is only supported, if ray-tracing support is enabled. It translates to `VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE` in DirectX 12 ❎.
-        /// </remarks>
-        /// <seealso cref="IAccelerationStructure" />
+        /// @brief Waits for previous commands to finish the building stage for an acceleration structure, or blocks the following commands until the building has finished.
+        ///
+        /// This flag is only supported, if ray-tracing support is enabled. It translates to `VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR` in Vulkan 🌋 and
+        /// `D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE` in DirectX 12 ❎.
+        ///
+        /// @see IAccelerationStructure
         AccelerationStructureBuild = 0x00010000,
 
-        /// <summary>
-        /// Waits for previous commands to finish the copying stage for an acceleration structure, or blocks the following commands until the copying has finished.
-        /// </summary>
-        /// <remarks>
-        /// This flag is only supported, if ray-tracing support is enabled. It translates to `VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_COPY_RAYTRACING_ACCELERATION_STRUCTURE` in DirectX 12 ❎.
-        /// </remarks>
-        /// <seealso cref="IAccelerationStructure" />
+        /// @brief Waits for previous commands to finish the copying stage for an acceleration structure, or blocks the following commands until the copying has finished.
+        ///
+        /// This flag is only supported, if ray-tracing support is enabled. It translates to `VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR` in Vulkan 🌋 and
+        /// `D3D12_BARRIER_SYNC_COPY_RAYTRACING_ACCELERATION_STRUCTURE` in DirectX 12 ❎.
+        ///
+        /// @see IAccelerationStructure
         AccelerationStructureCopy = 0x00020000,
 
-        /// <summary>
-        /// Waits for the previous commands to finish ray-tracing shader stages, or blocks the following commands until ray-tracing has finished.
-        /// </summary>
-        /// <remarks>
+        /// @brief Waits for the previous commands to finish ray-tracing shader stages, or blocks the following commands until ray-tracing has finished.
+        ///
         /// This flag is only supported if ray-tracing support is enabled. It translates to `VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_RAYTRACING` in DirectX 12 ❎.
-        /// </remarks>
         Raytracing = 0x00040000,
     };
 
-    /// <summary>
-    /// Defines how a <see cref="IBuffer" /> or <see cref="IImage" /> resource is accessed.
-    /// </summary>
-    /// <seealso cref="IBarrier" />
-    /// <seealso cref="IImage" />
-    /// <seealso cref="IBuffer" />
-    /// <seealso cref="PipelineStage" />
-    /// <seealso cref="ImageLayout" />
+    /// @brief Defines how a @ref IBuffer or @ref IImage resource is accessed.
+    ///
+    /// @see IBarrier
+    /// @see IImage
+    /// @see IBuffer
+    /// @see PipelineStage
+    /// @see ImageLayout
     enum class ResourceAccess {
-        /// <summary>
-        /// Indicates that a resource is not accessed.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that a resource is not accessed.
+        ///
         /// This access mode translates to `D3D12_BARRIER_ACCESS_NO_ACCESS` in the DirectX 12 ❎ backend and `VK_ACCESS_NONE` in the Vulkan 🌋 backend.
-        /// 
+        ///
         /// This access flag is special, as it cannot be combined with other access flags.
-        /// </remarks>
         None = 0x7FFFFFFF,
 
-        /// <summary>
-        /// Indicates that a resource is accessed as a vertex buffer.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that a resource is accessed as a vertex buffer.
+        ///
         /// This access mode translates to `D3D12_BARRIER_ACCESS_VERTEX_BUFFER` in the DirectX 12 ❎ backend and `VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT` in the Vulkan 🌋 backend.
-        /// </remarks>
         VertexBuffer = 0x00000001,
 
-        /// <summary>
-        /// Indicates that a resource is accessed as an index buffer.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that a resource is accessed as an index buffer.
+        ///
         /// This access mode translates to `D3D12_BARRIER_ACCESS_INDEX_BUFFER` in the DirectX 12 ❎ backend and `VK_ACCESS_INDEX_READ_BIT` in the Vulkan 🌋 backend.
-        /// </remarks>
         IndexBuffer = 0x00000002,
 
-        /// <summary>
-        /// Indicates that a resource is accessed as an uniform/constant buffer.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that a resource is accessed as an uniform/constant buffer.
+        ///
         /// This access mode translates to `D3D12_BARRIER_ACCESS_CONSTANT_BUFFER` in the DirectX 12 ❎ backend and `VK_ACCESS_UNIFORM_READ_BIT` in the Vulkan 🌋 backend.
-        /// </remarks>
         UniformBuffer = 0x00000004,
 
-        /// <summary>
-        /// Indicates that a resource is accessed as a render target.
-        /// </summary>
-        /// <remarks>
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_RENDER_TARGET` in the DirectX 12 ❎ backend and `VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT` in the Vulkan 🌋 backend.
-        /// </remarks>
+        /// @brief Indicates that a resource is accessed as a render target.
+        ///
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_RENDER_TARGET` in the DirectX 12 ❎ backend and `VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT` in the Vulkan 🌋
+        /// backend.
         RenderTarget = 0x00000008,
 
-        /// <summary>
-        /// Indicates that a resource is accessed as to read depth/stencil values.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that a resource is accessed as to read depth/stencil values.
+        ///
         /// This access mode translates to `D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ` in the DirectX 12 ❎ backend and `VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT` in the Vulkan 🌋 backend.
-        /// </remarks>
         DepthStencilRead = 0x00000010,
 
-        /// <summary>
-        /// Indicates that a resource is accessed as to write depth/stencil values.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that a resource is accessed as to write depth/stencil values.
+        ///
         /// This access mode translates to `D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE` in the DirectX 12 ❎ backend and `VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT` in the Vulkan 🌋 backend.
-        /// </remarks>
         DepthStencilWrite = 0x00000020,
 
-        /// <summary>
-        /// Indicates that a resource is accessed as a read-only shader resource.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that a resource is accessed as a read-only shader resource.
+        ///
         /// This access mode translates to `D3D12_BARRIER_ACCESS_SHADER_RESOURCE` in the DirectX 12 ❎ backend and `VK_ACCESS_SHADER_READ_BIT` in the Vulkan 🌋 backend.
-        /// </remarks>
         ShaderRead = 0x00000040,
 
-        /// <summary>
-        /// Indicates that a resource is accessed as a read-write shader resource.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that a resource is accessed as a read-write shader resource.
+        ///
         /// This access mode translates to `D3D12_BARRIER_ACCESS_UNORDERED_ACCESS` in the DirectX 12 ❎ backend and `VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT` in the Vulkan 🌋 backend.
-        /// </remarks>
         ShaderReadWrite = 0x00000080,
 
-        /// <summary>
-        /// Indicates that a resource is accessed as to read indirect draw commands.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that a resource is accessed as to read indirect draw commands.
+        ///
         /// This access mode translates to `D3D12_BARRIER_ACCESS_INDIRECT_ARGUMENT` in the DirectX 12 ❎ backend and `VK_ACCESS_INDIRECT_COMMAND_READ_BIT` in the Vulkan 🌋 backend.
-        /// </remarks>
         Indirect = 0x00000100,
 
-        /// <summary>
-        /// Indicates that a resource is accessed as to read during a transfer operation.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that a resource is accessed as to read during a transfer operation.
+        ///
         /// This access mode translates to `D3D12_BARRIER_ACCESS_COPY_SOURCE` in the DirectX 12 ❎ backend and `VK_ACCESS_TRANSFER_READ_BIT` in the Vulkan 🌋 backend.
-        /// </remarks>
         TransferRead = 0x00000200,
 
-        /// <summary>
-        /// Indicates that a resource is accessed as to write during a transfer operation.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that a resource is accessed as to write during a transfer operation.
+        ///
         /// This access mode translates to `D3D12_BARRIER_ACCESS_COPY_DEST` in the DirectX 12 ❎ backend and `VK_ACCESS_TRANSFER_WRITE_BIT` in the Vulkan 🌋 backend.
-        /// </remarks>
         TransferWrite = 0x00000400,
 
-        /// <summary>
-        /// Indicates that a resource is accessed as to read during a resolve operation.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that a resource is accessed as to read during a resolve operation.
+        ///
         /// This access mode translates to `D3D12_BARRIER_ACCESS_RESOLVE_SOURCE` in the DirectX 12 ❎ backend and `VK_ACCESS_MEMORY_READ_BIT` in the Vulkan 🌋 backend.
-        /// </remarks>
         ResolveRead = 0x00000800,
 
-        /// <summary>
-        /// Indicates that a resource is accessed as to write during a resolve operation.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that a resource is accessed as to write during a resolve operation.
+        ///
         /// This access mode translates to `D3D12_BARRIER_ACCESS_RESOLVE_DEST` in the DirectX 12 ❎ backend and `VK_ACCESS_MEMORY_WRITE_BIT` in the Vulkan 🌋 backend.
-        /// </remarks>
         ResolveWrite = 0x00001000,
         
-        /// <summary>
-        /// Indicates that a resource can be accessed in any way, compatible to the layout.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that a resource can be accessed in any way, compatible to the layout.
+        ///
         /// Note that you have to ensure that you do not access the resource in an incompatible way manually.
-        /// 
+        ///
         /// This access mode translates to `D3D12_BARRIER_ACCESS_COMMON` in the DirectX 12 ❎ backend and `VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT` in the Vulkan 🌋 backend.
-        /// </remarks>
         Common = 0x00002000,
 
-        /// <summary>
-        /// Indicates that a resources is accessed to read an acceleration structure.
-        /// </summary>
-        /// <remarks>
-        /// This access mode flags is only supported if ray-tracing support is enabled. It translates `D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ` in the DirectX 12 ❎ backend and `VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR` in the Vulkan 🌋 backend.
-        /// </remarks>
+        /// @brief Indicates that a resources is accessed to read an acceleration structure.
+        ///
+        /// This access mode flags is only supported if ray-tracing support is enabled. It translates `D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ` in the DirectX 12 ❎ backend and
+        /// `VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR` in the Vulkan 🌋 backend.
         AccelerationStructureRead = 0x00010000,
 
-        /// <summary>
-        /// Indicates that a resources is accessed to write an acceleration structure.
-        /// </summary>
-        /// <remarks>
-        /// This access mode flags is only supported if ray-tracing support is enabled. It translates `D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE` in the DirectX 12 ❎ backend and `VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR` in the Vulkan 🌋 backend.
-        /// </remarks>
+        /// @brief Indicates that a resources is accessed to write an acceleration structure.
+        ///
+        /// This access mode flags is only supported if ray-tracing support is enabled. It translates `D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE` in the DirectX 12 ❎ backend and
+        /// `VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR` in the Vulkan 🌋 backend.
         AccelerationStructureWrite = 0x00020000,
     };
 
-    /// <summary>
-    /// Specifies the layout of an <see cref="IImage" /> resource.
-    /// </summary>
-    /// <seealso cref="IImage" />
-    /// <seealso cref="IBarrier" />
-    /// <seealso cref="ResourceAccess" />
-    /// <seealso cref="PipelineStage" />
+    /// @brief Specifies the layout of an @ref IImage resource.
+    ///
+    /// @see IImage
+    /// @see IBarrier
+    /// @see ResourceAccess
+    /// @see PipelineStage
     enum class ImageLayout {
-        /// <summary>
-        /// A common image layout that allows for all types of access (shader resource, transfer destination, transfer source).
-        /// </summary>
-        /// <remarks>
+        /// @brief A common image layout that allows for all types of access (shader resource, transfer destination, transfer source).
+        ///
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_COMMON` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_GENERAL` in the Vulkan 🌋 backend.
-        /// </remarks>
         Common = 0x00000001,
 
-        /// <summary>
-        /// Indicates that the image is used as a read-only storage or texel buffer.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that the image is used as a read-only storage or texel buffer.
+        ///
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_SHADER_RESOURCE` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL` in the Vulkan 🌋 backend.
-        /// </remarks>
         ShaderResource = 0x00000002,
 
-        /// <summary>
-        /// Indicates that the image is used as a read-write storage or texel buffer.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that the image is used as a read-write storage or texel buffer.
+        ///
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_UNORDERED_ACCESS` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_GENERAL` in the Vulkan 🌋 backend.
-        /// </remarks>
         ReadWrite = 0x00000003,
 
-        /// <summary>
-        /// Allows the image to be used as a source for transfer operations.
-        /// </summary>
-        /// <remarks>
+        /// @brief Allows the image to be used as a source for transfer operations.
+        ///
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_COPY_SOURCE` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL` in the Vulkan 🌋 backend.
-        /// </remarks>
         CopySource = 0x00000010,
 
-        /// <summary>
-        /// Allows the image to be used as a destination for transfer operations.
-        /// </summary>
-        /// <remarks>
+        /// @brief Allows the image to be used as a destination for transfer operations.
+        ///
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_COPY_DEST` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL` in the Vulkan 🌋 backend.
-        /// </remarks>
         CopyDestination = 0x00000011,
 
-        /// <summary>
-        /// Indicates that the image is used as a render target.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that the image is used as a render target.
+        ///
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_RENDER_TARGET` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` in the Vulkan 🌋 backend.
-        /// </remarks>
         RenderTarget = 0x00000020,
 
-        /// <summary>
-        /// Indicates that image is used as a read-only depth/stencil target.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that image is used as a read-only depth/stencil target.
+        ///
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL` in the Vulkan 🌋 backend.
-        /// </remarks>
         DepthRead = 0x00000021,
 
-        /// <summary>
-        /// Indicates that the image is used as a write-only depth/stencil target.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that the image is used as a write-only depth/stencil target.
+        ///
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL` in the Vulkan 🌋 backend.
-        /// </remarks>
         DepthWrite = 0x00000022,
 
-        /// <summary>
-        /// Indicates that the image is presented on a swap chain.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that the image is presented on a swap chain.
+        ///
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_PRESENT` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR` in the Vulkan 🌋 backend.
-        /// 
-        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="RenderPass" />es.
-        /// </remarks>
+        ///
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by @ref RenderPasses.
         Present = 0x00000023,
 
-        /// <summary>
-        /// Indicates that the image is resolved from a multi-sampled image.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that the image is resolved from a multi-sampled image.
+        ///
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_RESOLVE_SOURCE` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` in the Vulkan 🌋 backend.
-        /// </remarks>
         ResolveSource = 0x00000024,
 
-        /// <summary>
-        /// Indicates that the image is a render-target that a multi-sampled image is resolved into.
-        /// </summary>
-        /// <remarks>
+        /// @brief Indicates that the image is a render-target that a multi-sampled image is resolved into.
+        ///
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_RESOLVE_DEST` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` in the Vulkan 🌋 backend.
-        /// </remarks>
         ResolveDestination = 0x00000025,
 
-        /// <summary>
-        /// The layout of the image is not known by the engine.
-        /// </summary>
-        /// <remarks>
+        /// @brief The layout of the image is not known by the engine.
+        ///
         /// Indicates that an image's layout is not known, which typically happens after creating image resources. It is not valid to transition any resource into this state.
-        /// 
+        ///
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_UNDEFINED` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_UNDEFINED` in the Vulkan 🌋 backend.
-        /// 
+        ///
         /// When using this layout as a source layout, the contents of the image may be discarded.
-        /// </remarks>
         Undefined = 0x7FFFFFFF
     };
 
-    /// <summary>
-    /// Controls how a geometry that is part of a bottom-level acceleration structure (BLAS) behaves during ray-tracing.
-    /// </summary>
-    /// <seealso cref="IBottomLevelAccelerationStructure" />
+    /// @brief Controls how a geometry that is part of a bottom-level acceleration structure (BLAS) behaves during ray-tracing.
+    ///
+    /// @see IBottomLevelAccelerationStructure
     enum class GeometryFlags {
-        /// <summary>
-        /// Implies no restrictions on the geometry.
-        /// </summary>
+        /// @brief Implies no restrictions on the geometry.
         None = 0x00,
 
-        /// <summary>
-        /// If this flag is set, the any-hit shader for this geometry is never invoked, even if it is present within the hit group.
-        /// </summary>
+        /// @brief If this flag is set, the any-hit shader for this geometry is never invoked, even if it is present within the hit group.
         Opaque = 0x01,
 
-        /// <summary>
-        /// If this flag is set, the any-hit shader for this geometry is only invoked once for each primitive of the geometry, even if it could be invoked multiple times during ray tracing.
-        /// </summary>
+        /// @brief If this flag is set, the any-hit shader for this geometry is only invoked once for each primitive of the geometry, even if it could be invoked multiple times during ray tracing.
         OneShotAnyHit = 0x02
     };
 
-    /// <summary>
-    /// Controls how an acceleration structure should be built.
-    /// </summary>
-    /// <seealso cref="IBottomLevelAccelerationStructure" />
-    /// <seealso cref="ITopLevelAccelerationStructure" />
+    /// @brief Controls how an acceleration structure should be built.
+    ///
+    /// @see IBottomLevelAccelerationStructure
+    /// @see ITopLevelAccelerationStructure
     enum class AccelerationStructureFlags {
-        /// <summary>
-        /// Use default options for building the acceleration structure.
-        /// </summary>
+        /// @brief Use default options for building the acceleration structure.
         None = 0x0000,
 
-        /// <summary>
-        /// Allow the acceleration structure to be updated.
-        /// </summary>
+        /// @brief Allow the acceleration structure to be updated.
         AllowUpdate = 0x0001,
 
-        /// <summary>
-        /// Allow the acceleration structure to be compacted.
-        /// </summary>
+        /// @brief Allow the acceleration structure to be compacted.
         AllowCompaction = 0x0002,
 
-        /// <summary>
-        /// Prefer building a better performing acceleration structure, that possibly takes longer to build.
-        /// </summary>
-        /// <remarks>
-        /// This flag cannot be combined with <see cref="PreferFastBuild" />.
-        /// </remarks>
+        /// @brief Prefer building a better performing acceleration structure, that possibly takes longer to build.
+        ///
+        /// This flag cannot be combined with @ref PreferFastBuild.
         PreferFastTrace = 0x0004,
 
-        /// <summary>
-        /// Prefer fast build times for the acceleration structure, but sacrifice ray-tracing performance.
-        /// </summary>
-        /// <remarks>
-        /// This flag cannot be combined with <see cref="PreferFastTrace" />.
-        /// </remarks>
+        /// @brief Prefer fast build times for the acceleration structure, but sacrifice ray-tracing performance.
+        ///
+        /// This flag cannot be combined with @ref PreferFastTrace.
         PreferFastBuild = 0x0008,
 
-        /// <summary>
-        /// Prefer to minimize the memory footprint of the acceleration structure, but at the cost of ray-tracing performance and build times.
-        /// </summary>
+        /// @brief Prefer to minimize the memory footprint of the acceleration structure, but at the cost of ray-tracing performance and build times.
         MinimizeMemory = 0x0010
     };
 
-    /// <summary>
-    /// Controls how an instance within a <see cref="ITopLevelAccelerationStructure" /> behaves during ray-tracing.
-    /// </summary>
+    /// @brief Controls how an instance within a @ref ITopLevelAccelerationStructure behaves during ray-tracing.
     enum class InstanceFlags {
-        /// <summary>
-        /// The instance uses default behavior.
-        /// </summary>
+        /// @brief The instance uses default behavior.
         None = 0x00,
 
-        /// <summary>
-        /// If this flag is set front- and backface culling is disabled for the instance.
-        /// </summary>
+        /// @brief If this flag is set front- and backface culling is disabled for the instance.
         DisableCull = 0x01,
 
-        /// <summary>
-        /// If this flag is set, front- and backfaces flip their default cull order.
-        /// </summary>
+        /// @brief If this flag is set, front- and backfaces flip their default cull order.
         FlipWinding = 0x02,
 
-        /// <summary>
-        /// If this flag is set, no geometry of the instance invokes the any-hit shader. This overwrites per-geometry flags.
-        /// </summary>
-        /// <remarks>
-        /// This flag must not be set in combination with <see cref="ForceNonOpaque" />.
-        /// </remarks>
-        /// <seealso cref="GeometryFlags::Opaque" />
+        /// @brief If this flag is set, no geometry of the instance invokes the any-hit shader. This overwrites per-geometry flags.
+        ///
+        /// This flag must not be set in combination with @ref ForceNonOpaque.
+        ///
+        /// @see GeometryFlags::Opaque
         ForceOpaque = 0x04,
 
-        /// <summary>
-        /// If this flag is set, each geometry of the instance will ignore the <see cref="GeometryFlags::Opaque" /> setting.
-        /// </summary>
-        /// <remarks>
-        /// This flag must not be set in combination with <see cref="ForceOpaque" />.
-        /// </remarks>
-        /// <seealso cref="GeometryFlags::Opaque" />
+        /// @brief If this flag is set, each geometry of the instance will ignore the @ref GeometryFlags::Opaque setting.
+        ///
+        /// This flag must not be set in combination with @ref ForceOpaque.
+        ///
+        /// @see GeometryFlags::Opaque
         ForceNonOpaque = 0x08
     };
 
@@ -2124,33 +1497,28 @@ namespace LiteFX::Rendering {
 
 #pragma region "Helper Functions"
 
-    /// <summary>
-    /// Returns the number of channels for a buffer format.
-    /// </summary>
-    /// <seealso cref="BufferFormat" />
+    /// @brief Returns the number of channels for a buffer format.
+    ///
+    /// @see BufferFormat
     constexpr UInt32 getBufferFormatChannels(BufferFormat format) {
         return static_cast<UInt32>(format) & 0x000000FF; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     }
 
-    /// <summary>
-    /// Returns the number of bytes used by a channel of a buffer format.
-    /// </summary>
-    /// <seealso cref="BufferFormat" />
+    /// @brief Returns the number of bytes used by a channel of a buffer format.
+    ///
+    /// @see BufferFormat
     constexpr UInt32 getBufferFormatChannelSize(BufferFormat format) {
         return (static_cast<UInt32>(format) & 0xFF000000) >> 24; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     }
 
-    /// <summary>
-    /// Returns the underlying data type of a buffer format.
-    /// </summary>
-    /// <seealso cref="BufferFormat" />
+    /// @brief Returns the underlying data type of a buffer format.
+    ///
+    /// @see BufferFormat
     constexpr UInt32 getBufferFormatType(BufferFormat format) {
         return (static_cast<UInt32>(format) & 0x0000FF00) >> 8; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     }
 
-    /// <summary>
-    /// Returns the size of an element of a specified format.
-    /// </summary>
+    /// @brief Returns the size of an element of a specified format.
     constexpr size_t getSize(Format format) {
         switch (format) {
             using enum Format;
@@ -2317,10 +1685,9 @@ namespace LiteFX::Rendering {
         }
     }
 
-    /// <summary>
-    /// Returns <c>true</c>, if the format contains a depth channel.
-    /// </summary>
-    /// <seealso cref="DepthStencilState" />
+    /// @brief Returns `true`, if the format contains a depth channel.
+    ///
+    /// @see DepthStencilState
     constexpr bool hasDepth(Format format) noexcept {
         constexpr std::array<Format, 6> depthFormats {
             Format::D16_UNORM,
@@ -2334,10 +1701,9 @@ namespace LiteFX::Rendering {
         return std::any_of(std::begin(depthFormats), std::end(depthFormats), [&](Format f) { return f == format; });
     }
 
-    /// <summary>
-    /// Returns <c>true</c>, if the format contains a stencil channel.
-    /// </summary>
-    /// <seealso cref="DepthStencilState" />
+    /// @brief Returns `true`, if the format contains a stencil channel.
+    ///
+    /// @see DepthStencilState
     constexpr bool hasStencil(Format format) noexcept {
         constexpr std::array<Format, 4> stencilFormats {
             Format::D16_UNORM_S8_UINT,
@@ -2353,230 +1719,169 @@ namespace LiteFX::Rendering {
 
 #pragma region "Data Types"
 
-    /// <summary>
-    /// An indirect batch used to execute an standard draw call.
-    /// </summary>
-    /// <seealso cref="IndirectDispatchBatch" />
-    /// <seealso cref="IndirectIndexedBatch" />
+    /// @brief An indirect batch used to execute an standard draw call.
+    ///
+    /// @see IndirectDispatchBatch
+    /// @see IndirectIndexedBatch
     struct LITEFX_RENDERING_API alignas(16) IndirectBatch { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-        /// <summary>
-        /// The number of vertices of the mesh.
-        /// </summary>
-        /// <seealso cref="FirstVertex" />
+        /// @brief The number of vertices of the mesh.
+        ///
+        /// @see FirstVertex
         UInt32 VertexCount{ };
 
-        /// <summary>
-        /// The number of instances to draw of this mesh.
-        /// </summary>
-        /// <seealso cref="FirstInstance" />
+        /// @brief The number of instances to draw of this mesh.
+        ///
+        /// @see FirstInstance
         UInt32 InstanceCount{ };
 
-        /// <summary>
-        /// The index of the first vertex of the mesh in the vertex buffer.
-        /// </summary>
-        /// <seealso cref="VertexCount" />
+        /// @brief The index of the first vertex of the mesh in the vertex buffer.
+        ///
+        /// @see VertexCount
         UInt32 FirstVertex{ };
 
-        /// <summary>
-        /// The index of the first index to draw. This value is added to each instance index before obtaining per-instance data from the vertex buffer.
-        /// </summary>
-        /// <seealso cref="InstanceCount" />
+        /// @brief The index of the first index to draw. This value is added to each instance index before obtaining per-instance data from the vertex buffer.
+        ///
+        /// @see InstanceCount
         UInt32 FirstInstance{ };
     };
 
 #pragma warning(push)
 #pragma warning(disable: 4324) // Structure was padded due to alignment specifier
-    /// <summary>
-    /// An indirect batch used to execute an indexed draw call.
-    /// </summary>
-    /// <seealso cref="IndirectDispatchBatch" />
-    /// <seealso cref="IndirectBatch" />
+    /// @brief An indirect batch used to execute an indexed draw call.
+    ///
+    /// @see IndirectDispatchBatch
+    /// @see IndirectBatch
     struct LITEFX_RENDERING_API alignas(16) IndirectIndexedBatch { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-        /// <summary>
-        /// The number of indices in the mesh index buffer.
-        /// </summary>
-        /// <seealso cref="FirstIndex" />
+        /// @brief The number of indices in the mesh index buffer.
+        ///
+        /// @see FirstIndex
         UInt32 IndexCount{ };
 
-        /// <summary>
-        /// The number of instances to draw of this mesh.
-        /// </summary>
-        /// <seealso cref="FirstInstance" />
+        /// @brief The number of instances to draw of this mesh.
+        ///
+        /// @see FirstInstance
         UInt32 InstanceCount{ };
 
-        /// <summary>
-        /// The first index in the index buffer used to draw the mesh.
-        /// </summary>
-        /// <seealso cref="IndexCount" />
+        /// @brief The first index in the index buffer used to draw the mesh.
+        ///
+        /// @see IndexCount
         UInt32 FirstIndex{ };
 
-        /// <summary>
-        /// An offset added to each index to obtain a vertex.
-        /// </summary>
+        /// @brief An offset added to each index to obtain a vertex.
         Int32 VertexOffset{ };
 
-        /// <summary>
-        /// The index of the first index to draw. This value is added to each instance index before obtaining per-instance data from the vertex buffer.
-        /// </summary>
-        /// <seealso cref="InstanceCount" />
+        /// @brief The index of the first index to draw. This value is added to each instance index before obtaining per-instance data from the vertex buffer.
+        ///
+        /// @see InstanceCount
         UInt32 FirstInstance{ };
     };
 
-    /// <summary>
-    /// An indirect batch used to dispatch a compute shader kernel.
-    /// </summary>
-    /// <seealso cref="IndirectIndexedBatch" />
-    /// <seealso cref="IndirectBatch" />
+    /// @brief An indirect batch used to dispatch a compute shader kernel.
+    ///
+    /// @see IndirectIndexedBatch
+    /// @see IndirectBatch
     struct LITEFX_RENDERING_API alignas(16) IndirectDispatchBatch { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-        /// <summary>
-        /// The number of threads into x-direction.
-        /// </summary>
+        /// @brief The number of threads into x-direction.
         UInt32 X{ 1 };
 
-        /// <summary>
-        /// The number of threads into y-direction.
-        /// </summary>
+        /// @brief The number of threads into y-direction.
         UInt32 Y{ 1 };
 
-        /// <summary>
-        /// The number of threads into z-direction.
-        /// </summary>
+        /// @brief The number of threads into z-direction.
         UInt32 Z{ 1 };
     };
 #pragma warning(pop)
 
-    /// <summary>
-    /// Contains the parameters for a resource allocation.
-    /// </summary>
-    /// <seealso cref="IGraphicsFactory" />
-    /// <seealso cref="ResourceAllocationResult" />
+    /// @brief Contains the parameters for a resource allocation.
+    ///
+    /// @see IGraphicsFactory
+    /// @see ResourceAllocationResult
     struct LITEFX_RENDERING_API ResourceAllocationInfo final {
     public:
-        /// <summary>
-        /// Stores information about a buffer resource allocation.
-        /// </summary>
+        /// @brief Stores information about a buffer resource allocation.
         struct BufferInfo 
         {
-            /// <summary>
-            /// Stores the buffer type.
-            /// </summary>
+            /// @brief Stores the buffer type.
             BufferType Type{ BufferType::Uniform };
 
-            /// <summary>
-            /// Stores the size of a single element within the buffer.
-            /// </summary>
+            /// @brief Stores the size of a single element within the buffer.
             size_t ElementSize{ 0u };
 
-            /// <summary>
-            /// Stores the number of elements in the buffer.
-            /// </summary>
+            /// @brief Stores the number of elements in the buffer.
             UInt32 Elements{ 1u };
             
-            /// <summary>
-            /// Stores the resource heap on which to allocate the resource.
-            /// </summary>
+            /// @brief Stores the resource heap on which to allocate the resource.
             ResourceHeap Heap{ ResourceHeap::Dynamic };
 
-            /// <summary>
-            /// The layout of a vertex buffer.
-            /// </summary>
-            /// <remarks>
-            /// If <see cref="Type" /> is <see cref="BufferType::Vertex" />, setting this property creates a <see cref="IVertexBuffer" />, otherwise a usual 
-            /// <see cref="IBuffer" /> is created. If <see cref="Type" /> is not <see cref="BufferType::Vertex" />, this property is ignored.
-            /// </remarks>
+            /// @brief The layout of a vertex buffer.
+            ///
+            /// If @ref Type is @ref BufferType::Vertex, setting this property creates a @ref IVertexBuffer, otherwise a usual @ref IBuffer is created. If @ref Type is not @ref BufferType::Vertex, this property is
+            /// ignored.
             SharedPtr<const IVertexBufferLayout> VertexBufferLayout{ nullptr };
 
-            /// <summary>
-            /// The layout of a index buffer.
-            /// </summary>
-            /// <remarks>
-            /// If <see cref="Type" /> is <see cref="BufferType::Index" />, setting this property creates a <see cref="IIndexBuffer" />, otherwise a usual 
-            /// <see cref="IBuffer" /> is created. If <see cref="Type" /> is not <see cref="BufferType::Index" />, this property is ignored.
-            /// </remarks>
+            /// @brief The layout of a index buffer.
+            ///
+            /// If @ref Type is @ref BufferType::Index, setting this property creates a @ref IIndexBuffer, otherwise a usual @ref IBuffer is created. If @ref Type is not @ref BufferType::Index, this property is
+            /// ignored.
             SharedPtr<const IIndexBufferLayout> IndexBufferLayout{ nullptr };
         };
 
-        /// <summary>
-        /// Stores information about an image resource allocation.
-        /// </summary>
+        /// @brief Stores information about an image resource allocation.
         struct ImageInfo 
         {
-            /// <summary>
-            /// Stores the desired format of the image.
-            /// </summary>
+            /// @brief Stores the desired format of the image.
             Format Format{ Format::R8G8B8A8_SRGB };
 
-            /// <summary>
-            /// Stores the dimensions of the image.
-            /// </summary>
+            /// @brief Stores the dimensions of the image.
             ImageDimensions Dimensions{ ImageDimensions::DIM_2 };
 
-            /// <summary>
-            /// Stores the size of the image.
-            /// </summary>
+            /// @brief Stores the size of the image.
             Size3d Size{ };
 
-            /// <summary>
-            /// Stores the number of mip-map levels in the image.
-            /// </summary>
+            /// @brief Stores the number of mip-map levels in the image.
             UInt32 Levels{ 1u };
 
-            /// <summary>
-            /// Stores the number of layers in the image.
-            /// </summary>
+            /// @brief Stores the number of layers in the image.
             UInt32 Layers{ 1u };
 
-            /// <summary>
-            /// Stores the number of multi-samples in the image.
-            /// </summary>
+            /// @brief Stores the number of multi-samples in the image.
             MultiSamplingLevel Samples{ MultiSamplingLevel::x1 };
         };
 
     public:
-        /// <summary>
-        /// Stores the buffer or image info associated with the allocation info.
-        /// </summary>
+        /// @brief Stores the buffer or image info associated with the allocation info.
         Variant<BufferInfo, ImageInfo> ResourceInfo{};
 
-        /// <summary>
-        /// Stores the resource usage flags for the allocation info.
-        /// </summary>
+        /// @brief Stores the resource usage flags for the allocation info.
         ResourceUsage Usage{ ResourceUsage::Default };
 
-        /// <summary>
-        /// Stores the desired name of the allocated resource.
-        /// </summary>
+        /// @brief Stores the desired name of the allocated resource.
         String Name{ };
 
-        /// <summary>
-        /// An optional offset that is used to place the resource in a block of allocated memory when allocating overlapping resources.
-        /// </summary>
-        /// <seealso cref="IGraphicsFactory::allocate" />
+        /// @brief An optional offset that is used to place the resource in a block of allocated memory when allocating overlapping resources.
+        ///
+        /// @see IGraphicsFactory::allocate
         size_t AliasingOffset{ 0u };
 
     public:
-        /// <summary>
-        /// Creates a new resource allocation info instance.
-        /// </summary>
+        /// @brief Creates a new resource allocation info instance.
         ResourceAllocationInfo() = default;
 
-        /// <summary>
-        /// Creates a new resource allocation info instance for a buffer resource.
-        /// </summary>
-        /// <param name="bufferInfo">The details about the buffer.</param>
-        /// <param name="usage">The usage flags for the buffer.</param>
-        /// <param name="name">The name of the buffer resource.</param>
-        /// <param name="aliasingOffset">An optional offset that is used to place the resource in a block of allocated memory when allocating overlapping resources.</param>
+        /// @brief Creates a new resource allocation info instance for a buffer resource.
+        ///
+        /// @param bufferInfo The details about the buffer.
+        /// @param usage The usage flags for the buffer.
+        /// @param name The name of the buffer resource.
+        /// @param aliasingOffset An optional offset that is used to place the resource in a block of allocated memory when allocating overlapping resources.
         explicit ResourceAllocationInfo(const BufferInfo& bufferInfo, ResourceUsage usage = ResourceUsage::Default, String name = "", size_t aliasingOffset = 0u) :
             ResourceInfo(bufferInfo), Usage(usage), Name(std::move(name)), AliasingOffset(aliasingOffset) { }
 
-        /// <summary>
-        /// Creates a new resource allocation info instance for an image resource.
-        /// </summary>
-        /// <param name="imageInfo">The details about the image.</param>
-        /// <param name="usage">The usage flags for the image.</param>
-        /// <param name="name">The name of the image resource.</param>
-        /// <param name="aliasingOffset">An optional offset that is used to place the resource in a block of allocated memory when allocating overlapping resources.</param>
+        /// @brief Creates a new resource allocation info instance for an image resource.
+        ///
+        /// @param imageInfo The details about the image.
+        /// @param usage The usage flags for the image.
+        /// @param name The name of the image resource.
+        /// @param aliasingOffset An optional offset that is used to place the resource in a block of allocated memory when allocating overlapping resources.
         explicit ResourceAllocationInfo(const ImageInfo& imageInfo, ResourceUsage usage = ResourceUsage::Default, String name = "", size_t aliasingOffset = 0u) :
             ResourceInfo(imageInfo), Usage(usage), Name(std::move(name)), AliasingOffset(aliasingOffset) { }
         
@@ -2587,27 +1892,24 @@ namespace LiteFX::Rendering {
         ~ResourceAllocationInfo() noexcept = default;
     };
 
-    /// <summary>
-    /// Stores the result of a resource allocation.
-    /// </summary>
-    /// <seealso cref="IGraphicsFactory" />
-    /// <seealso cref="ResourceAllocationInfo" />
+    /// @brief Stores the result of a resource allocation.
+    ///
+    /// @see IGraphicsFactory
+    /// @see ResourceAllocationInfo
     struct LITEFX_RENDERING_API ResourceAllocationResult final {
     private:
         Variant<SharedPtr<IImage>, SharedPtr<IBuffer>> m_resource;
 
     public:
-        /// <summary>
-        /// Initializes an allocation result for an image resource.
-        /// </summary>
-        /// <param name="image">The allocate image resource.</param>
+        /// @brief Initializes an allocation result for an image resource.
+        ///
+        /// @param image The allocate image resource.
         ResourceAllocationResult(SharedPtr<IImage>&& image) noexcept :
             m_resource(std::move(image)) { }
         
-        /// <summary>
-        /// Initializes an allocation result for a buffer resource.
-        /// </summary>
-        /// <param name="buffer">The allocated buffer resource.</param>
+        /// @brief Initializes an allocation result for a buffer resource.
+        ///
+        /// @param buffer The allocated buffer resource.
         ResourceAllocationResult(SharedPtr<IBuffer>&& buffer) noexcept :
             m_resource(std::move(buffer)) { }
 
@@ -2619,12 +1921,11 @@ namespace LiteFX::Rendering {
         ~ResourceAllocationResult() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the allocated image resource, or raises an exception if the allocation does not contain an image resource, or the image resource is not of <typeparamref name="TImage" />.
-        /// </summary>
-        /// <typeparam name="TImage">The type of the image.</typeparam>
-        /// <returns>The pointer to the image resource.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the allocated resource is not an image, or if the allocated image does not implement <typeparamref name="TImage"/>.</exception>
+        /// @brief Returns the allocated image resource, or raises an exception if the allocation does not contain an image resource, or the image resource is not of @p TImage.
+        ///
+        /// @tparam TImage The type of the image.
+        /// @return The pointer to the image resource.
+        /// @throws RuntimeException Thrown, if the allocated resource is not an image, or if the allocated image does not implement @p TImage.
         template <std::derived_from<IImage> TImage>
         SharedPtr<TImage> image() const {
             if (!std::holds_alternative<SharedPtr<IImage>>(m_resource)) [[unlikely]]
@@ -2638,12 +1939,11 @@ namespace LiteFX::Rendering {
             return image;
         }
 
-        /// <summary>
-        /// Returns the allocated buffer resource, or raises an exception if the allocation does not contain a buffer resource, or the buffer resource is not of <typeparamref name="TBuffer" />.
-        /// </summary>
-        /// <typeparam name="TBuffer">The type of the buffer.</typeparam>
-        /// <returns>The pointer to the buffer resource.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the allocated resource is not a buffer, or if the allocated buffer does not implement <typeparamref name="TBuffer"/>.</exception>
+        /// @brief Returns the allocated buffer resource, or raises an exception if the allocation does not contain a buffer resource, or the buffer resource is not of @p TBuffer.
+        ///
+        /// @tparam TBuffer The type of the buffer.
+        /// @return The pointer to the buffer resource.
+        /// @throws RuntimeException Thrown, if the allocated resource is not a buffer, or if the allocated buffer does not implement @p TBuffer.
         template <std::derived_from<IBuffer> TBuffer>
         SharedPtr<TBuffer> buffer() const {
             if (!std::holds_alternative<SharedPtr<IBuffer>>(m_resource)) [[unlikely]]
@@ -2659,9 +1959,7 @@ namespace LiteFX::Rendering {
     };
 #pragma endregion
 
-    /// <summary>
-    /// The interface for a state resource.
-    /// </summary>
+    /// @brief The interface for a state resource.
     class LITEFX_RENDERING_API IStateResource {
     protected:
         IStateResource() noexcept = default;
@@ -2671,35 +1969,27 @@ namespace LiteFX::Rendering {
         IStateResource& operator=(IStateResource&&) noexcept = default;
 
     public:
-        /// <summary>
-        /// Releases the state resource instance.
-        /// </summary>
+        /// @brief Releases the state resource instance.
         virtual ~IStateResource() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the name of the resource.
-        /// </summary>
-        /// <returns>The name of the resource.</returns>
+        /// @brief Returns the name of the resource.
+        ///
+        /// @return The name of the resource.
         virtual const String& name() const noexcept = 0;
     };
 
-    /// <summary>
-    /// Base class for a resource that can be identified by a name string within a <see cref="DeviceState" />.
-    /// </summary>
+    /// @brief Base class for a resource that can be identified by a name string within a @ref DeviceState.
     class LITEFX_RENDERING_API StateResource : public virtual IStateResource {
         LITEFX_IMPLEMENTATION(StateResourceImpl);
 
     protected:
-        /// <summary>
-        /// Initializes a new state resource instance with a default name.
-        /// </summary>
+        /// @brief Initializes a new state resource instance with a default name.
         StateResource();
 
-        /// <summary>
-        /// Initializes a new state resource instance.
-        /// </summary>
-        /// <param name="name">The name of the resource.</param>
+        /// @brief Initializes a new state resource instance.
+        ///
+        /// @param name The name of the resource.
         explicit StateResource(StringView name);
 
         StateResource(StateResource&&) noexcept;
@@ -2709,403 +1999,336 @@ namespace LiteFX::Rendering {
         StateResource& operator=(const StateResource&) = delete;
 
     public:
-        /// <summary>
-        /// Releases the state resource instance.
-        /// </summary>
+        /// @brief Releases the state resource instance.
         ~StateResource() noexcept override;
 
     protected:
-        /// <inheritdoc />
+        /// @copydoc name() const
         String& name() noexcept;
 
     public:
-        /// <inheritdoc />
+        /// @copydoc IStateResource::name
         const String& name() const noexcept override;
     };
 
-    /// <summary>
-    /// A class that can be used to manage the state of a <see cref="IGraphicsDevice" />.
-    /// </summary>
-    /// <remarks>
-    /// The device state makes managing resources created by a device easier, since you do not have to worry about storage and release order. Note,
-    /// however, that this is not free. Requesting a resource requires a lookup within a hash-map. Also device states are not specialized for the 
-    /// concrete device, so you can only work with interfaces. This implies potentially inefficient upcasting of the state resource when its passed to 
-    /// another object. You have to decide if or to which degree you want to rely on storing resources in a device state.
-    /// </remarks>
-    /// <seealso cref="StateResource" />
-    /// <seealso cref="IGraphicsDevice" />
+    /// @brief A class that can be used to manage the state of a @ref IGraphicsDevice.
+    ///
+    /// The device state makes managing resources created by a device easier, since you do not have to worry about storage and release order. Note, however, that this is not free. Requesting a resource
+    /// requires a lookup within a hash-map. Also device states are not specialized for the concrete device, so you can only work with interfaces. This implies potentially inefficient upcasting of the state
+    /// resource when its passed to another object. You have to decide if or to which degree you want to rely on storing resources in a device state.
+    ///
+    /// @see StateResource
+    /// @see IGraphicsDevice
     class LITEFX_RENDERING_API DeviceState {
         LITEFX_IMPLEMENTATION(DeviceStateImpl);
         friend class IGraphicsDevice;
 
     public:
-        /// <summary>
-        /// Creates a new device state instance.
-        /// </summary>
+        /// @brief Creates a new device state instance.
         explicit DeviceState();
 
-        /// <summary>
-        /// Takes over another instance of a device state.
-        /// </summary>
-        /// <param name="_other">The device state instance to take over.</param>
+        /// @brief Takes over another instance of a device state.
+        ///
+        /// @param _other The device state instance to take over.
         DeviceState(DeviceState&& _other) noexcept;
 
-        /// <summary>
-        /// Assigns a device state by taking it over.
-        /// </summary>
-        /// <param name="_other">The device state to take over.</param>
-        /// <returns>A reference to the current device state instance.</returns>
+        /// @brief Assigns a device state by taking it over.
+        ///
+        /// @param _other The device state to take over.
+        /// @return A reference to the current device state instance.
         DeviceState& operator=(DeviceState&& _other) noexcept;
 
-        /// <summary>
-        /// Releases the device state instance.
-        /// </summary>
+        /// @brief Releases the device state instance.
         virtual ~DeviceState() noexcept;
 
         DeviceState(const DeviceState&) = delete;
         DeviceState& operator=(const DeviceState&) = delete;
 
     public:
-        /// <summary>
-        /// Release all resources managed by the device state.
-        /// </summary>
+        /// @brief Release all resources managed by the device state.
         void clear();
 
-        /// <summary>
-        /// Adds a new render pass to the device state and uses its name as identifier.
-        /// </summary>
-        /// <param name="renderPass">The render pass to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another render pass with the same identifier has already been added.</exception>
+        /// @brief Adds a new render pass to the device state and uses its name as identifier.
+        ///
+        /// @param renderPass The render pass to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another render pass with the same identifier has already been added.
         void add(SharedPtr<IRenderPass>&& renderPass);
 
-        /// <summary>
-        /// Adds a new render pass to the device state.
-        /// </summary>
-        /// <param name="id">The identifier for the render pass.</param>
-        /// <param name="renderPass">The render pass to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another render pass with the same <paramref name="id" /> has already been added.</exception>
+        /// @brief Adds a new render pass to the device state.
+        ///
+        /// @param id The identifier for the render pass.
+        /// @param renderPass The render pass to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another render pass with the same @p id has already been added.
         void add(const String& id, SharedPtr<IRenderPass>&& renderPass);
 
-        /// <summary>
-        /// Adds a new frame buffer to the device state and uses its name as identifier.
-        /// </summary>
-        /// <param name="frameBuffer">The render pass to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another frame buffer with the same identifier has already been added.</exception>
+        /// @brief Adds a new frame buffer to the device state and uses its name as identifier.
+        ///
+        /// @param frameBuffer The render pass to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another frame buffer with the same identifier has already been added.
         void add(SharedPtr<IFrameBuffer>&& frameBuffer);
 
-        /// <summary>
-        /// Adds a new frame buffer to the device state.
-        /// </summary>
-        /// <param name="id">The identifier for the frame buffer.</param>
-        /// <param name="renderPass">The frame buffer to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another frame buffer with the same <paramref name="id" /> has already been added.</exception>
+        /// @brief Adds a new frame buffer to the device state.
+        ///
+        /// @param id The identifier for the frame buffer.
+        /// @param renderPass The frame buffer to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another frame buffer with the same @p id has already been added.
         void add(const String& id, SharedPtr<IFrameBuffer>&& frameBuffer);
 
-        /// <summary>
-        /// Adds a new pipeline to the device state and uses its name as identifier.
-        /// </summary>
-        /// <param name="pipeline">The pipeline to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another pipeline with the same identifier has already been added.</exception>
+        /// @brief Adds a new pipeline to the device state and uses its name as identifier.
+        ///
+        /// @param pipeline The pipeline to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another pipeline with the same identifier has already been added.
         void add(UniquePtr<IPipeline>&& pipeline);
 
-        /// <summary>
-        /// Adds a new pipeline to the device state.
-        /// </summary>
-        /// <param name="id">The identifier for the pipeline.</param>
-        /// <param name="pipeline">The pipeline to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another pipeline with the same <paramref name="id" /> has already been added.</exception>
+        /// @brief Adds a new pipeline to the device state.
+        ///
+        /// @param id The identifier for the pipeline.
+        /// @param pipeline The pipeline to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another pipeline with the same @p id has already been added.
         void add(const String& id, UniquePtr<IPipeline>&& pipeline);
 
-        /// <summary>
-        /// Adds a new buffer to the device state and uses its name as identifier.
-        /// </summary>
-        /// <param name="buffer">The buffer to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another buffer with the same identifier has already been added.</exception>
+        /// @brief Adds a new buffer to the device state and uses its name as identifier.
+        ///
+        /// @param buffer The buffer to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another buffer with the same identifier has already been added.
         void add(SharedPtr<IBuffer>&& buffer);
 
-        /// <summary>
-        /// Adds a new buffer to the device state.
-        /// </summary>
-        /// <param name="id">The identifier for the buffer.</param>
-        /// <param name="buffer">The buffer to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another buffer with the same <paramref name="id" /> has already been added.</exception>
+        /// @brief Adds a new buffer to the device state.
+        ///
+        /// @param id The identifier for the buffer.
+        /// @param buffer The buffer to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another buffer with the same @p id has already been added.
         void add(const String& id, SharedPtr<IBuffer>&& buffer);
 
-        /// <summary>
-        /// Adds a new vertex buffer to the device state and uses its name as identifier.
-        /// </summary>
-        /// <param name="vertexBuffer">The vertex buffer to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another vertex buffer with the same identifier has already been added.</exception>
+        /// @brief Adds a new vertex buffer to the device state and uses its name as identifier.
+        ///
+        /// @param vertexBuffer The vertex buffer to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another vertex buffer with the same identifier has already been added.
         void add(SharedPtr<IVertexBuffer>&& vertexBuffer);
 
-        /// <summary>
-        /// Adds a new vertex buffer to the device state.
-        /// </summary>
-        /// <param name="id">The identifier for the vertex buffer.</param>
-        /// <param name="vertexBuffer">The vertex buffer to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another vertex buffer with the same <paramref name="id" /> has already been added.</exception>
+        /// @brief Adds a new vertex buffer to the device state.
+        ///
+        /// @param id The identifier for the vertex buffer.
+        /// @param vertexBuffer The vertex buffer to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another vertex buffer with the same @p id has already been added.
         void add(const String& id, SharedPtr<IVertexBuffer>&& vertexBuffer);
 
-        /// <summary>
-        /// Adds a new index buffer to the device state and uses its name as identifier.
-        /// </summary>
-        /// <param name="indexBuffer">The index buffer to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another index buffer with the same identifier has already been added.</exception>
+        /// @brief Adds a new index buffer to the device state and uses its name as identifier.
+        ///
+        /// @param indexBuffer The index buffer to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another index buffer with the same identifier has already been added.
         void add(SharedPtr<IIndexBuffer>&& indexBuffer);
 
-        /// <summary>
-        /// Adds a new index buffer to the device state.
-        /// </summary>
-        /// <param name="id">The identifier for the index buffer.</param>
-        /// <param name="indexBuffer">The index buffer to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another index buffer with the same <paramref name="id" /> has already been added.</exception>
+        /// @brief Adds a new index buffer to the device state.
+        ///
+        /// @param id The identifier for the index buffer.
+        /// @param indexBuffer The index buffer to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another index buffer with the same @p id has already been added.
         void add(const String& id, SharedPtr<IIndexBuffer>&& indexBuffer);
 
-        /// <summary>
-        /// Adds a new image to the device state and uses its name as identifier.
-        /// </summary>
-        /// <param name="image">The image to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another image with the same identifier has already been added.</exception>
+        /// @brief Adds a new image to the device state and uses its name as identifier.
+        ///
+        /// @param image The image to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another image with the same identifier has already been added.
         void add(SharedPtr<IImage>&& image);
 
-        /// <summary>
-        /// Adds a new image to the device state.
-        /// </summary>
-        /// <param name="id">The identifier for the image.</param>
-        /// <param name="image">The image to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another image with the same <paramref name="id" /> has already been added.</exception>
+        /// @brief Adds a new image to the device state.
+        ///
+        /// @param id The identifier for the image.
+        /// @param image The image to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another image with the same @p id has already been added.
         void add(const String& id, SharedPtr<IImage>&& image);
 
-        /// <summary>
-        /// Adds a new sampler to the device state and uses its name as identifier.
-        /// </summary>
-        /// <param name="sampler">The sampler to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another sampler with the same identifier has already been added.</exception>
+        /// @brief Adds a new sampler to the device state and uses its name as identifier.
+        ///
+        /// @param sampler The sampler to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another sampler with the same identifier has already been added.
         void add(SharedPtr<ISampler>&& sampler);
 
-        /// <summary>
-        /// Adds a new sampler to the device state.
-        /// </summary>
-        /// <param name="id">The identifier for the sampler.</param>
-        /// <param name="sampler">The sampler to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another sampler with the same <paramref name="id" /> has already been added.</exception>
+        /// @brief Adds a new sampler to the device state.
+        ///
+        /// @param id The identifier for the sampler.
+        /// @param sampler The sampler to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another sampler with the same @p id has already been added.
         void add(const String& id, SharedPtr<ISampler>&& sampler);
 
-        /// <summary>
-        /// Adds a new acceleration structure to the device state and uses its name as identifier.
-        /// </summary>
-        /// <param name="accelerationStructure">The acceleration structure to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another acceleration structure with the same <paramref name="id" /> has already been added.</exception>
+        /// @brief Adds a new acceleration structure to the device state and uses its name as identifier.
+        ///
+        /// @param accelerationStructure The acceleration structure to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another acceleration structure with the same @p id has already been added.
         void add(UniquePtr<IAccelerationStructure>&& accelerationStructure);
 
-        /// <summary>
-        /// Adds a new acceleration structure to the device state.
-        /// </summary>
-        /// <param name="id">The identifier for the acceleration structure.</param>
-        /// <param name="accelerationStructure">The acceleration structure to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another acceleration structure with the same <paramref name="id" /> has already been added.</exception>
+        /// @brief Adds a new acceleration structure to the device state.
+        ///
+        /// @param id The identifier for the acceleration structure.
+        /// @param accelerationStructure The acceleration structure to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another acceleration structure with the same @p id has already been added.
         void add(const String& id, UniquePtr<IAccelerationStructure>&& accelerationStructure);
         
-        /// <summary>
-        /// Adds a new descriptor set to the device state.
-        /// </summary>
-        /// <param name="id">The identifier for the descriptor set.</param>
-        /// <param name="sampler">The descriptor set to add to the device state.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another descriptor set with the same <paramref name="id" /> has already been added.</exception>
+        /// @brief Adds a new descriptor set to the device state.
+        ///
+        /// @param id The identifier for the descriptor set.
+        /// @param sampler The descriptor set to add to the device state.
+        /// @throws InvalidArgumentException Thrown, if another descriptor set with the same @p id has already been added.
         void add(const String& id, UniquePtr<IDescriptorSet>&& descriptorSet);
 
-        /// <summary>
-        /// Returns a render pass from the device state.
-        /// </summary>
-        /// <param name="id">The identifier associated with the render pass.</param>
-        /// <returns>A reference of the render pass.</returns>
-        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no render pass has been added for the provided <paramref name="id" />.</exception>
+        /// @brief Returns a render pass from the device state.
+        ///
+        /// @param id The identifier associated with the render pass.
+        /// @return A reference of the render pass.
+        /// @throws InvalidArgumentExceptoin Thrown, if no render pass has been added for the provided @p id.
         IRenderPass& renderPass(const String& id) const;
 
-        /// <summary>
-        /// Returns a frame buffer from the device state.
-        /// </summary>
-        /// <param name="id">The identifier associated with the frame buffer.</param>
-        /// <returns>A reference of the frame buffer.</returns>
-        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no frame buffer has been added for the provided <paramref name="id" />.</exception>
+        /// @brief Returns a frame buffer from the device state.
+        ///
+        /// @param id The identifier associated with the frame buffer.
+        /// @return A reference of the frame buffer.
+        /// @throws InvalidArgumentExceptoin Thrown, if no frame buffer has been added for the provided @p id.
         IFrameBuffer& frameBuffer(const String& id) const;
 
-        /// <summary>
-        /// Returns a pipeline from the device state.
-        /// </summary>
-        /// <param name="id">The identifier associated with the pipeline.</param>
-        /// <returns>A reference of the pipeline.</returns>
-        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no pipeline has been added for the provided <paramref name="id" />.</exception>
+        /// @brief Returns a pipeline from the device state.
+        ///
+        /// @param id The identifier associated with the pipeline.
+        /// @return A reference of the pipeline.
+        /// @throws InvalidArgumentExceptoin Thrown, if no pipeline has been added for the provided @p id.
         IPipeline& pipeline(const String& id) const;
 
-        /// <summary>
-        /// Returns a buffer from the device state.
-        /// </summary>
-        /// <param name="id">The identifier associated with the buffer.</param>
-        /// <returns>A reference of the buffer.</returns>
-        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no buffer has been added for the provided <paramref name="id" />.</exception>
+        /// @brief Returns a buffer from the device state.
+        ///
+        /// @param id The identifier associated with the buffer.
+        /// @return A reference of the buffer.
+        /// @throws InvalidArgumentExceptoin Thrown, if no buffer has been added for the provided @p id.
         IBuffer& buffer(const String& id) const;
 
-        /// <summary>
-        /// Returns a vertex buffer from the device state.
-        /// </summary>
-        /// <param name="id">The identifier associated with the vertex buffer.</param>
-        /// <returns>A reference of the vertex buffer.</returns>
-        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no vertex buffer has been added for the provided <paramref name="id" />.</exception>
+        /// @brief Returns a vertex buffer from the device state.
+        ///
+        /// @param id The identifier associated with the vertex buffer.
+        /// @return A reference of the vertex buffer.
+        /// @throws InvalidArgumentExceptoin Thrown, if no vertex buffer has been added for the provided @p id.
         IVertexBuffer& vertexBuffer(const String& id) const;
 
-        /// <summary>
-        /// Returns an index buffer from the device state.
-        /// </summary>
-        /// <param name="id">The identifier associated with the index buffer.</param>
-        /// <returns>A reference of the index buffer.</returns>
-        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no index buffer has been added for the provided <paramref name="id" />.</exception>
+        /// @brief Returns an index buffer from the device state.
+        ///
+        /// @param id The identifier associated with the index buffer.
+        /// @return A reference of the index buffer.
+        /// @throws InvalidArgumentExceptoin Thrown, if no index buffer has been added for the provided @p id.
         IIndexBuffer& indexBuffer(const String& id) const;
 
-        /// <summary>
-        /// Returns an image from the device state.
-        /// </summary>
-        /// <param name="id">The identifier associated with the image.</param>
-        /// <returns>A reference of the image.</returns>
-        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no image has been added for the provided <paramref name="id" />.</exception>
+        /// @brief Returns an image from the device state.
+        ///
+        /// @param id The identifier associated with the image.
+        /// @return A reference of the image.
+        /// @throws InvalidArgumentExceptoin Thrown, if no image has been added for the provided @p id.
         IImage& image(const String& id) const;
 
-        /// <summary>
-        /// Returns a sampler from the device state.
-        /// </summary>
-        /// <param name="id">The identifier associated with the sampler.</param>
-        /// <returns>A reference of the sampler.</returns>
-        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no sampler has been added for the provided <paramref name="id" />.</exception>
+        /// @brief Returns a sampler from the device state.
+        ///
+        /// @param id The identifier associated with the sampler.
+        /// @return A reference of the sampler.
+        /// @throws InvalidArgumentExceptoin Thrown, if no sampler has been added for the provided @p id.
         ISampler& sampler(const String& id) const;
 
-        /// <summary>
-        /// Returns an acceleration structure from the device state.
-        /// </summary>
-        /// <param name="id">The identifier associated with the acceleration structure.</param>
-        /// <returns>A reference of the acceleration structure.</returns>
-        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no acceleration structure has been added for the provided <paramref name="id" />.</exception>
+        /// @brief Returns an acceleration structure from the device state.
+        ///
+        /// @param id The identifier associated with the acceleration structure.
+        /// @return A reference of the acceleration structure.
+        /// @throws InvalidArgumentExceptoin Thrown, if no acceleration structure has been added for the provided @p id.
         IAccelerationStructure& accelerationStructure(const String& id) const;
 
-        /// <summary>
-        /// Returns a descriptor set from the device state.
-        /// </summary>
-        /// <param name="id">The identifier associated with the descriptor set.</param>
-        /// <returns>A reference of the descriptor set.</returns>
-        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no descriptor set has been added for the provided <paramref name="id" />.</exception>
+        /// @brief Returns a descriptor set from the device state.
+        ///
+        /// @param id The identifier associated with the descriptor set.
+        /// @return A reference of the descriptor set.
+        /// @throws InvalidArgumentExceptoin Thrown, if no descriptor set has been added for the provided @p id.
         IDescriptorSet& descriptorSet(const String& id) const;
 
-        /// <summary>
-        /// Releases a render pass.
-        /// </summary>
-        /// <remarks>
-        /// Calling this method will destroy the render pass. Before calling it, the render pass must be requested using <see cref="renderPass" />. After 
-        /// this method has been executed, all references (including the <paramref name="renderPass" /> parameter) will be invalid. If the render pass is
-        /// not managed by the device state, this method will do nothing and return <c>false</c>.
-        /// </remarks>
-        /// <param name="renderPass">The render pass to release.</param>
-        /// <returns><c>true</c>, if the render pass was properly released, <c>false</c> otherwise.</returns>
+        /// @brief Releases a render pass.
+        ///
+        /// Calling this method will destroy the render pass. Before calling it, the render pass must be requested using @ref renderPass. After this method has been executed, all references (including the @p
+        /// renderPass parameter) will be invalid. If the render pass is not managed by the device state, this method will do nothing and return `false`.
+        ///
+        /// @param renderPass The render pass to release.
+        /// @return `true`, if the render pass was properly released, `false` otherwise.
         bool release(const IRenderPass& renderPass);
 
-        /// <summary>
-        /// Releases a frame buffer.
-        /// </summary>
-        /// <param name="renderPass">The frame buffer to release.</param>
-        /// <returns><c>true</c>, if the frame buffer was properly released, <c>false</c> otherwise.</returns>
+        /// @brief Releases a frame buffer.
+        ///
+        /// @param renderPass The frame buffer to release.
+        /// @return `true`, if the frame buffer was properly released, `false` otherwise.
         bool release(const IFrameBuffer& frameBuffer);
 
-        /// <summary>
-        /// Releases a pipeline.
-        /// </summary>
-        /// <param name="pipeline">The pipeline to release.</param>
-        /// <returns><c>true</c>, if the pipeline was properly released, <c>false</c> otherwise.</returns>
+        /// @brief Releases a pipeline.
+        ///
+        /// @param pipeline The pipeline to release.
+        /// @return `true`, if the pipeline was properly released, `false` otherwise.
         bool release(const IPipeline& pipeline);
 
-        /// <summary>
-        /// Releases a buffer.
-        /// </summary>
-        /// <param name="buffer">The buffer to release.</param>
-        /// <returns><c>true</c>, if the buffer was properly released, <c>false</c> otherwise.</returns>
+        /// @brief Releases a buffer.
+        ///
+        /// @param buffer The buffer to release.
+        /// @return `true`, if the buffer was properly released, `false` otherwise.
         bool release(const IBuffer& buffer);
 
-        /// <summary>
-        /// Releases a vertex buffer.
-        /// </summary>
-        /// <param name="buffer">The vertex buffer to release.</param>
-        /// <returns><c>true</c>, if the vertex buffer was properly released, <c>false</c> otherwise.</returns>
+        /// @brief Releases a vertex buffer.
+        ///
+        /// @param buffer The vertex buffer to release.
+        /// @return `true`, if the vertex buffer was properly released, `false` otherwise.
         bool release(const IVertexBuffer& buffer);
 
-        /// <summary>
-        /// Releases a index buffer.
-        /// </summary>
-        /// <param name="buffer">The index buffer to release.</param>
-        /// <returns><c>true</c>, if the index buffer was properly released, <c>false</c> otherwise.</returns>
+        /// @brief Releases a index buffer.
+        ///
+        /// @param buffer The index buffer to release.
+        /// @return `true`, if the index buffer was properly released, `false` otherwise.
         bool release(const IIndexBuffer& buffer);
 
-        /// <summary>
-        /// Releases an image.
-        /// </summary>
-        /// <param name="image">The image to release.</param>
-        /// <returns><c>true</c>, if the image was properly released, <c>false</c> otherwise.</returns>
+        /// @brief Releases an image.
+        ///
+        /// @param image The image to release.
+        /// @return `true`, if the image was properly released, `false` otherwise.
         bool release(const IImage& image);
 
-        /// <summary>
-        /// Releases a sampler.
-        /// </summary>
-        /// <param name="sampler">The sampler to release.</param>
-        /// <returns><c>true</c>, if the sampler was properly released, <c>false</c> otherwise.</returns>
+        /// @brief Releases a sampler.
+        ///
+        /// @param sampler The sampler to release.
+        /// @return `true`, if the sampler was properly released, `false` otherwise.
         bool release(const ISampler& sampler);
 
-        /// <summary>
-        /// Releases a descriptor set.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set to release.</param>
-        /// <returns><c>true</c>, if the descriptor set was properly released, <c>false</c> otherwise.</returns>
+        /// @brief Releases a descriptor set.
+        ///
+        /// @param descriptorSet The descriptor set to release.
+        /// @return `true`, if the descriptor set was properly released, `false` otherwise.
         bool release(const IDescriptorSet& descriptorSet);
     };
 
-    /// <summary>
-    /// Represents a virtual allocator that manages memory distribution from a piece of raw memory.
-    /// </summary>
-    /// <remarks>
+    /// @brief Represents a virtual allocator that manages memory distribution from a piece of raw memory.
+    ///
     /// Note that the virtual allocator does not actually contain memory, but rather keeps track over a range of memory that is externally managed.
-    /// </remarks>
     class LITEFX_RENDERING_API VirtualAllocator final {
     public:
-        /// <summary>
-        /// Represents an allocation within the memory managed by the virtual allocator.
-        /// </summary>
+        /// @brief Represents an allocation within the memory managed by the virtual allocator.
         struct Allocation final {
-            /// <summary>
-            /// The handle that identifies the allocation.
-            /// </summary>
+            /// @brief The handle that identifies the allocation.
             UInt64 Handle { 0u };
 
-            /// <summary>
-            /// The overall size of the allocation in bytes.
-            /// </summary>
+            /// @brief The overall size of the allocation in bytes.
             UInt64 Size { 0u };
 
-            /// <summary>
-            /// The offset to the start of the allocation within the memory block.
-            /// </summary>
+            /// @brief The offset to the start of the allocation within the memory block.
             UInt64 Offset { std::numeric_limits<UInt64>::max() };
         };
 
     private:
-        /// <summary>
-        /// The interface for an allocator implementation.
-        /// </summary>
+        /// @brief The interface for an allocator implementation.
         struct AllocatorImplBase {
         private:
             UInt64 m_size;
             AllocationAlgorithm m_algorithm;
 
         protected:
-            /// <summary>
-            /// Creates a new allocator instance.
-            /// </summary>
-            /// <param name="overallMemory">The overall size (in bytes) of memory available to the allocator.</param>
-            /// <param name="algorithm">The algorithm used to find a suitable block in the allocator memory.</param>
+            /// @brief Creates a new allocator instance.
+            ///
+            /// @param overallMemory The overall size (in bytes) of memory available to the allocator.
+            /// @param algorithm The algorithm used to find a suitable block in the allocator memory.
             AllocatorImplBase(UInt64 overallMemory, AllocationAlgorithm algorithm) :
                 m_size(overallMemory), m_algorithm(algorithm)
             {
@@ -3120,74 +2343,64 @@ namespace LiteFX::Rendering {
             virtual ~AllocatorImplBase() noexcept = default;
 
         public:
-            /// <summary>
-            /// Returns the size of the memory managed by the virtual allocator.
-            /// </summary>
-            /// <returns>The size (in bytes) of the memory managed by the virtual allocator.</returns>
+            /// @brief Returns the size of the memory managed by the virtual allocator.
+            ///
+            /// @return The size (in bytes) of the memory managed by the virtual allocator.
             inline UInt64 size() const noexcept {
                 return m_size;
             }
 
-            /// <summary>
-            /// Returns the algorithm used by the allocator.
-            /// </summary>
-            /// <returns>The algorithm used by the allocator.</returns>
+            /// @brief Returns the algorithm used by the allocator.
+            ///
+            /// @return The algorithm used by the allocator.
             inline AllocationAlgorithm algorithm() const noexcept {
                 return m_algorithm;
             }
 
-            /// <summary>
-            /// Allocates a piece of memory of <paramref name="size" /> bytes, aligned to <paramref name="alignment" />.
-            /// </summary>
-            /// <param name="size">The size (in bytes) of the resource to place in the allocation.</param>
-            /// <param name="alignment">The alignment requirements of the resource.</param>
-            /// <param name="strategy">The strategy to look for a place to put the allocation in.</param>
-            /// <param name="privateData">A pointer to an object that should be internally associated with the allocation.</param>
-            /// <returns>An object that contains details about the allocation.</returns>
+            /// @brief Allocates a piece of memory of @p size bytes, aligned to @p alignment.
+            ///
+            /// @param size The size (in bytes) of the resource to place in the allocation.
+            /// @param alignment The alignment requirements of the resource.
+            /// @param strategy The strategy to look for a place to put the allocation in.
+            /// @param privateData A pointer to an object that should be internally associated with the allocation.
+            /// @return An object that contains details about the allocation.
             [[nodiscard]] virtual Allocation allocate(UInt64 size, UInt32 alignment = 1u, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const = 0;
 
-            /// <summary>
-            /// Attempts to allocate a piece of memory of <paramref name="size" /> bytes, aligned to <paramref name="alignment" />. If the allocation fails `std::nullopt` is returned.
-            /// </summary>
-            /// <param name="size">The size (in bytes) of the resource to place in the allocation.</param>
-            /// <param name="alignment">The alignment requirements of the resource.</param>
-            /// <param name="strategy">The strategy to look for a place to put the allocation in.</param>
-            /// <param name="privateData">A pointer to an object that should be internally associated with the allocation.</param>
-            /// <returns>An object that contains details about the allocation, or `std::nullopt` if the allocation fails.</returns>
+            /// @brief Attempts to allocate a piece of memory of @p size bytes, aligned to @p alignment. If the allocation fails `std::nullopt` is returned.
+            ///
+            /// @param size The size (in bytes) of the resource to place in the allocation.
+            /// @param alignment The alignment requirements of the resource.
+            /// @param strategy The strategy to look for a place to put the allocation in.
+            /// @param privateData A pointer to an object that should be internally associated with the allocation.
+            /// @return An object that contains details about the allocation, or `std::nullopt` if the allocation fails.
             [[nodiscard]] virtual Optional<Allocation> tryAllocate(UInt64 size, UInt32 alignment = 1u, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const = 0;
 
-            /// <summary>
-            /// Releases an allocation from the allocator, so that its memory can be re-used later.
-            /// </summary>
-            /// <param name="allocation">The allocation to release.</param>
+            /// @brief Releases an allocation from the allocator, so that its memory can be re-used later.
+            ///
+            /// @param allocation The allocation to release.
             virtual void free(Allocation&& allocation) const = 0;
 
-            /// <summary>
-            /// Returns the private data associated with an allocation.
-            /// </summary>
-            /// <param name="allocation">The allocation for which to obtain the private data.</param>
-            /// <returns>A pointer that references the private data associated with the allocation.</returns>
+            /// @brief Returns the private data associated with an allocation.
+            ///
+            /// @param allocation The allocation for which to obtain the private data.
+            /// @return A pointer that references the private data associated with the allocation.
             virtual void* privateData(const Allocation& allocation) const = 0;
         };
 
-        /// <summary>
-        /// Implements a specific allocator.
-        /// </summary>
-        /// <typeparam name="TBackend">The backend, for which the allocator is implemented</typeparam>
+        /// @brief Implements a specific allocator.
+        ///
+        /// @tparam TBackend The backend, for which the allocator is implemented
         template <typename TBackend>
         struct AllocatorImpl final : public AllocatorImplBase { 
             static_assert(false, "Attempting to use a non-specialized virtual allocator is invalid.");
         };
 
-        /// <summary>
-        /// Stores the allocator implementation.
-        /// </summary>
+        /// @brief Stores the allocator implementation.
         UniquePtr<AllocatorImplBase> m_impl;
 
-        /// <summary>
-        /// Creates a new virtual allocator instance.
-        /// </summary>
-        /// <param name="pImpl">The pointer to the allocator implementation.</param>
+        /// @brief Creates a new virtual allocator instance.
+        ///
+        /// @param pImpl The pointer to the allocator implementation.
         VirtualAllocator(UniquePtr<AllocatorImplBase>&& pImpl) :
             m_impl(std::move(pImpl))
         {
@@ -3201,86 +2414,75 @@ namespace LiteFX::Rendering {
         ~VirtualAllocator() noexcept = default;
 
     public:
-        /// <summary>
-        /// Creates a new virtual allocator instance.
-        /// </summary>
-        /// <param name="overallMemory">The overall size (in bytes) of memory available to the allocator.</param>
-        /// <param name="algorithm">The algorithm used to find a suitable block in the allocator memory.</param>
-        /// <returns>The instance of the virtual allocator.</returns>
+        /// @brief Creates a new virtual allocator instance.
+        ///
+        /// @param overallMemory The overall size (in bytes) of memory available to the allocator.
+        /// @param algorithm The algorithm used to find a suitable block in the allocator memory.
+        /// @return The instance of the virtual allocator.
         template <typename TBackend>
         [[nodiscard]] static inline VirtualAllocator create(UInt64 overallMemory, AllocationAlgorithm algorithm = AllocationAlgorithm::Default) {
             return VirtualAllocator(UniquePtr<AllocatorImplBase>(new AllocatorImpl<TBackend>(overallMemory, algorithm)));
         }
 
     public:
-        /// <summary>
-        /// Returns the size of the memory managed by the virtual allocator.
-        /// </summary>
-        /// <returns>The size (in bytes) of the memory managed by the virtual allocator.</returns>
+        /// @brief Returns the size of the memory managed by the virtual allocator.
+        ///
+        /// @return The size (in bytes) of the memory managed by the virtual allocator.
         inline UInt64 size() const noexcept {
             return m_impl->size();
         }
 
-        /// <summary>
-        /// Returns the algorithm used by the allocator.
-        /// </summary>
-        /// <returns>The algorithm used by the allocator.</returns>
+        /// @brief Returns the algorithm used by the allocator.
+        ///
+        /// @return The algorithm used by the allocator.
         inline AllocationAlgorithm algorithm() const noexcept {
             return m_impl->algorithm();
         }
 
-        /// <summary>
-        /// Allocates a piece of memory of <paramref name="size" /> bytes, aligned to <paramref name="alignment" />.
-        /// </summary>
-        /// <param name="size">The size (in bytes) of the resource to place in the allocation.</param>
-        /// <param name="alignment">The alignment requirements of the resource.</param>
-        /// <param name="strategy">The strategy to look for a place to put the allocation in.</param>
-        /// <param name="privateData">A pointer to an object that should be internally associated with the allocation.</param>
-        /// <returns>An object that contains details about the allocation.</returns>
+        /// @brief Allocates a piece of memory of @p size bytes, aligned to @p alignment.
+        ///
+        /// @param size The size (in bytes) of the resource to place in the allocation.
+        /// @param alignment The alignment requirements of the resource.
+        /// @param strategy The strategy to look for a place to put the allocation in.
+        /// @param privateData A pointer to an object that should be internally associated with the allocation.
+        /// @return An object that contains details about the allocation.
         [[nodiscard]] inline Allocation allocate(UInt64 size, UInt32 alignment = 1u, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const {
             return m_impl->allocate(size, alignment, strategy, privateData);
         }
 
-        /// <summary>
-        /// Attempts to allocate a piece of memory of <paramref name="size" /> bytes, aligned to <paramref name="alignment" />. If the allocation fails `std::nullopt` is returned.
-        /// </summary>
-        /// <param name="size">The size (in bytes) of the resource to place in the allocation.</param>
-        /// <param name="alignment">The alignment requirements of the resource.</param>
-        /// <param name="strategy">The strategy to look for a place to put the allocation in.</param>
-        /// <param name="privateData">A pointer to an object that should be internally associated with the allocation.</param>
-        /// <returns>An object that contains details about the allocation, or `std::nullopt` if the allocation fails.</returns>
+        /// @brief Attempts to allocate a piece of memory of @p size bytes, aligned to @p alignment. If the allocation fails `std::nullopt` is returned.
+        ///
+        /// @param size The size (in bytes) of the resource to place in the allocation.
+        /// @param alignment The alignment requirements of the resource.
+        /// @param strategy The strategy to look for a place to put the allocation in.
+        /// @param privateData A pointer to an object that should be internally associated with the allocation.
+        /// @return An object that contains details about the allocation, or `std::nullopt` if the allocation fails.
         [[nodiscard]] Optional<Allocation> tryAllocate(UInt64 size, UInt32 alignment = 1u, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const {
             return m_impl->tryAllocate(size, alignment, strategy, privateData);
         }
 
-        /// <summary>
-        /// Releases an allocation from the allocator, so that its memory can be re-used later.
-        /// </summary>
-        /// <remarks>
+        /// @brief Releases an allocation from the allocator, so that its memory can be re-used later.
+        ///
         /// Releasing an allocation that was not allocated from the virtual allocator is undefined behavior.
-        /// </remarks>
-        /// <param name="allocation">The allocation to release.</param>
+        ///
+        /// @param allocation The allocation to release.
         inline void free(Allocation&& allocation) const { // NOLINT(cppcoreguidelines-rvalue-reference-param-not-moved)
             m_impl->free(std::forward<Allocation>(allocation));
         }
 
-        /// <summary>
-        /// Returns the private data associated with an allocation.
-        /// </summary>
-        /// <param name="allocation">The allocation for which to obtain the private data.</param>
-        /// <returns>A pointer that references the private data associated with the allocation.</returns>
+        /// @brief Returns the private data associated with an allocation.
+        ///
+        /// @param allocation The allocation for which to obtain the private data.
+        /// @return A pointer that references the private data associated with the allocation.
         inline void* privateData(const Allocation& allocation) const {
             return m_impl->privateData(allocation);
         };
     };
 
-    /// <summary>
-    /// Represents a physical graphics adapter.
-    /// </summary>
-    /// <remarks>
-    /// A graphics adapter can be seen as an actual physical device that can run graphics computations. Typically this resembles a GPU that is connected
-    /// to the bus. However, it can also represent an emulated, virtual adapter, such as a software rasterizer.
-    /// </remarks>
+    /// @brief Represents a physical graphics adapter.
+    ///
+    /// A graphics adapter can be seen as an actual physical device that can run graphics computations. Typically this resembles a GPU that is connected to the bus. However, it can also represent an emulated,
+    /// virtual adapter, such as a software rasterizer.
     class LITEFX_RENDERING_API IGraphicsAdapter : public SharedObject {
     protected:
         IGraphicsAdapter() noexcept = default;
@@ -3293,66 +2495,54 @@ namespace LiteFX::Rendering {
         ~IGraphicsAdapter() noexcept override= default;
 
     public:
-        /// <summary>
-        /// Retrieves the name of the graphics adapter.
-        /// </summary>
-        /// <returns>The name of the graphics adapter.</returns>
+        /// @brief Retrieves the name of the graphics adapter.
+        ///
+        /// @return The name of the graphics adapter.
         virtual String name() const = 0;
 
-        /// <summary>
-        /// Returns a unique identifier, that identifies the device in the system.
-        /// </summary>
-        /// <returns>A unique identifier, that identifies the device in the system.</returns>
+        /// @brief Returns a unique identifier, that identifies the device in the system.
+        ///
+        /// @return A unique identifier, that identifies the device in the system.
         virtual UInt64 uniqueId() const noexcept = 0;
 
-        /// <summary>
-        /// Returns a unique identifier, that identifies the vendor of the graphics adapter.
-        /// </summary>
-        /// <returns>A unique identifier, that identifies the vendor of the graphics adapter.</returns>
+        /// @brief Returns a unique identifier, that identifies the vendor of the graphics adapter.
+        ///
+        /// @return A unique identifier, that identifies the vendor of the graphics adapter.
         virtual UInt32 vendorId() const noexcept = 0;
 
-        /// <summary>
-        /// Returns a unique identifier, that identifies the product.
-        /// </summary>
-        /// <returns>A unique identifier, that identifies the product.</returns>
+        /// @brief Returns a unique identifier, that identifies the product.
+        ///
+        /// @return A unique identifier, that identifies the product.
         virtual UInt32 deviceId() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the type of the graphics adapter.
-        /// </summary>
-        /// <returns>The type of the graphics adapter.</returns>
+        /// @brief Returns the type of the graphics adapter.
+        ///
+        /// @return The type of the graphics adapter.
         virtual GraphicsAdapterType type() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the graphics driver version.
-        /// </summary>
-        /// <remarks>
-        /// Note that this is a vendor and API specific identifier that can be used to compare against specific (known) versions. It is not recommended to parse
-        /// this into a front-facing version number for users, as it differs between backends. For this, use vendor-supplied APIs instead.
-        /// </remarks>
-        /// <returns>The graphics driver version.</returns>
+        /// @brief Returns the graphics driver version.
+        ///
+        /// Note that this is a vendor and API specific identifier that can be used to compare against specific (known) versions. It is not recommended to parse this into a front-facing version number for users,
+        /// as it differs between backends. For this, use vendor-supplied APIs instead.
+        ///
+        /// @return The graphics driver version.
         virtual UInt64 driverVersion() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the graphics API version.
-        /// </summary>
-        /// <returns>The graphics API version.</returns>
+        /// @brief Returns the graphics API version.
+        ///
+        /// @return The graphics API version.
         virtual UInt32 apiVersion() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the amount of dedicated graphics memory (in bytes), this adapter can use.
-        /// </summary>
-        /// <returns>The amount of dedicated graphics memory (in bytes), this adapter can use.</returns>
+        /// @brief Returns the amount of dedicated graphics memory (in bytes), this adapter can use.
+        ///
+        /// @return The amount of dedicated graphics memory (in bytes), this adapter can use.
         virtual UInt64 dedicatedMemory() const noexcept = 0;
     };
 
-    /// <summary>
-    /// Represents a surface to render to.
-    /// </summary>
-    /// <remarks>
-    /// A surface can be seen as a window or area on the screen, the renderer can draw to. Note that the interface does not make any constraints on the surface
-    /// to allow for portability. A surface implementation may provide access to the actual handle to use. Surface instances are responsible for owning the handle.
-    /// </remarks>
+    /// @brief Represents a surface to render to.
+    ///
+    /// A surface can be seen as a window or area on the screen, the renderer can draw to. Note that the interface does not make any constraints on the surface to allow for portability. A surface
+    /// implementation may provide access to the actual handle to use. Surface instances are responsible for owning the handle.
     class LITEFX_RENDERING_API ISurface {
     protected:
         ISurface() noexcept = default;
@@ -3365,31 +2555,21 @@ namespace LiteFX::Rendering {
         virtual ~ISurface() noexcept = default;
     };
     
-    /// <summary>
-    /// Describes a single descriptor binding point within a <see cref="IShaderModule" />.
-    /// </summary>
+    /// @brief Describes a single descriptor binding point within a @ref IShaderModule.
     struct LITEFX_RENDERING_API DescriptorBindingPoint final {
     public:
-        /// <summary>
-        /// Stores the register index of the binding point.
-        /// </summary>
+        /// @brief Stores the register index of the binding point.
         UInt32 Register { 0 };
 
-        /// <summary>
-        /// Stores the descriptor space (or set index) of the binding point.
-        /// </summary>
+        /// @brief Stores the descriptor space (or set index) of the binding point.
         UInt32 Space { 0 };
 
     public:
-        /// <summary>
-        /// Implements three-way comparison for descriptor binding points.
-        /// </summary>
-        /// <param name="other">The other binding point to compare against.</param>
-        /// <returns>
-        /// `less`, if the `Space` property of the instance is lower than the `Space` property of <paramref name="other" />, and `greater` if the opposite is true 
-        /// and they are not equal. If the `Space` properties are equal, the `Register` properties are compared accordingly. If both, `Space` and `Register` are 
-        /// equal, the operator returns `equal`.
-        /// </returns>
+        /// @brief Implements three-way comparison for descriptor binding points.
+        ///
+        /// @param other The other binding point to compare against.
+        /// @return `less`, if the `Space` property of the instance is lower than the `Space` property of @p other, and `greater` if the opposite is true and they are not equal. If the `Space` properties are
+        /// equal, the `Register` properties are compared accordingly. If both, `Space` and `Register` are equal, the operator returns `equal`.
         inline auto operator<=>(const DescriptorBindingPoint& other) const noexcept {
             // NOLINTBEGIN(bugprone-branch-clone)
             if (this->Space < other.Space)
@@ -3405,23 +2585,20 @@ namespace LiteFX::Rendering {
             // NOLINTEND(bugprone-branch-clone)
         }
 
-        /// <summary>
-        /// Implements equality comparison for descriptor binding points.
-        /// </summary>
-        /// <param name="other">The other binding point to compare against.</param>
-        /// <returns>`true`, if the `Space` and `Register` values for both binding points are equal, otherwise `false`.</returns>
+        /// @brief Implements equality comparison for descriptor binding points.
+        ///
+        /// @param other The other binding point to compare against.
+        /// @return `true`, if the `Space` and `Register` values for both binding points are equal, otherwise `false`.
         inline bool operator==(const DescriptorBindingPoint& other) const noexcept {
             return other.Space == this->Space && other.Register == this->Register;
         }
     };
 
-    /// <summary>
-    /// Represents a single shader module, i.e. a part of a <see cref="IShaderProgram" />.
-    /// </summary>
-    /// <remarks>
+    /// @brief Represents a single shader module, i.e. a part of a @ref IShaderProgram.
+    ///
     /// A shader module corresponds to a single shader source file.
-    /// </remarks>
-    /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
+    ///
+    /// @see https://github.com/crud89/LiteFX/wiki/Shader-Development
     class LITEFX_RENDERING_API IShaderModule {
     protected:
         IShaderModule() noexcept = default;
@@ -3434,103 +2611,78 @@ namespace LiteFX::Rendering {
         virtual ~IShaderModule() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the type of the shader module.
-        /// </summary>
-        /// <returns>The type of the shader module.</returns>
+        /// @brief Returns the type of the shader module.
+        ///
+        /// @return The type of the shader module.
         virtual ShaderStage type() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the file name of the shader module.
-        /// </summary>
-        /// <returns>The file name of the shader module.</returns>
+        /// @brief Returns the file name of the shader module.
+        ///
+        /// @return The file name of the shader module.
         virtual const String& fileName() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the name of the shader module entry point.
-        /// </summary>
-        /// <returns>The name of the shader module entry point.</returns>
+        /// @brief Returns the name of the shader module entry point.
+        ///
+        /// @return The name of the shader module entry point.
         virtual const String& entryPoint() const noexcept = 0;
 
-        /// <summary>
-        /// For ray-tracing shader modules returns the binding point for the descriptor that receives shader-local data.
-        /// </summary>
-        /// <remarks>
-        /// Ray-tracing shaders, especially hit and intersection shaders may rely on local per-invocation data to handle ray intersections. One prominent example of such data is a custom 
-        /// index that identifies the geometry within the instance that has been hit, which can then be used to index into bindless arrays to acquire additional data, such as material 
-        /// properties or texture maps. This data is placed alongside the shader binding table created from a <see cref="ShaderRecordCollection" /> and passed to the shader when it is 
-        /// invoked. However, when building the <see cref="IPipelineLayout" /> for a ray-tracing pipeline, the device needs to know which descriptors bind globally and which descriptor
-        /// binds locally. This information currently cannot be reliably acquired by shader reflection and must thus be specified on a per-module basis. 
-        /// 
-        /// Note that it is only possible for one descriptor to bind to local data. However, this descriptor can bind a constant/uniform buffer that contains multiple variables. Whilst 
-        /// it is possible to bind buffer references (using <see cref="IDeviceMemory::virtualAddress" />), support for it is differs depending on the shader language. To keep shaders 
-        /// portable, it is recommended to use descriptor indexing to bind buffers and textures and only pass constant values into local descriptor bindings.
-        /// 
+        /// @brief For ray-tracing shader modules returns the binding point for the descriptor that receives shader-local data.
+        ///
+        /// Ray-tracing shaders, especially hit and intersection shaders may rely on local per-invocation data to handle ray intersections. One prominent example of such data is a custom index that identifies the
+        /// geometry within the instance that has been hit, which can then be used to index into bindless arrays to acquire additional data, such as material properties or texture maps. This data is placed
+        /// alongside the shader binding table created from a @ref ShaderRecordCollection and passed to the shader when it is invoked. However, when building the @ref IPipelineLayout for a ray-tracing pipeline,
+        /// the device needs to know which descriptors bind globally and which descriptor binds locally. This information currently cannot be reliably acquired by shader reflection and must thus be specified on a
+        /// per-module basis.
+        ///
+        /// Note that it is only possible for one descriptor to bind to local data. However, this descriptor can bind a constant/uniform buffer that contains multiple variables. Whilst it is possible to bind
+        /// buffer references (using @ref IDeviceMemory::virtualAddress), support for it is differs depending on the shader language. To keep shaders portable, it is recommended to use descriptor indexing to bind
+        /// buffers and textures and only pass constant values into local descriptor bindings.
+        ///
         /// For shader modules of types other than ray-tracing, this setting is ignored.
-        /// </remarks>
-        /// <returns>Returns the binding point for the descriptor that receives shader-local data.</returns>
-        /// <seealso cref="ShaderRecord{{typename TLocalData}}" />
+        ///
+        /// @return Returns the binding point for the descriptor that receives shader-local data.
+        /// @see ShaderRecord
         virtual const Optional<DescriptorBindingPoint>& shaderLocalDescriptor() const noexcept = 0;
     };
 
-    /// <summary>
-    /// Represents a render target, i.e. an abstract view of the output of an <see cref="RenderPass" />.
-    /// </summary>
-    /// <remarks>
-    /// A render target represents one output of a render pass, stored within an <see cref="IImage" />. It is contained by a <see cref="RenderPass" />, that maps it to an image resource on
-    /// the <see cref="FrameBuffer" /> the render pass operates on. The <see cref="IRenderTarget::identifier" /> is used to associate an image within a frame buffer to a render target.
-    /// 
-    /// When using a <see cref="IRenderPipeline" /> during rendering, a similar lookup is performed to bind frame buffer images to input attachments.
-    /// </remarks>
-    /// <seealso cref="RenderTarget" />
-    /// <seealso cref="RenderPass" />
-    /// <seealso cref="FrameBuffer" />
-    /// <seealso cref="IImage" />
+    /// @brief Represents a render target, i.e. an abstract view of the output of an @ref RenderPass.
+    ///
+    /// A render target represents one output of a render pass, stored within an @ref IImage. It is contained by a @ref RenderPass, that maps it to an image resource on the @ref FrameBuffer the render pass
+    /// operates on. The @ref IRenderTarget::identifier is used to associate an image within a frame buffer to a render target.
+    ///
+    /// When using a @ref IRenderPipeline during rendering, a similar lookup is performed to bind frame buffer images to input attachments.
+    ///
+    /// @see RenderTarget
+    /// @see RenderPass
+    /// @see FrameBuffer
+    /// @see IImage
     class LITEFX_RENDERING_API IRenderTarget {
     public:
-        /// <summary>
-        /// Describes the blend state of the render target.
-        /// </summary>
+        /// @brief Describes the blend state of the render target.
         struct BlendState {
         public:
-            /// <summary>
-            /// Specifies, if the target should be blended (default: <c>false</c>).
-            /// </summary>
+            /// @brief Specifies, if the target should be blended (default: `false`).
             bool Enable{ false };
 
-            /// <summary>
-            /// The blend factor for the source color channels (default: <c>BlendFactor::One</c>).
-            /// </summary>
+            /// @brief The blend factor for the source color channels (default: `BlendFactor::One`).
             BlendFactor SourceColor{ BlendFactor::One };
 
-            /// <summary>
-            /// The blend factor for the destination color channels (default: <c>BlendFactor::Zero</c>).
-            /// </summary>
+            /// @brief The blend factor for the destination color channels (default: `BlendFactor::Zero`).
             BlendFactor DestinationColor{ BlendFactor::Zero };
 
-            /// <summary>
-            /// The blend factor for the source alpha channel (default: <c>BlendFactor::One</c>).
-            /// </summary>
+            /// @brief The blend factor for the source alpha channel (default: `BlendFactor::One`).
             BlendFactor SourceAlpha{ BlendFactor::One };
 
-            /// <summary>
-            /// The blend factor for the destination alpha channels (default: <c>BlendFactor::Zero</c>).
-            /// </summary>
+            /// @brief The blend factor for the destination alpha channels (default: `BlendFactor::Zero`).
             BlendFactor DestinationAlpha{ BlendFactor::Zero };
 
-            /// <summary>
-            /// The blend operation for the color channels (default: <c>BlendOperation::Add</c>).
-            /// </summary>
+            /// @brief The blend operation for the color channels (default: `BlendOperation::Add`).
             BlendOperation ColorOperation{ BlendOperation::Add };
 
-            /// <summary>
-            /// The blend operation for the alpha channel (default: <c>BlendOperation::Add</c>).
-            /// </summary>
+            /// @brief The blend operation for the alpha channel (default: `BlendOperation::Add`).
             BlendOperation AlphaOperation{ BlendOperation::Add };
 
-            /// <summary>
-            /// The channel write mask, determining which channels are written to (default: <c>WriteMask::R | WriteMask::G | WriteMask::B | WriteMask::A</c>).
-            /// </summary>
+            /// @brief The channel write mask, determining which channels are written to (default: `WriteMask::R | WriteMask::G | WriteMask::B | WriteMask::A`).
             WriteMask ChannelWriteMask{ WriteMask::R | WriteMask::G | WriteMask::B | WriteMask::A };
         };
 
@@ -3545,461 +2697,359 @@ namespace LiteFX::Rendering {
         virtual ~IRenderTarget() noexcept = default;
 
     public:
-        /// <summary>
-        /// A unique identifier for the render target.
-        /// </summary>
-        /// <returns>The unique identifier for the render target.</returns>
+        /// @brief A unique identifier for the render target.
+        ///
+        /// @return The unique identifier for the render target.
         virtual UInt64 identifier() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the name of the render target.
-        /// </summary>
-        /// <returns>The name of the render target.</returns>
+        /// @brief Returns the name of the render target.
+        ///
+        /// @return The name of the render target.
         virtual const String& name() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the location of the render target output attachment within the fragment shader.
-        /// </summary>
-        /// <remarks>
-        /// The locations of all render targets of a frame buffer must be within a continuous domain, starting at <c>0</c>. A frame buffer validates the render target locations
-        /// when it is initialized and will raise an exception, if a location is either not mapped or assigned multiple times.
-        /// </remarks>
-        /// <returns>The location of the render target output attachment within the fragment shader</returns>
+        /// @brief Returns the location of the render target output attachment within the fragment shader.
+        ///
+        /// The locations of all render targets of a frame buffer must be within a continuous domain, starting at `0`. A frame buffer validates the render target locations when it is initialized and will raise an
+        /// exception, if a location is either not mapped or assigned multiple times.
+        ///
+        /// @return The location of the render target output attachment within the fragment shader
         virtual UInt32 location() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the type of the render target.
-        /// </summary>
-        /// <returns>The type of the render target.</returns>
+        /// @brief Returns the type of the render target.
+        ///
+        /// @return The type of the render target.
         virtual RenderTargetType type() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the internal format of the render target.
-        /// </summary>
-        /// <returns>The internal format of the render target.</returns>
+        /// @brief Returns the internal format of the render target.
+        ///
+        /// @return The internal format of the render target.
         virtual Format format() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the flags that control the behavior of the render target.
-        /// </summary>
-        /// <returns>The flags that control the behavior of the render target.</returns>
+        /// @brief Returns the flags that control the behavior of the render target.
+        ///
+        /// @return The flags that control the behavior of the render target.
         virtual RenderTargetFlags flags() const noexcept = 0;
 
-        /// <summary>
-        /// Returns <c>true</c>, if the render target should be cleared, when the render pass is started. If the <see cref="format" /> is set to a depth format, this clears the
-        /// depth buffer. Otherwise it clears the color buffer.
-        /// </summary>
-        /// <returns><c>true</c>, if the render target should be cleared, when the render pass is started</returns>
-        /// <seealso cref="clearStencil" />
-        /// <seealso cref="clearValues" />
-        /// <seealso cref="flags" />
-        /// <seealso cref="RenderTargetFlags" />
+        /// @brief Returns `true`, if the render target should be cleared, when the render pass is started. If the @ref format is set to a depth format, this clears the depth buffer. Otherwise it clears the color
+        /// buffer.
+        ///
+        /// @return `true`, if the render target should be cleared, when the render pass is started
+        /// @see clearStencil
+        /// @see clearValues
+        /// @see flags
+        /// @see RenderTargetFlags
         virtual bool clearBuffer() const noexcept = 0;
 
-        /// <summary>
-        /// Returns <c>true</c>, if the render target stencil should be cleared, when the render pass is started. If the <see cref="format" /> is does not contain a stencil channel,
-        /// this has no effect.
-        /// </summary>
-        /// <returns><c>true</c>, if the render target stencil should be cleared, when the render pass is started</returns>
-        /// <seealso cref="clearStencil" />
-        /// <seealso cref="clearValues" />
-        /// <seealso cref="flags" />
-        /// <seealso cref="RenderTargetFlags" />
+        /// @brief Returns `true`, if the render target stencil should be cleared, when the render pass is started. If the @ref format is does not contain a stencil channel, this has no effect.
+        ///
+        /// @return `true`, if the render target stencil should be cleared, when the render pass is started
+        /// @see clearStencil
+        /// @see clearValues
+        /// @see flags
+        /// @see RenderTargetFlags
         virtual bool clearStencil() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the value, the render target is cleared with, if <see cref="clearBuffer" /> either or <see cref="clearStencil" /> is specified.
-        /// </summary>
-        /// <remarks>
-        /// If the <see cref="format" /> is a color format and <see cref="clearBuffer" /> is specified, this contains the clear color. However, if the format is a depth/stencil 
-        /// format, the R and G channels contain the depth and stencil value to clear the buffer with. Note that the stencil buffer is only cleared, if <see cref="clearStencil" />
-        /// is specified and vice versa.
-        /// </remarks>
-        /// <returns>The value, the render target is cleared with, if <see cref="clearBuffer" /> either or <see cref="clearStencil" /> is specified.</returns>
+        /// @brief Returns the value, the render target is cleared with, if @ref clearBuffer either or @ref clearStencil is specified.
+        ///
+        /// If the @ref format is a color format and @ref clearBuffer is specified, this contains the clear color. However, if the format is a depth/stencil format, the R and G channels contain the depth and
+        /// stencil value to clear the buffer with. Note that the stencil buffer is only cleared, if @ref clearStencil is specified and vice versa.
+        ///
+        /// @return The value, the render target is cleared with, if @ref clearBuffer either or @ref clearStencil is specified.
         virtual const Vector4f& clearValues() const noexcept = 0;
 
-        /// <summary>
-        /// Returns <c>true</c>, if the target should not be made persistent for access after the render pass has finished.
-        /// </summary>
-        /// <remarks>
-        /// A render target can be marked as volatile if it does not need to be accessed after the render pass has finished. This can be used to optimize away unnecessary GPU/CPU 
-        /// memory round-trips. For example a depth buffer may only be used as an input for the lighting stage of a deferred renderer, but is not required after this. So instead
-        /// of reading it from the GPU after the lighting pass has finished and then discarding it anyway, it can be marked as volatile in order to prevent it from being read from
-        /// the GPU memory again in the first place.
-        /// </remarks>
-        /// <returns><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</returns>
-        /// <seealso cref="flags" />
-        /// <seealso cref="RenderTargetFlags" />
+        /// @brief Returns `true`, if the target should not be made persistent for access after the render pass has finished.
+        ///
+        /// A render target can be marked as volatile if it does not need to be accessed after the render pass has finished. This can be used to optimize away unnecessary GPU/CPU memory round-trips. For example a
+        /// depth buffer may only be used as an input for the lighting stage of a deferred renderer, but is not required after this. So instead of reading it from the GPU after the lighting pass has finished and
+        /// then discarding it anyway, it can be marked as volatile in order to prevent it from being read from the GPU memory again in the first place.
+        ///
+        /// @return `true`, if the target should not be made persistent for access after the render pass has finished.
+        /// @see flags
+        /// @see RenderTargetFlags
         virtual bool isVolatile() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the render targets blend state.
-        /// </summary>
-        /// <returns>The render targets blend state.</returns>
+        /// @brief Returns the render targets blend state.
+        ///
+        /// @return The render targets blend state.
         virtual const BlendState& blendState() const noexcept = 0;
     };
 
-    /// <summary>
-    /// Implements a render target.
-    /// </summary>
-    /// <see cref="IRenderTarget" />
+    /// @brief Implements a render target.
+    ///
+    /// @ref IRenderTarget
     class LITEFX_RENDERING_API RenderTarget : public IRenderTarget {
         LITEFX_IMPLEMENTATION(RenderTargetImpl);
 
     public:
-        /// <summary>
-        /// Initializes the render target.
-        /// </summary>
-        /// <param name="uid">A unique identifier for the render target.</param>
-        /// <param name="location">The location of the render target output attachment.</param>
-        /// <param name="type">The type of the render target.</param>
-        /// <param name="format">The format of the render target.</param>
-        /// <param name="flags">The flags that control the behavior of the render target.</param>
-        /// <param name="clearValues">The values with which the render target gets cleared.</param>
-        /// <param name="blendState">The render target blend state.</param>
+        /// @brief Initializes the render target.
+        ///
+        /// @param uid A unique identifier for the render target.
+        /// @param location The location of the render target output attachment.
+        /// @param type The type of the render target.
+        /// @param format The format of the render target.
+        /// @param flags The flags that control the behavior of the render target.
+        /// @param clearValues The values with which the render target gets cleared.
+        /// @param blendState The render target blend state.
         explicit RenderTarget(UInt64 uid, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const BlendState& blendState = {});
 
-        /// <summary>
-        /// Initializes the render target.
-        /// </summary>
-        /// <remarks>
-        /// This overload uses the <paramref name="name" /> parameter to compute the <see cref="identifier" />.
-        /// </remarks>
-        /// <param name="name">The unique name of the render target.</param>
-        /// <param name="location">The location of the render target output attachment.</param>
-        /// <param name="type">The type of the render target.</param>
-        /// <param name="format">The format of the render target.</param>
-        /// <param name="flags">The flags that control the behavior of the render target.</param>
-        /// <param name="clearValues">The values with which the render target gets cleared.</param>
-        /// <param name="blendState">The render target blend state.</param>
+        /// @brief Initializes the render target.
+        ///
+        /// This overload uses the @p name parameter to compute the @ref identifier.
+        ///
+        /// @param name The unique name of the render target.
+        /// @param location The location of the render target output attachment.
+        /// @param type The type of the render target.
+        /// @param format The format of the render target.
+        /// @param flags The flags that control the behavior of the render target.
+        /// @param clearValues The values with which the render target gets cleared.
+        /// @param blendState The render target blend state.
         explicit RenderTarget(StringView name, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const BlendState& blendState = {});
         
-        /// <summary>
-        /// Creates a copy of a render target.
-        /// </summary>
-        /// <param name="_other">The render target instance to copy.</param>
+        /// @brief Creates a copy of a render target.
+        ///
+        /// @param _other The render target instance to copy.
         RenderTarget(const RenderTarget& _other);
 
-        /// <summary>
-        /// Takes over another instance of a render target.
-        /// </summary>
-        /// <param name="_other">The render target instance to take over.</param>
+        /// @brief Takes over another instance of a render target.
+        ///
+        /// @param _other The render target instance to take over.
         RenderTarget(RenderTarget&& _other) noexcept;
 
-        /// <summary>
-        /// Assigns a render target by copying it.
-        /// </summary>
-        /// <param name="_other">The render target instance to copy.</param>
-        /// <returns>A reference to the current render target instance.</returns>
+        /// @brief Assigns a render target by copying it.
+        ///
+        /// @param _other The render target instance to copy.
+        /// @return A reference to the current render target instance.
         RenderTarget& operator=(const RenderTarget& _other);
 
-        /// <summary>
-        /// Assigns a render target by taking it over.
-        /// </summary>
-        /// <param name="_other">The render target to take over.</param>
-        /// <returns>A reference to the current render target instance.</returns>
+        /// @brief Assigns a render target by taking it over.
+        ///
+        /// @param _other The render target to take over.
+        /// @return A reference to the current render target instance.
         RenderTarget& operator=(RenderTarget&& _other) noexcept;
         
-        /// <summary>
-        /// Releases the render target instance.
-        /// </summary>
+        /// @brief Releases the render target instance.
         ~RenderTarget() noexcept override;
 
     public:
-        /// <inheritdoc />
+        /// @copydoc IRenderTarget::identifier
         UInt64 identifier() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IRenderTarget::name
         const String& name() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IRenderTarget::location
         UInt32 location() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IRenderTarget::type
         RenderTargetType type() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IRenderTarget::format
         Format format() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IRenderTarget::flags
         RenderTargetFlags flags() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IRenderTarget::clearBuffer
         bool clearBuffer() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IRenderTarget::clearStencil
         bool clearStencil() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IRenderTarget::clearValues
         const Vector4f& clearValues() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IRenderTarget::isVolatile
         bool isVolatile() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IRenderTarget::blendState
         const BlendState& blendState() const noexcept override;
     };
 
-    /// <summary>
-    /// Represents a mapping between a set of <see cref="RenderTarget" /> instances and the input attachments of a <see cref="IRenderPass" />.
-    /// </summary>
+    /// @brief Represents a mapping between a set of @ref RenderTarget instances and the input attachments of a @ref IRenderPass.
     class LITEFX_RENDERING_API RenderPassDependency {
         LITEFX_IMPLEMENTATION(RenderPassDependencyImpl);
 
     public:
-        /// <summary>
-        /// Creates a new render target dependency.
-        /// </summary>
-        /// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
-        /// <param name="descriptorBinding">The binding point to bind the input attachment to.</param>
+        /// @brief Creates a new render target dependency.
+        ///
+        /// @param renderTarget The render target of the @p renderPass that is used for the input attachment.
+        /// @param descriptorBinding The binding point to bind the input attachment to.
         RenderPassDependency(const RenderTarget& renderTarget, const DescriptorBindingPoint& descriptorBinding) noexcept;
 
-        /// <summary>
-        /// Creates a new render target dependency.
-        /// </summary>
-        /// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
-        /// <param name="bindingRegister">The register to bind the input attachment to.</param>
-        /// <param name="space">The space to bind the input attachment to.</param>
+        /// @brief Creates a new render target dependency.
+        ///
+        /// @param renderTarget The render target of the @p renderPass that is used for the input attachment.
+        /// @param bindingRegister The register to bind the input attachment to.
+        /// @param space The space to bind the input attachment to.
         RenderPassDependency(const RenderTarget& renderTarget, UInt32 bindingRegister, UInt32 space) noexcept;
 
-        /// <summary>
-        /// Creates a copy of another render pass dependency.
-        /// </summary>
-        /// <param name="_other">The render pass dependency to copy.</param>
+        /// @brief Creates a copy of another render pass dependency.
+        ///
+        /// @param _other The render pass dependency to copy.
         RenderPassDependency(const RenderPassDependency& _other);
 
-        /// <summary>
-        /// Takes over another render pass dependency instance.
-        /// </summary>
-        /// <param name="_other">The render pass dependency instance to take over.</param>
+        /// @brief Takes over another render pass dependency instance.
+        ///
+        /// @param _other The render pass dependency instance to take over.
         RenderPassDependency(RenderPassDependency&& _other) noexcept;
 
-        /// <summary>
-        /// Assigns another render pass dependency instance by copying it.
-        /// </summary>
-        /// <param name="_other">The render pass dependency to copy.</param>
-        /// <returns>A reference of the current render pass dependency instance.</returns>
+        /// @brief Assigns another render pass dependency instance by copying it.
+        ///
+        /// @param _other The render pass dependency to copy.
+        /// @return A reference of the current render pass dependency instance.
         RenderPassDependency& operator=(const RenderPassDependency& _other);
 
-        /// <summary>
-        /// Assigns another render pass dependency by taking it over.
-        /// </summary>
-        /// <param name="_other">The render pass dependency to take over.</param>
-        /// <returns>A reference of the current render pass dependency instance.</returns>
+        /// @brief Assigns another render pass dependency by taking it over.
+        ///
+        /// @param _other The render pass dependency to take over.
+        /// @return A reference of the current render pass dependency instance.
         RenderPassDependency& operator=(RenderPassDependency&& _other) noexcept;
 
-        /// <summary>
-        /// Releases the current render pass dependency instance.
-        /// </summary>
+        /// @brief Releases the current render pass dependency instance.
         ~RenderPassDependency() noexcept;
 
     public:
-        /// <summary>
-        /// Returns a reference of the render target that is mapped to the input attachment.
-        /// </summary>
-        /// <returns>A reference of the render target that is mapped to the input attachment.</returns>
+        /// @brief Returns a reference of the render target that is mapped to the input attachment.
+        ///
+        /// @return A reference of the render target that is mapped to the input attachment.
         const RenderTarget& renderTarget() const noexcept;
 
-        /// <summary>
-        /// Returns the binding point for the input attachment binding.
-        /// </summary>
-        /// <returns>The binding point for the input attachment binding.</returns>
+        /// @brief Returns the binding point for the input attachment binding.
+        ///
+        /// @return The binding point for the input attachment binding.
         const DescriptorBindingPoint& binding() const noexcept;
     };
 
-    /// <summary>
-    /// Stores the depth/stencil state of a see <see cref="IRasterizer" />.
-    /// </summary>
+    /// @brief Stores the depth/stencil state of a see @ref IRasterizer.
     class LITEFX_RENDERING_API DepthStencilState final {
         LITEFX_IMPLEMENTATION(DepthStencilStateImpl);
 
     public:
-        /// <summary>
-        /// Describes the rasterizer depth state.
-        /// </summary>
+        /// @brief Describes the rasterizer depth state.
         struct DepthState {
         public:
-            /// <summary>
-            /// Specifies, if depth testing should be enabled (default: <c>true</c>).
-            /// </summary>
+            /// @brief Specifies, if depth testing should be enabled (default: `true`).
             bool Enable{ true };
 
-            /// <summary>
-            /// Specifies, if depth should be written (default: <c>true</c>).
-            /// </summary>
+            /// @brief Specifies, if depth should be written (default: `true`).
             bool Write{ true };
 
-            /// <summary>
-            /// The compare operation used to pass the depth test (default: <c>CompareOperation::Always</c>).
-            /// </summary>
+            /// @brief The compare operation used to pass the depth test (default: `CompareOperation::Always`).
             CompareOperation Operation{ CompareOperation::Always };
 
-            /// <summary>
-            /// Enables the depth bounds test.
-            /// </summary>
-            /// <remarks>
-            /// Enabling the depth bounds test allows to supply a depth range to the command buffer by calling <see cref="ICommandBuffer::setDepthBounds" />, which 
-            /// will cause an rasterization operation to exit early, if the resulting depth lies outside of the provided range. To use this test, the 
-            /// <see cref="GraphicsDeviceFeatures::DepthBoundsTest" /> must be enabled on the device.
-            /// </remarks>
-            /// <seealso cref="GraphicsDeviceFeatures::DepthBoundsTest" />
-            /// <seealso cref="ICommandBuffer::setDepthBounds" />
+            /// @brief Enables the depth bounds test.
+            ///
+            /// Enabling the depth bounds test allows to supply a depth range to the command buffer by calling @ref ICommandBuffer::setDepthBounds, which will cause an rasterization operation to exit early, if the
+            /// resulting depth lies outside of the provided range. To use this test, the @ref GraphicsDeviceFeatures::DepthBoundsTest must be enabled on the device.
+            ///
+            /// @see GraphicsDeviceFeatures::DepthBoundsTest
+            /// @see ICommandBuffer::setDepthBounds
             bool DepthBoundsTestEnable{ false };
         };
 
-        /// <summary>
-        /// Describes the rasterizer depth bias.
-        /// </summary>
-        /// <remarks>
-        /// The depth bias can be used to alter the depth value function, i.e. how the values within the depth buffer are distributed. By default, the depth buffer
-        /// uses an exponential function scale to increase precision for closer objects. The values provided with <see cref="depthBiasClamp" />, 
-        /// <see cref="depthBiasConstantFactor" /> and <see cref="depthBiasSlopeFactor" /> are used to change the domain clamping, offset and steepness of the depth
-        /// value distribution.
-        /// </remarks>
+        /// @brief Describes the rasterizer depth bias.
+        ///
+        /// The depth bias can be used to alter the depth value function, i.e. how the values within the depth buffer are distributed. By default, the depth buffer uses an exponential function scale to increase
+        /// precision for closer objects. The values provided with @ref depthBiasClamp, @ref depthBiasConstantFactor and @ref depthBiasSlopeFactor are used to change the domain clamping, offset and steepness of
+        /// the depth value distribution.
         struct DepthBias {
         public:
-            /// <summary>
-            /// Specifies, if depth bias should be used (default: <c>false</c>).
-            /// </summary>
+            /// @brief Specifies, if depth bias should be used (default: `false`).
             bool Enable{ false };
 
-            /// <summary>
-            /// Specifies the depth bias clamp (default: <c>0.0</c>).
-            /// </summary>
+            /// @brief Specifies the depth bias clamp (default: `0.0`).
             Float Clamp{ 0.f };
 
-            /// <summary>
-            /// Specifies the depth bias slope factor (default: <c>0.0</c>).
-            /// </summary>
+            /// @brief Specifies the depth bias slope factor (default: `0.0`).
             Float SlopeFactor{ 0.f };
 
-            /// <summary>
-            /// Specifies the depth bias constant factor (default: <c>0.0</c>).
-            /// </summary>
+            /// @brief Specifies the depth bias constant factor (default: `0.0`).
             Float ConstantFactor{ 0.f };
         };
 
-        /// <summary>
-        /// Describes a stencil test for either front or back faces.
-        /// </summary>
+        /// @brief Describes a stencil test for either front or back faces.
         struct StencilTest {
         public:
-            /// <summary>
-            /// The operation to apply to the stencil buffer, if the stencil test fails (default: <c>StencilOperation::Keep</c>).
-            /// </summary>
+            /// @brief The operation to apply to the stencil buffer, if the stencil test fails (default: `StencilOperation::Keep`).
             StencilOperation StencilFailOp{ StencilOperation::Keep };
 
-            /// <summary>
-            /// The operation to apply to the stencil buffer, if the stencil test passes (default: <c>StencilOperation::Keep</c>).
-            /// </summary>
+            /// @brief The operation to apply to the stencil buffer, if the stencil test passes (default: `StencilOperation::Keep`).
             StencilOperation StencilPassOp{ StencilOperation::Replace };
 
-            /// <summary>
-            /// The operation to apply to the stencil buffer, if the depth test fails (default: <c>StencilOperation::Keep</c>).
-            /// </summary>
+            /// @brief The operation to apply to the stencil buffer, if the depth test fails (default: `StencilOperation::Keep`).
             StencilOperation DepthFailOp{ StencilOperation::Keep };
 
-            /// <summary>
-            /// The operation use for stencil testing (default: <c>CompareOperation::Never</c>).
-            /// </summary>
+            /// @brief The operation use for stencil testing (default: `CompareOperation::Never`).
             CompareOperation Operation{ CompareOperation::Never };
         };
 
-        /// <summary>
-        /// Describes the rasterizer stencil state.
-        /// </summary>
+        /// @brief Describes the rasterizer stencil state.
         struct StencilState {
         public:
-            /// <summary>
-            /// Specifies, if stencil state should be used (default: <c>false</c>).
-            /// </summary>
+            /// @brief Specifies, if stencil state should be used (default: `false`).
             bool Enable{ false };
 
-            /// <summary>
-            /// Specifies the bits to write to the stencil state (default: <c>0xFF</c>).
-            /// </summary>
+            /// @brief Specifies the bits to write to the stencil state (default: `0xFF`).
             UInt8 WriteMask{ 0xFF }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
-            /// <summary>
-            /// Specifies the bits to read from the stencil state (default: <c>0xFF</c>).
-            /// </summary>
+            /// @brief Specifies the bits to read from the stencil state (default: `0xFF`).
             UInt8 ReadMask{ 0xFF }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
-            /// <summary>
-            /// Describes the stencil test for faces that point towards the camera.
-            /// </summary>
+            /// @brief Describes the stencil test for faces that point towards the camera.
             StencilTest FrontFace{};
 
-            /// <summary>
-            /// Describes the stencil test for faces that point away from the camera.
-            /// </summary>
+            /// @brief Describes the stencil test for faces that point away from the camera.
             StencilTest BackFace{};
         };
 
     public:
-        /// <summary>
-        /// Initializes a new rasterizer depth/stencil state.
-        /// </summary>
-        /// <param name="depthState">The depth state of the rasterizer.</param>
-        /// <param name="depthBias">The depth bias configuration of the rasterizer.</param>
-        /// <param name="stencilState">The stencil state of the rasterizer.</param>
+        /// @brief Initializes a new rasterizer depth/stencil state.
+        ///
+        /// @param depthState The depth state of the rasterizer.
+        /// @param depthBias The depth bias configuration of the rasterizer.
+        /// @param stencilState The stencil state of the rasterizer.
         explicit DepthStencilState(const DepthState& depthState, const DepthBias& depthBias, const StencilState& stencilState) noexcept;
 
-        /// <summary>
-        /// Initializes a new rasterizer depth/stencil state.
-        /// </summary>
+        /// @brief Initializes a new rasterizer depth/stencil state.
         DepthStencilState() noexcept;
 
-        /// <summary>
-        /// Creates a copy of a depth/stencil state.
-        /// </summary>
+        /// @brief Creates a copy of a depth/stencil state.
         DepthStencilState(const DepthStencilState&);
 
-        /// <summary>
-        /// Moves a depth/stencil state.
-        /// </summary>
+        /// @brief Moves a depth/stencil state.
         DepthStencilState(DepthStencilState&&) noexcept;
 
-        /// <summary>
-        /// Copies a depth/stencil state.
-        /// </summary>
-        /// <returns>A reference to the current depth/stencil state instance.</returns>
+        /// @brief Copies a depth/stencil state.
+        ///
+        /// @return A reference to the current depth/stencil state instance.
         DepthStencilState& operator=(const DepthStencilState&);
 
-        /// <summary>
-        /// Moves a depth/stencil state.
-        /// </summary>
-        /// <returns>A reference to the current depth/stencil state instance.</returns>
+        /// @brief Moves a depth/stencil state.
+        ///
+        /// @return A reference to the current depth/stencil state instance.
         DepthStencilState& operator=(DepthStencilState&&) noexcept;
 
-        /// <summary>
-        /// Destroys a depth/stencil state.
-        /// </summary>
+        /// @brief Destroys a depth/stencil state.
         ~DepthStencilState() noexcept;
 
     public:
-        /// <summary>
-        /// Returns the depth state.
-        /// </summary>
-        /// <returns>The depth state.</returns>
+        /// @brief Returns the depth state.
+        ///
+        /// @return The depth state.
         DepthState& depthState() const noexcept;
 
-        /// <summary>
-        /// Returns the depth bias.
-        /// </summary>
-        /// <returns>The depth bias.</returns>
+        /// @brief Returns the depth bias.
+        ///
+        /// @return The depth bias.
         DepthBias& depthBias() const noexcept;
 
-        /// <summary>
-        /// Returns the stencil state.
-        /// </summary>
-        /// <returns>The stencil state.</returns>
+        /// @brief Returns the stencil state.
+        ///
+        /// @return The stencil state.
         StencilState& stencilState() const noexcept;
     };
 
-    /// <summary>
-    /// Represents the rasterizer state of a <see cref="RenderPipeline" />.
-    /// </summary>
+    /// @brief Represents the rasterizer state of a @ref RenderPipeline.
     class LITEFX_RENDERING_API IRasterizer : public SharedObject {
     protected:
         IRasterizer() noexcept = default;
@@ -4012,127 +3062,108 @@ namespace LiteFX::Rendering {
         ~IRasterizer() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns the polygon mode of the rasterizer state.
-        /// </summary>
-        /// <returns>The polygon mode of the rasterizer state.</returns>
+        /// @brief Returns the polygon mode of the rasterizer state.
+        ///
+        /// @return The polygon mode of the rasterizer state.
         virtual PolygonMode polygonMode() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the cull mode of the rasterizer state.
-        /// </summary>
-        /// <returns>The cull mode of the rasterizer state.</returns>
+        /// @brief Returns the cull mode of the rasterizer state.
+        ///
+        /// @return The cull mode of the rasterizer state.
         virtual CullMode cullMode() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the cull mode of the rasterizer state.
-        /// </summary>
-        /// <returns>The cull mode of the rasterizer state.</returns>
+        /// @brief Returns the cull mode of the rasterizer state.
+        ///
+        /// @return The cull mode of the rasterizer state.
         virtual CullOrder cullOrder() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the line width of the rasterizer state.
-        /// </summary>
-        /// <remarks>
-        /// Note that line width is not supported in DirectX and is only emulated under Vulkan. Instead of forcing this value, it is recommended to 
-        /// use a custom shader for it.
-        /// </remarks>
-        /// <returns>The line width of the rasterizer state.</returns>
+        /// @brief Returns the line width of the rasterizer state.
+        ///
+        /// Note that line width is not supported in DirectX and is only emulated under Vulkan. Instead of forcing this value, it is recommended to use a custom shader for it.
+        ///
+        /// @return The line width of the rasterizer state.
         virtual Float lineWidth() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the depth/stencil state of the rasterizer.
-        /// </summary>
-        /// <returns>The depth/stencil state of the rasterizer.</returns>
+        /// @brief Returns the depth/stencil state of the rasterizer.
+        ///
+        /// @return The depth/stencil state of the rasterizer.
         virtual const DepthStencilState& depthStencilState() const noexcept = 0;
 
-        /// <summary>
-        /// Returns `true`, if z-clipping should be used during distance clipping.
-        /// </summary>
-        /// <returns>`true`, if z-clipping should be used during distance clipping and `false` otherwise.</returns>
+        /// @brief Returns `true`, if z-clipping should be used during distance clipping.
+        ///
+        /// @return `true`, if z-clipping should be used during distance clipping and `false` otherwise.
         virtual bool depthClip() const noexcept = 0;
 
-        /// <summary>
-        /// Returns `true`, if conservative rasterization is enabled and `false` otherwise.
-        /// </summary>
-        /// <remarks>
-        /// This setting requires the <see cref="GraphicsDeviceFeatures::ConservativeRasterization" /> feature to be enabled.
-        /// </remarks>
-        /// <returns>`true`, if conservative rasterization is enabled and `false` otherwise.</returns>
+        /// @brief Returns `true`, if conservative rasterization is enabled and `false` otherwise.
+        ///
+        /// This setting requires the @ref GraphicsDeviceFeatures::ConservativeRasterization feature to be enabled.
+        ///
+        /// @return `true`, if conservative rasterization is enabled and `false` otherwise.
         virtual bool conservativeRasterization() const noexcept = 0;
     };
 
-    /// <summary>
-    /// Implements a <see cref="IRasterizer" />.
-    /// </summary>
+    /// @brief Implements a @ref IRasterizer.
     class LITEFX_RENDERING_API Rasterizer : public IRasterizer {
         LITEFX_IMPLEMENTATION(RasterizerImpl);
 
     protected:
-        /// <summary>
-        /// Initializes a new rasterizer instance.
-        /// </summary>
-        /// <param name="polygonMode">The polygon mode of the rasterizer state.</param>
-        /// <param name="cullMode">The cull mode of the rasterizer state.</param>
-        /// <param name="cullOrder">The cull order of the rasterizer state.</param>
-        /// <param name="lineWidth">The line width of the rasterizer state.</param>
-        /// <param name="depthClip">The depth clip toggle of the rasterizer state.</param>
-        /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
-        /// <param name="conservativeRasterization">Toggles the use of conservative rasterization in the rasterizer.</param>
+        /// @brief Initializes a new rasterizer instance.
+        ///
+        /// @param polygonMode The polygon mode of the rasterizer state.
+        /// @param cullMode The cull mode of the rasterizer state.
+        /// @param cullOrder The cull order of the rasterizer state.
+        /// @param lineWidth The line width of the rasterizer state.
+        /// @param depthClip The depth clip toggle of the rasterizer state.
+        /// @param depthStencilState The rasterizer depth/stencil state.
+        /// @param conservativeRasterization Toggles the use of conservative rasterization in the rasterizer.
         explicit Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, bool depthClip = true, const DepthStencilState& depthStencilState = {}, bool conservativeRasterization = false) noexcept;
 
-        /// <summary>
-        /// Creates a copy of a rasterizer.
-        /// </summary>
-        /// <param name="_other">The rasterizer instance to copy.</param>
+        /// @brief Creates a copy of a rasterizer.
+        ///
+        /// @param _other The rasterizer instance to copy.
         Rasterizer(const Rasterizer& _other);
 
-        /// <summary>
-        /// Takes over another instance of a rasterizer.
-        /// </summary>
-        /// <param name="_other">The rasterizer instance to take over.</param>
+        /// @brief Takes over another instance of a rasterizer.
+        ///
+        /// @param _other The rasterizer instance to take over.
         Rasterizer(Rasterizer&& _other) noexcept;
 
-        /// <summary>
-        /// Assigns a rasterizer by copying it.
-        /// </summary>
-        /// <param name="_other">The rasterizer instance to copy.</param>
-        /// <returns>A reference to the current rasterizer instance.</returns>
+        /// @brief Assigns a rasterizer by copying it.
+        ///
+        /// @param _other The rasterizer instance to copy.
+        /// @return A reference to the current rasterizer instance.
         Rasterizer& operator=(const Rasterizer& _other);
 
-        /// <summary>
-        /// Assigns a rasterizer by taking it over.
-        /// </summary>
-        /// <param name="_other">The rasterizer to take over.</param>
-        /// <returns>A reference to the current rasterizer instance.</returns>
+        /// @brief Assigns a rasterizer by taking it over.
+        ///
+        /// @param _other The rasterizer to take over.
+        /// @return A reference to the current rasterizer instance.
         Rasterizer& operator=(Rasterizer&& _other) noexcept;
 
     public:
-        /// <summary>
-        /// Releases the rasterizer instance.
-        /// </summary>
+        /// @brief Releases the rasterizer instance.
         ~Rasterizer() noexcept override;
 
     public:
-        /// <inheritdoc />
+        /// @copydoc IRasterizer::polygonMode
         PolygonMode polygonMode() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IRasterizer::cullMode
         CullMode cullMode() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IRasterizer::cullOrder
         CullOrder cullOrder() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IRasterizer::lineWidth
         Float lineWidth() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IRasterizer::depthStencilState
         const DepthStencilState& depthStencilState() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IRasterizer::depthClip
         bool depthClip() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IRasterizer::conservativeRasterization
         bool conservativeRasterization() const noexcept override;
 
     protected:
@@ -4145,9 +3176,7 @@ namespace LiteFX::Rendering {
         virtual bool& conservativeRasterization() noexcept;
     };
 
-    /// <summary>
-    /// Interface for a viewport.
-    /// </summary>
+    /// @brief Interface for a viewport.
     class LITEFX_RENDERING_API IViewport {
     protected:
         IViewport() noexcept = default;
@@ -4160,112 +3189,95 @@ namespace LiteFX::Rendering {
         virtual ~IViewport() noexcept = default;
 
     public:
-        /// <summary>
-        /// Gets the rectangle that defines the dimensions of the viewport.
-        /// </summary>
-        /// <returns>The rectangle that defines the dimensions of the viewport.</returns>
+        /// @brief Gets the rectangle that defines the dimensions of the viewport.
+        ///
+        /// @return The rectangle that defines the dimensions of the viewport.
         virtual RectF getRectangle() const noexcept = 0;
 
-        /// <summary>
-        /// Sets the rectangle that defines the dimensions of the viewport.
-        /// </summary>
-        /// <param name="rectangle">The rectangle that defines the dimensions of the viewport.</param>
+        /// @brief Sets the rectangle that defines the dimensions of the viewport.
+        ///
+        /// @param rectangle The rectangle that defines the dimensions of the viewport.
         virtual void setRectangle(const RectF& rectangle) noexcept = 0;
 
-        /// <summary>
-        /// Gets the minimum depth of the viewport.
-        /// </summary>
-        /// <returns>The minimum depth of the viewport.</returns>
+        /// @brief Gets the minimum depth of the viewport.
+        ///
+        /// @return The minimum depth of the viewport.
         virtual float getMinDepth() const noexcept = 0;
 
-        /// <summary>
-        /// Sets the minimum depth of the viewport.
-        /// </summary>
-        /// <param name="depth">The minimum depth of the viewport.</param>
+        /// @brief Sets the minimum depth of the viewport.
+        ///
+        /// @param depth The minimum depth of the viewport.
         virtual void setMinDepth(Float depth) const noexcept = 0;
 
-        /// <summary>
-        /// Gets the maximum depth of the viewport.
-        /// </summary>
-        /// <returns>The maximum depth of the viewport.</returns>
+        /// @brief Gets the maximum depth of the viewport.
+        ///
+        /// @return The maximum depth of the viewport.
         virtual float getMaxDepth() const noexcept = 0;
 
-        /// <summary>
-        /// Sets the maximum depth of the viewport.
-        /// </summary>
-        /// <param name="depth">The maximum depth of the viewport.</param>
+        /// @brief Sets the maximum depth of the viewport.
+        ///
+        /// @param depth The maximum depth of the viewport.
         virtual void setMaxDepth(Float depth) const noexcept = 0;
     };
 
-    /// <summary>
-    /// Implements a viewport.
-    /// </summary>
+    /// @brief Implements a viewport.
     class LITEFX_RENDERING_API Viewport : public IViewport {
         LITEFX_IMPLEMENTATION(ViewportImpl);
 
     public:
-        /// <summary>
-        /// Initializes a new viewport.
-        /// </summary>
-        /// <param name="clientRect">The rectangle that defines the dimensions of the viewport.</param>
-        /// <param name="minDepth">The minimum depth of the viewport.</param>
-        /// <param name="maxDepth">The maximum depth of the viewport.</param>
+        /// @brief Initializes a new viewport.
+        ///
+        /// @param clientRect The rectangle that defines the dimensions of the viewport.
+        /// @param minDepth The minimum depth of the viewport.
+        /// @param maxDepth The maximum depth of the viewport.
         explicit Viewport(const RectF& clientRect = { }, Float minDepth = 0.f, Float maxDepth = 1.f) noexcept;
 
-        /// <summary>
-        /// Creates a copy of a viewport.
-        /// </summary>
-        /// <param name="_other">The viewport instance to copy.</param>
+        /// @brief Creates a copy of a viewport.
+        ///
+        /// @param _other The viewport instance to copy.
         Viewport(const Viewport& _other);
 
-        /// <summary>
-        /// Takes over another instance of a viewport.
-        /// </summary>
-        /// <param name="_other">The viewport instance to take over.</param>
+        /// @brief Takes over another instance of a viewport.
+        ///
+        /// @param _other The viewport instance to take over.
         Viewport(Viewport&& _other) noexcept;
 
-        /// <summary>
-        /// Assigns a viewport by copying it.
-        /// </summary>
-        /// <param name="_other">The viewport instance to copy.</param>
-        /// <returns>A reference to the current viewport instance.</returns>
+        /// @brief Assigns a viewport by copying it.
+        ///
+        /// @param _other The viewport instance to copy.
+        /// @return A reference to the current viewport instance.
         Viewport& operator=(const Viewport& _other);
 
-        /// <summary>
-        /// Assigns a viewport by taking it over.
-        /// </summary>
-        /// <param name="_other">The viewport to take over.</param>
-        /// <returns>A reference to the current viewport instance.</returns>
+        /// @brief Assigns a viewport by taking it over.
+        ///
+        /// @param _other The viewport to take over.
+        /// @return A reference to the current viewport instance.
         Viewport& operator=(Viewport&& _other) noexcept;
 
-        /// <summary>
-        /// Releases the render target instance.
-        /// </summary>
+        /// @brief Releases the render target instance.
         ~Viewport() noexcept override;
 
     public:
-        /// <inheritdoc />
+        /// @copydoc IViewport::getRectangle
         RectF getRectangle() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IViewport::setRectangle
         void setRectangle(const RectF& rectangle) noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IViewport::getMinDepth
         Float getMinDepth() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IViewport::setMinDepth
         void setMinDepth(Float depth) const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IViewport::getMaxDepth
         Float getMaxDepth() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IViewport::setMaxDepth
         void setMaxDepth(Float depth) const noexcept override;
     };
 
-    /// <summary>
-    /// The interface of a scissor.
-    /// </summary>
+    /// @brief The interface of a scissor.
     class LITEFX_RENDERING_API IScissor {
     protected:
         IScissor() noexcept = default;
@@ -4278,175 +3290,131 @@ namespace LiteFX::Rendering {
         virtual ~IScissor() noexcept = default;
 
     public:
-        /// <summary>
-        /// Gets the rectangle that defines the scissor region.
-        /// </summary>
-        /// <returns>The rectangle that defines the scissor region.</returns>
+        /// @brief Gets the rectangle that defines the scissor region.
+        ///
+        /// @return The rectangle that defines the scissor region.
         virtual RectF getRectangle() const noexcept = 0;
 
-        /// <summary>
-        /// Sets the rectangle that defines the scissor region.
-        /// </summary>
-        /// <param name="rectangle">The rectangle that defines the scissor region.</param>
+        /// @brief Sets the rectangle that defines the scissor region.
+        ///
+        /// @param rectangle The rectangle that defines the scissor region.
         virtual void setRectangle(const RectF& rectangle) noexcept = 0;
     };
 
-    /// <summary>
-    /// Implements a scissor.
-    /// </summary>
+    /// @brief Implements a scissor.
     class LITEFX_RENDERING_API Scissor final : public IScissor {
         LITEFX_IMPLEMENTATION(ScissorImpl);
 
     public:
-        /// <summary>
-        /// Initializes a new scissor.
-        /// </summary>
-        /// <param name="scissorRect">The rectangle that defines the scissor region.</param>
+        /// @brief Initializes a new scissor.
+        ///
+        /// @param scissorRect The rectangle that defines the scissor region.
         explicit Scissor(const RectF& scissorRect = { }) noexcept;
 
-        /// <summary>
-        /// Creates a copy of a scissor.
-        /// </summary>
-        /// <param name="_other">The scissor instance to copy.</param>
+        /// @brief Creates a copy of a scissor.
+        ///
+        /// @param _other The scissor instance to copy.
         Scissor(const Scissor& _other);
 
-        /// <summary>
-        /// Takes over another instance of a scissor.
-        /// </summary>
-        /// <param name="_other">The scissor instance to take over.</param>
+        /// @brief Takes over another instance of a scissor.
+        ///
+        /// @param _other The scissor instance to take over.
         Scissor(Scissor&& _other) noexcept;
 
-        /// <summary>
-        /// Assigns a scissor by copying it.
-        /// </summary>
-        /// <param name="_other">The scissor instance to copy.</param>
-        /// <returns>A reference to the current scissor instance.</returns>
+        /// @brief Assigns a scissor by copying it.
+        ///
+        /// @param _other The scissor instance to copy.
+        /// @return A reference to the current scissor instance.
         Scissor& operator=(const Scissor& _other);
 
-        /// <summary>
-        /// Assigns a scissor by taking it over.
-        /// </summary>
-        /// <param name="_other">The scissor to take over.</param>
-        /// <returns>A reference to the current scissor instance.</returns>
+        /// @brief Assigns a scissor by taking it over.
+        ///
+        /// @param _other The scissor to take over.
+        /// @return A reference to the current scissor instance.
         Scissor& operator=(Scissor&& _other) noexcept;
 
-        /// <summary>
-        /// Releases the scissor instance.
-        /// </summary>
+        /// @brief Releases the scissor instance.
         ~Scissor() noexcept override;
 
     public:
-        /// <inheritdoc />
+        /// @copydoc IScissor::getRectangle
         RectF getRectangle() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IScissor::setRectangle
         void setRectangle(const RectF& rectangle) noexcept override;
     };
 
-    /// <summary>
-    /// Describes the offsets and sizes of a shader group within a shader binding table buffer.
-    /// </summary>
-    /// <remarks>
+    /// @brief Describes the offsets and sizes of a shader group within a shader binding table buffer.
+    ///
     /// If a group is not present within a shader binding table, the offset for this group is set to the maximum possible value and the size is set to `0`.
-    /// </remarks>
-    /// <seealso cref="IRayTracingPipeline::allocateShaderBindingTable" /> 
+    ///
+    /// @see IRayTracingPipeline::allocateShaderBindingTable
     struct LITEFX_RENDERING_API ShaderBindingTableOffsets {
-        /// <summary>
-        /// The offset to the beginning of the ray generation group within the shader binding table.
-        /// </summary>
+        /// @brief The offset to the beginning of the ray generation group within the shader binding table.
         UInt64 RayGenerationGroupOffset { std::numeric_limits<UInt64>::max() };
 
-        /// <summary>
-        /// The size of the ray generation group within the shader binding table.
-        /// </summary>
+        /// @brief The size of the ray generation group within the shader binding table.
         UInt64 RayGenerationGroupSize { 0 };
 
-        /// <summary>
-        /// The stride between individual ray generation group records in the shader binding table.
-        /// </summary>
+        /// @brief The stride between individual ray generation group records in the shader binding table.
         UInt64 RayGenerationGroupStride { 0 };
 
-        /// <summary>
-        /// The offset to the beginning of the hit group within the shader binding table.
-        /// </summary>
+        /// @brief The offset to the beginning of the hit group within the shader binding table.
         UInt64 HitGroupOffset { std::numeric_limits<UInt64>::max() };
 
-        /// <summary>
-        /// The size of the hit group within the shader binding table.
-        /// </summary>
+        /// @brief The size of the hit group within the shader binding table.
         UInt64 HitGroupSize { 0 };
 
-        /// <summary>
-        /// The stride between individual hit group records in the shader binding table.
-        /// </summary>
+        /// @brief The stride between individual hit group records in the shader binding table.
         UInt64 HitGroupStride { 0 };
 
-        /// <summary>
-        /// The offset to the beginning of the miss group within the shader binding table.
-        /// </summary>
+        /// @brief The offset to the beginning of the miss group within the shader binding table.
         UInt64 MissGroupOffset{ std::numeric_limits<UInt64>::max() };
 
-        /// <summary>
-        /// The size of the miss group within the shader binding table.
-        /// </summary>
+        /// @brief The size of the miss group within the shader binding table.
         UInt64 MissGroupSize { 0 };
 
-        /// <summary>
-        /// The stride between individual miss group records in the shader binding table.
-        /// </summary>
+        /// @brief The stride between individual miss group records in the shader binding table.
         UInt64 MissGroupStride { 0 };
 
-        /// <summary>
-        /// The offset to the beginning of the callable group within the shader binding table.
-        /// </summary>
+        /// @brief The offset to the beginning of the callable group within the shader binding table.
         UInt64 CallableGroupOffset { std::numeric_limits<UInt64>::max() };
 
-        /// <summary>
-        /// The size of the callable group within the shader binding table.
-        /// </summary>
+        /// @brief The size of the callable group within the shader binding table.
         UInt64 CallableGroupSize { 0 };
 
-        /// <summary>
-        /// The stride between individual callable group records in the shader binding table.
-        /// </summary>
+        /// @brief The stride between individual callable group records in the shader binding table.
         UInt64 CallableGroupStride { 0 };
     };
 
-    /// <summary>
-    /// An event that is used to measure timestamps in a command queue.
-    /// </summary>
-    /// <remarks>
-    /// Timing events are used to collect GPU time stamps asynchronously. A timing event can be inserted to a <see cref="ICommandBuffer" /> by 
-    /// calling <see cref="ICommandBuffer::writeTimingEvent" />. This will cause the GPU to write the current time stamp when the command gets 
-    /// executed. Since command order is not preserved within command buffers, this is not guaranteed to be accurate an accurate point of time
-    /// for when a certain command in order has been executed. However, since a time stamp is always written at the bottom of the pipe, the 
-    /// difference between two timestamps resembles the actual time the GPU was occupied with the commands between them.
-    /// 
-    /// Timing events are asynchronous. They are set for a certain back buffer of a <see cref="ISwapChain" />. Reading the time stamp requires
-    /// the back buffer to be ready (i.e., the frame in flight needs to have executed). The earliest point where this is guaranteed is, if the
-    /// swap chain swaps to the back buffer again. This means that the time stamps issued in one frame can only be read the next time the 
+    /// @brief An event that is used to measure timestamps in a command queue.
+    ///
+    /// Timing events are used to collect GPU time stamps asynchronously. A timing event can be inserted to a @ref ICommandBuffer by calling @ref ICommandBuffer::writeTimingEvent. This will cause the GPU to
+    /// write the current time stamp when the command gets executed. Since command order is not preserved within command buffers, this is not guaranteed to be accurate an accurate point of time for when a
+    /// certain command in order has been executed. However, since a time stamp is always written at the bottom of the pipe, the difference between two timestamps resembles the actual time the GPU was
+    /// occupied with the commands between them.
+    ///
+    /// Timing events are asynchronous. They are set for a certain back buffer of a @ref ISwapChain. Reading the time stamp requires the back buffer to be ready (i.e., the frame in flight needs to have
+    /// executed). The earliest point where this is guaranteed is, if the swap chain swaps to the back buffer again. This means that the time stamps issued in one frame can only be read the next time the
     /// frame's back buffer is used again.
-    /// 
-    /// Note that timing events are only supported on graphics and compute <see cref="ICommandQueue" />s.
-    /// </remarks>
-    /// <seealso cref="ISwapChain" />
+    ///
+    /// Note that timing events are only supported on graphics and compute @ref ICommandQueues.
+    ///
+    /// @see ISwapChain
     class LITEFX_RENDERING_API TimingEvent final : public SharedObject {
         LITEFX_IMPLEMENTATION(TimingEventImpl);
         friend class ISwapChain;
         friend struct SharedObject::Allocator<TimingEvent>;
 
     private:
-        /// <summary>
-        /// Initializes a new timing event instance.
-        /// </summary>
-        /// <param name="swapChain">The swap chain on which the timing event is registered.</param>
-        /// <param name="name">The name of the timing event.</param>
+        /// @brief Initializes a new timing event instance.
+        ///
+        /// @param swapChain The swap chain on which the timing event is registered.
+        /// @param name The name of the timing event.
         explicit TimingEvent(const ISwapChain& swapChain, StringView name = "");
 
     public:
-        /// <summary>
-        /// Releases the render target instance.
-        /// </summary>
+        /// @brief Releases the render target instance.
         ~TimingEvent() noexcept override;
 
         TimingEvent(TimingEvent&&) noexcept = delete;
@@ -4455,146 +3423,121 @@ namespace LiteFX::Rendering {
         auto operator=(const TimingEvent&) = delete;
 
     private:
-        /// <summary>
-        /// Creates a new timing event instance.
-        /// </summary>
-        /// <param name="swapChain">The swap chain on which the timing event is registered.</param>
-        /// <param name="name">The name of the timing event.</param>
-        /// <returns>A shared pointer to the timing event instance.</returns>
+        /// @brief Creates a new timing event instance.
+        ///
+        /// @param swapChain The swap chain on which the timing event is registered.
+        /// @param name The name of the timing event.
+        /// @return A shared pointer to the timing event instance.
         static inline auto create(const ISwapChain& swapChain, StringView name = "") {
             return SharedObject::create<TimingEvent>(swapChain, name);
         }
 
     public:
-        /// <summary>
-        /// Gets the name of the timing event.
-        /// </summary>
-        /// <returns>The name of the timing event.</returns>
+        /// @brief Gets the name of the timing event.
+        ///
+        /// @return The name of the timing event.
         StringView name() const noexcept;
 
-        /// <summary>
-        /// Reads the current timestamp (as a tick count) of the event.
-        /// </summary>
-        /// <remarks>
-        /// In order to convert the number of ticks to (milli-)seconds, this value needs to be divided by <see cref="IGraphicsDevice::ticksPerMillisecond" />. To improve precision,
-        /// calculate the difference between two time stamps in ticks first and only then convert them to seconds.
-        /// </remarks>
-        /// <returns>The current time stamp of the event as a tick count.</returns>
-        /// <seealso cref="ISwapChain::readTimingEvent" />
-        /// <exception cref="RuntimeException">Thrown, if the parent device instance is already released.</exception>
+        /// @brief Reads the current timestamp (as a tick count) of the event.
+        ///
+        /// In order to convert the number of ticks to (milli-)seconds, this value needs to be divided by @ref IGraphicsDevice::ticksPerMillisecond. To improve precision, calculate the difference between two time
+        /// stamps in ticks first and only then convert them to seconds.
+        ///
+        /// @return The current time stamp of the event as a tick count.
+        /// @throws RuntimeException Thrown, if the parent device instance is already released.
+        /// @see ISwapChain::readTimingEvent
         UInt64 readTimestamp() const;
 
-        /// <summary>
-        /// Returns the query ID for the timing event.
-        /// </summary>
-        /// <returns>The query ID for the timing event.</returns>
-        /// <seealso cref="ISwapChain::resolveQueryId" />
-        /// <exception cref="RuntimeException">Thrown, if the parent device instance is already released.</exception>
+        /// @brief Returns the query ID for the timing event.
+        ///
+        /// @return The query ID for the timing event.
+        /// @throws RuntimeException Thrown, if the parent device instance is already released.
+        /// @see ISwapChain::resolveQueryId
         UInt32 queryId() const;
     };
 
-    /// <summary>
-    /// Stores meta data about a buffer attribute, i.e. a member or field of a descriptor or buffer.
-    /// </summary>
+    /// @brief Stores meta data about a buffer attribute, i.e. a member or field of a descriptor or buffer.
     class LITEFX_RENDERING_API BufferAttribute final {
         LITEFX_IMPLEMENTATION(BufferAttributeImpl);
 
     public:
-        /// <summary>
-        /// Initializes an empty buffer attribute.
-        /// </summary>
+        /// @brief Initializes an empty buffer attribute.
         BufferAttribute() noexcept;
 
-        /// <summary>
-        /// Initializes a new buffer attribute.
-        /// </summary>
-        /// <param name="location">The location the buffer attribute is bound to.</param>
-        /// <param name="offset">The offset of the attribute relative to the buffer.</param>
-        /// <param name="format">The format of the buffer attribute.</param>
-        /// <param name="semantic">The semantic of the buffer attribute.</param>
-        /// <param name="semanticIndex">The semantic index of the buffer attribute.</param>
+        /// @brief Initializes a new buffer attribute.
+        ///
+        /// @param location The location the buffer attribute is bound to.
+        /// @param offset The offset of the attribute relative to the buffer.
+        /// @param format The format of the buffer attribute.
+        /// @param semantic The semantic of the buffer attribute.
+        /// @param semanticIndex The semantic index of the buffer attribute.
         BufferAttribute(UInt32 location, UInt32 offset, BufferFormat format, AttributeSemantic semantic, UInt32 semanticIndex = 0) noexcept;
 
-        /// <summary>
-        /// Creates a copy of a buffer attribute.
-        /// </summary>
-        /// <param name="_other">The buffer attribute instance to copy.</param>
+        /// @brief Creates a copy of a buffer attribute.
+        ///
+        /// @param _other The buffer attribute instance to copy.
         BufferAttribute(const BufferAttribute& _other);
 
-        /// <summary>
-        /// Takes over another instance of a buffer attribute.
-        /// </summary>
-        /// <param name="_other">The buffer attribute instance to take over.</param>
+        /// @brief Takes over another instance of a buffer attribute.
+        ///
+        /// @param _other The buffer attribute instance to take over.
         BufferAttribute(BufferAttribute&& _other) noexcept;
 
-        /// <summary>
-        /// Assigns a buffer attribute by copying it.
-        /// </summary>
-        /// <param name="_other">The buffer attribute instance to copy.</param>
-        /// <returns>A reference to the current buffer attribute instance.</returns>
+        /// @brief Assigns a buffer attribute by copying it.
+        ///
+        /// @param _other The buffer attribute instance to copy.
+        /// @return A reference to the current buffer attribute instance.
         BufferAttribute& operator=(const BufferAttribute& _other);
 
-        /// <summary>
-        /// Assigns a buffer attribute by taking it over.
-        /// </summary>
-        /// <param name="_other">The buffer attribute to take over.</param>
-        /// <returns>A reference to the current buffer attribute instance.</returns>
+        /// @brief Assigns a buffer attribute by taking it over.
+        ///
+        /// @param _other The buffer attribute to take over.
+        /// @return A reference to the current buffer attribute instance.
         BufferAttribute& operator=(BufferAttribute&& _other) noexcept;
 
-        /// <summary>
-        /// Releases the buffer attribute instance.
-        /// </summary>
+        /// @brief Releases the buffer attribute instance.
         ~BufferAttribute() noexcept;
 
     public:
-        /// <summary>
-        /// Returns the location of the buffer attribute.
-        /// </summary>
-        /// <remarks>
+        /// @brief Returns the location of the buffer attribute.
+        ///
         /// Locations can only be specified in Vulkan and are implicitly generated based on semantics for DirectX. However, it is a good practice to provide them anyway.
-        /// </remarks>
-        /// <returns>The location of the buffer attribute.</returns>
+        ///
+        /// @return The location of the buffer attribute.
         UInt32 location() const noexcept;
 
-        /// <summary>
-        /// Returns the format of the buffer attribute.
-        /// </summary>
-        /// <returns>The format of the buffer attribute.</returns>
+        /// @brief Returns the format of the buffer attribute.
+        ///
+        /// @return The format of the buffer attribute.
         BufferFormat format() const noexcept;
 
-        /// <summary>
-        /// Returns the offset of the buffer attribute.
-        /// </summary>
-        /// <returns>The offset of the buffer attribute.</returns>
+        /// @brief Returns the offset of the buffer attribute.
+        ///
+        /// @return The offset of the buffer attribute.
         UInt32 offset() const noexcept;
 
-        /// <summary>
-        /// Returns the semantic of the buffer attribute.
-        /// </summary>
-        /// <remarks>
+        /// @brief Returns the semantic of the buffer attribute.
+        ///
         /// Semantics are only used in DirectX and HLSL, however it is a good practice to provide them anyway.
-        /// </remarks>
-        /// <returns>The semantic of the buffer attribute.</returns>
-        /// <seealso cref="semanticIndex" />
+        ///
+        /// @return The semantic of the buffer attribute.
+        /// @see semanticIndex
         AttributeSemantic semantic() const noexcept;
 
-        /// <summary>
-        /// Returns the semantic index of the buffer attribute.
-        /// </summary>
-        /// <remarks>
+        /// @brief Returns the semantic index of the buffer attribute.
+        ///
         /// Semantics are only used in DirectX and HLSL, however it is a good practice to provide them anyway.
-        /// </remarks>
-        /// <returns>The semantic index of the buffer attribute.</returns>
-        /// <seealso cref="semantic" />
+        ///
+        /// @return The semantic index of the buffer attribute.
+        /// @see semantic
         UInt32 semanticIndex() const noexcept;
     };
 
-    /// <summary>
-    /// Describes a buffer layout.
-    /// </summary>
-    /// <seealso cref="IVertexBufferLayout" />
-    /// <seealso cref="IIndexBufferLayout" />
-    /// <seealso cref="IDescriptorLayout" />
+    /// @brief Describes a buffer layout.
+    ///
+    /// @see IVertexBufferLayout
+    /// @see IIndexBufferLayout
+    /// @see IDescriptorLayout
     class LITEFX_RENDERING_API IBufferLayout {
     protected:
         IBufferLayout() noexcept = default;
@@ -4607,32 +3550,27 @@ namespace LiteFX::Rendering {
         virtual ~IBufferLayout() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the size of a single element within the buffer.
-        /// </summary>
-        /// <returns>The size of a single element within the buffer.</returns>
+        /// @brief Returns the size of a single element within the buffer.
+        ///
+        /// @return The size of a single element within the buffer.
         virtual size_t elementSize() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the binding point, the buffer will be bound to.
-        /// </summary>
-        /// <remarks>
-        /// In GLSL, the binding point is identified by the <c>binding</c> keyword, whilst in HLSL the binding maps to a register.
-        /// </remarks>
-        /// <returns>The binding point, the buffer will be bound to.</returns>
+        /// @brief Returns the binding point, the buffer will be bound to.
+        ///
+        /// In GLSL, the binding point is identified by the `binding` keyword, whilst in HLSL the binding maps to a register.
+        ///
+        /// @return The binding point, the buffer will be bound to.
         virtual UInt32 binding() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the buffer type of the buffer.
-        /// </summary>
-        /// <returns>The buffer type of the buffer.</returns>
+        /// @brief Returns the buffer type of the buffer.
+        ///
+        /// @return The buffer type of the buffer.
         virtual BufferType type() const noexcept = 0;
     };
 
-    /// <summary>
-    /// Describes a vertex buffer layout.
-    /// </summary>
-    /// <seealso cref="IVertexBuffer" />
+    /// @brief Describes a vertex buffer layout.
+    ///
+    /// @see IVertexBuffer
     class LITEFX_RENDERING_API IVertexBufferLayout : public IBufferLayout, public SharedObject {
     protected:
         IVertexBufferLayout() noexcept = default;
@@ -4645,23 +3583,20 @@ namespace LiteFX::Rendering {
         ~IVertexBufferLayout() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns the vertex buffer attributes.
-        /// </summary>
-        /// <returns>The vertex buffer attributes.</returns>
+        /// @brief Returns the vertex buffer attributes.
+        ///
+        /// @return The vertex buffer attributes.
         virtual const Array<BufferAttribute>& attributes() const = 0;
 
-        /// <summary>
-        /// Returns the vertex buffer input rate that describes how the data is made available to the vertex shader.
-        /// </summary>
-        /// <returns>The vertex buffer input rate setting.</returns>
+        /// @brief Returns the vertex buffer input rate that describes how the data is made available to the vertex shader.
+        ///
+        /// @return The vertex buffer input rate setting.
         virtual VertexBufferInputRate inputRate() const noexcept = 0;
     };
 
-    /// <summary>
-    /// Describes a index buffer layout.
-    /// </summary>
-    /// <seealso cref="IIndexBuffer" />
+    /// @brief Describes a index buffer layout.
+    ///
+    /// @see IIndexBuffer
     class LITEFX_RENDERING_API IIndexBufferLayout : public IBufferLayout, public SharedObject {
     protected:
         IIndexBufferLayout() noexcept = default;
@@ -4674,32 +3609,26 @@ namespace LiteFX::Rendering {
         ~IIndexBufferLayout() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns the index type of the index buffer.
-        /// </summary>
-        /// <returns>The index type of the index buffer.</returns>
+        /// @brief Returns the index type of the index buffer.
+        ///
+        /// @return The index type of the index buffer.
         virtual IndexType indexType() const noexcept = 0;
     };
 
-    /// <summary>
-    /// Describes a the layout of a single descriptor within a <see cref="DescriptorSet" />.
-    /// </summary>
-    /// <remarks>
-    /// A common metaphor for a descriptor to think of it as a "pointer for the GPU". Basically, a descriptor points to a buffer in a shader. A descriptor 
-    /// can have different types and sizes. The types a descriptor can have are described by the <see cref="DescriptorType" />.
-    /// 
-    /// If the descriptor is a sampler, it can either be a dynamic or static sampler. A dynamic sampler needs to be bound during runtime just like any other
-    /// descriptor by calling <see cref="IDescriptorSet::update" />. A static sampler is defined alongside the descriptor layout and is automatically set
-    /// when the pipeline that uses the descriptor layout gets bound. In this case, the descriptor must not be updated with another sampler. If a descriptor
-    /// layout describes a static sampler, the <see cref="IDescriptorLayout::staticSampler" /> returns a pointer to the static sampler state.
-    /// 
-    /// Typically, a descriptor "points" to a singular buffer, i.e. a scalar. However, a descriptor can also resemble an array. In this case,
-    /// <see cref="IDescriptorLayout::descriptors" /> returns the number of elements in the array. If the size of the array is not known beforehand, the
-    /// descriptor can be defined as unbounded, causing the <see cref="IDescriptorLayout::unbounded" /> property to return `true`. In this case, the number
-    /// of descriptors defines the upper limit for the actual descriptor count that can be allocated for the array when calling 
-    /// <see cref="IDescriptorSetLayout::allocate" />.
-    /// </remarks>
-    /// <seealso cref="DescriptorSetLayout" />
+    /// @brief Describes a the layout of a single descriptor within a @ref DescriptorSet.
+    ///
+    /// A common metaphor for a descriptor to think of it as a "pointer for the GPU". Basically, a descriptor points to a buffer in a shader. A descriptor can have different types and sizes. The types a
+    /// descriptor can have are described by the @ref DescriptorType.
+    ///
+    /// If the descriptor is a sampler, it can either be a dynamic or static sampler. A dynamic sampler needs to be bound during runtime just like any other descriptor by calling @ref IDescriptorSet::update.
+    /// A static sampler is defined alongside the descriptor layout and is automatically set when the pipeline that uses the descriptor layout gets bound. In this case, the descriptor must not be updated with
+    /// another sampler. If a descriptor layout describes a static sampler, the @ref IDescriptorLayout::staticSampler returns a pointer to the static sampler state.
+    ///
+    /// Typically, a descriptor "points" to a singular buffer, i.e. a scalar. However, a descriptor can also resemble an array. In this case, @ref IDescriptorLayout::descriptors returns the number of elements
+    /// in the array. If the size of the array is not known beforehand, the descriptor can be defined as unbounded, causing the @ref IDescriptorLayout::unbounded property to return `true`. In this case, the
+    /// number of descriptors defines the upper limit for the actual descriptor count that can be allocated for the array when calling @ref IDescriptorSetLayout::allocate.
+    ///
+    /// @see DescriptorSetLayout
     class LITEFX_RENDERING_API IDescriptorLayout : public IBufferLayout {
     protected:
         IDescriptorLayout() noexcept = default;
@@ -4712,45 +3641,35 @@ namespace LiteFX::Rendering {
         ~IDescriptorLayout() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns the type of the descriptor.
-        /// </summary>
-        /// <returns>The type of the descriptor.</returns>
+        /// @brief Returns the type of the descriptor.
+        ///
+        /// @return The type of the descriptor.
         virtual DescriptorType descriptorType() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the number of descriptors in the descriptor array.
-        /// </summary>
-        /// <remarks>
-        /// If <see cref="unbounded" /> is set to `true`, the descriptor count defines the upper limit for the number of descriptors that can be allocated 
-        /// for in the array.
-        /// </remarks>
-        /// <returns>The number of descriptors in the descriptor array.</returns>
-        /// <seealso cref="IDescriptorLayout" />
+        /// @brief Returns the number of descriptors in the descriptor array.
+        ///
+        /// If @ref unbounded is set to `true`, the descriptor count defines the upper limit for the number of descriptors that can be allocated for in the array.
+        ///
+        /// @return The number of descriptors in the descriptor array.
+        /// @see IDescriptorLayout
         virtual UInt32 descriptors() const noexcept = 0;
 
-        /// <summary>
-        /// Returns `true`, if the descriptor defines an unbounded descriptor array.
-        /// </summary>
-        /// <returns>`true`, if the descriptor defines an unbounded descriptor array, `false` otherwise.</returns>
-        /// <seealso cref="descriptors" />
+        /// @brief Returns `true`, if the descriptor defines an unbounded descriptor array.
+        ///
+        /// @return `true`, if the descriptor defines an unbounded descriptor array, `false` otherwise.
+        /// @see descriptors
         virtual bool unbounded() const noexcept = 0;
 
-        /// <summary>
-        /// If the descriptor describes a static sampler, this method returns the state of the sampler. Otherwise, it returns <c>nullptr</c>.
-        /// </summary>
-        /// <remarks>
-        /// Static samplers are called immutable samplers in Vulkan and describe sampler states, that are defined along the pipeline layout. While they do
-        /// occupy a descriptor, they must not be bound explicitly. Instead, static samplers are automatically bound if the pipeline gets used. If a static
-        /// sampler is set, the <see cref="descriptorType" /> must be set to <see cref="DescriptorType::Sampler" />.
-        /// </remarks>
-        /// <returns>The state of the static sampler, or <c>nullptr</c>, if the descriptor is not a static sampler.</returns>
+        /// @brief If the descriptor describes a static sampler, this method returns the state of the sampler. Otherwise, it returns `nullptr`.
+        ///
+        /// Static samplers are called immutable samplers in Vulkan and describe sampler states, that are defined along the pipeline layout. While they do occupy a descriptor, they must not be bound explicitly.
+        /// Instead, static samplers are automatically bound if the pipeline gets used. If a static sampler is set, the @ref descriptorType must be set to @ref DescriptorType::Sampler.
+        ///
+        /// @return The state of the static sampler, or `nullptr`, if the descriptor is not a static sampler.
         virtual const ISampler* staticSampler() const noexcept = 0;
     };
 
-    /// <summary>
-    /// Allows for data to be mapped into the object.
-    /// </summary>
+    /// @brief Allows for data to be mapped into the object.
     class LITEFX_RENDERING_API IMappable {
     protected:
         IMappable() noexcept = default;
@@ -4763,71 +3682,60 @@ namespace LiteFX::Rendering {
         virtual ~IMappable() noexcept = default;
 
     public:
-        /// <summary>
-        /// Maps the memory at <paramref name="data" /> to the internal memory of this object.
-        /// </summary>
-        /// <param name="data">The address that marks the beginning of the data to map.</param>
-        /// <param name="size">The number of bytes to map.</param>
-        /// <param name="element">The array element to map the data to.</param>
+        /// @brief Maps the memory at @p data to the internal memory of this object.
+        ///
+        /// @param data The address that marks the beginning of the data to map.
+        /// @param size The number of bytes to map.
+        /// @param element The array element to map the data to.
         virtual void map(const void* const data, size_t size, UInt32 element = 0) = 0;
 
-        /// <summary>
-        /// Maps the memory blocks within <paramref name="data" /> to the internal memory of an array.
-        /// </summary>
-        /// <param name="data">The data blocks to map.</param>
-        /// <param name="size">The size of each data block within <paramref name="data" />.</param>
-        /// <param name="firstElement">The first element of the array to map.</param>
+        /// @brief Maps the memory blocks within @p data to the internal memory of an array.
+        ///
+        /// @param data The data blocks to map.
+        /// @param size The size of each data block within @p data.
+        /// @param firstElement The first element of the array to map.
         virtual void map(Span<const void* const> data, size_t elementSize, UInt32 firstElement = 0) = 0;
 
-        /// <summary>
-        /// Maps the memory at <paramref name="data" /> to the internal memory of this object.
-        /// </summary>
-        /// <param name="data">The address that marks the beginning of the data to map.</param>
-        /// <param name="size">The number of bytes to map.</param>
-        /// <param name="element">The array element to map the data to.</param>
-        /// <param name="write">If `true`, <paramref name="data" /> is copied into the internal memory. If `false` the internal memory is copied into <paramref name="data" />.</param>
+        /// @brief Maps the memory at @p data to the internal memory of this object.
+        ///
+        /// @param data The address that marks the beginning of the data to map.
+        /// @param size The number of bytes to map.
+        /// @param element The array element to map the data to.
+        /// @param write If `true`, @p data is copied into the internal memory. If `false` the internal memory is copied into @p data.
         virtual void map(void* data, size_t size, UInt32 element = 0, bool write = true) = 0;
 
-        /// <summary>
-        /// Maps the memory blocks within <paramref name="data" /> to the internal memory of an array.
-        /// </summary>
-        /// <param name="data">The data blocks to map.</param>
-        /// <param name="size">The size of each data block within <paramref name="data" />.</param>
-        /// <param name="firstElement">The first element of the array to map.</param>
-        /// <param name="write">If `true`, <paramref name="data" /> is copied into the internal memory. If `false` the internal memory is copied into <paramref name="data" />.</param>
+        /// @brief Maps the memory blocks within @p data to the internal memory of an array.
+        ///
+        /// @param data The data blocks to map.
+        /// @param size The size of each data block within @p data.
+        /// @param firstElement The first element of the array to map.
+        /// @param write If `true`, @p data is copied into the internal memory. If `false` the internal memory is copied into @p data.
         virtual void map(Span<void*> data, size_t elementSize, UInt32 firstElement = 0, bool write = true) = 0;
 
-        /// <summary>
-        /// Writes a span of memory in <paramref name="data" /> into the internal memory of this object, starting at <paramref name="offset" />.
-        /// </summary>
-        /// <param name="data">The span of bytes containing the data to write.</param>
-        /// <param name="size">The size of the memory block at <paramref name="data" />.</param>
-        /// <param name="offset">The offset at which to start writing.</param>
+        /// @brief Writes a span of memory in @p data into the internal memory of this object, starting at @p offset.
+        ///
+        /// @param data The span of bytes containing the data to write.
+        /// @param size The size of the memory block at @p data.
+        /// @param offset The offset at which to start writing.
         virtual void write(const void* const data, size_t size, size_t offset = 0) = 0;
 
-        /// <summary>
-        /// Writes a span of memory in <paramref name="data" /> into the internal memory of this object, starting at <paramref name="offset" />.
-        /// </summary>
-        /// <param name="data">The span of bytes containing the data to write.</param>
-        /// <param name="size">The size of the memory block at <paramref name="data" />.</param>
-        /// <param name="offset">The offset at which to start writing.</param>
+        /// @brief Writes a span of memory in @p data into the internal memory of this object, starting at @p offset.
+        ///
+        /// @param data The span of bytes containing the data to write.
+        /// @param size The size of the memory block at @p data.
+        /// @param offset The offset at which to start writing.
         virtual void read(void* data, size_t size, size_t offset = 0) = 0;
     };
 
-    /// <summary>
-    /// Describes a chunk of device memory.
-    /// </summary>
+    /// @brief Describes a chunk of device memory.
     class LITEFX_RENDERING_API IDeviceMemory {
     public:
-        /// <summary>
-        /// Stores a reference to a barrier that can be used to synchronize accesses to the resource with a move operation.
-        /// </summary>
-        /// <seealso cref="IDeviceMemory::prepareMove" />
+        /// @brief Stores a reference to a barrier that can be used to synchronize accesses to the resource with a move operation.
+        ///
+        /// @see IDeviceMemory::prepareMove
         struct PrepareMoveEventArgs final {
         private:
-            /// <summary>
-            /// Stores a reference to the underlying barrier.
-            /// </summary>
+            /// @brief Stores a reference to the underlying barrier.
             IBarrier& m_barrier;
 
         public:
@@ -4838,39 +3746,35 @@ namespace LiteFX::Rendering {
             PrepareMoveEventArgs& operator=(PrepareMoveEventArgs&&) noexcept = delete;
             ~PrepareMoveEventArgs() noexcept = default;
             
-            /// <summary>
-            /// Creates a new instance of the event arguments.
-            /// </summary>
-            /// <param name="barrier">A reference to the underlying barrier, that is used to synchronize the move operation with other accesses to the resource.</param>
+            /// @brief Creates a new instance of the event arguments.
+            ///
+            /// @param barrier A reference to the underlying barrier, that is used to synchronize the move operation with other accesses to the resource.
             PrepareMoveEventArgs(IBarrier& barrier) :
                 m_barrier(barrier) { 
             }
 
         public:
-            /// <summary>
-            /// Returns a reference of the barrier that is used to synchronize the move operation with other accesses to the resource.
-            /// </summary>
-            /// <returns>A reference to the underlying barrier.</returns>
+            /// @brief Returns a reference of the barrier that is used to synchronize the move operation with other accesses to the resource.
+            ///
+            /// @return A reference to the underlying barrier.
             IBarrier& barrier() const noexcept {
                 return m_barrier;
             }
         };
 
-        /// <summary>
-        /// Stores the fence and the command queue to wait on for the fence before a moved resource can be used.
-        /// </summary>
-        /// <seealso cref="IDeviceMemory::moving" />
+        /// @brief Stores the fence and the command queue to wait on for the fence before a moved resource can be used.
+        ///
+        /// @see IDeviceMemory::moving
         struct ResourceMovingEventArgs final {
         private:
             SharedPtr<const ICommandQueue> m_queue{};
             UInt64 m_fence{};
 
         public:
-            /// <summary>
-            /// Creates a new instance of the resource moving event arguments.
-            /// </summary>
-            /// <param name="queue">The queue that executes the resource move.</param>
-            /// <param name="fence">The fence value on <paramref name="queue" /> after which the resource can be used.</param>
+            /// @brief Creates a new instance of the resource moving event arguments.
+            ///
+            /// @param queue The queue that executes the resource move.
+            /// @param fence The fence value on @p queue after which the resource can be used.
             ResourceMovingEventArgs(SharedPtr<const ICommandQueue> queue, UInt64 fence) noexcept :
                 m_queue(std::move(queue)), m_fence(fence)
             {
@@ -4883,18 +3787,16 @@ namespace LiteFX::Rendering {
             ~ResourceMovingEventArgs() noexcept = default;
 
         public:
-            /// <summary>
-            /// Returns the queue that executes the resource move.
-            /// </summary>
-            /// <returns>A pointer to the queue that executes the resource move.</returns>
+            /// @brief Returns the queue that executes the resource move.
+            ///
+            /// @return A pointer to the queue that executes the resource move.
             SharedPtr<const ICommandQueue> queue() const noexcept {
                 return m_queue;
             }
 
-            /// <summary>
-            /// Returns the fence on <see cref="queue" /> after which the resource can be used.
-            /// </summary>
-            /// <returns></returns>
+            /// @brief Returns the fence on @ref queue after which the resource can be used.
+            ///
+            /// @return
             UInt64 fence() const noexcept {
                 return m_fence;
             }
@@ -4911,151 +3813,122 @@ namespace LiteFX::Rendering {
         virtual ~IDeviceMemory() noexcept = default;
 
     public:
-        /// <summary>
-        /// An event that gets invoked to prepare a resource for a move operation.
-        /// </summary>
-        /// <remarks>
-        /// The purpose of this event is to prepare a barrier that synchronizes the resource with other accesses. The event arguments of this event contain a reference to a 
-        /// barrier instance, that can be used to insert a barrier for the resource. Note that the transition must be supported on the underlying command queue that executes
-        /// the move.
-        /// 
-        /// Note that both, the DirectX 12 as well as the Vulkan backend expect images to be in <see cref="ImageLayout::Common" /> layout before moving them.
-        /// </remarks>
-        /// <seealso cref="IGraphicsFactory::defragment" />
-        /// <seealso href="https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#command-queue-layout-compatibility" />
+        /// @brief An event that gets invoked to prepare a resource for a move operation.
+        ///
+        /// The purpose of this event is to prepare a barrier that synchronizes the resource with other accesses. The event arguments of this event contain a reference to a barrier instance, that can be used to
+        /// insert a barrier for the resource. Note that the transition must be supported on the underlying command queue that executes the move.
+        ///
+        /// Note that both, the DirectX 12 as well as the Vulkan backend expect images to be in @ref ImageLayout::Common layout before moving them.
+        ///
+        /// @see IGraphicsFactory::defragment
+        /// @see https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#command-queue-layout-compatibility
         mutable Event<const PrepareMoveEventArgs&> prepareMove;
 
-        /// <summary>
-        /// An event that gets invoked before a resource is copied during a move.
-        /// </summary>
-        /// <remarks>
-        /// This event gets invoked during defragmentation to inform any subscribers about the relocation. Moving a resource involves an asynchronous copy-command. This event
-        /// is invoked after this command has been submitted, but before it has been executed. The <see cref="moved" /> event executes after the resource has been copied to the
-        /// new location.
-        /// 
-        /// Note that this event is invoked on the thread that executes the defragmentation process, which means you potentially might want to synchronize the handler with other
-        /// potential resource accesses.
-        /// </remarks>
-        /// <seealso cref="moved" />
-        /// <seealso cref="IGraphicsFactory::defragment" />
+        /// @brief An event that gets invoked before a resource is copied during a move.
+        ///
+        /// This event gets invoked during defragmentation to inform any subscribers about the relocation. Moving a resource involves an asynchronous copy-command. This event is invoked after this command has
+        /// been submitted, but before it has been executed. The @ref moved event executes after the resource has been copied to the new location.
+        ///
+        /// Note that this event is invoked on the thread that executes the defragmentation process, which means you potentially might want to synchronize the handler with other potential resource accesses.
+        ///
+        /// @see moved
+        /// @see IGraphicsFactory::defragment
         mutable Event<ResourceMovingEventArgs> moving;
 
-        /// <summary>
-        /// An event that gets invoked, after the resource has been moved to a different location, but before the old resource gets destroyed.
-        /// </summary>
-        /// <remarks>
-        /// This event gets invoked during defragmentation to inform any subscribers about a relocation. You might want to subscribe to this event is to update any descriptor 
-        /// bindings, as they become invalid after the previous resource gets removed. Additionally, you may want to insert barriers to transition the resource back into the 
-        /// desired layout.
-        /// 
-        /// Note that this event is invoked on the thread that executes the defragmentation process, which means you potentially might want to synchronize the handler with other
-        /// resource accesses.
-        /// </remarks>
-        /// <seealso cref="moving" />
-        /// <seealso cref="IGraphicsFactory::defragment" />
+        /// @brief An event that gets invoked, after the resource has been moved to a different location, but before the old resource gets destroyed.
+        ///
+        /// This event gets invoked during defragmentation to inform any subscribers about a relocation. You might want to subscribe to this event is to update any descriptor bindings, as they become invalid
+        /// after the previous resource gets removed. Additionally, you may want to insert barriers to transition the resource back into the desired layout.
+        ///
+        /// Note that this event is invoked on the thread that executes the defragmentation process, which means you potentially might want to synchronize the handler with other resource accesses.
+        ///
+        /// @see moving
+        /// @see IGraphicsFactory::defragment
         mutable Event<EventArgs> moved;
 
     public:
-        /// <summary>
-        /// Gets the number of sub-resources inside the memory chunk.
-        /// </summary>
-        /// <remarks>
-        /// For buffers, this equals the number of array elements. For images, this equals the product of layers, levels and planes. This number represents the number of states, that 
-        /// can be obtained by calling the <see cref="state" /> method.
-        /// </remarks>
-        /// <returns>The number of array elements inside the memory chunk.</returns>
-        /// <seealso cref="state" />
+        /// @brief Gets the number of sub-resources inside the memory chunk.
+        ///
+        /// For buffers, this equals the number of array elements. For images, this equals the product of layers, levels and planes. This number represents the number of states, that can be obtained by calling
+        /// the @ref state method.
+        ///
+        /// @return The number of array elements inside the memory chunk.
+        /// @see state
         virtual UInt32 elements() const noexcept = 0;
 
-        /// <summary>
-        /// Gets the size (in bytes) of the aligned memory chunk.
-        /// </summary>
-        /// <remarks>
-        /// The size of the device memory block depends on different factors. The actual used memory of one element can be obtained by calling by the <see cref="elementSize" />. For 
-        /// different reasons, though, elements may be required to be aligned to a certain size. The size of one aligned element is returned by <see cref="alignedElementSize" />.
-        /// The size of the memory block, the elements get aligned to is returned by <see cref="elementAlignment" />.
-        /// </remarks>
-        /// <returns>The size (in bytes) of the memory chunk.</returns>
-        /// <seealso cref="elements" />
-        /// <seealso cref="elementSize" />
-        /// <seealso cref="elementAlignment" />
-        /// <seealso cref="alignedElementSize" />
+        /// @brief Gets the size (in bytes) of the aligned memory chunk.
+        ///
+        /// The size of the device memory block depends on different factors. The actual used memory of one element can be obtained by calling by the @ref elementSize. For different reasons, though, elements may
+        /// be required to be aligned to a certain size. The size of one aligned element is returned by @ref alignedElementSize. The size of the memory block, the elements get aligned to is returned by @ref
+        /// elementAlignment.
+        ///
+        /// @return The size (in bytes) of the memory chunk.
+        /// @see elements
+        /// @see elementSize
+        /// @see elementAlignment
+        /// @see alignedElementSize
         virtual size_t size() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the size of a single element within the buffer. If there is only one element, this is equal to <see cref="size" />.
-        /// </summary>
-        /// <remarks>
-        /// For images, this method will return a value that equals the result of <see cref="size" />.
-        /// </remarks>
-        /// <returns>The size of a single element within the buffer</returns>
-        /// <seealso cref="elementAlignment" />
-        /// <seealso cref="alignedElementSize" />
+        /// @brief Returns the size of a single element within the buffer. If there is only one element, this is equal to @ref size.
+        ///
+        /// For images, this method will return a value that equals the result of @ref size.
+        ///
+        /// @return The size of a single element within the buffer
+        /// @see elementAlignment
+        /// @see alignedElementSize
         virtual size_t elementSize() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the alignment of a single element.
-        /// </summary>
-        /// <returns>The alignment of a single element.</returns>
-        /// <seealso cref="elementSize" />
-        /// <seealso cref="alignedElementSize" />
+        /// @brief Returns the alignment of a single element.
+        ///
+        /// @return The alignment of a single element.
+        /// @see elementSize
+        /// @see alignedElementSize
         virtual size_t elementAlignment() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the actual size of the element in device memory.
-        /// </summary>
-        /// <remarks>
-        /// For images, this method will return a value that equals the result of <see cref="size" />, aligned by <see cref="elementAlignment" />.
-        /// </remarks>
-        /// <returns>The actual size of the element in device memory.</returns>
-        /// <seealso cref="elementAlignment" />
-        /// <seealso cref="elementSize" />
+        /// @brief Returns the actual size of the element in device memory.
+        ///
+        /// For images, this method will return a value that equals the result of @ref size, aligned by @ref elementAlignment.
+        ///
+        /// @return The actual size of the element in device memory.
+        /// @see elementAlignment
+        /// @see elementSize
         virtual size_t alignedElementSize() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the usage flags for the resource.
-        /// </summary>
-        /// <returns>The usage flags for the resource.</returns>
+        /// @brief Returns the usage flags for the resource.
+        ///
+        /// @return The usage flags for the resource.
         virtual ResourceUsage usage() const noexcept = 0;
 
-        /// <summary>
-        /// Gets the address of the resource in GPU memory.
-        /// </summary>
-        /// <remarks>
+        /// @brief Gets the address of the resource in GPU memory.
+        ///
         /// Note that this may not be supported for all resource types in all backends. For example, Vulkan does not support obtaining virtual addresses of image resources.
-        /// </remarks>
-        /// <returns>The address of the resource in GPU memory.</returns>
+        ///
+        /// @return The address of the resource in GPU memory.
         virtual UInt64 virtualAddress() const noexcept = 0;
 
-        /// <summary>
-        /// Returns <c>true</c>, if the resource can be bound to a read/write descriptor.
-        /// </summary>
-        /// <remarks>
+        /// @brief Returns `true`, if the resource can be bound to a read/write descriptor.
+        ///
         /// If the resource is not writable, attempting to bind it to a writable descriptor will result in an exception.
-        /// </remarks>
-        /// <returns><c>true</c>, if the resource can be bound to a read/write descriptor.</returns>
+        ///
+        /// @return `true`, if the resource can be bound to a read/write descriptor.
         virtual inline bool writable() const noexcept {
             return LITEFX_FLAG_IS_SET(this->usage(), ResourceUsage::AllowWrite);
         }
 
-        /// <summary>
-        /// Returns `true`, if the contents of the resource should not be copied during a move.
-        /// </summary>
-        /// <remarks>
-        /// To set this flag, include <see cref="ResourceUsage::Volatile" /> in the resource usage flags.
-        /// </remarks>
-        /// <returns>`true`, if the contents of the resource should not be copied during a move and `false` otherwise.</returns>
-        /// <seealso cref="moving" />
-        /// <seealso cref="usage" />
-        /// <seealso cref="ResourceUsage::Volatile" />
+        /// @brief Returns `true`, if the contents of the resource should not be copied during a move.
+        ///
+        /// To set this flag, include @ref ResourceUsage::Volatile in the resource usage flags.
+        ///
+        /// @return `true`, if the contents of the resource should not be copied during a move and `false` otherwise.
+        /// @see moving
+        /// @see usage
+        /// @see ResourceUsage::Volatile
         virtual inline bool volatileMove() const noexcept {
             return LITEFX_FLAG_IS_SET(this->usage(), ResourceUsage::Volatile);
         }
     };
 
-    /// <summary>
-    /// Base interface for buffer objects.
-    /// </summary>
+    /// @brief Base interface for buffer objects.
     class LITEFX_RENDERING_API IBuffer : public virtual IDeviceMemory, public virtual IMappable, public virtual IStateResource, public SharedObject {
     protected:
         IBuffer() noexcept = default;
@@ -5068,16 +3941,13 @@ namespace LiteFX::Rendering {
         ~IBuffer() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns the type of the buffer.
-        /// </summary>
-        /// <returns>The type of the buffer.</returns>
+        /// @brief Returns the type of the buffer.
+        ///
+        /// @return The type of the buffer.
         virtual BufferType type() const noexcept = 0;
     };
 
-    /// <summary>
-    /// Describes a generic image.
-    /// </summary>
+    /// @brief Describes a generic image.
     class LITEFX_RENDERING_API IImage : public virtual IDeviceMemory, public virtual IStateResource, public SharedObject {
     public:
         using IDeviceMemory::size;
@@ -5093,95 +3963,80 @@ namespace LiteFX::Rendering {
         ~IImage() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns the size (in bytes) of an image at a specified mip map level. If the image does not contain the provided mip map level, the method returns <c>0</c>.
-        /// </summary>
-        /// <remarks>
-        /// Note that the size will only be returned for one layer. You have to multiply this value by the number of layers, if you want to receive the size of all layers
-        /// of a certain mip-map level. This is especially important, if you use cube mapping, because this method will only return the size of one face.
-        /// </remarks>
-        /// <param name="level">The mip map level to return the size for.</param>
-        /// <returns>The size (in bytes) of an image at a specified mip map level.</returns>
+        /// @brief Returns the size (in bytes) of an image at a specified mip map level. If the image does not contain the provided mip map level, the method returns `0`.
+        ///
+        /// Note that the size will only be returned for one layer. You have to multiply this value by the number of layers, if you want to receive the size of all layers of a certain mip-map level. This is
+        /// especially important, if you use cube mapping, because this method will only return the size of one face.
+        ///
+        /// @param level The mip map level to return the size for.
+        /// @return The size (in bytes) of an image at a specified mip map level.
         virtual size_t size(UInt32 level) const = 0;
 
-        /// <summary>
-        /// Gets the extent of the image at a certain mip-map level.
-        /// </summary>
-        /// <remarks>
-        /// Not all components of the extent are actually used. Check the <see cref="dimensions" /> to see, which components are required. The extent will be 0 for invalid 
-        /// mip-map levels and 1 or more for valid mip map levels.
-        /// </remarks>
-        /// <returns>The extent of the image at a certain mip-map level.</returns>
-        /// <seealso cref="dimensions" />
+        /// @brief Gets the extent of the image at a certain mip-map level.
+        ///
+        /// Not all components of the extent are actually used. Check the @ref dimensions to see, which components are required. The extent will be 0 for invalid mip-map levels and 1 or more for valid mip map
+        /// levels.
+        ///
+        /// @return The extent of the image at a certain mip-map level.
+        /// @see dimensions
         virtual Size3d extent(UInt32 level = 0) const noexcept = 0;
 
-        /// <summary>
-        /// Gets the internal format of the image.
-        /// </summary>
-        /// <returns>The internal format of the image.</returns>
+        /// @brief Gets the internal format of the image.
+        ///
+        /// @return The internal format of the image.
         virtual Format format() const noexcept = 0;
 
-        /// <summary>
-        /// Gets the images dimensionality.
-        /// </summary>
-        /// <remarks>
-        /// The dimensions imply various things, most importantly, which components of the <see cref="extent" /> are used. Note that cube maps behave like 2D images when the 
-        /// extent is used.
-        /// </remarks>
-        /// <returns>The images dimensionality.</returns>
+        /// @brief Gets the images dimensionality.
+        ///
+        /// The dimensions imply various things, most importantly, which components of the @ref extent are used. Note that cube maps behave like 2D images when the extent is used.
+        ///
+        /// @return The images dimensionality.
         virtual ImageDimensions dimensions() const noexcept = 0;
 
-        /// <summary>
-        /// Gets the number of mip-map levels of the image.
-        /// </summary>
-        /// <returns>The number of mip-map levels of the image.</returns>
+        /// @brief Gets the number of mip-map levels of the image.
+        ///
+        /// @return The number of mip-map levels of the image.
         virtual UInt32 levels() const noexcept = 0;
 
-        /// <summary>
-        /// Gets the number of layers (slices) of the image.
-        /// </summary>
-        /// <returns>The number of layers (slices) of the image.</returns>
+        /// @brief Gets the number of layers (slices) of the image.
+        ///
+        /// @return The number of layers (slices) of the image.
         virtual UInt32 layers() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the number of planes of the image resource.
-        /// </summary>
-        /// <remarks>
+        /// @brief Returns the number of planes of the image resource.
+        ///
         /// The number of planes is dictated by the image format.
-        /// </remarks>
-        /// <returns>The number of planes of the image resource.</returns>
-        /// <seealso cref="format" />
+        ///
+        /// @return The number of planes of the image resource.
+        /// @see format
         virtual UInt32 planes() const noexcept = 0;
 
-        /// <summary>
-        /// Gets the number of samples of the texture.
-        /// </summary>
-        /// <returns>The number of samples of the texture.</returns>
+        /// @brief Gets the number of samples of the texture.
+        ///
+        /// @return The number of samples of the texture.
         virtual MultiSamplingLevel samples() const noexcept = 0;
 
         // TODO: getSampler() for combined samplers?
 
     public:
-        /// <summary>
-        /// Returns the sub-resource ID for a combination of mip-map <paramref name="level" />, array <paramref name="layer" /> and <paramref name="plane" />.
-        /// </summary>
-        /// <param name="level">The mip map level of the sub-resource.</param>
-        /// <param name="layer">The array layer of the sub-resource.</param>
-        /// <param name="plane">The plane of the sub-resource.</param>
-        /// <returns>The sub-resource ID for the sub-resource.</returns>
-        /// <seealso cref="resolveSubresource" />
+        /// @brief Returns the sub-resource ID for a combination of mip-map @p level, array @p layer and @p plane.
+        ///
+        /// @param level The mip map level of the sub-resource.
+        /// @param layer The array layer of the sub-resource.
+        /// @param plane The plane of the sub-resource.
+        /// @return The sub-resource ID for the sub-resource.
+        /// @see resolveSubresource
         virtual inline UInt32 subresourceId(UInt32 level, UInt32 layer, UInt32 plane) const noexcept {
             return level + (layer * this->levels()) + (plane * this->levels() * this->layers());
         }
 
-        /// <summary>
-        /// Returns the <paramref name="plane" />, <paramref name="layer" /> and <paramref name="level" /> for the provided <paramref name="subresource" />.
-        /// </summary>
-        /// <param name="subresource">The sub-resource ID.</param>
-        /// <param name="plane">The plane index of the sub-resource.</param>
-        /// <param name="layer">The array layer of the sub-resource.</param>
-        /// <param name="level">The mip-map level of the sub-resource.</param>
-        /// <seealso cref="subresourceId" />
+        /// @brief Returns the @p plane, @p layer and @p level for the provided @p subresource.
+        ///
+        /// @param subresource The sub-resource ID.
+        /// @param plane The plane index of the sub-resource.
+        /// @param layer The array layer of the sub-resource.
+        /// @param level The mip-map level of the sub-resource.
+        /// @see subresourceId
         virtual inline void resolveSubresource(UInt32 subresource, UInt32& plane, UInt32& layer, UInt32& level) const noexcept {
             const auto levels = this->levels();
             const UInt32 resourcesPerPlane = levels * this->layers();
@@ -5191,9 +4046,7 @@ namespace LiteFX::Rendering {
         }
     };
 
-    /// <summary>
-    /// Describes a texture sampler.
-    /// </summary>
+    /// @brief Describes a texture sampler.
     class LITEFX_RENDERING_API ISampler : public virtual IStateResource, public SharedObject {
     protected:
         ISampler() noexcept = default;
@@ -5206,73 +4059,60 @@ namespace LiteFX::Rendering {
         ~ISampler() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Gets the filtering mode that is used for minifying lookups.
-        /// </summary>
-        /// <returns>The filtering mode that is used for minifying lookups.</returns>
+        /// @brief Gets the filtering mode that is used for minifying lookups.
+        ///
+        /// @return The filtering mode that is used for minifying lookups.
         virtual FilterMode getMinifyingFilter() const noexcept = 0;
 
-        /// <summary>
-        /// Gets the filtering mode that is used for magnifying lookups.
-        /// </summary>
-        /// <returns>The filtering mode that is used for magnifying lookups.</returns>
+        /// @brief Gets the filtering mode that is used for magnifying lookups.
+        ///
+        /// @return The filtering mode that is used for magnifying lookups.
         virtual FilterMode getMagnifyingFilter() const noexcept = 0;
 
-        /// <summary>
-        /// Gets the addressing mode at the horizontal border.
-        /// </summary>
-        /// <returns>The addressing mode at the horizontal border.</returns>
+        /// @brief Gets the addressing mode at the horizontal border.
+        ///
+        /// @return The addressing mode at the horizontal border.
         virtual BorderMode getBorderModeU() const noexcept = 0;
 
-        /// <summary>
-        /// Gets the addressing mode at the vertical border.
-        /// </summary>
-        /// <returns>The addressing mode at the vertical border.</returns>
+        /// @brief Gets the addressing mode at the vertical border.
+        ///
+        /// @return The addressing mode at the vertical border.
         virtual BorderMode getBorderModeV() const noexcept = 0;
 
-        /// <summary>
-        /// Gets the addressing mode at the depth border.
-        /// </summary>
-        /// <returns>The addressing mode at the depth border.</returns>
+        /// @brief Gets the addressing mode at the depth border.
+        ///
+        /// @return The addressing mode at the depth border.
         virtual BorderMode getBorderModeW() const noexcept = 0;
 
-        /// <summary>
-        /// Gets the anisotropy value used when sampling this texture.
-        /// </summary>
-        /// <remarks>
-        /// Anisotropy will be disabled, if this value is set to <c>0.0</c>.
-        /// </remarks>
-        /// <returns>The anisotropy value used when sampling this texture.</returns>
+        /// @brief Gets the anisotropy value used when sampling this texture.
+        ///
+        /// Anisotropy will be disabled, if this value is set to `0.0`.
+        ///
+        /// @return The anisotropy value used when sampling this texture.
         virtual Float getAnisotropy() const noexcept = 0;
 
-        /// <summary>
-        /// Gets the mip-map selection mode.
-        /// </summary>
-        /// <returns>The mip-map selection mode.</returns>
+        /// @brief Gets the mip-map selection mode.
+        ///
+        /// @return The mip-map selection mode.
         virtual MipMapMode getMipMapMode() const noexcept = 0;
 
-        /// <summary>
-        /// Gets the mip-map level of detail bias.
-        /// </summary>
-        /// <returns>The mip-map level of detail bias.</returns>
+        /// @brief Gets the mip-map level of detail bias.
+        ///
+        /// @return The mip-map level of detail bias.
         virtual Float getMipMapBias() const noexcept = 0;
 
-        /// <summary>
-        /// Gets the maximum texture level of detail.
-        /// </summary>
-        /// <returns>The maximum texture level of detail.</returns>
+        /// @brief Gets the maximum texture level of detail.
+        ///
+        /// @return The maximum texture level of detail.
         virtual Float getMaxLOD() const noexcept = 0;
 
-        /// <summary>
-        /// Gets the minimum texture level of detail.
-        /// </summary>
-        /// <returns>The minimum texture level of detail.</returns>
+        /// @brief Gets the minimum texture level of detail.
+        ///
+        /// @return The minimum texture level of detail.
         virtual Float getMinLOD() const noexcept = 0;
     };
 
-    /// <summary>
-    /// The interface for a vertex buffer.
-    /// </summary>
+    /// @brief The interface for a vertex buffer.
     class LITEFX_RENDERING_API IVertexBuffer : public virtual IBuffer {
     protected:
         IVertexBuffer() noexcept = default;
@@ -5285,16 +4125,13 @@ namespace LiteFX::Rendering {
         ~IVertexBuffer() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Gets the layout of the vertex buffer.
-        /// </summary>
-        /// <returns>The layout of the vertex buffer.</returns>
+        /// @brief Gets the layout of the vertex buffer.
+        ///
+        /// @return The layout of the vertex buffer.
         virtual const IVertexBufferLayout& layout() const noexcept = 0;
     };
 
-    /// <summary>
-    /// The interface for an index buffer.
-    /// </summary>
+    /// @brief The interface for an index buffer.
     class LITEFX_RENDERING_API IIndexBuffer : public virtual IBuffer {
     protected:
         IIndexBuffer() noexcept = default;
@@ -5307,18 +4144,16 @@ namespace LiteFX::Rendering {
         ~IIndexBuffer() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Gets the layout of the index buffer.
-        /// </summary>
-        /// <returns>The layout of the index buffer.</returns>
+        /// @brief Gets the layout of the index buffer.
+        ///
+        /// @return The layout of the index buffer.
         virtual const IIndexBufferLayout& layout() const noexcept = 0;
     };
 
-    /// <summary>
-    /// Base interface for a ray tracing acceleration structure.
-    /// </summary>
-    /// <seealso cref="IBottomLevelAccelerationStructure" />
-    /// <seealso cref="ITopLevelAccelerationStructure" />
+    /// @brief Base interface for a ray tracing acceleration structure.
+    ///
+    /// @see IBottomLevelAccelerationStructure
+    /// @see ITopLevelAccelerationStructure
     class LITEFX_RENDERING_API IAccelerationStructure : public virtual IStateResource {
     protected:
         IAccelerationStructure() noexcept = default;
@@ -5331,110 +4166,99 @@ namespace LiteFX::Rendering {
         ~IAccelerationStructure() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns the flags that control how the acceleration structure should be built.
-        /// </summary>
-        /// <returns>The flags that control how the acceleration structure should be built.</returns>
+        /// @brief Returns the flags that control how the acceleration structure should be built.
+        ///
+        /// @return The flags that control how the acceleration structure should be built.
         virtual AccelerationStructureFlags flags() const noexcept = 0;
 
-        /// <summary>
-        /// Performs a complete build of the acceleration structure.
-        /// </summary>
-        /// <remarks>
-        /// This method builds or rebuilds the entire acceleration structure. If called without any further arguments beside <paramref name="commandBuffer" />, a new buffer and scratch buffer will be allocated
-        /// from the <see cref="IGraphicsDevice" /> that created the command buffer. Alternatively, it is possible to provide a pre-allocated buffer in the <paramref name="buffer" /> parameter. This allows to
-        /// re-use memory from another acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling <see cref="buffer" />) and 
-        /// destroy it afterwards, which enables re-use scenarios for example for caching. Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory 
-        /// consumption. This is done by also providing the <paramref name="offset" /> and <paramref name="maxSize" /> parameters to address a range within the buffer itself, the acceleration structure may be 
-        /// written into. Note that the pointer passed to the <see cref="buffer" /> parameter must have been initialized with the <see cref="BufferType::AccelerationStructure" /> buffer type and must be 
-        /// writable (<see cref="ResourceUsage::AllowWrite" />).
-        /// 
-        /// By providing a <see cref="scratchBuffer" />, it is possible to re-use temporary memory while building. This can lower memory consumption when building multiple acceleration structures. However, this
-        /// also requires proper barriers to be executed between two build commands, as they are not allowed to access the same scratch memory simultaneously. Note that the pointer passed to the
-        /// <see cref="scratchBuffer" /> parameter must have been initialized on the <see cref="ResourceHeap::Resource" /> heap and must be writable (<see cref="ResourceUsage::AllowWrite" />).
-        /// 
-        /// After a successful build, the buffer pointer is stored by the acceleration structure and can be accessed by calling <see cref="buffer" /> on it.
-        /// </remarks>
-        /// <param name="commandBuffer">The command buffer used to record the acceleration structure build commands.</param>
-        /// <param name="scratchBuffer">The scratch buffer used during the acceleration structure build, or `nullptr` if a temporary buffer should be created.</param>
-        /// <param name="buffer">The buffer that stores the acceleration structure after building, or `nullptr` if a new buffer should be created.</param>
-        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure should be stored. Must be a multiple of 256. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
-        /// <param name="maxSize">The maximum available size within <paramref name="buffer" /> at <paramref name="offset" />. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="scratchBuffer" /> is not `nullptr` and does not contain enough scratch memory to build the acceleration structure.</exception>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and the range provided by <paramref name="offset" /> and <paramref name="maxSize" /> is not fully contained by the buffer.</exception>
-        /// <seealso cref="update" />
+        /// @brief Performs a complete build of the acceleration structure.
+        ///
+        /// This method builds or rebuilds the entire acceleration structure. If called without any further arguments beside @p commandBuffer, a new buffer and scratch buffer will be allocated from the @ref
+        /// IGraphicsDevice that created the command buffer. Alternatively, it is possible to provide a pre-allocated buffer in the @p buffer parameter. This allows to re-use memory from another acceleration
+        /// structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling @ref buffer) and destroy it afterwards, which enables re-use scenarios
+        /// for example for caching. Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory consumption. This is done by also providing the @p offset
+        /// and @p maxSize parameters to address a range within the buffer itself, the acceleration structure may be written into. Note that the pointer passed to the @ref buffer parameter must have been
+        /// initialized with the @ref BufferType::AccelerationStructure buffer type and must be writable (@ref ResourceUsage::AllowWrite).
+        ///
+        /// By providing a @ref scratchBuffer, it is possible to re-use temporary memory while building. This can lower memory consumption when building multiple acceleration structures. However, this also
+        /// requires proper barriers to be executed between two build commands, as they are not allowed to access the same scratch memory simultaneously. Note that the pointer passed to the @ref scratchBuffer
+        /// parameter must have been initialized on the @ref ResourceHeap::Resource heap and must be writable (@ref ResourceUsage::AllowWrite).
+        ///
+        /// After a successful build, the buffer pointer is stored by the acceleration structure and can be accessed by calling @ref buffer on it.
+        ///
+        /// @param commandBuffer The command buffer used to record the acceleration structure build commands.
+        /// @param scratchBuffer The scratch buffer used during the acceleration structure build, or `nullptr` if a temporary buffer should be created.
+        /// @param buffer The buffer that stores the acceleration structure after building, or `nullptr` if a new buffer should be created.
+        /// @param offset The offset into @p buffer at which the acceleration structure should be stored. Must be a multiple of 256. Ignored if @p buffer is `nullptr`.
+        /// @param maxSize The maximum available size within @p buffer at @p offset. Ignored if @p buffer is `nullptr`.
+        /// @throws InvalidArgumentException Thrown, if @p scratchBuffer is not `nullptr` and does not contain enough scratch memory to build the acceleration structure.
+        /// @throws InvalidArgumentException Thrown, if @p offset is not aligned to 256 bytes.
+        /// @throws ArgumentOutOfRangeException Thrown, if @p buffer is not `nullptr` and the range provided by @p offset and @p maxSize is not fully contained by the buffer.
+        /// @see update
         inline void build(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer = nullptr, const SharedPtr<const IBuffer>& buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0) {
             this->doBuild(commandBuffer, scratchBuffer, buffer, offset, maxSize);
         }
 
-        /// <summary>
-        /// Performs an update on the acceleration structure.
-        /// </summary>
-        /// <remarks>
+        /// @brief Performs an update on the acceleration structure.
+        ///
         /// Updating an acceleration structure works similar to performing a build, but may be faster compared to a full re-build. Note that in order to support updates, the acceleration structure must have been
-        /// created with the <see cref=AccelerationStructureFlags::AllowUpdate" /> flag provided. Note that this flag may cause the acceleration structure build times and memory consumption to increase and may 
+        /// created with the <see cref=AccelerationStructureFlags::AllowUpdate" /> flag provided. Note that this flag may cause the acceleration structure build times and memory consumption to increase and may
         /// lower the ray-tracing performance.
-        /// 
-        /// If no arguments beside <paramref name="commandBuffer" /> are provided, the acceleration structure may re-use the same backing memory used for building, if the buffer holds enough space to contain it.
-        /// Otherwise, a new buffer will be allocated. Alternatively, it is possible to provide a pre-allocated buffer in the <paramref name="buffer" /> parameter. This allows to re-use memory from another 
-        /// acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling <see cref="buffer" />) and destroy it afterwards, which 
-        /// enables re-use scenarios for example for caching. Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory consumption. This is done by also 
-        /// providing the <paramref name="offset" /> and <paramref name="maxSize" /> parameters to address a range within the buffer itself, the acceleration structure may be written into. Note that the pointer 
-        /// passed to the <see cref="buffer" /> parameter must have been initialized with the <see cref="BufferType::AccelerationStructure" /> buffer type and must be writable 
-        /// (<see cref="ResourceUsage::AllowWrite" />).
-        /// 
-        /// By providing a <see cref="scratchBuffer" />, it is possible to re-use temporary memory while building. This can lower memory consumption when building multiple acceleration structures. However, this
-        /// also requires proper barriers to be executed between two build commands, as they are not allowed to access the same scratch memory simultaneously. Note that the pointer passed to the
-        /// <see cref="scratchBuffer" /> parameter must have been initialized on the <see cref="ResourceHeap::Resource" /> heap and must be writable (<see cref="ResourceUsage::AllowWrite" />).
-        /// 
-        /// After a successful update, the buffer pointer is stored by the acceleration structure and can be accessed by calling <see cref="buffer" /> on it.
-        /// </remarks>
-        /// <param name="commandBuffer">The command buffer used to record the acceleration structure build commands.</param>
-        /// <param name="scratchBuffer">The scratch buffer used during the acceleration structure build, or `nullptr` if a temporary buffer should be created.</param>
-        /// <param name="buffer">The buffer that stores the acceleration structure after updating, or `nullptr` if a new buffer should be created.</param>
-        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure should be stored. Must be a multiple of 256. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
-        /// <param name="maxSize">The maximum available size within <paramref name="buffer" /> at <paramref name="offset" />. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure backing buffer is not initialized, indicating the acceleration structure has not yet been built.</exception>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="scratchBuffer" /> is not `nullptr` and does not contain enough scratch memory to build the acceleration structure.</exception>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and the range provided by <paramref name="offset" /> and <paramref name="maxSize" /> is not fully contained by the buffer.</exception>
-        /// <seealso cref="build" />
+        ///
+        /// If no arguments beside @p commandBuffer are provided, the acceleration structure may re-use the same backing memory used for building, if the buffer holds enough space to contain it. Otherwise, a new
+        /// buffer will be allocated. Alternatively, it is possible to provide a pre-allocated buffer in the @p buffer parameter. This allows to re-use memory from another acceleration structure, that no longer
+        /// uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling @ref buffer) and destroy it afterwards, which enables re-use scenarios for example for caching.
+        /// Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory consumption. This is done by also providing the @p offset and @p maxSize parameters
+        /// to address a range within the buffer itself, the acceleration structure may be written into. Note that the pointer passed to the @ref buffer parameter must have been initialized with the @ref
+        /// BufferType::AccelerationStructure buffer type and must be writable (@ref ResourceUsage::AllowWrite).
+        ///
+        /// By providing a @ref scratchBuffer, it is possible to re-use temporary memory while building. This can lower memory consumption when building multiple acceleration structures. However, this also
+        /// requires proper barriers to be executed between two build commands, as they are not allowed to access the same scratch memory simultaneously. Note that the pointer passed to the @ref scratchBuffer
+        /// parameter must have been initialized on the @ref ResourceHeap::Resource heap and must be writable (@ref ResourceUsage::AllowWrite).
+        ///
+        /// After a successful update, the buffer pointer is stored by the acceleration structure and can be accessed by calling @ref buffer on it.
+        ///
+        /// @param commandBuffer The command buffer used to record the acceleration structure build commands.
+        /// @param scratchBuffer The scratch buffer used during the acceleration structure build, or `nullptr` if a temporary buffer should be created.
+        /// @param buffer The buffer that stores the acceleration structure after updating, or `nullptr` if a new buffer should be created.
+        /// @param offset The offset into @p buffer at which the acceleration structure should be stored. Must be a multiple of 256. Ignored if @p buffer is `nullptr`.
+        /// @param maxSize The maximum available size within @p buffer at @p offset. Ignored if @p buffer is `nullptr`.
+        /// @throws RuntimeException Thrown, if the acceleration structure backing buffer is not initialized, indicating the acceleration structure has not yet been built.
+        /// @throws InvalidArgumentException Thrown, if @p scratchBuffer is not `nullptr` and does not contain enough scratch memory to build the acceleration structure.
+        /// @throws InvalidArgumentException Thrown, if @p offset is not aligned to 256 bytes.
+        /// @throws ArgumentOutOfRangeException Thrown, if @p buffer is not `nullptr` and the range provided by @p offset and @p maxSize is not fully contained by the buffer.
+        /// @see build
         inline void update(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer = nullptr, const SharedPtr<const IBuffer>& buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0) {
             this->doUpdate(commandBuffer, scratchBuffer, buffer, offset, maxSize);
         }
 
-        /// <summary>
-        /// Returns the acceleration structure backing buffer, that stores its last build.
-        /// </summary>
-        /// <returns>The acceleration structure backing buffer, that stores its last build.</returns>
-        /// <seealso cref="offset" />
-        /// <seealso cref="size" />
+        /// @brief Returns the acceleration structure backing buffer, that stores its last build.
+        ///
+        /// @return The acceleration structure backing buffer, that stores its last build.
+        /// @see offset
+        /// @see size
         inline SharedPtr<const IBuffer> buffer() const noexcept {
             return this->getBuffer();
         }
 
-        /// <summary>
-        /// Returns the offset into <see cref="buffer" /> at which the acceleration structure is stored.
-        /// </summary>
-        /// <returns>The offset into <see cref="buffer" /> at which the acceleration structure is stored.</returns>
-        /// <seealso cref="buffer" />
+        /// @brief Returns the offset into @ref buffer at which the acceleration structure is stored.
+        ///
+        /// @return The offset into @ref buffer at which the acceleration structure is stored.
+        /// @see buffer
         virtual UInt64 offset() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the amount of memory in bytes inside <see cref="buffer" /> that store the acceleration structure.
-        /// </summary>
-        /// <remarks>
-        /// Note that this may be different to the value specified during build, as the actual size may be smaller (but can never be larger) after building. If you want to reduce the memory footprint, you can use 
+        /// @brief Returns the amount of memory in bytes inside @ref buffer that store the acceleration structure.
+        ///
+        /// Note that this may be different to the value specified during build, as the actual size may be smaller (but can never be larger) after building. If you want to reduce the memory footprint, you can use
         /// this amount of memory for a compacted buffer and copy the acceleration structure using a copy command. In order to acquire the actual size required by the acceleration structure, the system needs to
         /// wait for the last build or update process to finish. Before that, this property will return the memory requirements as pre-computed by the device. To make sure that the build has finished, you need to
-        /// manually wait for the fence acquired by submitting the command buffer that builds or updates the acceleration structure. Afterwards this method will return the actual size required to store the 
+        /// manually wait for the fence acquired by submitting the command buffer that builds or updates the acceleration structure. Afterwards this method will return the actual size required to store the
         /// acceleration structure.
-        ///  
+        ///
         /// If the acceleration structure has not yet been built or is invalidated, this property returns `0`.
-        /// </remarks>
-        /// <returns>The amount of memory in bytes inside <see cref="buffer" /> that store the acceleration structure.</returns>
-        /// <seealso cref="buffer" />
+        ///
+        /// @return The amount of memory in bytes inside @ref buffer that store the acceleration structure.
+        /// @see buffer
         virtual UInt64 size() const noexcept = 0;
 
     private:
@@ -5443,125 +4267,96 @@ namespace LiteFX::Rendering {
         virtual void doUpdate(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize) = 0;
     };
 
-    /// <summary>
-    /// A structure that holds a singular entity of geometry for hardware ray-tracing.
-    /// </summary>
-    /// <remarks>
-    /// Bottom-level acceleration structures describe actual pieces of geometry (sets of triangular meshes or axis-aligned bounding boxes for procedural geometry). They can 
-    /// best be thought of entities in terms of a scene graph, whilst <see cref="ITopLevelAccelerationStructure" />s represent their respective *instances*. For example, a 
-    /// top-level acceleration structure (TLAS) would store the world transform of the object itself, which can be placed multiple times in the scene with different transforms 
-    /// each time. Each TLAS points to a bottom-level acceleration structure (BLAS), that contains the actual geometry, consisting of multiple meshes that are all transformed 
-    /// relative to the TLAS transform.
-    /// 
+    /// @brief A structure that holds a singular entity of geometry for hardware ray-tracing.
+    ///
+    /// Bottom-level acceleration structures describe actual pieces of geometry (sets of triangular meshes or axis-aligned bounding boxes for procedural geometry). They can best be thought of entities in
+    /// terms of a scene graph, whilst @ref ITopLevelAccelerationStructures represent their respective *instances*. For example, a top-level acceleration structure (TLAS) would store the world transform of
+    /// the object itself, which can be placed multiple times in the scene with different transforms each time. Each TLAS points to a bottom-level acceleration structure (BLAS), that contains the actual
+    /// geometry, consisting of multiple meshes that are all transformed relative to the TLAS transform.
+    ///
     /// Note that a bottom-level acceleration structure can only contain either triangle meshes or bounding boxes, but never both in the same structure.
-    /// </remarks>
-    /// <seealso cref="TriangleMesh" />
-    /// <seealso cref="AxisAlignedBoundingBox" />
-    /// <seealso cref="ITopLevelAccelerationStructure" />
+    ///
+    /// @see TriangleMesh
+    /// @see AxisAlignedBoundingBox
+    /// @see ITopLevelAccelerationStructure
     class LITEFX_RENDERING_API IBottomLevelAccelerationStructure : public virtual IAccelerationStructure {
     public:
-        /// <summary>
-        /// Represents a triangle mesh.
-        /// </summary>
+        /// @brief Represents a triangle mesh.
         struct TriangleMesh final {
         public:
-            /// <summary>
-            /// Initializes a new triangle mesh.
-            /// </summary>
-            /// <param name="vertexBuffer">The vertex buffer that stores the mesh vertices.</param>
-            /// <param name="indexBuffer">The index buffer that stores the mesh indices.</param>
-            /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
-            /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
+            /// @brief Initializes a new triangle mesh.
+            ///
+            /// @param vertexBuffer The vertex buffer that stores the mesh vertices.
+            /// @param indexBuffer The index buffer that stores the mesh indices.
+            /// @param transformBuffer A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.
+            /// @param flags The flags that control how the primitives in the geometry behaves during ray-tracing.
             TriangleMesh(const SharedPtr<const IVertexBuffer>& vertexBuffer, const SharedPtr<const IIndexBuffer>& indexBuffer = nullptr, const SharedPtr<const IBuffer>& transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) :
                 VertexBuffer(vertexBuffer), IndexBuffer(indexBuffer), TransformBuffer(transformBuffer), Flags(flags) { 
                 if (vertexBuffer == nullptr) [[unlikely]]
                     throw ArgumentNotInitializedException("vertexBuffer", "The vertex buffer must be initialized.");
             }
 
-            /// <summary>
-            /// Initializes a new triangle mesh by taking over another one.
-            /// </summary>
-            /// <param name="other">The triangle mesh to take over.</param>
+            /// @brief Initializes a new triangle mesh by taking over another one.
+            ///
+            /// @param other The triangle mesh to take over.
             TriangleMesh(TriangleMesh&& other) noexcept = default;
 
-            /// <summary>
-            /// Initializes a new triangle mesh by copying another one.
-            /// </summary>
-            /// <param name="other">The triangle mesh to copy.</param>
+            /// @brief Initializes a new triangle mesh by copying another one.
+            ///
+            /// @param other The triangle mesh to copy.
             TriangleMesh(const TriangleMesh& other) = default;
 
-            /// <summary>
-            /// Takes over another triangle mesh.
-            /// </summary>
-            /// <param name="other">The triangle mesh to take over.</param>
-            /// <returns>A reference to the current triangle mesh instance.</returns>
+            /// @brief Takes over another triangle mesh.
+            ///
+            /// @param other The triangle mesh to take over.
+            /// @return A reference to the current triangle mesh instance.
             TriangleMesh& operator=(TriangleMesh&& other) noexcept = default;
 
-            /// <summary>
-            /// Copies another triangle mesh.
-            /// </summary>
-            /// <param name="other">The triangle mesh to copy.</param>
-            /// <returns>A reference to the current triangle mesh instance.</returns>
+            /// @brief Copies another triangle mesh.
+            ///
+            /// @param other The triangle mesh to copy.
+            /// @return A reference to the current triangle mesh instance.
             TriangleMesh& operator=(const TriangleMesh& other) = default;
 
-            /// <summary>
-            /// Releases the triangle mesh.
-            /// </summary>
+            /// @brief Releases the triangle mesh.
             ~TriangleMesh() noexcept = default;
 
         public:
-            /// <summary>
-            /// The vertex buffer that stores the mesh vertices.
-            /// </summary>
+            /// @brief The vertex buffer that stores the mesh vertices.
             SharedPtr<const IVertexBuffer> VertexBuffer;
 
-            /// <summary>
-            /// The index buffer that stores the mesh indices.
-            /// </summary>
+            /// @brief The index buffer that stores the mesh indices.
             SharedPtr<const IIndexBuffer> IndexBuffer;
 
-            /// <summary>
-            /// A buffer that stores a row-major 3x4 transformation matrix applied to the vertex buffer when building the BLAS.
-            /// </summary>
-            /// <remarks>
+            /// @brief A buffer that stores a row-major 3x4 transformation matrix applied to the vertex buffer when building the BLAS.
+            ///
             /// If the transform is not set, the vertices are not further transformed, which can improve building performance.
-            /// </remarks>
             SharedPtr<const IBuffer> TransformBuffer;
 
-            /// <summary>
-            /// The flags that control how the primitives in the geometry behaves during ray-tracing.
-            /// </summary>
+            /// @brief The flags that control how the primitives in the geometry behaves during ray-tracing.
             GeometryFlags Flags;
         };
 
-        /// <summary>
-        /// Stores a buffer that contains axis-aligned bounding boxes.
-        /// </summary>
-        /// <remarks>
+        /// @brief Stores a buffer that contains axis-aligned bounding boxes.
+        ///
         /// You may think of this structure as a set containing voxels for procedural geometry.
-        /// </remarks>
         struct BoundingBoxes final {
-            /// <summary>
-            /// A buffer containing the bounding box definitions.
-            /// </summary>
-            /// <remarks>
-            /// Each element of the buffer must contain a bounding box at the start of the buffer, where a bounding box takes up 6 single-precision floating point values, with the first triplet 
-            /// describing the lower corner of the bounding box and the second triplet describing the upper corner of the bounding box, as shown in the following definition:
-            /// 
-            /// <code>
+            /// @brief A buffer containing the bounding box definitions.
+            ///
+            /// Each element of the buffer must contain a bounding box at the start of the buffer, where a bounding box takes up 6 single-precision floating point values, with the first triplet describing the lower
+            /// corner of the bounding box and the second triplet describing the upper corner of the bounding box, as shown in the following definition:
+            ///
+            /// @code
             /// struct alignas(16) AABB {
             ///     Float minimum[3];
             ///     Float maximum[3];
             /// }
-            /// </code>
-            /// 
+            /// @endcode
+            ///
             /// The rest of the bounding box elements memory can be filled with arbitrary data, that can be read by shaders.
-            /// </remarks>
             SharedPtr<const IBuffer> Buffer;
 
-            /// <summary>
-            /// The flags that control how the primitives in the geometry behaves during ray-tracing.
-            /// </summary>
+            /// @brief The flags that control how the primitives in the geometry behaves during ray-tracing.
             GeometryFlags Flags;
         };
 
@@ -5576,157 +4371,141 @@ namespace LiteFX::Rendering {
         ~IBottomLevelAccelerationStructure() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns an array of triangle meshes contained by the BLAS.
-        /// </summary>
-        /// <returns>The array of triangle meshes contained by the BLAS.</returns>
+        /// @brief Returns an array of triangle meshes contained by the BLAS.
+        ///
+        /// @return The array of triangle meshes contained by the BLAS.
         virtual const Array<TriangleMesh>& triangleMeshes() const noexcept = 0;
 
-        /// <summary>
-        /// Adds a triangle mesh to the BLAS.
-        /// </summary>
-        /// <param name="mesh">The triangle mesh to add to the BLAS.</param>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes.</exception>
+        /// @brief Adds a triangle mesh to the BLAS.
+        ///
+        /// @param mesh The triangle mesh to add to the BLAS.
+        /// @throws RuntimeException Thrown, if the acceleration structure already contains bounding boxes.
         virtual void addTriangleMesh(const TriangleMesh& mesh) = 0;
 
-        /// <summary>
-        /// Adds a triangle mesh to the BLAS.
-        /// </summary>
-        /// <param name="vertexBuffer">The vertex buffer that stores the mesh vertices.</param>
-        /// <param name="indexBuffer">The index buffer that stores the mesh indices.</param>
-        /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
-        /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes.</exception>
+        /// @brief Adds a triangle mesh to the BLAS.
+        ///
+        /// @param vertexBuffer The vertex buffer that stores the mesh vertices.
+        /// @param indexBuffer The index buffer that stores the mesh indices.
+        /// @param transformBuffer A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.
+        /// @param flags The flags that control how the primitives in the geometry behaves during ray-tracing.
+        /// @throws RuntimeException Thrown, if the acceleration structure already contains bounding boxes.
         inline void addTriangleMesh(const SharedPtr<const IVertexBuffer>& vertexBuffer, const SharedPtr<const IIndexBuffer>& indexBuffer = nullptr, const SharedPtr<const IBuffer>& transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) {
             this->addTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
         }
 
-        /// <summary>
-        /// Returns an array of buffers, each containing axis-aligned bounding boxes stored in the BLAS.
-        /// </summary>
-        /// <returns>The array of axis-aligned bounding boxes contained by the BLAS.</returns>
+        /// @brief Returns an array of buffers, each containing axis-aligned bounding boxes stored in the BLAS.
+        ///
+        /// @return The array of axis-aligned bounding boxes contained by the BLAS.
         virtual const Array<BoundingBoxes>& boundingBoxes() const noexcept = 0;
 
-        /// <summary>
-        /// Adds a buffer containing axis-aligned bounding boxes to the BLAS.
-        /// </summary>
-        /// <param name="aabbs">The bounding boxes to add to the BLAS.</param>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes.</exception>
+        /// @brief Adds a buffer containing axis-aligned bounding boxes to the BLAS.
+        ///
+        /// @param aabbs The bounding boxes to add to the BLAS.
+        /// @throws RuntimeException Thrown, if the acceleration structure already contains triangle meshes.
         virtual void addBoundingBox(const BoundingBoxes& aabbs) = 0;
 
-        /// <summary>
-        /// Adds a buffer containing axis-aligned bounding boxes to the BLAS.
-        /// </summary>
-        /// <param name="buffer">A buffer containing the bounding box definitions.</param>
-        /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes.</exception>
+        /// @brief Adds a buffer containing axis-aligned bounding boxes to the BLAS.
+        ///
+        /// @param buffer A buffer containing the bounding box definitions.
+        /// @param flags The flags that control how the primitives in the geometry behaves during ray-tracing.
+        /// @throws RuntimeException Thrown, if the acceleration structure already contains triangle meshes.
         inline void addBoundingBox(const SharedPtr<const IBuffer>& buffer, GeometryFlags flags = GeometryFlags::None) {
             this->addBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
         }
 
-        /// <summary>
-        /// Clears all bounding boxes and triangle meshes from the acceleration structure.
-        /// </summary>
+        /// @brief Clears all bounding boxes and triangle meshes from the acceleration structure.
         virtual void clear() noexcept = 0;
 
-        /// <summary>
-        /// Removes a triangle mesh from the acceleration structure.
-        /// </summary>
-        /// <param name="mesh">The triangle mesh to remove from the acceleration structure.</param>
-        /// <returns>`true`, if the triangle mesh was removed, otherwise `false`.</returns>
+        /// @brief Removes a triangle mesh from the acceleration structure.
+        ///
+        /// @param mesh The triangle mesh to remove from the acceleration structure.
+        /// @return `true`, if the triangle mesh was removed, otherwise `false`.
         virtual bool remove(const TriangleMesh& mesh) noexcept = 0;
 
-        /// <summary>
-        /// Removes a bounding box set from the acceleration structure.
-        /// </summary>
-        /// <param name="aabb">The bounding box set to remove from the acceleration structure.</param>
-        /// <returns>`true`, if the bounding box set was removed, otherwise `false`.</returns>
+        /// @brief Removes a bounding box set from the acceleration structure.
+        ///
+        /// @param aabb The bounding box set to remove from the acceleration structure.
+        /// @return `true`, if the bounding box set was removed, otherwise `false`.
         virtual bool remove(const BoundingBoxes& aabb) noexcept = 0;
 
-        /// <summary>
-        /// Copies the acceleration structure into the acceleration structure provided by <paramref name="destination" />.
-        /// </summary>
-        /// <remarks>
-        /// This method copies the acceleration structure into another one, which is especially useful for compression. If called without any arguments besides <paramref name="commandBuffer" /> and
-        /// <paramref name="destination" />, the method will create a clone of the current acceleration structure, including any build info (i.e., triangle mesh or bounding box data). If the destination
-        /// acceleration structure already contains a buffer and the buffer contains enough memory to store the copy, it will be re-used and its contents will be overwritten. Otherwise, a new buffer with enough
-        /// memory to store the copy will be allocated.
-        /// 
-        /// If the <paramref name="compress" /> option is set to `true`, the copy will be compressed. Note that this is only possible, if the acceleration structure was created with the 
-        /// <see cref="AccelerationStructureFlags::AllowCompaction" /> flag enabled. Note that compression requires a query for the size of the compressed data, which can only be determined *after* the 
-        /// acceleration structure was built or updated. This implies that a copy command that is used for compression is not valid on the same command buffer that did also record the build or update commands
-        /// for it. You have to use a fence to wait for the build to finish before attempting a compression.
-        /// 
-        /// It is possible to provide a buffer for the destination acceleration structure to use after copying. This buffer can be set by providing the <paramref name="buffer" /> parameter. This allows to
-        /// re-use memory from another acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling <see cref="buffer" />) and 
-        /// destroy it afterwards, which enables re-use scenarios for example for caching. Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory 
-        /// consumption. This is done by also providing the <paramref name="offset" /> parameter to address where the copy should be stored. Note that the pointer passed to the <see cref="buffer" /> parameter 
-        /// must have been initialized with the <see cref="BufferType::AccelerationStructure" /> buffer type and must be writable (<see cref="ResourceUsage::AllowWrite" />).
-        /// 
+        /// @brief Copies the acceleration structure into the acceleration structure provided by @p destination.
+        ///
+        /// This method copies the acceleration structure into another one, which is especially useful for compression. If called without any arguments besides @p commandBuffer and @p destination, the method will
+        /// create a clone of the current acceleration structure, including any build info (i.e., triangle mesh or bounding box data). If the destination acceleration structure already contains a buffer and the
+        /// buffer contains enough memory to store the copy, it will be re-used and its contents will be overwritten. Otherwise, a new buffer with enough memory to store the copy will be allocated.
+        ///
+        /// If the @p compress option is set to `true`, the copy will be compressed. Note that this is only possible, if the acceleration structure was created with the @ref
+        /// AccelerationStructureFlags::AllowCompaction flag enabled. Note that compression requires a query for the size of the compressed data, which can only be determined *after* the acceleration structure
+        /// was built or updated. This implies that a copy command that is used for compression is not valid on the same command buffer that did also record the build or update commands for it. You have to use a
+        /// fence to wait for the build to finish before attempting a compression.
+        ///
+        /// It is possible to provide a buffer for the destination acceleration structure to use after copying. This buffer can be set by providing the @p buffer parameter. This allows to re-use memory from
+        /// another acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling @ref buffer) and destroy it afterwards, which
+        /// enables re-use scenarios for example for caching. Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory consumption. This is done by also
+        /// providing the @p offset parameter to address where the copy should be stored. Note that the pointer passed to the @ref buffer parameter must have been initialized with the @ref
+        /// BufferType::AccelerationStructure buffer type and must be writable (@ref ResourceUsage::AllowWrite).
+        ///
         /// To reduce memory consumption, the build info (i.e., triangle mesh and bounding box data) is not copied to the destination acceleration structure by default. However, this also implies that further
-        /// updates to it are inconvenient, requiring to manually copy the data in an additional pass. To also include build data in the copy, the <paramref name="copyBuildInfo" /> setting can be set to `true`.
-        /// 
-        /// After a successful copy, the buffer pointer is stored by the acceleration structure <paramref name="destination" /> and can be accessed by calling <see cref="buffer" /> on it.
-        /// </remarks>
-        /// <param name="commandBuffer">The command buffer used to record the acceleration structure copy commands.</param>
-        /// <param name="destination">The acceleration structure to copy the current one into.</param>
-        /// <param name="compress">If `true`, the acceleration structure data will be compressed.</param>
-        /// <param name="buffer">If not `nullptr`, the destination acceleration structure will be written into the provided buffer. Otherwise a new buffer is allocated, or the existing one is used depending on the available size.</param>
-        /// <param name="offset">The offset at which to store the copy within <paramref name="buffer" />. Must be a multiple of 256. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
-        /// <param name="copyBuildInfo">If `true`, the mesh data or bounding box data is copied into the acceleration structure.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="compress" /> is set to `true`, but the current acceleration structure has not been created with the <see cref="AccelerationStructureFlags::AllowCompaction" /> flag.</exception>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and does not fully contain the required memory to store the copy, starting at <paramref name="offset" />.</exception>
+        /// updates to it are inconvenient, requiring to manually copy the data in an additional pass. To also include build data in the copy, the @p copyBuildInfo setting can be set to `true`.
+        ///
+        /// After a successful copy, the buffer pointer is stored by the acceleration structure @p destination and can be accessed by calling @ref buffer on it.
+        ///
+        /// @param commandBuffer The command buffer used to record the acceleration structure copy commands.
+        /// @param destination The acceleration structure to copy the current one into.
+        /// @param compress If `true`, the acceleration structure data will be compressed.
+        /// @param buffer If not `nullptr`, the destination acceleration structure will be written into the provided buffer. Otherwise a new buffer is allocated, or the existing one is used depending on the
+        /// available size.
+        /// @param offset The offset at which to store the copy within @p buffer. Must be a multiple of 256. Ignored if @p buffer is `nullptr`.
+        /// @param copyBuildInfo If `true`, the mesh data or bounding box data is copied into the acceleration structure.
+        /// @throws InvalidArgumentException Thrown, if @p compress is set to `true`, but the current acceleration structure has not been created with the @ref AccelerationStructureFlags::AllowCompaction flag.
+        /// @throws InvalidArgumentException Thrown, if @p offset is not aligned to 256 bytes.
+        /// @throws ArgumentOutOfRangeException Thrown, if @p buffer is not `nullptr` and does not fully contain the required memory to store the copy, starting at @p offset.
         inline void copy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress = false, const SharedPtr<const IBuffer>& buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const {
             this->doCopy(commandBuffer, destination, compress, buffer, offset, copyBuildInfo);
         }
 
     public:
-        /// <summary>
-        /// Adds a triangle mesh to the BLAS.
-        /// </summary>
-        /// <param name="mesh">The triangle mesh to add to the BLAS.</param>
-        /// <returns>A reference to the current BLAS.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes.</exception>
+        /// @brief Adds a triangle mesh to the BLAS.
+        ///
+        /// @param mesh The triangle mesh to add to the BLAS.
+        /// @return A reference to the current BLAS.
+        /// @throws RuntimeException Thrown, if the acceleration structure already contains bounding boxes.
         template <typename TSelf>
         inline auto withTriangleMesh(this TSelf&& self, const TriangleMesh& mesh) -> TSelf&& {
             self.addTriangleMesh(mesh);
             return std::forward<TSelf>(self);
         }
 
-        /// <summary>
-        /// Adds a triangle mesh to the BLAS.
-        /// </summary>
-        /// <param name="vertexBuffer">The vertex buffer that stores the mesh vertices.</param>
-        /// <param name="indexBuffer">The index buffer that stores the mesh indices.</param>
-        /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
-        /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
-        /// <returns>A reference to the current BLAS.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes.</exception>
+        /// @brief Adds a triangle mesh to the BLAS.
+        ///
+        /// @param vertexBuffer The vertex buffer that stores the mesh vertices.
+        /// @param indexBuffer The index buffer that stores the mesh indices.
+        /// @param transformBuffer A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.
+        /// @param flags The flags that control how the primitives in the geometry behaves during ray-tracing.
+        /// @return A reference to the current BLAS.
+        /// @throws RuntimeException Thrown, if the acceleration structure already contains bounding boxes.
         template <typename TSelf>
         inline auto withTriangleMesh(this TSelf&& self, const SharedPtr<const IVertexBuffer>& vertexBuffer, const SharedPtr<const IIndexBuffer>& indexBuffer = nullptr, const SharedPtr<const IBuffer>& transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) -> TSelf&& {
             return std::forward<TSelf>(self).withTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
         }
 
-        /// <summary>
-        /// Adds a buffer containing axis-aligned bounding boxes to the BLAS.
-        /// </summary>
-        /// <param name="aabb">The bounding box buffer to add to the BLAS.</param>
-        /// <returns>A reference to the current BLAS.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes.</exception>
+        /// @brief Adds a buffer containing axis-aligned bounding boxes to the BLAS.
+        ///
+        /// @param aabb The bounding box buffer to add to the BLAS.
+        /// @return A reference to the current BLAS.
+        /// @throws RuntimeException Thrown, if the acceleration structure already contains triangle meshes.
         template <typename TSelf>
         inline auto withBoundingBox(this TSelf&& self, const BoundingBoxes& aabb) -> TSelf&& {
             self.addBoundingBox(aabb);
             return std::forward<TSelf>(self);
         }
 
-        /// <summary>
-        /// Adds a buffer containing axis-aligned bounding boxes to the BLAS.
-        /// </summary>
-        /// <param name="buffer">A buffer containing the bounding box definitions.</param>
-        /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
-        /// <returns>A reference to the current BLAS.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes.</exception>
+        /// @brief Adds a buffer containing axis-aligned bounding boxes to the BLAS.
+        ///
+        /// @param buffer A buffer containing the bounding box definitions.
+        /// @param flags The flags that control how the primitives in the geometry behaves during ray-tracing.
+        /// @return A reference to the current BLAS.
+        /// @throws RuntimeException Thrown, if the acceleration structure already contains triangle meshes.
         template <typename TSelf>
         inline auto withBoundingBox(this TSelf&& self, const SharedPtr<const IBuffer>& buffer, GeometryFlags flags = GeometryFlags::None) -> TSelf&& {
             return std::forward<TSelf>(self).withBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
@@ -5736,57 +4515,42 @@ namespace LiteFX::Rendering {
         virtual void doCopy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress, const SharedPtr<const IBuffer>& buffer, UInt64 offset, bool copyBuildInfo) const = 0;
     };
 
-    /// <summary>
-    /// A structure that stores the instance data for a <see cref="IBottomLevelAccelerationStructure" />.
-    /// </summary>
-    /// <seealso cref="IBottomLevelAccelerationStructure" />
+    /// @brief A structure that stores the instance data for a @ref IBottomLevelAccelerationStructure.
+    ///
+    /// @see IBottomLevelAccelerationStructure
     class LITEFX_RENDERING_API ITopLevelAccelerationStructure : public virtual IAccelerationStructure {
     public:
 #pragma warning(push)
 #pragma warning(disable: 4324) // Structure was padded due to alignment specifier
-        /// <summary>
-        /// Represents an instance of an <see cref="IBottomLevelAccelerationStructure" />.
-        /// </summary>
+        /// @brief Represents an instance of an @ref IBottomLevelAccelerationStructure.
         struct alignas(16) Instance final { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-            /// <summary>
-            /// The bottom-level acceleration structure that contains the geometries of this instance.
-            /// </summary>
+            /// @brief The bottom-level acceleration structure that contains the geometries of this instance.
             SharedPtr<const IBottomLevelAccelerationStructure> BottomLevelAccelerationStructure;
 
-            /// <summary>
-            /// The transformation matrix for the instance.
-            /// </summary>
+            /// @brief The transformation matrix for the instance.
             TMatrix3x4<Float> Transform = TMatrix3x4<Float>::identity();
 
-            /// <summary>
-            /// The instance ID used in shaders to identify the instance.
-            /// </summary>
+            /// @brief The instance ID used in shaders to identify the instance.
             UInt32 Id : 24 = 0;
 
-            /// <summary>
-            /// A user-defined mask value that is matched with another mask value during ray-tracing to include or discard the instance.
-            /// </summary>
+            /// @brief A user-defined mask value that is matched with another mask value during ray-tracing to include or discard the instance.
             UInt8 Mask : 8 = 0xFF;
 
-            /// <summary>
-            /// An offset added to the address of the shader-local data of the shader record that is invoked for the instance, *after* the <see cref="IBottomLevelAccelerationStructure" /> indexing
-            /// rules have been applied.
-            /// </summary>
-            /// <remarks>
-            /// Shader-local data is a piece of constant data that is available to the shader during invocation. During a ray hit/miss event, the shader record is selected based on geometry 
-            /// (<see cref="IBottomLevelAccelerationStructure" />), instance (<see cref="ITopLevelAccelerationStructure" /> and an implementation-specific offset. The selected record is then used 
-            /// to load the shader and pass the shader local data to it.
-            /// 
-            /// The first part of the address is determined from the geometry index within the TLAS and a user-defined multiplier and base index specified in the shader when calling `TraceRay`. After 
-            /// this index is calculated the value of this property is added to it. The result is an offset into the shader-local data for the selected shader record.
-            /// </remarks>
-            /// <seealso cref="https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#addressing-calculations-within-shader-tables" />
-            /// <seealso cref="https://docs.vulkan.org/spec/latest/chapters/raytracing.html#shader-binding-table-indexing-rules" />
+            /// @brief An offset added to the address of the shader-local data of the shader record that is invoked for the instance, *after* the @ref IBottomLevelAccelerationStructure indexing rules have been
+            /// applied.
+            ///
+            /// Shader-local data is a piece of constant data that is available to the shader during invocation. During a ray hit/miss event, the shader record is selected based on geometry (@ref
+            /// IBottomLevelAccelerationStructure), instance (@ref ITopLevelAccelerationStructure and an implementation-specific offset. The selected record is then used to load the shader and pass the shader local
+            /// data to it.
+            ///
+            /// The first part of the address is determined from the geometry index within the TLAS and a user-defined multiplier and base index specified in the shader when calling `TraceRay`. After this index is
+            /// calculated the value of this property is added to it. The result is an offset into the shader-local data for the selected shader record.
+            ///
+            /// @see https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#addressing-calculations-within-shader-tables
+            /// @see https://docs.vulkan.org/spec/latest/chapters/raytracing.html#shader-binding-table-indexing-rules
             UInt32 HitGroupOffset : 24 = 0;
 
-            /// <summary>
-            /// The flags that control the behavior of this instance.
-            /// </summary>
+            /// @brief The flags that control the behavior of this instance.
             InstanceFlags Flags : 8 = InstanceFlags::None;
         };
 #pragma warning(pop)
@@ -5802,131 +4566,119 @@ namespace LiteFX::Rendering {
         ~ITopLevelAccelerationStructure() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns an array of instances in the TLAS.
-        /// </summary>
-        /// <returns>The array of instances in the TLAS.</returns>
+        /// @brief Returns an array of instances in the TLAS.
+        ///
+        /// @return The array of instances in the TLAS.
         virtual const Array<Instance>& instances() const noexcept = 0;
 
-        /// <summary>
-        /// Adds an instance to the TLAS.
-        /// </summary>
-        /// <param name="instance">The instance to add to the TLAS.</param>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure buffers have already been allocated.</exception>
+        /// @brief Adds an instance to the TLAS.
+        ///
+        /// @param instance The instance to add to the TLAS.
+        /// @throws RuntimeException Thrown, if the acceleration structure buffers have already been allocated.
         virtual void addInstance(const Instance& instance) = 0;
 
-        /// <summary>
-        /// Adds an instance to the TLAS.
-        /// </summary>
-        /// <param name="blas">The bottom-level acceleration structure that contains the geometries of the instance.</param>
-        /// <param name="id">The instance ID used in shaders to identify the instance.</param>
-        /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
-        /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
-        /// <param name="flags">The flags that control the behavior of the instance.</param>
+        /// @brief Adds an instance to the TLAS.
+        ///
+        /// @param blas The bottom-level acceleration structure that contains the geometries of the instance.
+        /// @param id The instance ID used in shaders to identify the instance.
+        /// @param hitGroupOffset An offset added to the shader-local data for a hit-group shader record.
+        /// @param mask A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.
+        /// @param flags The flags that control the behavior of the instance.
         inline void addInstance(const SharedPtr<const IBottomLevelAccelerationStructure>& blas, UInt32 id, UInt32 hitGroupOffset = 0, UInt8 mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
         
-        /// <summary>
-        /// Adds an instance to the TLAS.
-        /// </summary>
-        /// <param name="blas">The bottom-level acceleration structure that contains the geometries of the instance.</param>
-        /// <param name="transform">The transformation matrix applied to the instance geometry.</param>
-        /// <param name="id">The instance ID used in shaders to identify the instance.</param>
-        /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
-        /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
-        /// <param name="flags">The flags that control the behavior of the instance.</param>
+        /// @brief Adds an instance to the TLAS.
+        ///
+        /// @param blas The bottom-level acceleration structure that contains the geometries of the instance.
+        /// @param transform The transformation matrix applied to the instance geometry.
+        /// @param id The instance ID used in shaders to identify the instance.
+        /// @param hitGroupOffset An offset added to the shader-local data for a hit-group shader record.
+        /// @param mask A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.
+        /// @param flags The flags that control the behavior of the instance.
         inline void addInstance(const SharedPtr<const IBottomLevelAccelerationStructure>& blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, UInt8 mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
 
-        /// <summary>
-        /// Clears all instances from the acceleration structure.
-        /// </summary>
+        /// @brief Clears all instances from the acceleration structure.
         virtual void clear() noexcept = 0;
 
-        /// <summary>
-        /// Removes an instance from the acceleration structure.
-        /// </summary>
-        /// <param name="instance">The instance to remove from the acceleration structure.</param>
-        /// <returns>`true`, if the instance has been removed, otherwise `false`.</returns>
+        /// @brief Removes an instance from the acceleration structure.
+        ///
+        /// @param instance The instance to remove from the acceleration structure.
+        /// @return `true`, if the instance has been removed, otherwise `false`.
         virtual bool remove(const Instance& instance) noexcept = 0;
 
-        /// <summary>
-        /// Copies the acceleration structure into the acceleration structure provided by <paramref name="destination" />.
-        /// </summary>
-        /// <remarks>
-        /// This method copies the acceleration structure into another one, which is especially useful for compression. If called without any arguments besides <paramref name="commandBuffer" /> and
-        /// <paramref name="destination" />, the method will create a clone of the current acceleration structure, including any build info (i.e., triangle mesh or bounding box data). If the destination
-        /// acceleration structure already contains a buffer and the buffer contains enough memory to store the copy, it will be re-used and its contents will be overwritten. Otherwise, a new buffer with enough
-        /// memory to store the copy will be allocated.
-        /// 
-        /// If the <paramref name="compress" /> option is set to `true`, the copy will be compressed. Note that this is only possible, if the acceleration structure was created with the 
-        /// <see cref="AccelerationStructureFlags::AllowCompaction" /> flag enabled. Note that compression requires a query for the size of the compressed data, which can only be determined *after* the 
-        /// acceleration structure was built or updated. This implies that a copy command that is used for compression is not valid on the same command buffer that did also record the build or update commands
-        /// for it. You have to use a fence to wait for the build to finish before attempting a compression.
-        /// 
-        /// It is possible to provide a buffer for the destination acceleration structure to use after copying. This buffer can be set by providing the <paramref name="buffer" /> parameter. This allows to
-        /// re-use memory from another acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling <see cref="buffer" />) and 
-        /// destroy it afterwards, which enables re-use scenarios for example for caching. Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory 
-        /// consumption. This is done by also providing the <paramref name="offset" /> parameter to address where the copy should be stored. Note that the pointer passed to the <see cref="buffer" /> parameter 
-        /// must have been initialized with the <see cref="BufferType::AccelerationStructure" /> buffer type and must be writable (<see cref="ResourceUsage::AllowWrite" />).
-        /// 
+        /// @brief Copies the acceleration structure into the acceleration structure provided by @p destination.
+        ///
+        /// This method copies the acceleration structure into another one, which is especially useful for compression. If called without any arguments besides @p commandBuffer and @p destination, the method will
+        /// create a clone of the current acceleration structure, including any build info (i.e., triangle mesh or bounding box data). If the destination acceleration structure already contains a buffer and the
+        /// buffer contains enough memory to store the copy, it will be re-used and its contents will be overwritten. Otherwise, a new buffer with enough memory to store the copy will be allocated.
+        ///
+        /// If the @p compress option is set to `true`, the copy will be compressed. Note that this is only possible, if the acceleration structure was created with the @ref
+        /// AccelerationStructureFlags::AllowCompaction flag enabled. Note that compression requires a query for the size of the compressed data, which can only be determined *after* the acceleration structure
+        /// was built or updated. This implies that a copy command that is used for compression is not valid on the same command buffer that did also record the build or update commands for it. You have to use a
+        /// fence to wait for the build to finish before attempting a compression.
+        ///
+        /// It is possible to provide a buffer for the destination acceleration structure to use after copying. This buffer can be set by providing the @p buffer parameter. This allows to re-use memory from
+        /// another acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling @ref buffer) and destroy it afterwards, which
+        /// enables re-use scenarios for example for caching. Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory consumption. This is done by also
+        /// providing the @p offset parameter to address where the copy should be stored. Note that the pointer passed to the @ref buffer parameter must have been initialized with the @ref
+        /// BufferType::AccelerationStructure buffer type and must be writable (@ref ResourceUsage::AllowWrite).
+        ///
         /// To reduce memory consumption, the build info (i.e., triangle mesh and bounding box data) is not copied to the destination acceleration structure by default. However, this also implies that further
-        /// updates to it are inconvenient, requiring to manually copy the data in an additional pass. To also include build data in the copy, the <paramref name="copyBuildInfo" /> setting can be set to `true`.
-        /// 
-        /// After a successful copy, the buffer pointer is stored by the acceleration structure <paramref name="destination" /> and can be accessed by calling <see cref="buffer" /> on it.
-        /// </remarks>
-        /// <param name="commandBuffer">The command buffer used to record the acceleration structure copy commands.</param>
-        /// <param name="destination">The acceleration structure to copy the current one into.</param>
-        /// <param name="compress">If `true`, the acceleration structure data will be compressed.</param>
-        /// <param name="buffer">If not `nullptr`, the destination acceleration structure will be written into the provided buffer. Otherwise a new buffer is allocated, or the existing one is used depending on the available size.</param>
-        /// <param name="offset">The offset at which to store the copy within <paramref name="buffer" />. Must be a multiple of 256. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
-        /// <param name="copyBuildInfo">If `true`, the mesh data or bounding box data is copied into the acceleration structure.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="compress" /> is set to `true`, but the current acceleration structure has not been created with the <see cref="AccelerationStructureFlags::AllowCompaction" /> flag.</exception>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and does not fully contain the required memory to store the copy, starting at <paramref name="offset" />.</exception>
+        /// updates to it are inconvenient, requiring to manually copy the data in an additional pass. To also include build data in the copy, the @p copyBuildInfo setting can be set to `true`.
+        ///
+        /// After a successful copy, the buffer pointer is stored by the acceleration structure @p destination and can be accessed by calling @ref buffer on it.
+        ///
+        /// @param commandBuffer The command buffer used to record the acceleration structure copy commands.
+        /// @param destination The acceleration structure to copy the current one into.
+        /// @param compress If `true`, the acceleration structure data will be compressed.
+        /// @param buffer If not `nullptr`, the destination acceleration structure will be written into the provided buffer. Otherwise a new buffer is allocated, or the existing one is used depending on the
+        /// available size.
+        /// @param offset The offset at which to store the copy within @p buffer. Must be a multiple of 256. Ignored if @p buffer is `nullptr`.
+        /// @param copyBuildInfo If `true`, the mesh data or bounding box data is copied into the acceleration structure.
+        /// @throws InvalidArgumentException Thrown, if @p compress is set to `true`, but the current acceleration structure has not been created with the @ref AccelerationStructureFlags::AllowCompaction flag.
+        /// @throws InvalidArgumentException Thrown, if @p offset is not aligned to 256 bytes.
+        /// @throws ArgumentOutOfRangeException Thrown, if @p buffer is not `nullptr` and does not fully contain the required memory to store the copy, starting at @p offset.
         inline void copy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress = false, const SharedPtr<const IBuffer>& buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const {
             this->doCopy(commandBuffer, destination, compress, buffer, offset, copyBuildInfo);
         }
 
     public:
-        /// <summary>
-        /// Adds an instance to the current TLAS.
-        /// </summary>
-        /// <param name="instance">The instance to add to the TLAS.</param>
-        /// <returns>A reference to the current TLAS.</returns>
+        /// @brief Adds an instance to the current TLAS.
+        ///
+        /// @param instance The instance to add to the TLAS.
+        /// @return A reference to the current TLAS.
         template<typename TSelf>
         inline auto withInstance(this TSelf&& self, const Instance& instance) noexcept -> TSelf&& {
             self.addInstance(instance);
             return std::forward<TSelf>(self);
         }
 
-        /// <summary>
-        /// Adds an instance to the current TLAS.
-        /// </summary>
-        /// <param name="blas">The bottom-level acceleration structure that contains the geometries of the instance.</param>
-        /// <param name="id">The instance ID used in shaders to identify the instance.</param>
-        /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
-        /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
-        /// <param name="flags">The flags that control the behavior of the instance.</param>
-        /// <returns>A reference to the current TLAS.</returns>
+        /// @brief Adds an instance to the current TLAS.
+        ///
+        /// @param blas The bottom-level acceleration structure that contains the geometries of the instance.
+        /// @param id The instance ID used in shaders to identify the instance.
+        /// @param hitGroupOffset An offset added to the shader-local data for a hit-group shader record.
+        /// @param mask A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.
+        /// @param flags The flags that control the behavior of the instance.
+        /// @return A reference to the current TLAS.
         template<typename TSelf>
         inline auto withInstance(this TSelf&& self, const SharedPtr<const IBottomLevelAccelerationStructure>& blas, UInt32 id, UInt32 hitGroupOffset = 0, UInt8 mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
             return std::forward<TSelf>(self);
         }
 
-        /// <summary>
-        /// Adds an instance to the current TLAS.
-        /// </summary>
-        /// <param name="blas">The bottom-level acceleration structure that contains the geometries of the instance.</param>
-        /// <param name="transform">The transformation matrix applied to the instance geometry.</param>
-        /// <param name="id">The instance ID used in shaders to identify the instance.</param>
-        /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
-        /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
-        /// <param name="flags">The flags that control the behavior of the instance.</param>
-        /// <returns>A reference to the current TLAS.</returns>
+        /// @brief Adds an instance to the current TLAS.
+        ///
+        /// @param blas The bottom-level acceleration structure that contains the geometries of the instance.
+        /// @param transform The transformation matrix applied to the instance geometry.
+        /// @param id The instance ID used in shaders to identify the instance.
+        /// @param hitGroupOffset An offset added to the shader-local data for a hit-group shader record.
+        /// @param mask A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.
+        /// @param flags The flags that control the behavior of the instance.
+        /// @return A reference to the current TLAS.
         template<typename TSelf>
         inline auto withInstance(this TSelf&& self, const SharedPtr<const IBottomLevelAccelerationStructure>& blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, UInt8 mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
@@ -5937,49 +4689,42 @@ namespace LiteFX::Rendering {
         virtual void doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, const SharedPtr<const IBuffer>& buffer, UInt64 offset, bool copyBuildInfo) const = 0;
     };
 
-    /// <summary>
-    /// The interface for a barrier.
-    /// </summary>
-    /// <remarks>
-    /// Barriers are used to synchronize the GPU with itself in a command buffer. They are basically used to control the GPU command flow and ensure that resources are in 
-    /// he right state before using them. Generally speaking, there are two related types of barriers:
-    /// 
-    /// - **Execution barriers** are enforcing command order by telling the GPU to wait for certain pipeline stages or which stages to block until an operation has finished.
-    /// - **Memory barriers** are used to transition resources between states and are a subset of execution barriers. Each memory barrier is always also an execution barrier,
-    ///   but the opposite is not true.
-    /// 
-    /// An execution barrier is simply a barrier without any *resource transitions* happening. The only properties that are set for an execution barrier are two pipeline 
-    /// stages defined by <see cref="IBarrier::syncBefore" /> and <see cref="IBarrier::syncAfter" />. The first value defines the pipeline stages, all *previous* commands in 
-    /// a command buffer need to finish before execution is allowed to continue. Similarly, the second value defines the stage, all *subsequent* commands need to wait for, 
-    /// before they are allowed to continue execution. For example, setting `syncBefore` to `Compute` and `syncAfter` to `Vertex` logically translates to: *All subsequent 
-    /// commands that want to pass the vertex stage need to wait there before all previous commands passed the compute stage*. To synchronize reads in previous commands with
-    /// writes in subsequent commands, this is sufficient. However, in order to do the opposite, this is not enough. Instead resource memory needs to be *transitioned* by
-    /// specifying the desired <see cref="ResourceAccess" />, alongside the <see cref="ImageLayout" /> for images (note that buffers always share a *common* layout that can
-    /// not be changed). This is done using memory barriers. There are two types of memory barriers used for state transitions:
-    /// 
-    /// - **Global barriers** apply to all resource memory.
-    /// - **Image and buffer barriers** apply to individual images or buffers or a sub-resource of those.
-    /// 
-    /// Any `IBarrier` can contain an arbitrary mix of one or more global and/or image/buffer barriers. A global barrier is inserted by calling <see cref="IBarrier::wait" />.
-    /// This method accepts two parameters: a `before` and an `after` access mode. Those parameters specify the <see cref="ResourceAccess" /> for the previous and subsequent 
-    /// commands. This makes it possible to describe scenarios like *wait for certain writes to finish before continuing with certain reads*. Note that a resource can be
-    /// accessed in different ways at the same time (for example as copy source and shader resource) and specifying an access state will only wait for the specified subset. 
-    /// As a rule of thumb, you should always specify as little access as possible in order to leave most room for optimization.
-    /// 
-    /// Image and buffer barriers additionally describe which (sub-)resources to apply the barrier to. For buffers this only applies to individual elements in a buffer array.
-    /// However, due to [driver restrictions](https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#buffer-barriers), buffers are always transitioned as a
-    /// whole. This is different from image resources, which have addressable sub-resources (mip levels, planes and array elements). For images, it is possible to transition 
-    /// individual sub-resources into different <see cref="ImageLayout" />s to indicate when and how a texture is used. An image in a certain layout poses restrictions on how
-    /// it can be accessed. For example, a `ReadWrite` image written by a compute shader must be transitioned into a proper layout to be read by a graphics shader. To 
-    /// facilitate such a transition, a barrier is required. Image barriers can be inserted by calling one of the overloads of <see cref="IBarrier::transition" /> that accepts
-    /// an <see cref="IImage" /> parameter.
-    /// </remarks>
-    /// <seealso cref="PipelineStage" />
-    /// <seealso cref="IBuffer" />
-    /// <seealso cref="ResourceAccess" />
-    /// <seealso cref="IImage" />
-    /// <seealso cref="ImageLayout" />
-    /// <seealso cref="ICommandBuffer" />
+    /// @brief The interface for a barrier.
+    ///
+    /// Barriers are used to synchronize the GPU with itself in a command buffer. They are basically used to control the GPU command flow and ensure that resources are in he right state before using them.
+    /// Generally speaking, there are two related types of barriers:
+    ///
+    /// - **Execution barriers** are enforcing command order by telling the GPU to wait for certain pipeline stages or which stages to block until an operation has finished. - **Memory barriers** are used to
+    /// transition resources between states and are a subset of execution barriers. Each memory barrier is always also an execution barrier, but the opposite is not true.
+    ///
+    /// An execution barrier is simply a barrier without any *resource transitions* happening. The only properties that are set for an execution barrier are two pipeline stages defined by @ref
+    /// IBarrier::syncBefore and @ref IBarrier::syncAfter. The first value defines the pipeline stages, all *previous* commands in a command buffer need to finish before execution is allowed to continue.
+    /// Similarly, the second value defines the stage, all *subsequent* commands need to wait for, before they are allowed to continue execution. For example, setting `syncBefore` to `Compute` and `syncAfter`
+    /// to `Vertex` logically translates to: *All subsequent commands that want to pass the vertex stage need to wait there before all previous commands passed the compute stage*. To synchronize reads in
+    /// previous commands with writes in subsequent commands, this is sufficient. However, in order to do the opposite, this is not enough. Instead resource memory needs to be *transitioned* by specifying the
+    /// desired @ref ResourceAccess, alongside the @ref ImageLayout for images (note that buffers always share a *common* layout that can not be changed). This is done using memory barriers. There are two
+    /// types of memory barriers used for state transitions:
+    ///
+    /// - **Global barriers** apply to all resource memory. - **Image and buffer barriers** apply to individual images or buffers or a sub-resource of those.
+    ///
+    /// Any `IBarrier` can contain an arbitrary mix of one or more global and/or image/buffer barriers. A global barrier is inserted by calling @ref IBarrier::wait. This method accepts two parameters: a
+    /// `before` and an `after` access mode. Those parameters specify the @ref ResourceAccess for the previous and subsequent commands. This makes it possible to describe scenarios like *wait for certain
+    /// writes to finish before continuing with certain reads*. Note that a resource can be accessed in different ways at the same time (for example as copy source and shader resource) and specifying an
+    /// access state will only wait for the specified subset. As a rule of thumb, you should always specify as little access as possible in order to leave most room for optimization.
+    ///
+    /// Image and buffer barriers additionally describe which (sub-)resources to apply the barrier to. For buffers this only applies to individual elements in a buffer array. However, due to [driver
+    /// restrictions](https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#buffer-barriers), buffers are always transitioned as a whole. This is different from image resources, which have
+    /// addressable sub-resources (mip levels, planes and array elements). For images, it is possible to transition individual sub-resources into different @ref ImageLayouts to indicate when and how a texture
+    /// is used. An image in a certain layout poses restrictions on how it can be accessed. For example, a `ReadWrite` image written by a compute shader must be transitioned into a proper layout to be read by
+    /// a graphics shader. To facilitate such a transition, a barrier is required. Image barriers can be inserted by calling one of the overloads of @ref IBarrier::transition that accepts an @ref IImage
+    /// parameter.
+    ///
+    /// @see PipelineStage
+    /// @see IBuffer
+    /// @see ResourceAccess
+    /// @see IImage
+    /// @see ImageLayout
+    /// @see ICommandBuffer
     class LITEFX_RENDERING_API IBarrier {
     protected:
         IBarrier() noexcept = default;
@@ -5992,121 +4737,104 @@ namespace LiteFX::Rendering {
         virtual ~IBarrier() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the stage that all previous commands need to reach before continuing execution.
-        /// </summary>
-        /// <returns>The stage that all previous commands need to reach before continuing execution.</returns>
+        /// @brief Returns the stage that all previous commands need to reach before continuing execution.
+        ///
+        /// @return The stage that all previous commands need to reach before continuing execution.
         constexpr virtual PipelineStage syncBefore() const noexcept = 0;
         
-        /// <summary>
-        /// Returns the stage all subsequent commands need to wait for before continuing execution.
-        /// </summary>
-        /// <returns>The stage all subsequent commands need to wait for before continuing execution.</returns>
+        /// @brief Returns the stage all subsequent commands need to wait for before continuing execution.
+        ///
+        /// @return The stage all subsequent commands need to wait for before continuing execution.
         constexpr virtual PipelineStage syncAfter() const noexcept = 0;
 
-        /// <summary>
-        /// Inserts a global barrier that waits for previous commands to finish accesses described by <paramref name="accessBefore" /> before subsequent commands can continue
-        /// with accesses described by <paramref name="accessAfter" />.
-        /// </summary>
-        /// <param name="accessBefore">The access types previous commands have to finish.</param>
-        /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
+        /// @brief Inserts a global barrier that waits for previous commands to finish accesses described by @p accessBefore before subsequent commands can continue with accesses described by @p accessAfter.
+        ///
+        /// @param accessBefore The access types previous commands have to finish.
+        /// @param accessAfter The access types that subsequent commands continue with.
         constexpr virtual void wait(ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
 
-        /// <summary>
-        /// Inserts a buffer barrier that blocks access to <paramref name="buffer"/> of types contained in <paramref name="accessAfter" /> for subsequent commands until 
-        /// previous commands have finished accesses contained in <paramref name="accessBefore" />.
-        /// </summary>
-        /// <param name="buffer">The buffer resource to transition.</param>
-        /// <param name="accessBefore">The access types previous commands have to finish.</param>
-        /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
+        /// @brief Inserts a buffer barrier that blocks access to @p buffer of types contained in @p accessAfter for subsequent commands until previous commands have finished accesses contained in @p
+        /// accessBefore.
+        ///
+        /// @param buffer The buffer resource to transition.
+        /// @param accessBefore The access types previous commands have to finish.
+        /// @param accessAfter The access types that subsequent commands continue with.
         constexpr void transition(const IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) {
             this->doTransition(buffer, accessBefore, accessAfter);
         };
 
-        /// <summary>
-        /// Inserts a buffer barrier that blocks access to a <paramref name="buffer"/>s <paramref name="element" /> of types contained in <paramref name="accessAfter" /> for 
-        /// subsequent commands until previous commands have finished accesses contained in <paramref name="accessBefore" />.
-        /// </summary>
-        /// <remarks>
-        /// Due to [driver restrictions](https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#buffer-barriers), this is overload is currently redundant, 
-        /// but might be available in the future. Currently, calling this method ignores the <paramref name="element" /> parameter and transitions the whole buffer.
-        /// </remarks>
-        /// <param name="buffer">The buffer resource to transition.</param>
-        /// <param name="element">The element of the resource to transition.</param>
-        /// <param name="accessBefore">The access types previous commands have to finish.</param>
-        /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
+        /// @brief Inserts a buffer barrier that blocks access to a @p buffers @p element of types contained in @p accessAfter for subsequent commands until previous commands have finished accesses contained in
+        /// @p accessBefore.
+        ///
+        /// Due to [driver restrictions](https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#buffer-barriers), this is overload is currently redundant, but might be available in the future.
+        /// Currently, calling this method ignores the @p element parameter and transitions the whole buffer.
+        ///
+        /// @param buffer The buffer resource to transition.
+        /// @param element The element of the resource to transition.
+        /// @param accessBefore The access types previous commands have to finish.
+        /// @param accessAfter The access types that subsequent commands continue with.
         constexpr void transition(const IBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) {
             this->doTransition(buffer, element, accessBefore, accessAfter);
         }
 
-        /// <summary>
-        /// Inserts an image barrier that blocks access to all sub-resources of <paramref name="image"/> of the types contained in <paramref name="accessAfter" /> for 
-        /// subsequent commands until previous commands have finished accesses contained in <paramref name="accessBefore" /> and transitions all sub-resources into
-        /// <paramref name="layout" />.
-        /// </summary>
-        /// <param name="image">The image resource to transition.</param>
-        /// <param name="accessBefore">The access types previous commands have to finish.</param>
-        /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
-        /// <param name="layout">The image layout to transition into.</param>
+        /// @brief Inserts an image barrier that blocks access to all sub-resources of @p image of the types contained in @p accessAfter for subsequent commands until previous commands have finished accesses
+        /// contained in @p accessBefore and transitions all sub-resources into @p layout.
+        ///
+        /// @param image The image resource to transition.
+        /// @param accessBefore The access types previous commands have to finish.
+        /// @param accessAfter The access types that subsequent commands continue with.
+        /// @param layout The image layout to transition into.
         constexpr void transition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) {
             this->doTransition(image, accessBefore, accessAfter, layout);
         }
 
-        /// <summary>
-        /// Inserts an image barrier that blocks access to a sub-resource range of <paramref name="image"/> of the types contained in <paramref name="accessAfter" /> for 
-        /// subsequent commands until previous commands have finished accesses contained in <paramref name="accessBefore" /> and transitions the sub-resource into
-        /// <paramref name="layout" />.
-        /// </summary>
-        /// <param name="image">The image resource to transition.</param>
-        /// <param name="level">The base mip-map level of the sub-resource range.</param>
-        /// <param name="levels">The number of mip-map levels of the sub-resource range.</param>
-        /// <param name="layer">The base array layer of the sub-resource range.</param>
-        /// <param name="layers">The number of array layer of the sub-resource range.</param>
-        /// <param name="plane">The plane of the sub-resource.</param>
-        /// <param name="accessBefore">The access types previous commands have to finish.</param>
-        /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
-        /// <param name="layout">The image layout to transition into.</param>
+        /// @brief Inserts an image barrier that blocks access to a sub-resource range of @p image of the types contained in @p accessAfter for subsequent commands until previous commands have finished accesses
+        /// contained in @p accessBefore and transitions the sub-resource into @p layout.
+        ///
+        /// @param image The image resource to transition.
+        /// @param level The base mip-map level of the sub-resource range.
+        /// @param levels The number of mip-map levels of the sub-resource range.
+        /// @param layer The base array layer of the sub-resource range.
+        /// @param layers The number of array layer of the sub-resource range.
+        /// @param plane The plane of the sub-resource.
+        /// @param accessBefore The access types previous commands have to finish.
+        /// @param accessAfter The access types that subsequent commands continue with.
+        /// @param layout The image layout to transition into.
         constexpr void transition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) {
             this->doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter, layout);
         }
 
-        /// <summary>
-        /// Inserts an image barrier that blocks access to all sub-resources of <paramref name="image"/> of the types contained in <paramref name="accessAfter" /> for 
-        /// subsequent commands until previous commands have finished accesses contained in <paramref name="accessBefore" /> and transitions all sub-resources into
-        /// <paramref name="layout" />.
-        /// </summary>
-        /// <remarks>
-        /// This overload let's you explicitly specify the <paramref name="fromLayout" />. This is required, if you use any external transition mechanism that causes the engine
-        /// to lose track of the image layout. If you are not running into issues with the other overloads, you probably do not want to call this method.
-        /// </remarks>
-        /// <param name="image">The image resource to transition.</param>
-        /// <param name="accessBefore">The access types previous commands have to finish.</param>
-        /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
-        /// <param name="fromLayout">The image layout to transition from.</param>
-        /// <param name="toLayout">The image layout to transition into.</param>
+        /// @brief Inserts an image barrier that blocks access to all sub-resources of @p image of the types contained in @p accessAfter for subsequent commands until previous commands have finished accesses
+        /// contained in @p accessBefore and transitions all sub-resources into @p layout.
+        ///
+        /// This overload let's you explicitly specify the @p fromLayout. This is required, if you use any external transition mechanism that causes the engine to lose track of the image layout. If you are not
+        /// running into issues with the other overloads, you probably do not want to call this method.
+        ///
+        /// @param image The image resource to transition.
+        /// @param accessBefore The access types previous commands have to finish.
+        /// @param accessAfter The access types that subsequent commands continue with.
+        /// @param fromLayout The image layout to transition from.
+        /// @param toLayout The image layout to transition into.
         constexpr void transition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) {
             this->doTransition(image, accessBefore, accessAfter, fromLayout, toLayout);
         }
 
-        /// <summary>
-        /// Inserts an image barrier that blocks access to a sub-resource range of <paramref name="image"/> of the types contained in <paramref name="accessAfter" /> for 
-        /// subsequent commands until previous commands have finished accesses contained in <paramref name="accessBefore" /> and transitions the sub-resource into
-        /// <paramref name="layout" />.
-        /// </summary>
-        /// <remarks>
-        /// This overload let's you explicitly specify the <paramref name="fromLayout" />. This is required, if you use any external transition mechanism that causes the engine
-        /// to lose track of the image layout. If you are not running into issues with the other overloads, you probably do not want to call this method.
-        /// </remarks>
-        /// <param name="image">The image resource to transition.</param>
-        /// <param name="level">The base mip-map level of the sub-resource range.</param>
-        /// <param name="levels">The number of mip-map levels of the sub-resource range.</param>
-        /// <param name="layer">The base array layer of the sub-resource range.</param>
-        /// <param name="layers">The number of array layer of the sub-resource range.</param>
-        /// <param name="plane">The plane of the sub-resource.</param>
-        /// <param name="accessBefore">The access types previous commands have to finish.</param>
-        /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
-        /// <param name="fromLayout">The image layout to transition from.</param>
-        /// <param name="toLayout">The image layout to transition into.</param>
+        /// @brief Inserts an image barrier that blocks access to a sub-resource range of @p image of the types contained in @p accessAfter for subsequent commands until previous commands have finished accesses
+        /// contained in @p accessBefore and transitions the sub-resource into @p layout.
+        ///
+        /// This overload let's you explicitly specify the @p fromLayout. This is required, if you use any external transition mechanism that causes the engine to lose track of the image layout. If you are not
+        /// running into issues with the other overloads, you probably do not want to call this method.
+        ///
+        /// @param image The image resource to transition.
+        /// @param level The base mip-map level of the sub-resource range.
+        /// @param levels The number of mip-map levels of the sub-resource range.
+        /// @param layer The base array layer of the sub-resource range.
+        /// @param layers The number of array layer of the sub-resource range.
+        /// @param plane The plane of the sub-resource.
+        /// @param accessBefore The access types previous commands have to finish.
+        /// @param accessAfter The access types that subsequent commands continue with.
+        /// @param fromLayout The image layout to transition from.
+        /// @param toLayout The image layout to transition into.
         constexpr void transition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) {
             this->doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter, fromLayout, toLayout);
         }
@@ -6120,9 +4848,7 @@ namespace LiteFX::Rendering {
         constexpr virtual void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
     };
 
-    /// <summary>
-    /// The interface for a descriptor set.
-    /// </summary>
+    /// @brief The interface for a descriptor set.
     class LITEFX_RENDERING_API IDescriptorSet {
     protected:
         IDescriptorSet() noexcept = default;
@@ -6135,129 +4861,115 @@ namespace LiteFX::Rendering {
         virtual ~IDescriptorSet() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the allocation information for the descriptor set in the global descriptor heap indicated by <paramref name="heapType" />.
-        /// </summary>
-        /// <param name="heapType">The type of the descriptor heap for which to obtain the heap allocation.</param>
-        /// <returns>The allocation for the descriptor set in the global descriptor heap.</returns>
+        /// @brief Returns the allocation information for the descriptor set in the global descriptor heap indicated by @p heapType.
+        ///
+        /// @param heapType The type of the descriptor heap for which to obtain the heap allocation.
+        /// @return The allocation for the descriptor set in the global descriptor heap.
         virtual VirtualAllocator::Allocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept = 0;
 
-        /// <summary>
-        /// Binds a resource directly to a descriptor heap and returns the index that can be used to access it.
-        /// </summary>
-        /// <remarks>
-        /// This method is used with the <see cref="GraphicsDeviceFeature::DynamicDescriptors" /> feature and allows to bind a descriptor to the underlying descriptor heap directly by providing 
-        /// the corresponding resource type (indicated by <paramref name="bindingType" />) at bind time. The method directly returns the global heap index of the resource, that can be used by the 
-        /// shader to access it using the `ResourceDescriptorHeap` syntax (in HLSL).
-        /// 
-        /// If the descriptor set does not contain a descriptor of type <see cref="DescriptorType::ResourceDescriptorHeap" />, this method will throw an exception.
-        /// </remarks>
-        /// <param name="bindingType">The type of the descriptor used to bind <paramref name="buffer" /> to the heap.</param>
-        /// <param name="descriptor">The index of the descriptor in the heap to bind <paramref name="buffer" /> to.</param>
-        /// <param name="buffer">The buffer to bind.</param>
-        /// <param name="bufferElement">The index of an element inside <paramref name="buffer" /> that should be bound.</param>
-        /// <param name="elements">The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at <paramref name="bufferElement" />.</param>
-        /// <param name="texelFormat">The format used to read a texel buffer. Required if <paramref name="binding" /> binds a texel buffer and ignored otherwise.</param>
-        /// <returns>The global heap index that can be used to access the resource from the shader.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by <paramref name="bindingType" />.</exception>
+        /// @brief Binds a resource directly to a descriptor heap and returns the index that can be used to access it.
+        ///
+        /// This method is used with the @ref GraphicsDeviceFeature::DynamicDescriptors feature and allows to bind a descriptor to the underlying descriptor heap directly by providing the corresponding resource
+        /// type (indicated by @p bindingType) at bind time. The method directly returns the global heap index of the resource, that can be used by the shader to access it using the `ResourceDescriptorHeap`
+        /// syntax (in HLSL).
+        ///
+        /// If the descriptor set does not contain a descriptor of type @ref DescriptorType::ResourceDescriptorHeap, this method will throw an exception.
+        ///
+        /// @param bindingType The type of the descriptor used to bind @p buffer to the heap.
+        /// @param descriptor The index of the descriptor in the heap to bind @p buffer to.
+        /// @param buffer The buffer to bind.
+        /// @param bufferElement The index of an element inside @p buffer that should be bound.
+        /// @param elements The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at @p bufferElement.
+        /// @param texelFormat The format used to read a texel buffer. Required if @p binding binds a texel buffer and ignored otherwise.
+        /// @return The global heap index that can be used to access the resource from the shader.
+        /// @throws RuntimeException Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by @p bindingType.
         inline UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const {
             return this->doBind(bindingType, descriptor, buffer, bufferElement, elements, texelFormat);
         }
 
-        /// <summary>
-        /// Binds a resource directly to a descriptor heap and returns the index that can be used to access it.
-        /// </summary>
-        /// <remarks>
-        /// This method is used with the <see cref="GraphicsDeviceFeature::DynamicDescriptors" /> feature and allows to bind a descriptor to the underlying descriptor heap directly by providing 
-        /// the corresponding resource type (indicated by <paramref name="bindingType" />) at bind time. The method directly returns the global heap index of the resource, that can be used by the 
-        /// shader to access it using the `ResourceDescriptorHeap` syntax (in HLSL).
-        /// 
-        /// If the descriptor set does not contain a descriptor of type <see cref="DescriptorType::ResourceDescriptorHeap" />, this method will throw an exception.
-        /// </remarks>
-        /// <param name="bindingType">The type of the descriptor used to bind <paramref name="image" /> to the heap.</param>
-        /// <param name="descriptor">The index of the descriptor in the heap to bind <paramref name="image" /> to.</param>
-        /// <param name="image">The image to bind.</param>
-        /// <param name="firstLevel">The index of the first mip-map level to bind.</param>
-        /// <param name="levels">The number of mip-map levels to bind. A value of `0` binds all available levels, starting at <paramref name="firstLevel" />.</param>
-        /// <param name="firstLayer">The index of the first layer to bind.</param>
-        /// <param name="layers">The number of layers to bind. A value of `0` binds all available layers, starting at <paramref name="firstLayer" />.</param>
-        /// <returns>The global heap index that can be used to access the resource from the shader.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by <paramref name="bindingType" />.</exception>
+        /// @brief Binds a resource directly to a descriptor heap and returns the index that can be used to access it.
+        ///
+        /// This method is used with the @ref GraphicsDeviceFeature::DynamicDescriptors feature and allows to bind a descriptor to the underlying descriptor heap directly by providing the corresponding resource
+        /// type (indicated by @p bindingType) at bind time. The method directly returns the global heap index of the resource, that can be used by the shader to access it using the `ResourceDescriptorHeap`
+        /// syntax (in HLSL).
+        ///
+        /// If the descriptor set does not contain a descriptor of type @ref DescriptorType::ResourceDescriptorHeap, this method will throw an exception.
+        ///
+        /// @param bindingType The type of the descriptor used to bind @p image to the heap.
+        /// @param descriptor The index of the descriptor in the heap to bind @p image to.
+        /// @param image The image to bind.
+        /// @param firstLevel The index of the first mip-map level to bind.
+        /// @param levels The number of mip-map levels to bind. A value of `0` binds all available levels, starting at @p firstLevel.
+        /// @param firstLayer The index of the first layer to bind.
+        /// @param layers The number of layers to bind. A value of `0` binds all available layers, starting at @p firstLayer.
+        /// @return The global heap index that can be used to access the resource from the shader.
+        /// @throws RuntimeException Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by @p bindingType.
         inline UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IImage& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const {
             return this->doBind(bindingType, descriptor, image, firstLevel, levels, firstLayer, layers);
         }
 
-        /// <summary>
-        /// Binds a sampler directly to a descriptor heap and returns the index that can be used to access it.
-        /// </summary>
-        /// <remarks>
-        /// This method is used with the <see cref="GraphicsDeviceFeature::DynamicDescriptors" /> feature and allows to bind a descriptor to the underlying descriptor heap directly. The method 
-        /// returns the global heap index of the sampler, that can be used by the shader to access it using the `SamplerDescriptorHeap` syntax (in HLSL).
-        /// 
-        /// If the descriptor set does not contain a descriptor of type <see cref="DescriptorType::SamplerDescriptorHeap" />, this method will throw an exception.
-        /// </remarks>
-        /// <param name="descriptor">The index of the descriptor in the heap to bind <paramref name="sampler" /> to.</param>
-        /// <param name="sampler">The sampler to bind.</param>
-        /// <returns>The global heap index that can be used to access the sampler from the shader.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by <paramref name="bindingType" />.</exception>
+        /// @brief Binds a sampler directly to a descriptor heap and returns the index that can be used to access it.
+        ///
+        /// This method is used with the @ref GraphicsDeviceFeature::DynamicDescriptors feature and allows to bind a descriptor to the underlying descriptor heap directly. The method returns the global heap index
+        /// of the sampler, that can be used by the shader to access it using the `SamplerDescriptorHeap` syntax (in HLSL).
+        ///
+        /// If the descriptor set does not contain a descriptor of type @ref DescriptorType::SamplerDescriptorHeap, this method will throw an exception.
+        ///
+        /// @param descriptor The index of the descriptor in the heap to bind @p sampler to.
+        /// @param sampler The sampler to bind.
+        /// @return The global heap index that can be used to access the sampler from the shader.
+        /// @throws RuntimeException Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by @p bindingType.
         inline UInt32 bindToHeap(UInt32 descriptor, const ISampler& sampler) const {
             return this->doBind(descriptor, sampler);
         }
 
-        /// <summary>
-        /// Updates one or more buffer descriptors within the current descriptor set.
-        /// </summary>
-        /// <param name="binding">The buffer binding point.</param>
-        /// <param name="buffer">The buffer to write to the descriptor set.</param>
-        /// <param name="bufferElement">The index of the first element in the buffer to bind to the descriptor set.</param>
-        /// <param name="elements">The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at <paramref name="bufferElement" />.</param>
-        /// <param name="firstDescriptor">The index of the first descriptor in the descriptor array to update.</param>
-        /// <param name="texelFormat">The format used to read a texel buffer. Required if <paramref name="binding" /> binds a texel buffer and ignored otherwise.</param>
+        /// @brief Updates one or more buffer descriptors within the current descriptor set.
+        ///
+        /// @param binding The buffer binding point.
+        /// @param buffer The buffer to write to the descriptor set.
+        /// @param bufferElement The index of the first element in the buffer to bind to the descriptor set.
+        /// @param elements The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at @p bufferElement.
+        /// @param firstDescriptor The index of the first descriptor in the descriptor array to update.
+        /// @param texelFormat The format used to read a texel buffer. Required if @p binding binds a texel buffer and ignored otherwise.
         inline void update(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None) const {
             this->doUpdate(binding, buffer, bufferElement, elements, firstDescriptor, texelFormat);
         }
 
-        /// <summary>
-        /// Updates one or more texture descriptors within the current descriptor set.
-        /// </summary>
-        /// <remarks>
-        /// The exact representation of the level and layer parameters depends on the dimension of the provided texture, as well as the type of the descriptor identified by the 
-        /// <paramref name="binding" /> parameter.
-        /// 
-        /// If the texture itself is not an array (i.e. the number of layers equals `1`), the parameters <paramref name="firstLayer" /> and <paramref name="layers" /> are ignored.
-        /// 
-        /// The descriptor type dictates, how mip-maps can be provided. If the descriptor type identifies a *writable texture*, the <paramref name="firstLevel" /> parameter specifies 
-        /// the mip-map level to write to (or read from). Multiple levels are not allowed in this case, so the <paramref name="levels" /> parameter is ignored. Instead, you have to 
-        /// bind them to separate descriptors. Furthermore, the <paramref name="firstLayer" /> and <paramref name="layers" /> parameter can be used to specify the number of depth
-        /// or W-slices of a writable 3D texture or the side(s) of a cube map.
-        /// </remarks>
-        /// <param name="binding">The texture binding point.</param>
-        /// <param name="texture">The texture to write to the descriptor set.</param>
-        /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the texture to.</param>
-        /// <param name="firstLevel">The index of the first mip-map level to bind.</param>
-        /// <param name="levels">The number of mip-map levels to bind. A value of `0` binds all available levels, starting at <paramref name="firstLevel" />.</param>
-        /// <param name="firstLayer">The index of the first layer to bind.</param>
-        /// <param name="layers">The number of layers to bind. A value of `0` binds all available layers, starting at <paramref name="firstLayer" />.</param>
+        /// @brief Updates one or more texture descriptors within the current descriptor set.
+        ///
+        /// The exact representation of the level and layer parameters depends on the dimension of the provided texture, as well as the type of the descriptor identified by the @p binding parameter.
+        ///
+        /// If the texture itself is not an array (i.e. the number of layers equals `1`), the parameters @p firstLayer and @p layers are ignored.
+        ///
+        /// The descriptor type dictates, how mip-maps can be provided. If the descriptor type identifies a *writable texture*, the @p firstLevel parameter specifies the mip-map level to write to (or read from).
+        /// Multiple levels are not allowed in this case, so the @p levels parameter is ignored. Instead, you have to bind them to separate descriptors. Furthermore, the @p firstLayer and @p layers parameter can
+        /// be used to specify the number of depth or W-slices of a writable 3D texture or the side(s) of a cube map.
+        ///
+        /// @param binding The texture binding point.
+        /// @param texture The texture to write to the descriptor set.
+        /// @param descriptor The index of the descriptor in the descriptor array to bind the texture to.
+        /// @param firstLevel The index of the first mip-map level to bind.
+        /// @param levels The number of mip-map levels to bind. A value of `0` binds all available levels, starting at @p firstLevel.
+        /// @param firstLayer The index of the first layer to bind.
+        /// @param layers The number of layers to bind. A value of `0` binds all available layers, starting at @p firstLayer.
         inline void update(UInt32 binding, const IImage& texture, UInt32 descriptor = 0, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const {
             this->doUpdate(binding, texture, descriptor, firstLevel, levels, firstLayer, layers);
         }
 
-        /// <summary>
-        /// Updates one or more sampler descriptors within the current descriptor set.
-        /// </summary>
-        /// <param name="binding">The sampler binding point.</param>
-        /// <param name="sampler">The sampler to write to the descriptor set.</param>
-        /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the sampler to.</param>
+        /// @brief Updates one or more sampler descriptors within the current descriptor set.
+        ///
+        /// @param binding The sampler binding point.
+        /// @param sampler The sampler to write to the descriptor set.
+        /// @param descriptor The index of the descriptor in the descriptor array to bind the sampler to.
         inline void update(UInt32 binding, const ISampler& sampler, UInt32 descriptor = 0) const {
             this->doUpdate(binding, sampler, descriptor);
         }
 
-        /// <summary>
-        /// Updates an acceleration structure within the current descriptor set.
-        /// </summary>
-        /// <param name="binding">The acceleration structure binding point.</param>
-        /// <param name="accelerationStructure">The acceleration structure to write to the descriptor set.</param>
-        /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the acceleration structure to.</param>
+        /// @brief Updates an acceleration structure within the current descriptor set.
+        ///
+        /// @param binding The acceleration structure binding point.
+        /// @param accelerationStructure The acceleration structure to write to the descriptor set.
+        /// @param descriptor The index of the descriptor in the descriptor array to bind the acceleration structure to.
         inline void update(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor = 0) const {
             this->doUpdate(binding, accelerationStructure, descriptor);
         }
@@ -6272,83 +4984,63 @@ namespace LiteFX::Rendering {
         virtual void doUpdate(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor) const = 0;
     };
 
-    /// <summary>
-    /// Describes a resource binding to a descriptor or descriptor set.
-    /// </summary>
-    /// <seealso cref="IDescriptorSet" />
-    /// <seealso cref="IDescriptorSetLayout" />
+    /// @brief Describes a resource binding to a descriptor or descriptor set.
+    ///
+    /// @see IDescriptorSet
+    /// @see IDescriptorSetLayout
     struct LITEFX_RENDERING_API DescriptorBinding {
     public:
         using resource_container = Variant<std::monostate, Ref<const IBuffer>, Ref<const IImage>, Ref<const ISampler>, Ref<const IAccelerationStructure>>;
         
     public:
-        /// <summary>
-        /// The binding point to bind the resource at. If not provided (i.e., `std::nullopt`), the index within the collection of `DescriptorBindings` is used.
-        /// </summary>
+        /// @brief The binding point to bind the resource at. If not provided (i.e., `std::nullopt`), the index within the collection of `DescriptorBindings` is used.
         Optional<UInt32> binding = std::nullopt;
 
-        /// <summary>
-        /// The resource to bind or `std::monostate` if no resource should be bound.
-        /// </summary>
-        /// <remarks>
-        /// Note that not providing any resource does not perform any binding, in which case a resource needs to be manually bound to the descriptor set later 
-        /// (<see cref="IDescriptorSet::update" />). This is useful in situations where you frequently update the resource bound to a descriptor set or where you do no have
-        /// access to the resource at the time the descriptor set is allocated.
-        /// </remarks>
-        /// <seealso cref="IBuffer" />
-        /// <seealso cref="IImage" />
-        /// <seealso cref="ISampler" />
+        /// @brief The resource to bind or `std::monostate` if no resource should be bound.
+        ///
+        /// Note that not providing any resource does not perform any binding, in which case a resource needs to be manually bound to the descriptor set later (@ref IDescriptorSet::update). This is useful in
+        /// situations where you frequently update the resource bound to a descriptor set or where you do no have access to the resource at the time the descriptor set is allocated.
+        ///
+        /// @see IBuffer
+        /// @see IImage
+        /// @see ISampler
         resource_container resource = {};
 
-        /// <summary>
-        /// The index of the descriptor in a descriptor array at which binding the resource arrays starts.
-        /// </summary>
-        /// <remarks>
-        /// If the resource contains an array, the individual elements (*layers* for images) will be bound, starting at this descriptor. The first element/layer to be
-        /// bound is identified by <see cref="firstElement" />. The number of elements/layers to be bound is stored in <see cref="elements" />.
-        /// </remarks>
-        /// <seealso cref="firstElement" />
-        /// <seealso cref="elements" />
+        /// @brief The index of the descriptor in a descriptor array at which binding the resource arrays starts.
+        ///
+        /// If the resource contains an array, the individual elements (*layers* for images) will be bound, starting at this descriptor. The first element/layer to be bound is identified by @ref firstElement. The
+        /// number of elements/layers to be bound is stored in @ref elements.
+        ///
+        /// @see firstElement
+        /// @see elements
         UInt32 firstDescriptor = 0;
 
-        /// <summary>
-        /// The index of the first array element or image layer to bind, starting at <see cref="firstDescriptor" />.
-        /// </summary>
-        /// <remarks>
-        /// This property is ignored, if the resource is a <see cref="ISampler" />.
-        /// </remarks>
-        /// <seealso cref="firstDescriptor" />
+        /// @brief The index of the first array element or image layer to bind, starting at @ref firstDescriptor.
+        ///
+        /// This property is ignored, if the resource is a @ref ISampler.
+        ///
+        /// @see firstDescriptor
         UInt32 firstElement = 0;
 
-        /// <summary>
-        /// The number of array elements or image layers to bind, starting at <see cref="firstDescriptor" />.
-        /// </summary>
-        /// <remarks>
-        /// This property is ignored, if the resource is a <see cref="ISampler" />.
-        /// </remarks>
-        /// <seealso cref="firstDescriptor" />
+        /// @brief The number of array elements or image layers to bind, starting at @ref firstDescriptor.
+        ///
+        /// This property is ignored, if the resource is a @ref ISampler.
+        ///
+        /// @see firstDescriptor
         UInt32 elements = 0;
 
-        /// <summary>
-        /// If the resource is an image, this describes the first level to be bound.
-        /// </summary>
-        /// <remarks>
-        /// This property is ignored, if the resource is a <see cref="ISampler" /> or <see cref="IBuffer" />.
-        /// </remarks>
+        /// @brief If the resource is an image, this describes the first level to be bound.
+        ///
+        /// This property is ignored, if the resource is a @ref ISampler or @ref IBuffer.
         UInt32 firstLevel = 0;
 
-        /// <summary>
-        /// If the resource is an image, this describes the number of levels to be bound.
-        /// </summary>
-        /// <remarks>
-        /// This property is ignored, if the resource is a <see cref="ISampler" /> or <see cref="IBuffer" />.
-        /// </remarks>
+        /// @brief If the resource is an image, this describes the number of levels to be bound.
+        ///
+        /// This property is ignored, if the resource is a @ref ISampler or @ref IBuffer.
         UInt32 levels = 0;
     };
 
-    /// <summary>
-    /// The interface for a descriptor set layout.
-    /// </summary>
+    /// @brief The interface for a descriptor set layout.
     class LITEFX_RENDERING_API IDescriptorSetLayout : public SharedObject {
     protected:
         IDescriptorSetLayout() noexcept = default;
@@ -6361,245 +5053,214 @@ namespace LiteFX::Rendering {
         ~IDescriptorSetLayout() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns the layouts of the descriptors within the descriptor set.
-        /// </summary>
-        /// <returns>The layouts of the descriptors within the descriptor set.</returns>
+        /// @brief Returns the layouts of the descriptors within the descriptor set.
+        ///
+        /// @return The layouts of the descriptors within the descriptor set.
         inline Enumerable<const IDescriptorLayout&> descriptors() const noexcept {
             return this->getDescriptors();
         }
 
-        /// <summary>
-        /// Returns the descriptor layout for the descriptor bound to the binding point provided with <paramref name="binding" />.
-        /// </summary>
-        /// <param name="binding">The binding point of the requested descriptor layout.</param>
-        /// <returns>The descriptor layout for the descriptor bound to the binding point provided with <paramref name="binding" />.</returns>
+        /// @brief Returns the descriptor layout for the descriptor bound to the binding point provided with @p binding.
+        ///
+        /// @param binding The binding point of the requested descriptor layout.
+        /// @return The descriptor layout for the descriptor bound to the binding point provided with @p binding.
         virtual const IDescriptorLayout& descriptor(UInt32 binding) const = 0;
 
-        /// <summary>
-        /// Returns the space index of the descriptor set.
-        /// </summary>
-        /// <remarks>
+        /// @brief Returns the space index of the descriptor set.
+        ///
         /// The descriptor set space maps to the space index in HLSL and the set index in GLSL.
-        /// </remarks>
-        /// <returns>The space index of the descriptor set.</returns>
+        ///
+        /// @return The space index of the descriptor set.
         virtual UInt32 space() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the shader stages, the descriptor set is used in.
-        /// </summary>
-        /// <returns>The shader stages, the descriptor set is used in.</returns>
+        /// @brief Returns the shader stages, the descriptor set is used in.
+        ///
+        /// @return The shader stages, the descriptor set is used in.
         virtual ShaderStage shaderStages() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the number of uniform/constant buffer descriptors within the descriptor set.
-        /// </summary>
-        /// <returns>The number of uniform/constant buffer descriptors.</returns>
+        /// @brief Returns the number of uniform/constant buffer descriptors within the descriptor set.
+        ///
+        /// @return The number of uniform/constant buffer descriptors.
         virtual UInt32 uniforms() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the number of structured and byte address buffer descriptors within the descriptor set.
-        /// </summary>
-        /// <returns>The number of structured and byte address buffer descriptors.</returns>
+        /// @brief Returns the number of structured and byte address buffer descriptors within the descriptor set.
+        ///
+        /// @return The number of structured and byte address buffer descriptors.
         virtual UInt32 storages() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the number of image (i.e. texture) descriptors within the descriptor set.
-        /// </summary>
-        /// <returns>The number of image (i.e. texture) descriptors.</returns>
+        /// @brief Returns the number of image (i.e. texture) descriptors within the descriptor set.
+        ///
+        /// @return The number of image (i.e. texture) descriptors.
         virtual UInt32 images() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the number of texel buffer descriptors within the descriptor set.
-        /// </summary>
-        /// <returns>The number of texel buffer descriptors.</returns>
+        /// @brief Returns the number of texel buffer descriptors within the descriptor set.
+        ///
+        /// @return The number of texel buffer descriptors.
         virtual UInt32 buffers() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the number of dynamic sampler descriptors within the descriptor set.
-        /// </summary>
-        /// <returns>The number of dynamic sampler descriptors.</returns>
-        /// <seealso cref="staticSamplers" />
+        /// @brief Returns the number of dynamic sampler descriptors within the descriptor set.
+        ///
+        /// @return The number of dynamic sampler descriptors.
+        /// @see staticSamplers
         virtual UInt32 samplers() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the number of static or immutable sampler descriptors within the descriptor set.
-        /// </summary>
-        /// <returns>The number of static or immutable sampler descriptors.</returns>
-        /// <seealso cref="samplers" />
+        /// @brief Returns the number of static or immutable sampler descriptors within the descriptor set.
+        ///
+        /// @return The number of static or immutable sampler descriptors.
+        /// @see samplers
         virtual UInt32 staticSamplers() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the number of input attachment descriptors within the descriptor set.
-        /// </summary>
-        /// <returns>The number of input attachment descriptors.</returns>
+        /// @brief Returns the number of input attachment descriptors within the descriptor set.
+        ///
+        /// @return The number of input attachment descriptors.
         virtual UInt32 inputAttachments() const noexcept = 0;
 
-        /// <summary>
-        /// Returns `true`, if the descriptor set layout contains an unbounded runtime array and `false` otherwise.
-        /// </summary>
-        /// <returns>`true`, if the descriptor set layout contains an unbounded runtime array and `false` otherwise</returns>
+        /// @brief Returns `true`, if the descriptor set layout contains an unbounded runtime array and `false` otherwise.
+        ///
+        /// @return `true`, if the descriptor set layout contains an unbounded runtime array and `false` otherwise
         virtual bool containsUnboundedArray() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the offset for a descriptor within a descriptor set of this layout.
-        /// </summary>
-        /// <param name="binding">The binding point for the descriptor.</param>
-        /// <param name="element">The index of the array element of a descriptor array.</param>
-        /// <returns>The offset from the beginning of the descriptor set.</returns>
+        /// @brief Returns the offset for a descriptor within a descriptor set of this layout.
+        ///
+        /// @param binding The binding point for the descriptor.
+        /// @param element The index of the array element of a descriptor array.
+        /// @return The offset from the beginning of the descriptor set.
         virtual UInt32 getDescriptorOffset(UInt32 binding, UInt32 element = 0) const = 0;
 
-        /// <summary>
-        /// Returns `true` if the descriptor set layout contains bindings for resources (i.e., bindings that aren't samplers) and `false` otherwise.
-        /// </summary>
-        /// <returns>`true` if the descriptor set layout contains bindings for resources and `false` otherwise.</returns>
+        /// @brief Returns `true` if the descriptor set layout contains bindings for resources (i.e., bindings that aren't samplers) and `false` otherwise.
+        ///
+        /// @return `true` if the descriptor set layout contains bindings for resources and `false` otherwise.
         virtual bool bindsResources() const noexcept = 0;
 
-        /// <summary>
-        /// Returns `true` if the descriptor set layout contains bindings for samplers and `false` otherwise.
-        /// </summary>
-        /// <remarks>
+        /// @brief Returns `true` if the descriptor set layout contains bindings for samplers and `false` otherwise.
+        ///
         /// Note that this method only returns `true` if the layout binds samplers, that is, if they are not static/immutable.
-        /// </remarks>
-        /// <returns>`true` if the descriptor set layout contains bindings for samplers and `false` otherwise.</returns>
+        ///
+        /// @return `true` if the descriptor set layout contains bindings for samplers and `false` otherwise.
         virtual bool bindsSamplers() const noexcept = 0;
 
     public:
-        /// <summary>
-        /// Allocates a new descriptor set or returns an instance of an unused descriptor set.
-        /// </summary>
-        /// <param name="bindings">Optional default bindings for descriptors in the descriptor set.</param>
-        /// <remarks>
-        /// Allocating a new descriptor set may be an expensive operation. To improve performance, and prevent fragmentation, the descriptor set layout keeps track of
-        /// created descriptor sets. It does this by never releasing them. Instead, when a <see cref="DescriptorSet" /> instance gets destroyed, it should call 
-        /// <see cref="free" /> in order to mark itself (i.e. its handle) as not being used any longer.
-        /// 
-        /// Before allocating a new descriptor set from a pool (which may even result in the creation of a new pool, if the existing pools are full), the layout tries 
-        /// to hand out descriptor sets that marked as unused. Descriptor sets are only deleted, if the whole layout instance and therefore the descriptor pools are 
-        /// deleted.
-        /// 
-        /// The above does not apply to unbounded descriptor arrays. A unbounded descriptor array is one, for which <see cref="IDescriptorLayout::descriptors" /> 
-        /// returns `-1` (or `0xFFFFFFFF`). They must be allocated by specifying the <paramref name="descriptors" /> parameter. This parameter defines the number of
-        /// descriptors to allocate in the array. 
-        /// 
-        /// Note that descriptor sets, that contain an unbounded descriptor array must only contain one single descriptor (the one that identifies this array). Such 
-        /// descriptor sets are never cached. Instead, they are released when calling <see cref="free" />. It is a good practice to cache such descriptor sets as 
-        /// global descriptor tables once and never release them. They provide more flexibility than regular descriptor arrays, since they may be updated, even after
-        /// they have been bound to a command buffer or from different threads. However, you must ensure yourself not to overwrite any descriptors that are currently
-        /// in use. Because unbounded arrays are not cached, freeing and re-allocating such descriptor sets may leave the descriptor heap fragmented, which might cause
-        /// the allocation to fail, if the heap is full.
-        /// 
-        /// Note that providing bindings for descriptors of type <see cref="DescriptorType::ResourceDescriptorHeap" /> or 
-        /// <see cref="DescriptorType::SamplerDescriptorHeap" /> here is not supported and will cause an exception to be thrown.
-        /// </remarks>
-        /// <returns>The instance of the descriptor set.</returns>
-        /// <seealso cref="IDescriptorLayout" />
+        /// @brief Allocates a new descriptor set or returns an instance of an unused descriptor set.
+        ///
+        /// Allocating a new descriptor set may be an expensive operation. To improve performance, and prevent fragmentation, the descriptor set layout keeps track of created descriptor sets. It does this by
+        /// never releasing them. Instead, when a @ref DescriptorSet instance gets destroyed, it should call @ref free in order to mark itself (i.e. its handle) as not being used any longer.
+        ///
+        /// Before allocating a new descriptor set from a pool (which may even result in the creation of a new pool, if the existing pools are full), the layout tries to hand out descriptor sets that marked as
+        /// unused. Descriptor sets are only deleted, if the whole layout instance and therefore the descriptor pools are deleted.
+        ///
+        /// The above does not apply to unbounded descriptor arrays. A unbounded descriptor array is one, for which @ref IDescriptorLayout::descriptors returns `-1` (or `0xFFFFFFFF`). They must be allocated by
+        /// specifying the @p descriptors parameter. This parameter defines the number of descriptors to allocate in the array.
+        ///
+        /// Note that descriptor sets, that contain an unbounded descriptor array must only contain one single descriptor (the one that identifies this array). Such descriptor sets are never cached. Instead, they
+        /// are released when calling @ref free. It is a good practice to cache such descriptor sets as global descriptor tables once and never release them. They provide more flexibility than regular descriptor
+        /// arrays, since they may be updated, even after they have been bound to a command buffer or from different threads. However, you must ensure yourself not to overwrite any descriptors that are currently
+        /// in use. Because unbounded arrays are not cached, freeing and re-allocating such descriptor sets may leave the descriptor heap fragmented, which might cause the allocation to fail, if the heap is full.
+        ///
+        /// Note that providing bindings for descriptors of type @ref DescriptorType::ResourceDescriptorHeap or @ref DescriptorType::SamplerDescriptorHeap here is not supported and will cause an exception to be
+        /// thrown.
+        ///
+        /// @param bindings Optional default bindings for descriptors in the descriptor set.
+        /// @return The instance of the descriptor set.
+        /// @see IDescriptorLayout
         inline UniquePtr<IDescriptorSet> allocate(std::initializer_list<DescriptorBinding> bindings = { }) const {
             return this->getDescriptorSet(0, bindings);
         }
 
-        /// <inheritdoc cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        /// @copydoc allocate(std::initializer_list)
         inline UniquePtr<IDescriptorSet> allocate(Span<DescriptorBinding> bindings) const {
             return this->getDescriptorSet(0, bindings);
         }
 
-        /// <inheritdoc cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        /// @copydoc allocate(std::initializer_list)
         inline UniquePtr<IDescriptorSet> allocate(Generator<DescriptorBinding> bindings) const {
             return this->getDescriptorSet(0, std::move(bindings));
         }
 
-        /// <summary>
-        /// Allocates a new descriptor set or returns an instance of an unused descriptor set.
-        /// </summary>
-        /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
-        /// <param name="bindings">Optional default bindings for descriptors in the descriptor set.</param>
-        /// <returns>The instance of the descriptor set.</returns>
-        /// <seealso cref="IDescriptorLayout" />
-        /// <seealso cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        /// @brief Allocates a new descriptor set or returns an instance of an unused descriptor set.
+        ///
+        /// @param descriptors The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
+        /// @param bindings Optional default bindings for descriptors in the descriptor set.
+        /// @return The instance of the descriptor set.
+        /// @see IDescriptorLayout
+        /// @see allocate(std::initializer_list)
         inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const {
             return this->getDescriptorSet(descriptors, bindings);
         }
 
-        /// <inheritdoc cref="allocate(UInt32, std::initializer_list{{DescriptorBinding}})" />
+        /// @copydoc allocate(UInt32, std::initializer_list)
         inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, Span<DescriptorBinding> bindings) const {
             return this->getDescriptorSet(descriptors, bindings);
         }
 
-        /// <summary>
-        /// Allocates an array of descriptor sets.
-        /// </summary>
-        /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
-        /// <param name="bindings">A generator that generates the optional default bindings for descriptors in each descriptor set.</param>
-        /// <returns>The instance of the descriptor set.</returns>
-        /// <seealso cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        /// @brief Allocates an array of descriptor sets.
+        ///
+        /// @param descriptorSets The number of descriptor sets to allocate.
+        /// @param bindings A generator that generates the optional default bindings for descriptors in each descriptor set.
+        /// @return The instance of the descriptor set.
+        /// @see allocate(std::initializer_list)
         inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, Generator<DescriptorBinding> bindings) const {
             return this->getDescriptorSet(descriptors, std::move(bindings));
         }
 
-        /// <summary>
-        /// Allocates an array of descriptor sets.
-        /// </summary>
-        /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
-        /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
-        /// <returns>A generator that produces the descriptor set instances.</returns>
-        /// <seealso cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        /// @brief Allocates an array of descriptor sets.
+        ///
+        /// @param descriptorSets The number of descriptor sets to allocate.
+        /// @param bindings Optional default bindings for descriptors in each descriptor set.
+        /// @return A generator that produces the descriptor set instances.
+        /// @see allocate(std::initializer_list)
         inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
             return this->getDescriptorSets(descriptorSets, 0, bindings);
         }
 
 #ifdef __cpp_lib_mdspan
-        /// <inheritdoc cref="allocate(UInt32, std::initializer_list{{std::initializer_list{{DescriptorBinding}}}})" />
+        /// @copydoc allocate(UInt32, std::initializer_list)
         inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
             return this->getDescriptorSets(descriptorSets, 0, bindings);
         }
 #endif
 
-        /// <summary>
-        /// Allocates an array of descriptor sets.
-        /// </summary>
-        /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
-        /// <param name="bindingFactory">A factory function that is called for each descriptor in each descriptor set in order to provide the default bindings.</param>
-        /// <returns>A generator that produces the descriptor set instances.</returns>
-        /// <seealso cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        /// @brief Allocates an array of descriptor sets.
+        ///
+        /// @param descriptorSets The number of descriptor sets to allocate.
+        /// @param bindingFactory A factory function that is called for each descriptor in each descriptor set in order to provide the default bindings.
+        /// @return A generator that produces the descriptor set instances.
+        /// @see allocate(std::initializer_list)
         inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const {
             return this->getDescriptorSets(descriptorSets, 0, std::move(bindingFactory));
         }
 
-        /// <summary>
-        /// Allocates an array of descriptor sets.
-        /// </summary>
-        /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
-        /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
-        /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
-        /// <returns>A generator that produces the descriptor set instances.</returns>
-        /// <seealso cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        /// @brief Allocates an array of descriptor sets.
+        ///
+        /// @param descriptorSets The number of descriptor sets to allocate.
+        /// @param descriptors The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
+        /// @param bindings Optional default bindings for descriptors in each descriptor set.
+        /// @return A generator that produces the descriptor set instances.
+        /// @see allocate(std::initializer_list)
         inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
             return this->getDescriptorSets(descriptorSets, descriptors, bindings);
         }
 
 #ifdef __cpp_lib_mdspan
-        /// <inheritdoc cref="allocate(UInt32, UInt32, std::initializer_list{{std::initializer_list{{DescriptorBinding}}}})" />
+        /// @copydoc allocate(UInt32, UInt32, std::initializer_list)
         inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
             return this->getDescriptorSets(descriptorSets, descriptors, bindings);
         }
 #endif
 
-        /// <summary>
-        /// Allocates an array of descriptor sets.
-        /// </summary>
-        /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
-        /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
-        /// <param name="bindingFactory">A factory function that is called for each descriptor set in order to provide the default bindings.</param>
-        /// <returns>A generator that produces the descriptor set instances.</returns>
-        /// <seealso cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        /// @brief Allocates an array of descriptor sets.
+        ///
+        /// @param descriptorSets The number of descriptor sets to allocate.
+        /// @param descriptors The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
+        /// @param bindingFactory A factory function that is called for each descriptor set in order to provide the default bindings.
+        /// @return A generator that produces the descriptor set instances.
+        /// @see allocate(std::initializer_list)
         inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const {
             return this->getDescriptorSets(descriptorSets, descriptors, std::move(bindingFactory));
         }
 
-        /// <summary>
-        /// Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.
-        /// </summary>
-        /// <seealso cref="allocate" />
+        /// @brief Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.
+        ///
+        /// @see allocate
         inline void free(const IDescriptorSet& descriptorSet) const {
             this->releaseDescriptorSet(descriptorSet);
         }
@@ -6617,9 +5278,7 @@ namespace LiteFX::Rendering {
         virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const = 0;
     };
 
-    /// <summary>
-    /// Describes a range within a <see cref="IPushConstantsLayout" />.
-    /// </summary>
+    /// @brief Describes a range within a @ref IPushConstantsLayout.
     class LITEFX_RENDERING_API IPushConstantsRange {
     protected:
         IPushConstantsRange() noexcept = default;
@@ -6632,42 +5291,35 @@ namespace LiteFX::Rendering {
         virtual ~IPushConstantsRange() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the shader space the push constants can be accessed from.
-        /// </summary>
-        /// <returns>The shader space the push constants can be accessed from.</returns>
+        /// @brief Returns the shader space the push constants can be accessed from.
+        ///
+        /// @return The shader space the push constants can be accessed from.
         virtual UInt32 space() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the binding point or register, the push constants are made available at.
-        /// </summary>
-        /// <returns>The binding point or register, the push constants are made available at.</returns>
+        /// @brief Returns the binding point or register, the push constants are made available at.
+        ///
+        /// @return The binding point or register, the push constants are made available at.
         virtual UInt32 binding() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the offset from the push constants backing memory block, the range starts at.
-        /// </summary>
-        /// <returns>The offset from the push constants backing memory block, the range starts at.</returns>
-        /// <seealso cref="size" />
+        /// @brief Returns the offset from the push constants backing memory block, the range starts at.
+        ///
+        /// @return The offset from the push constants backing memory block, the range starts at.
+        /// @see size
         virtual UInt32 offset() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the size (in bytes) of the range.
-        /// </summary>
-        /// <returns>The size (in bytes) of the range.</returns>
-        /// <seealso cref="offset" />
+        /// @brief Returns the size (in bytes) of the range.
+        ///
+        /// @return The size (in bytes) of the range.
+        /// @see offset
         virtual UInt32 size() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the shader stage(s), the range is accessible from.
-        /// </summary>
-        /// <returns>The shader stage(s), the range is accessible from.</returns>
+        /// @brief Returns the shader stage(s), the range is accessible from.
+        ///
+        /// @return The shader stage(s), the range is accessible from.
         virtual ShaderStage stageMask() const noexcept = 0;
     };
 
-    /// <summary>
-    /// The interface for a push constants layout.
-    /// </summary>
+    /// @brief The interface for a push constants layout.
     class LITEFX_RENDERING_API IPushConstantsLayout {
     protected:
         IPushConstantsLayout() noexcept = default;
@@ -6680,17 +5332,15 @@ namespace LiteFX::Rendering {
         virtual ~IPushConstantsLayout() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the size (in bytes) of the push constants backing memory.
-        /// </summary>
-        /// <returns>The size (in bytes) of the push constants backing memory.</returns>
+        /// @brief Returns the size (in bytes) of the push constants backing memory.
+        ///
+        /// @return The size (in bytes) of the push constants backing memory.
         virtual UInt32 size() const noexcept = 0;
 
-        /// <summary>
-        /// Returns all push constant ranges.
-        /// </summary>
-        /// <returns>All push constant ranges.</returns>
-        /// <seealso cref="range" />
+        /// @brief Returns all push constant ranges.
+        ///
+        /// @return All push constant ranges.
+        /// @see range
         inline Enumerable<const IPushConstantsRange&> ranges() const {
             return this->getRanges();
         }
@@ -6699,43 +5349,32 @@ namespace LiteFX::Rendering {
         virtual Enumerable<const IPushConstantsRange&> getRanges() const = 0;
     };
 
-    /// <summary>
-    /// Describes a record within a shader binding table.
-    /// </summary>
-    /// <remarks>
-    /// A shader record contains a shader group, that is either a single shader of type <see cref="ShaderStage::RayGeneration" />, <see cref="ShaderStage::Intersection" />,
-    /// <see cref="ShaderStage::Miss" /> or <see cref="ShaderStage::Callable" />, or a pair of types <see cref="ShaderStage::ClosestHit" /> and <see cref="ShaderStage::AnyHit" />,
-    /// where at least one of them needs to be set.
-    /// 
-    /// Typically you do not want to implement this interface itself. Prefer using the <see cref="ShaderRecord" /> template to create shader records instead.
-    /// </remarks>
-    /// <seealso cref="ShaderRecord" />
-    /// <seealso cref="IShaderProgram::buildShaderBindingTable" />
+    /// @brief Describes a record within a shader binding table.
+    ///
+    /// A shader record contains a shader group, that is either a single shader of type @ref ShaderStage::RayGeneration, @ref ShaderStage::Intersection, @ref ShaderStage::Miss or @ref ShaderStage::Callable,
+    /// or a pair of types @ref ShaderStage::ClosestHit and @ref ShaderStage::AnyHit, where at least one of them needs to be set.
+    ///
+    /// Typically you do not want to implement this interface itself. Prefer using the @ref ShaderRecord template to create shader records instead.
+    ///
+    /// @see ShaderRecord
+    /// @see IShaderProgram::buildShaderBindingTable
     struct LITEFX_RENDERING_API IShaderRecord {
     public:
-        /// <summary>
-        /// Describes a hit group for a triangle mesh geometry.
-        /// </summary>
-        /// <remarks>
-        /// Note that when using this structure, at least one of the contained shaders must be set. A shader record containing a mesh geometry hit group must 
-        /// only be ever called by triangle mesh bottom-level acceleration structures.
-        /// </remarks>
-        /// <seealso cref="IBottomLevelAccelerationStructure" />
+        /// @brief Describes a hit group for a triangle mesh geometry.
+        ///
+        /// Note that when using this structure, at least one of the contained shaders must be set. A shader record containing a mesh geometry hit group must only be ever called by triangle mesh bottom-level
+        /// acceleration structures.
+        ///
+        /// @see IBottomLevelAccelerationStructure
         struct MeshGeometryHitGroup {
-            /// <summary>
-            /// The closest hit shader for the triangle mesh.
-            /// </summary>
+            /// @brief The closest hit shader for the triangle mesh.
             const IShaderModule* ClosestHitShader;
 
-            /// <summary>
-            /// The any hit shader for the triangle mesh.
-            /// </summary>
+            /// @brief The any hit shader for the triangle mesh.
             const IShaderModule* AnyHitShader;
         };
 
-        /// <summary>
-        /// Defines the type that stores the shaders of the shader group.
-        /// </summary>
+        /// @brief Defines the type that stores the shaders of the shader group.
         using shader_group_type = Variant<const IShaderModule*, MeshGeometryHitGroup>;
 
     protected:
@@ -6749,10 +5388,9 @@ namespace LiteFX::Rendering {
         constexpr virtual ~IShaderRecord() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the type of the shader record.
-        /// </summary>
-        /// <returns>The type of the shader record.</returns>
+        /// @brief Returns the type of the shader record.
+        ///
+        /// @return The type of the shader record.
         constexpr ShaderRecordType type() const {
             const auto& group = this->shaderGroup();
 
@@ -6776,54 +5414,43 @@ namespace LiteFX::Rendering {
         }
 
     public:
-        /// <summary>
-        /// Returns the shader group containing the modules for this record.
-        /// </summary>
+        /// @brief Returns the shader group containing the modules for this record.
         constexpr virtual const shader_group_type& shaderGroup() const noexcept = 0;
 
-        /// <summary>
-        /// Returns a pointer to the shader-local data of the record.
-        /// </summary>
-        /// <remarks>
-        /// Shader-local data is a piece of constant data that is available to the shader during invocation. During a ray hit/miss event, the shader record is selected
-        /// based on geometry (<see cref="IBottomLevelAccelerationStructure" />), instance (<see cref="ITopLevelAccelerationStructure" /> and an implementation-specific
-        /// offset. The selected record is then used to load the shader and pass the shader local data to it.
-        /// </remarks>
-        /// <returns>A pointer to the shader-local data of the record.</returns>
-        /// <seealso cref="localDataSize" />
+        /// @brief Returns a pointer to the shader-local data of the record.
+        ///
+        /// Shader-local data is a piece of constant data that is available to the shader during invocation. During a ray hit/miss event, the shader record is selected based on geometry (@ref
+        /// IBottomLevelAccelerationStructure), instance (@ref ITopLevelAccelerationStructure and an implementation-specific offset. The selected record is then used to load the shader and pass the shader local
+        /// data to it.
+        ///
+        /// @return A pointer to the shader-local data of the record.
+        /// @see localDataSize
         constexpr virtual const void* localData() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the size of the shader-local data of the record.
-        /// </summary>
-        /// <returns>The size of the shader-local data of the record.</returns>
-        /// <seealso cref="localData" />
+        /// @brief Returns the size of the shader-local data of the record.
+        ///
+        /// @return The size of the shader-local data of the record.
+        /// @see localData
         constexpr virtual UInt64 localDataSize() const noexcept = 0;
     };
 
-    /// <summary>
-    /// Defines a generic shader record.
-    /// </summary>
-    /// <seealso cref="ShaderRecord{{}}" />
-    /// <seealso cref="ShaderRecord{{typename TLocalData}}" />
+    /// @brief Defines a generic shader record.
+    ///
+    /// @see ShaderRecord
+    /// @see ShaderRecord
     template <typename... TLocalData>
     struct ShaderRecord;
 
-    /// <summary>
-    /// The size (in bytes) to which shader record local data must be aligned.
-    /// </summary>
+    /// @brief The size (in bytes) to which shader record local data must be aligned.
     const size_t SHADER_RECORD_LOCAL_DATA_ALIGNMENT { 8 };
 
-    /// <summary>
-    /// Denotes a shader record containing shader-local data.
-    /// </summary>
-    /// <remarks>
-    /// The <typeparamref name="TLocalData" /> defines the data that is passed to a shader's local resource bindings upon invocation. Two types of elements are 
-    /// allowed: buffer references and constants. Buffer references can be obtained by calling <see cref="IBuffer::virtualAddress" /> and are always 8 bytes
-    /// long. Constants do not strictly need to follow 8 byte alignment rules, but rather can also be smaller, in which case they should be defined as an
-    /// aligned array, aligned to 8 bytes within the shader-local data.
-    /// </remarks>
-    /// <seealso cref="https://github.com/crud89/LiteFX/wiki/Raytracing#local-resource-bindings" />
+    /// @brief Denotes a shader record containing shader-local data.
+    ///
+    /// The @p TLocalData defines the data that is passed to a shader's local resource bindings upon invocation. Two types of elements are allowed: buffer references and constants. Buffer references can be
+    /// obtained by calling @ref IBuffer::virtualAddress and are always 8 bytes long. Constants do not strictly need to follow 8 byte alignment rules, but rather can also be smaller, in which case they should
+    /// be defined as an aligned array, aligned to 8 bytes within the shader-local data.
+    ///
+    /// @see https://github.com/crud89/LiteFX/wiki/Raytracing#local-resource-bindings
     template <typename TLocalData> requires 
         (std::alignment_of_v<TLocalData> == SHADER_RECORD_LOCAL_DATA_ALIGNMENT) &&
         std::is_standard_layout_v<TLocalData>
@@ -6832,28 +5459,24 @@ namespace LiteFX::Rendering {
         using shader_group_type = IShaderRecord::shader_group_type;
 
     private:
-        /// <summary>
-        /// Stores the shader-local data of the shader record, that gets passed to the shader local data.
-        /// </summary>
+        /// @brief Stores the shader-local data of the shader record, that gets passed to the shader local data.
         TLocalData m_payload;
         
-        /// <summary>
-        /// Stores the shader group.
-        /// </summary>
+        /// @brief Stores the shader group.
         shader_group_type m_shaderGroup;
 
     public:
-        /// <inheritdoc />
+        /// @copydoc IShaderRecord::shaderGroup()
         constexpr const shader_group_type& shaderGroup() const noexcept override {
             return m_shaderGroup;
         }
 
-        /// <inheritdoc />
+        /// @copydoc IShaderRecord::localData()
         constexpr const void* localData() const noexcept override {
             return static_cast<const void*>(&m_payload);
         }
 
-        /// <inheritdoc />
+        /// @copydoc IShaderRecord::localDataSize()
         constexpr UInt64 localDataSize() const noexcept override {
             return sizeof(TLocalData);
         }
@@ -6861,70 +5484,61 @@ namespace LiteFX::Rendering {
     public:
         ShaderRecord() = delete;
 
-        /// <inheritdoc />
+        /// @copydoc IShaderRecord::~IShaderRecord()
         constexpr ~ShaderRecord() noexcept override = default;
 
-        /// <summary>
-        /// Initializes a shader record.
-        /// </summary>
-        /// <param name="group">The shader group containing the modules to invoke.</param>
-        /// <param name="payload">The shader-local data to pass to the shader's local resource bindings.</param>
+        /// @brief Initializes a shader record.
+        ///
+        /// @param group The shader group containing the modules to invoke.
+        /// @param payload The shader-local data to pass to the shader's local resource bindings.
         ShaderRecord(const shader_group_type& group, TLocalData payload) noexcept :
             m_payload(payload), m_shaderGroup(group) { }
 
-        /// <summary>
-        /// Copies another shader record.
-        /// </summary>
-        /// <param name="_other">The shader record to copy.</param>
+        /// @brief Copies another shader record.
+        ///
+        /// @param _other The shader record to copy.
         constexpr ShaderRecord(const ShaderRecord& _other) = default;
 
-        /// <summary>
-        /// Takes over another shader record.
-        /// </summary>
-        /// <param name="_other">The shader record to take over.</param>
+        /// @brief Takes over another shader record.
+        ///
+        /// @param _other The shader record to take over.
         constexpr ShaderRecord(ShaderRecord&& _other) noexcept = default;
 
-        /// <summary>
-        /// Copies another shader record.
-        /// </summary>
-        /// <param name="_other">The shader record to copy.</param>
-        /// <returns>A reference to the current shader record.</returns>
+        /// @brief Copies another shader record.
+        ///
+        /// @param _other The shader record to copy.
+        /// @return A reference to the current shader record.
         constexpr ShaderRecord& operator=(const ShaderRecord& _other) = default;
 
-        /// <summary>
-        /// Takes over another shader record.
-        /// </summary>
-        /// <param name="_other">The shader record to take over.</param>
-        /// <returns>A reference to the current shader record.</returns>
+        /// @brief Takes over another shader record.
+        ///
+        /// @param _other The shader record to take over.
+        /// @return A reference to the current shader record.
         constexpr ShaderRecord& operator=(ShaderRecord&& _other) noexcept = default;
     };
 
-    /// <summary>
-    /// Denotes a shader record containing no shader-local data.
-    /// </summary>
+    /// @brief Denotes a shader record containing no shader-local data.
     template <>
     struct ShaderRecord<> final : public IShaderRecord {
     public:
         using shader_group_type = IShaderRecord::shader_group_type;
 
     private:
-        /// <summary>
-        /// Stores the shader group.
-        /// </summary>
+        /// @brief Stores the shader group.
         shader_group_type m_shaderGroup;
 
     public:
-        /// <inheritdoc />
+        /// @copydoc IShaderRecord::shaderGroup()
         constexpr const shader_group_type& shaderGroup() const noexcept override {
             return m_shaderGroup;
         }
 
-        /// <inheritdoc />
+        /// @copydoc IShaderRecord::localData()
         constexpr const void* localData() const noexcept override {
             return nullptr;
         }
 
-        /// <inheritdoc />
+        /// @copydoc IShaderRecord::localDataSize()
         constexpr UInt64 localDataSize() const noexcept override {
             return 0_ui64;
         }
@@ -6932,46 +5546,39 @@ namespace LiteFX::Rendering {
     public:
         ShaderRecord() = delete;
 
-        /// <inheritdoc />
+        /// @copydoc IShaderRecord::~IShaderRecord()
         constexpr ~ShaderRecord() noexcept override = default;
 
-        /// <summary>
-        /// Initializes a shader record.
-        /// </summary>
-        /// <param name="group">The shader group containing the modules to invoke.</param>
+        /// @brief Initializes a shader record.
+        ///
+        /// @param group The shader group containing the modules to invoke.
         ShaderRecord(const shader_group_type& group) noexcept :
             m_shaderGroup(group) { }
 
-        /// <summary>
-        /// Copies another shader record.
-        /// </summary>
-        /// <param name="_other">The shader record to copy.</param>
+        /// @brief Copies another shader record.
+        ///
+        /// @param _other The shader record to copy.
         constexpr ShaderRecord(const ShaderRecord& _other) = default;
 
-        /// <summary>
-        /// Takes over another shader record.
-        /// </summary>
-        /// <param name="_other">The shader record to take over.</param>
+        /// @brief Takes over another shader record.
+        ///
+        /// @param _other The shader record to take over.
         constexpr ShaderRecord(ShaderRecord&& _other) noexcept = default;
 
-        /// <summary>
-        /// Copies another shader record.
-        /// </summary>
-        /// <param name="_other">The shader record to copy.</param>
-        /// <returns>A reference to the current shader record.</returns>
+        /// @brief Copies another shader record.
+        ///
+        /// @param _other The shader record to copy.
+        /// @return A reference to the current shader record.
         constexpr ShaderRecord& operator=(const ShaderRecord& _other) = default;
 
-        /// <summary>
-        /// Takes over another shader record.
-        /// </summary>
-        /// <param name="_other">The shader record to take over.</param>
-        /// <returns>A reference to the current shader record.</returns>
+        /// @brief Takes over another shader record.
+        ///
+        /// @param _other The shader record to take over.
+        /// @return A reference to the current shader record.
         constexpr ShaderRecord& operator=(ShaderRecord&& _other) noexcept = default;
     };
 
-    /// <summary>
-    /// Stores a set of <see cref="IShaderRecord" />s in that later form a shader binding table used for ray-tracing.
-    /// </summary>
+    /// @brief Stores a set of @ref IShaderRecords in that later form a shader binding table used for ray-tracing.
     class LITEFX_RENDERING_API ShaderRecordCollection final {
         friend class IShaderProgram;
 
@@ -6979,10 +5586,9 @@ namespace LiteFX::Rendering {
         SharedPtr<const IShaderProgram> m_program;
         Array<UniquePtr<const IShaderRecord>> m_records;
 
-        /// <summary>
-        /// Initializes a new shader record collection.
-        /// </summary>
-        /// <param name="shaderProgram">The shader program that contains the shader modules</param>
+        /// @brief Initializes a new shader record collection.
+        ///
+        /// @param shaderProgram The shader program that contains the shader modules
         ShaderRecordCollection(SharedPtr<const IShaderProgram> shaderProgram) noexcept : 
             m_program(std::move(shaderProgram)) 
         {
@@ -7000,46 +5606,40 @@ namespace LiteFX::Rendering {
         ~ShaderRecordCollection() noexcept = default;
 
     private:
-        /// <summary>
-        /// Finds a shader module in the parent shader program.
-        /// </summary>
-        /// <param name="name">The case-sensitive name of the shader module to find.</param>
-        /// <returns>A pointer to the shader module, or `nullptr`, if no module with the specified name was found in the parent program.</returns>
+        /// @brief Finds a shader module in the parent shader program.
+        ///
+        /// @param name The case-sensitive name of the shader module to find.
+        /// @return A pointer to the shader module, or `nullptr`, if no module with the specified name was found in the parent program.
         const IShaderModule* findShaderModule(StringView name) const noexcept;
 
     public:
-        /// <summary>
-        /// Returns the parent shader program of the collection.
-        /// </summary>
-        /// <returns>The parent shader program of the collection.</returns>
+        /// @brief Returns the parent shader program of the collection.
+        ///
+        /// @return The parent shader program of the collection.
         inline SharedPtr<const IShaderProgram> program() const noexcept {
             return m_program;
         }
 
-        /// <summary>
-        /// Returns an array of all shader records within the shader record collection.
-        /// </summary>
-        /// <returns>The array containing all shader records within the shader record collection.</returns>
+        /// @brief Returns an array of all shader records within the shader record collection.
+        ///
+        /// @return The array containing all shader records within the shader record collection.
         const Array<UniquePtr<const IShaderRecord>>& shaderRecords() const noexcept;
 
-        /// <summary>
-        /// Adds a new shader record to the shader record collection.
-        /// </summary>
-        /// <param name="record">The shader record to add to the shader record collection.</param>
-        /// <exception cref="ArgumentNotInitializedException">Thrown, if the shader record was not initialized.</exception>
-        /// <exception cref="InvalidArgumentException">Thrown, if the shader module(s) within the shader record are of invalid type, or the parent shader program does not contain the shader module(s).</exception>
+        /// @brief Adds a new shader record to the shader record collection.
+        ///
+        /// @param record The shader record to add to the shader record collection.
+        /// @throws ArgumentNotInitializedException Thrown, if the shader record was not initialized.
+        /// @throws InvalidArgumentException Thrown, if the shader module(s) within the shader record are of invalid type, or the parent shader program does not contain the shader module(s).
         void addShaderRecord(UniquePtr<const IShaderRecord>&& record);
 
     public:
-        /// <summary>
-        /// Adds a new shader record based on the name of a shader module in the parent shader program.
-        /// </summary>
-        /// <remarks>
-        /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an 
-        /// any and closest hit shader, use <see cref="addMeshGeometryShaderHitGroupRecord" /> instead.
-        /// </remarks>
-        /// <param name="shaderName">The name of the shader module.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if no shader module with the provided name was found in the parent shader program.</exception>
+        /// @brief Adds a new shader record based on the name of a shader module in the parent shader program.
+        ///
+        /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an any and closest hit shader, use @ref
+        /// addMeshGeometryShaderHitGroupRecord instead.
+        ///
+        /// @param shaderName The name of the shader module.
+        /// @throws InvalidArgumentException Thrown, if no shader module with the provided name was found in the parent shader program.
         inline void addShaderRecord(StringView shaderName) {
             auto shaderModule = this->findShaderModule(shaderName);
 
@@ -7054,17 +5654,15 @@ namespace LiteFX::Rendering {
                 this->addShaderRecord(makeUnique<ShaderRecord<>>(shaderModule));
         }
 
-        /// <summary>
-        /// Adds a new shader record based on the name of a shader module in the parent shader program.
-        /// </summary>
-        /// <remarks>
-        /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an 
-        /// any and closest hit shader, use <see cref="addMeshGeometryShaderHitGroupRecord" /> instead.
-        /// </remarks>
-        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
-        /// <param name="shaderName">The name of the shader module.</param>
-        /// <param name="payload">The shader-local data of the shader record.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if no shader module with the provided name was found in the parent shader program.</exception>
+        /// @brief Adds a new shader record based on the name of a shader module in the parent shader program.
+        ///
+        /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an any and closest hit shader, use @ref
+        /// addMeshGeometryShaderHitGroupRecord instead.
+        ///
+        /// @tparam TLocalData The type of the shader record local data.
+        /// @param shaderName The name of the shader module.
+        /// @param payload The shader-local data of the shader record.
+        /// @throws InvalidArgumentException Thrown, if no shader module with the provided name was found in the parent shader program.
         template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == SHADER_RECORD_LOCAL_DATA_ALIGNMENT)
         inline void addShaderRecord(StringView shaderName, TLocalData payload) {
             auto shaderModule = this->findShaderModule(shaderName);
@@ -7080,12 +5678,11 @@ namespace LiteFX::Rendering {
                 this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(shaderModule, payload));
         }
 
-        /// <summary>
-        /// Adds a new mesh geometry hit group record based on names of the shader modules.
-        /// </summary>
-        /// <param name="anyHitShaderName">The name of the any hit shader module.</param>
-        /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if both provided shader names are empty or not found, the shaders are not of the right type or do not belong to the parent shader program.</exception>
+        /// @brief Adds a new mesh geometry hit group record based on names of the shader modules.
+        ///
+        /// @param anyHitShaderName The name of the any hit shader module.
+        /// @param closestHitShaderName The name of the closest hit shader module.
+        /// @throws InvalidArgumentException Thrown, if both provided shader names are empty or not found, the shaders are not of the right type or do not belong to the parent shader program.
         inline void addMeshGeometryShaderHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName) {
             IShaderRecord::MeshGeometryHitGroup hitGroup = { 
                 .ClosestHitShader = closestHitShaderName.has_value() ? this->findShaderModule(closestHitShaderName.value()) : nullptr,
@@ -7095,14 +5692,13 @@ namespace LiteFX::Rendering {
             this->addShaderRecord(makeUnique<ShaderRecord<>>(hitGroup));
         }
 
-        /// <summary>
-        /// Adds a new mesh geometry hit group record based on names of the shader modules.
-        /// </summary>
-        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
-        /// <param name="anyHitShaderName">The name of the any hit shader module.</param>
-        /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
-        /// <param name="payload">The shader-local data of the shader record.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if both provided shader names are empty or not found, the shaders are not of the right type or do not belong to the parent shader program.</exception>
+        /// @brief Adds a new mesh geometry hit group record based on names of the shader modules.
+        ///
+        /// @tparam TLocalData The type of the shader record local data.
+        /// @param anyHitShaderName The name of the any hit shader module.
+        /// @param closestHitShaderName The name of the closest hit shader module.
+        /// @param payload The shader-local data of the shader record.
+        /// @throws InvalidArgumentException Thrown, if both provided shader names are empty or not found, the shaders are not of the right type or do not belong to the parent shader program.
         template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == SHADER_RECORD_LOCAL_DATA_ALIGNMENT)
         inline void addMeshGeometryShaderHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName, TLocalData payload) {
             IShaderRecord::MeshGeometryHitGroup hitGroup = { 
@@ -7113,98 +5709,88 @@ namespace LiteFX::Rendering {
             this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(hitGroup, payload));
         }
 
-        /// <summary>
-        /// Adds a new shader record to the shader record collection.
-        /// </summary>
-        /// <param name="shaderGroup">The shader module or hit group.</param>
+        /// @brief Adds a new shader record to the shader record collection.
+        ///
+        /// @param shaderGroup The shader module or hit group.
         inline void addShaderRecord(const ShaderRecord<>::shader_group_type& shaderGroup) {
             this->addShaderRecord(makeUnique<ShaderRecord<>>(shaderGroup));
         }
 
-        /// <summary>
-        /// Adds a new shader record to the shader record collection.
-        /// </summary>
-        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
-        /// <param name="shaderGroup">The shader module or hit group.</param>
-        /// <param name="payload">The shader-local data of the shader record.</param>
+        /// @brief Adds a new shader record to the shader record collection.
+        ///
+        /// @tparam TLocalData The type of the shader record local data.
+        /// @param shaderGroup The shader module or hit group.
+        /// @param payload The shader-local data of the shader record.
         template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == SHADER_RECORD_LOCAL_DATA_ALIGNMENT)
         inline void addShaderRecord(ShaderRecord<TLocalData>::shader_group_type shaderGroup, TLocalData payload) {
             this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(shaderGroup, payload));
         }
 
-        /// <summary>
-        /// Adds a new shader record based on the name of a shader module in the parent shader program.
-        /// </summary>
-        /// <remarks>
-        /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an 
-        /// any and closest hit shader, use <see cref="withMeshGeometryShaderHitGroupRecord" /> instead.
-        /// </remarks>
-        /// <param name="shaderName">The name of the shader module.</param>
-        /// <returns>A reference to the current shader record collection.</returns>
+        /// @brief Adds a new shader record based on the name of a shader module in the parent shader program.
+        ///
+        /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an any and closest hit shader, use @ref
+        /// withMeshGeometryShaderHitGroupRecord instead.
+        ///
+        /// @param shaderName The name of the shader module.
+        /// @return A reference to the current shader record collection.
         inline ShaderRecordCollection&& withShaderRecord(StringView shaderName) {
             this->addShaderRecord(shaderName);
             return std::forward<ShaderRecordCollection>(*this);
         }
 
-        /// <summary>
-        /// Adds a new shader record based on the name of a shader module in the parent shader program.
-        /// </summary>
-        /// <remarks>
-        /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an 
-        /// any and closest hit shader, use <see cref="withMeshGeometryShaderHitGroupRecord" /> instead.
-        /// </remarks>
-        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
-        /// <param name="shaderName"></param>
-        /// <param name="payload">The shader-local data of the shader record.</param>
-        /// <returns>A reference to the current shader record collection.</returns>
+        /// @brief Adds a new shader record based on the name of a shader module in the parent shader program.
+        ///
+        /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an any and closest hit shader, use @ref
+        /// withMeshGeometryShaderHitGroupRecord instead.
+        ///
+        /// @tparam TLocalData The type of the shader record local data.
+        /// @param shaderName
+        /// @param payload The shader-local data of the shader record.
+        /// @return A reference to the current shader record collection.
         template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == SHADER_RECORD_LOCAL_DATA_ALIGNMENT)
         inline ShaderRecordCollection&& withShaderRecord(StringView shaderName, TLocalData payload) {
             this->addShaderRecord(shaderName, payload);
             return std::forward<ShaderRecordCollection>(*this);
         }
 
-        /// <summary>
-        /// Adds a new mesh geometry hit group record based on names of the shader modules.
-        /// </summary>
-        /// <param name="anyHitShaderName">The name of the any hit shader module.</param>
-        /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
-        /// <returns>A reference to the current shader record collection.</returns>
+        /// @brief Adds a new mesh geometry hit group record based on names of the shader modules.
+        ///
+        /// @param anyHitShaderName The name of the any hit shader module.
+        /// @param closestHitShaderName The name of the closest hit shader module.
+        /// @return A reference to the current shader record collection.
         inline ShaderRecordCollection&& withMeshGeometryHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName) {
             this->addMeshGeometryShaderHitGroupRecord(anyHitShaderName, closestHitShaderName);
             return std::forward<ShaderRecordCollection>(*this);
         }
 
-        /// <summary>
-        /// Adds a new mesh geometry hit group record based on names of the shader modules.
-        /// </summary>
-        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
-        /// <param name="anyHitShaderName">The name of the any hit shader module.</param>
-        /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
-        /// <param name="payload">The shader-local data of the shader record.</param>
-        /// <returns>A reference to the current shader record collection.</returns>
+        /// @brief Adds a new mesh geometry hit group record based on names of the shader modules.
+        ///
+        /// @tparam TLocalData The type of the shader record local data.
+        /// @param anyHitShaderName The name of the any hit shader module.
+        /// @param closestHitShaderName The name of the closest hit shader module.
+        /// @param payload The shader-local data of the shader record.
+        /// @return A reference to the current shader record collection.
         template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == SHADER_RECORD_LOCAL_DATA_ALIGNMENT)
         inline ShaderRecordCollection&& withMeshGeometryHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName, TLocalData payload) {
             this->addMeshGeometryShaderHitGroupRecord(anyHitShaderName, closestHitShaderName, payload);
             return std::forward<ShaderRecordCollection>(*this);
         }
 
-        /// <summary>
-        /// Adds a new shader record to the shader record collection.
-        /// </summary>
-        /// <param name="shaderGroup">The shader module or hit group.</param>
-        /// <returns>A reference to the current shader record collection.</returns>
+        /// @brief Adds a new shader record to the shader record collection.
+        ///
+        /// @param shaderGroup The shader module or hit group.
+        /// @return A reference to the current shader record collection.
         inline ShaderRecordCollection&& withShaderRecord(ShaderRecord<>::shader_group_type shaderGroup) {
             this->addShaderRecord(shaderGroup);
             return std::forward<ShaderRecordCollection>(*this);
         }
 
-        /// <summary>
-        /// Adds a new shader record to the shader record collection.
-        /// </summary>
-        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
-        /// <param name="shaderGroup">The shader module or hit group.</param>
-        /// <param name="payload">The shader-local data of the shader record.</param>
-        /// <returns>A reference to the current shader record collection.</returns>
+        /// @brief Adds a new shader record to the shader record collection.
+        ///
+        /// @tparam TLocalData The type of the shader record local data.
+        /// @param shaderGroup The shader module or hit group.
+        /// @param payload The shader-local data of the shader record.
+        /// @return A reference to the current shader record collection.
         template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == SHADER_RECORD_LOCAL_DATA_ALIGNMENT)
         inline ShaderRecordCollection&& withShaderRecord(ShaderRecord<TLocalData>::shader_group_type shaderGroup, TLocalData payload) {
             this->addShaderRecord(shaderGroup, payload);
@@ -7212,280 +5798,210 @@ namespace LiteFX::Rendering {
         }
     };
 
-    /// <summary>
-    /// A hint used during shader reflection to control the pipeline layout.
-    /// </summary>
-    /// <remarks>
-    /// Hints are generally used to express the desired layout to backends that cannot infer them implicitly. They do not imply an enforcement of the layout otherwise. For example, 
-    /// hinting a push constants range when performing shader reflection in Vulkan, where push constants are supported by the reflection library, will not affect the ultimate decision on 
-    /// whether the layout will contain a push constants range. In this case, shader reflection will always emit a push constants range.
-    /// 
+    /// @brief A hint used during shader reflection to control the pipeline layout.
+    ///
+    /// Hints are generally used to express the desired layout to backends that cannot infer them implicitly. They do not imply an enforcement of the layout otherwise. For example, hinting a push constants
+    /// range when performing shader reflection in Vulkan, where push constants are supported by the reflection library, will not affect the ultimate decision on whether the layout will contain a push
+    /// constants range. In this case, shader reflection will always emit a push constants range.
+    ///
     /// Backends do emit diagnostic log messages, if a hint is given that it will ignore. Hints for descriptors that are not bound will silently be ignored.
-    /// </remarks>
-    /// <seealso cref="IShaderProgram::reflectPipelineLayout" />
+    ///
+    /// @see IShaderProgram::reflectPipelineLayout
     struct LITEFX_RENDERING_API PipelineBindingHint {
 
-        /// <summary>
-        /// Defines a hint that is used to mark an unbounded descriptor array.
-        /// </summary>
+        /// @brief Defines a hint that is used to mark an unbounded descriptor array.
         struct UnboundedArrayHint {
-            /// <summary>
-            /// If the binding point binds an array, this property can be used to turn it into an unbounded array and set the maximum number of descriptors that can be bound to the array. 
-            /// This is especially useful to comply with Vulkan device limits.
-            /// </summary>
+            /// @brief If the binding point binds an array, this property can be used to turn it into an unbounded array and set the maximum number of descriptors that can be bound to the array. This is especially
+            /// useful to comply with Vulkan device limits.
             UInt32 MaxDescriptors{ 0 };
         };
 
-        /// <summary>
-        /// Defines a hint that is used to mark a push constants range.
-        /// </summary>
+        /// @brief Defines a hint that is used to mark a push constants range.
         struct PushConstantsHint {
-            /// <summary>
-            /// If the binding point binds a constant or uniform buffer, setting this property to `true` will configure the binding point it as part of the root constants for the pipeline 
-            /// layout. If this property is set to `false`, the hint will have no effect.
-            /// </summary>
+            /// @brief If the binding point binds a constant or uniform buffer, setting this property to `true` will configure the binding point it as part of the root constants for the pipeline layout. If this
+            /// property is set to `false`, the hint will have no effect.
             bool AsPushConstants{ false };
         };
 
-        /// <summary>
-        /// Defines a hint that is used to bind a static sampler state to a sampler descriptor.
-        /// </summary>
+        /// @brief Defines a hint that is used to bind a static sampler state to a sampler descriptor.
         struct StaticSamplerHint {
-            /// <summary>
-            /// If the binding point binds a sampler, setting this property will bind a static or constant sampler, if supported by the backend.
-            /// </summary>
+            /// @brief If the binding point binds a sampler, setting this property will bind a static or constant sampler, if supported by the backend.
             SharedPtr<ISampler> StaticSampler{ nullptr };
         };
 
-        /// <summary>
-        /// Defines a hint that is used to initialize a dynamic descriptor heap.
-        /// </summary>
-        /// <remarks>
-        /// This hint is special, as it must not be associated with an existing binding. Instead, dynamic descriptor heaps use a proxy descriptor set to bind resources to the global 
-        /// descriptor heaps, that can later be directly indexed by the shader. In the DirectX 12 backend, this hint will cause a new descriptor set to be created, that is not part of the
-        /// pipeline state. In Vulkan, this functionality is emulated using the `VK_EXT_mutable_descriptor_type` extension and binds to an existing descriptor set. DXC emits this descriptor
-        /// set automatically, if direct heap indexing is used from a shader.
-        /// </remarks>
-        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
-        /// <seealso cref="DescriptorType::ResourceDescriptorHeap" />
-        /// <seealso cref="DescriptorType::SamplerDescriptorHeap" />
+        /// @brief Defines a hint that is used to initialize a dynamic descriptor heap.
+        ///
+        /// This hint is special, as it must not be associated with an existing binding. Instead, dynamic descriptor heaps use a proxy descriptor set to bind resources to the global descriptor heaps, that can
+        /// later be directly indexed by the shader. In the DirectX 12 backend, this hint will cause a new descriptor set to be created, that is not part of the pipeline state. In Vulkan, this functionality is
+        /// emulated using the `VK_EXT_mutable_descriptor_type` extension and binds to an existing descriptor set. DXC emits this descriptor set automatically, if direct heap indexing is used from a shader.
+        ///
+        /// @see GraphicsDeviceFeature::DynamicDescriptors
+        /// @see DescriptorType::ResourceDescriptorHeap
+        /// @see DescriptorType::SamplerDescriptorHeap
         struct DescriptorHeapHint {
-            /// <summary>
-            /// The desired type of the descriptor heap.
-            /// </summary>
+            /// @brief The desired type of the descriptor heap.
             DescriptorHeapType Type{ DescriptorHeapType::None };
 
-            /// <summary>
-            /// The number of descriptors allocated for the heap.
-            /// </summary>
+            /// @brief The number of descriptors allocated for the heap.
             UInt32 HeapSize{ 1u };
         };
 
-        /// <summary>
-        /// Defines a hint that is used to mark additional a binding as used by certain shader stages.
-        /// </summary>
-        /// <remarks>
-        /// Shader stages are set on the descriptor set, so the binding register for this hint is ignored. If specified, this hint causes shader stages that are not found in shader reflection
-        /// to be included in the shader stage mask. Usually reflection leaves out shader stages that a descriptor set is not bound to, as this can improve performance. However, if a 
-        /// descriptor set can be re-used between compatible pipeline layouts, shader reflection may be unable to tell which shader stages the descriptor set is actually accessed from. In 
-        /// those scenarios, additional stages can be provided using this hint.
-        /// 
-        /// In the DirectX 12 backend, shader stages aren't actually masked. Rather a binding is only accessible to a single shader stage, or all shader stages. However, in Vulkan this can be
-        /// specified with finer granularity.
-        /// </remarks>
+        /// @brief Defines a hint that is used to mark additional a binding as used by certain shader stages.
+        ///
+        /// Shader stages are set on the descriptor set, so the binding register for this hint is ignored. If specified, this hint causes shader stages that are not found in shader reflection to be included in
+        /// the shader stage mask. Usually reflection leaves out shader stages that a descriptor set is not bound to, as this can improve performance. However, if a descriptor set can be re-used between
+        /// compatible pipeline layouts, shader reflection may be unable to tell which shader stages the descriptor set is actually accessed from. In those scenarios, additional stages can be provided using this
+        /// hint.
+        ///
+        /// In the DirectX 12 backend, shader stages aren't actually masked. Rather a binding is only accessible to a single shader stage, or all shader stages. However, in Vulkan this can be specified with finer
+        /// granularity.
         struct ShaderStageHint {
-            /// <summary>
-            /// A mask that contains the shader stages, that the descriptor set should be accessible from.
-            /// </summary>
+            /// @brief A mask that contains the shader stages, that the descriptor set should be accessible from.
             ShaderStage Stages{ ShaderStage::Other };
         };
 
-        /// <summary>
-        /// Defines the type of the pipeline binding hint.
-        /// </summary>
+        /// @brief Defines the type of the pipeline binding hint.
         using hint_type = Variant<std::monostate, UnboundedArrayHint, PushConstantsHint, StaticSamplerHint, DescriptorHeapHint, ShaderStageHint>;
 
-        /// <summary>
-        /// The binding point the hint applies to.
-        /// </summary>
+        /// @brief The binding point the hint applies to.
         DescriptorBindingPoint Binding{ };
 
-        /// <summary>
-        /// Stores the underlying hint.
-        /// </summary>
+        /// @brief Stores the underlying hint.
         hint_type Hint = std::monostate{ };
 
     public:
-        /// <summary>
-        /// Initializes a hint that binds an unbounded runtime array.
-        /// </summary>
-        /// <param name="at">The binding point the hint applies to.</param>
-        /// <param name="maxDescriptors">The maximum number of descriptors that can be bound to the runtime array at the binding point.</param>
-        /// <returns>The initialized pipeline binding hint.</returns>
+        /// @brief Initializes a hint that binds an unbounded runtime array.
+        ///
+        /// @param at The binding point the hint applies to.
+        /// @param maxDescriptors The maximum number of descriptors that can be bound to the runtime array at the binding point.
+        /// @return The initialized pipeline binding hint.
         static inline auto runtimeArray(DescriptorBindingPoint at, UInt32 maxDescriptors) noexcept -> PipelineBindingHint {
             return { .Binding = at, .Hint = UnboundedArrayHint { maxDescriptors } };
         }
 
-        /// <summary>
-        /// Initializes a hint that binds an unbounded runtime array.
-        /// </summary>
-        /// <param name="space">The descriptor space of the binding point.</param>
-        /// <param name="binding">The register of the descriptor binding point.</param>
-        /// <param name="maxDescriptors">The maximum number of descriptors that can be bound to the runtime array at the binding point.</param>
-        /// <returns>The initialized pipeline binding hint.</returns>
+        /// @brief Initializes a hint that binds an unbounded runtime array.
+        ///
+        /// @param space The descriptor space of the binding point.
+        /// @param binding The register of the descriptor binding point.
+        /// @param maxDescriptors The maximum number of descriptors that can be bound to the runtime array at the binding point.
+        /// @return The initialized pipeline binding hint.
         static inline auto runtimeArray(UInt32 space, UInt32 binding, UInt32 maxDescriptors) noexcept -> PipelineBindingHint {
             return { .Binding = { .Register = binding, .Space = space }, .Hint = UnboundedArrayHint { maxDescriptors } };
         }
 
-        /// <summary>
-        /// Initializes a hint that binds push constants.
-        /// </summary>
-        /// <param name="at">The binding point the hint applies to.</param>
-        /// <returns>The initialized pipeline binding hint.</returns>
+        /// @brief Initializes a hint that binds push constants.
+        ///
+        /// @param at The binding point the hint applies to.
+        /// @return The initialized pipeline binding hint.
         static inline auto pushConstants(DescriptorBindingPoint at) noexcept -> PipelineBindingHint {
             return { .Binding = at, .Hint = PushConstantsHint { true } };
         }
 
-        /// <summary>
-        /// Initializes a hint that binds push constants.
-        /// </summary>
-        /// <param name="space">The descriptor space of the binding point.</param>
-        /// <param name="binding">The register of the descriptor binding point.</param>
-        /// <returns>The initialized pipeline binding hint.</returns>
+        /// @brief Initializes a hint that binds push constants.
+        ///
+        /// @param space The descriptor space of the binding point.
+        /// @param binding The register of the descriptor binding point.
+        /// @return The initialized pipeline binding hint.
         static inline auto pushConstants(UInt32 space, UInt32 binding) noexcept -> PipelineBindingHint {
             return { .Binding = { .Register = binding, .Space = space }, .Hint = PushConstantsHint { true } };
         }
 
-        /// <summary>
-        /// Initializes a hint that binds a static sampler, if supported by the backend.
-        /// </summary>
-        /// <param name="at">The binding point the hint applies to.</param>
-        /// <param name="sampler">The sampler state used to initialize the static sampler with.</param>
-        /// <returns>The initialized pipeline binding hint.</returns>
+        /// @brief Initializes a hint that binds a static sampler, if supported by the backend.
+        ///
+        /// @param at The binding point the hint applies to.
+        /// @param sampler The sampler state used to initialize the static sampler with.
+        /// @return The initialized pipeline binding hint.
         static inline auto staticSampler(DescriptorBindingPoint at, SharedPtr<ISampler> sampler) noexcept -> PipelineBindingHint {
             return { .Binding = at, .Hint = StaticSamplerHint { std::move(sampler) } };
         }
 
-        /// <summary>
-        /// Initializes a hint that binds a static sampler, if supported by the backend.
-        /// </summary>
-        /// <param name="space">The descriptor space of the binding point.</param>
-        /// <param name="binding">The register of the descriptor binding point.</param>
-        /// <param name="sampler">The sampler state used to initialize the static sampler with.</param>
-        /// <returns>The initialized pipeline binding hint.</returns>
+        /// @brief Initializes a hint that binds a static sampler, if supported by the backend.
+        ///
+        /// @param space The descriptor space of the binding point.
+        /// @param binding The register of the descriptor binding point.
+        /// @param sampler The sampler state used to initialize the static sampler with.
+        /// @return The initialized pipeline binding hint.
         static inline auto staticSampler(UInt32 space, UInt32 binding, SharedPtr<ISampler> sampler) noexcept -> PipelineBindingHint {
             return { .Binding = { .Register = binding, .Space = space }, .Hint = StaticSamplerHint { std::move(sampler) } };
         }
 
-        /// <summary>
-        /// Initializes a hint that binds a proxy descriptor set to access the resource heap at the provided binding point.
-        /// </summary>
-        /// <param name="at">The binding point the hint applies to.</param>
-        /// <param name="heapSize">The number of descriptors allocated for the heap when creating the descriptor set.</param>
-        /// <returns>The initialized pipeline binding hint.</returns>
-        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        /// @brief Initializes a hint that binds a proxy descriptor set to access the resource heap at the provided binding point.
+        ///
+        /// @param at The binding point the hint applies to.
+        /// @param heapSize The number of descriptors allocated for the heap when creating the descriptor set.
+        /// @return The initialized pipeline binding hint.
+        /// @see GraphicsDeviceFeature::DynamicDescriptors
         static inline auto resourceHeap(DescriptorBindingPoint at, UInt32 heapSize) noexcept -> PipelineBindingHint {
             return { .Binding = at, .Hint = DescriptorHeapHint { DescriptorHeapType::Resource, heapSize } };
         }
 
-        /// <summary>
-        /// Initializes a hint that binds a proxy descriptor set to access the resource heap at the provided binding point.
-        /// </summary>
-        /// <param name="space">The descriptor space of the binding point.</param>
-        /// <param name="binding">The register of the descriptor binding point.</param>
-        /// <param name="heapSize">The number of descriptors allocated for the heap when creating the descriptor set.</param>
-        /// <returns>The initialized pipeline binding hint.</returns>
-        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        /// @brief Initializes a hint that binds a proxy descriptor set to access the resource heap at the provided binding point.
+        ///
+        /// @param space The descriptor space of the binding point.
+        /// @param binding The register of the descriptor binding point.
+        /// @param heapSize The number of descriptors allocated for the heap when creating the descriptor set.
+        /// @return The initialized pipeline binding hint.
+        /// @see GraphicsDeviceFeature::DynamicDescriptors
         static inline auto resourceHeap(UInt32 space, UInt32 binding, UInt32 heapSize) noexcept -> PipelineBindingHint {
             return { .Binding = { .Register = binding, .Space = space }, .Hint = DescriptorHeapHint { DescriptorHeapType::Resource, heapSize } };
         }
 
-        /// <summary>
-        /// Initializes a hint that binds a proxy descriptor set to access the sampler heap at the provided binding point.
-        /// </summary>
-        /// <param name="at">The binding point the hint applies to.</param>
-        /// <param name="heapSize">The number of descriptors allocated for the heap when creating the descriptor set.</param>
-        /// <returns>The initialized pipeline binding hint.</returns>
-        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        /// @brief Initializes a hint that binds a proxy descriptor set to access the sampler heap at the provided binding point.
+        ///
+        /// @param at The binding point the hint applies to.
+        /// @param heapSize The number of descriptors allocated for the heap when creating the descriptor set.
+        /// @return The initialized pipeline binding hint.
+        /// @see GraphicsDeviceFeature::DynamicDescriptors
         static inline auto samplerHeap(DescriptorBindingPoint at, UInt32 heapSize) noexcept -> PipelineBindingHint {
             return { .Binding = at, .Hint = DescriptorHeapHint { DescriptorHeapType::Sampler, heapSize } };
         }
 
-        /// <summary>
-        /// Initializes a hint that binds a proxy descriptor set to access the sampler heap at the provided binding point.
-        /// </summary>
-        /// <param name="space">The descriptor space of the binding point.</param>
-        /// <param name="binding">The register of the descriptor binding point.</param>
-        /// <param name="heapSize">The number of descriptors allocated for the heap when creating the descriptor set.</param>
-        /// <returns>The initialized pipeline binding hint.</returns>
-        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        /// @brief Initializes a hint that binds a proxy descriptor set to access the sampler heap at the provided binding point.
+        ///
+        /// @param space The descriptor space of the binding point.
+        /// @param binding The register of the descriptor binding point.
+        /// @param heapSize The number of descriptors allocated for the heap when creating the descriptor set.
+        /// @return The initialized pipeline binding hint.
+        /// @see GraphicsDeviceFeature::DynamicDescriptors
         static inline auto samplerHeap(UInt32 space, UInt32 binding, UInt32 heapSize) noexcept -> PipelineBindingHint {
             return { .Binding = { .Register = binding, .Space = space }, .Hint = DescriptorHeapHint { DescriptorHeapType::Sampler, heapSize } };
         }
 
-        /// <summary>
-        /// Initializes a hint provides additional shader stages, that may be not covered by shader reflection.
-        /// </summary>
-        /// <param name="at">The binding point the hint applies to.</param>
-        /// <param name="shaderStages">The number of descriptors allocated for the heap when creating the descriptor set.</param>
-        /// <returns>The initialized pipeline binding hint.</returns>
-        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        /// @brief Initializes a hint provides additional shader stages, that may be not covered by shader reflection.
+        ///
+        /// @param at The binding point the hint applies to.
+        /// @param shaderStages The number of descriptors allocated for the heap when creating the descriptor set.
+        /// @return The initialized pipeline binding hint.
+        /// @see GraphicsDeviceFeature::DynamicDescriptors
         static inline auto shaderStage(DescriptorBindingPoint at, ShaderStage shaderStages) noexcept -> PipelineBindingHint {
             return { .Binding = at, .Hint = ShaderStageHint { shaderStages } };
         }
 
-        /// <summary>
-        /// Initializes a hint provides additional shader stages, that may be not covered by shader reflection.
-        /// </summary>
-        /// <param name="space">The descriptor space of the binding point.</param>
-        /// <param name="binding">The register of the descriptor binding point.</param>
-        /// <param name="shaderStages">The number of descriptors allocated for the heap when creating the descriptor set.</param>
-        /// <returns>The initialized pipeline binding hint.</returns>
-        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        /// @brief Initializes a hint provides additional shader stages, that may be not covered by shader reflection.
+        ///
+        /// @param space The descriptor space of the binding point.
+        /// @param binding The register of the descriptor binding point.
+        /// @param shaderStages The number of descriptors allocated for the heap when creating the descriptor set.
+        /// @return The initialized pipeline binding hint.
+        /// @see GraphicsDeviceFeature::DynamicDescriptors
         static inline auto shaderStage(UInt32 space, UInt32 binding, ShaderStage shaderStages) noexcept -> PipelineBindingHint {
             return { .Binding = {.Register = binding, .Space = space }, .Hint = ShaderStageHint { shaderStages } };
         }
     };
 
-    /// <summary>
-    /// The interface for a shader program.
-    /// </summary>
-    /// <remarks>
-    /// A shader program differs in it's functionality as well as the contained shader modules, depending on the pipeline type it gets assigned to. A shader program can be
-    /// of any of the following types:
-    /// 
-    /// <list type="bullet">
-    /// <item>
-    /// <description>
-    /// **Rasterization:** A rasterization pipeline is a traditional pipeline, that can contain at maximum one module of the following stages: *Vertex*, *Tessellation Control*, 
-    /// *Tessellation Evaluation*, *Geometry*, *Fragment*. A vertex and fragment shader are required for rasterization programs.
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <description>
-    /// **Mesh shading:** If mesh shader support is enabled (through the device feature <see cref="GraphicsDeviceFeatures::MeshShaders" />), a mesh shading program can contain 
-    /// at maximum one module of the following stages: *Task*, *Mesh*, *Fragment*. A mesh and fragment shader are required for a mesh shading program.
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <description>
-    /// **Compute:** A compute shader program must only contain a single module for the *Compute* stage.
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <description>
-    /// **Ray-tracing:** If ray tracing support is enabled (through the device feature <see cref="GraphicsDeviceFeatures::RayTracing" />), a ray tracing program can contain 
-    /// modules of the following stages: *Ray Generation*, *Any Hit*, *Closest Hit*, *Intersection*, *Miss*, *Callable*. There must be exactly one *Ray Generation* module. All 
-    /// other modules can occur multiple times. To build a ray tracing pipeline, all shaders should be added to a single shader program, which is then passed to the pipeline 
-    /// during creation.
-    /// </description>
-    /// </item>
-    /// </list>
-    /// 
-    /// Shaders from different program types must not be mixed. For example, it is not valid to add a compute module to a rasterization program. The only exception to this
-    /// is the <see cref="ShaderStage::Fragment" /> module, which can be added to a mesh pipeline, as well as a rasterization pipeline.
-    /// </remarks>
-    /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
+    /// @brief The interface for a shader program.
+    ///
+    /// A shader program differs in it's functionality as well as the contained shader modules, depending on the pipeline type it gets assigned to. A shader program can be of any of the following types:
+    ///
+    /// - **Rasterization:** A rasterization pipeline is a traditional pipeline, that can contain at maximum one module of the following stages: *Vertex*, *Tessellation Control*, *Tessellation Evaluation*, *Geometry*, *Fragment*. A vertex and fragment shader are required for rasterization programs.
+    /// - **Mesh shading:** If mesh shader support is enabled (through the device feature @ref GraphicsDeviceFeatures::MeshShaders), a mesh shading program can contain at maximum one module of the following stages: *Task*, *Mesh*, *Fragment*. A mesh and fragment shader are required for a mesh shading program.
+    /// - **Compute:** A compute shader program must only contain a single module for the *Compute* stage.
+    /// - **Ray-tracing:** If ray tracing support is enabled (through the device feature @ref GraphicsDeviceFeatures::RayTracing), a ray tracing program can contain modules of the following stages: *Ray Generation*, *Any Hit*, *Closest Hit*, *Intersection*, *Miss*, *Callable*. There must be exactly one *Ray Generation* module. All other modules can occur multiple times. To build a ray tracing pipeline, all shaders should be added to a single shader program, which is then passed to the pipeline during creation.
+    ///
+    /// Shaders from different program types must not be mixed. For example, it is not valid to add a compute module to a rasterization program. The only exception to this is the @ref ShaderStage::Fragment
+    /// module, which can be added to a mesh pipeline, as well as a rasterization pipeline.
+    ///
+    /// @see https://github.com/crud89/LiteFX/wiki/Shader-Development
     class LITEFX_RENDERING_API IShaderProgram : public SharedObject {
     protected:
         IShaderProgram() noexcept = default;
@@ -7499,11 +6015,10 @@ namespace LiteFX::Rendering {
         auto operator=(IShaderProgram&&) noexcept = delete;
 
     public:
-        /// <summary>
-        /// Returns a pointer to shader module based on its (case-sensitive) name.
-        /// </summary>
-        /// <param name="name">The name or file name of the shader module.</param>
-        /// <returns>A pointer to the shader module, or `nullptr`, if it was not found.</returns>
+        /// @brief Returns a pointer to shader module based on its (case-sensitive) name.
+        ///
+        /// @param name The name or file name of the shader module.
+        /// @return A pointer to the shader module, or `nullptr`, if it was not found.
         inline const IShaderModule* operator[](StringView name) const {
             auto modules = this->getModules();
 
@@ -7513,68 +6028,51 @@ namespace LiteFX::Rendering {
             return nullptr;
         }
 
-        /// <summary>
-        /// Returns `true`, if the program contains a shader module with the provided name or file name and `false` otherwise.
-        /// </summary>
-        /// <param name="name">The case-sensitive name or file name of the shader module to look up.</param>
-        /// <returns>`true`, if the program contains a shader module with the provided name or file name and `false` otherwise.</returns>
+        /// @brief Returns `true`, if the program contains a shader module with the provided name or file name and `false` otherwise.
+        ///
+        /// @param name The case-sensitive name or file name of the shader module to look up.
+        /// @return `true`, if the program contains a shader module with the provided name or file name and `false` otherwise.
         inline bool contains(StringView name) const {
             auto modules = this->getModules();
             return std::ranges::find_if(modules, [name](const auto& module) { return module.fileName().compare(name) == 0; }) != modules.end();
         };
 
-        /// <summary>
-        /// Returns `true`, if the program contains the provided shader module and `false` otherwise.
-        /// </summary>
-        /// <param name="module">The module to look up in the shader program.</param>
-        /// <returns>`true`, if the program contains the provided shader module and `false` otherwise.</returns>
+        /// @brief Returns `true`, if the program contains the provided shader module and `false` otherwise.
+        ///
+        /// @param module The module to look up in the shader program.
+        /// @return `true`, if the program contains the provided shader module and `false` otherwise.
         inline bool contains(const IShaderModule& module) const {
             auto modules = this->getModules();
             return std::ranges::find_if(modules, [&module](const auto& m) { return std::addressof(m) == std::addressof(module); }) != modules.end();
         };
 
-        /// <summary>
-        /// Returns the modules, the shader program is build from.
-        /// </summary>
-        /// <returns>The modules, the shader program is build from.</returns>
+        /// @brief Returns the modules, the shader program is build from.
+        ///
+        /// @return The modules, the shader program is build from.
         inline Enumerable<const IShaderModule&> modules() const {
             return this->getModules();
         }
 
-        /// <summary>
-        /// Uses shader reflection to extract the pipeline layout of a shader. May not be available in all backends.
-        /// </summary>
-        /// <remarks>
-        /// Note that shader reflection may not yield different results than you would expect, especially when using DirectX 12. For more information on how to use shader
-        /// reflection and how to write portable shaders, refer to the [shader development guide](https://github.com/crud89/LiteFX/wiki/Shader-Development) in the wiki.
-        /// 
+        /// @brief Uses shader reflection to extract the pipeline layout of a shader. May not be available in all backends.
+        ///
+        /// Note that shader reflection may not yield different results than you would expect, especially when using DirectX 12. For more information on how to use shader reflection and how to write portable
+        /// shaders, refer to the [shader development guide](https://github.com/crud89/LiteFX/wiki/Shader-Development) in the wiki.
+        ///
         /// In particular, shader reflection is not able to restore:
-        /// 
-        /// <list type="bullet">
-        /// <item>
-        /// <description>
-        /// Input attachments in DirectX. Instead, input attachments are treated as <c>DescriptorType::Texture</c>. This is usually not a problem, since DirectX does not
-        /// have a concept of render pass outputs/inputs anyway. However, keep this in mind, if you want to filter descriptors based on their type, for example.
-        /// </description>
-        /// <description>
-        /// Immutable sampler states in Vulkan. Those are only restored in DirectX, if an explicit root signature has been provided. For this reason, it is best not to use
-        /// them, if you want to use shader reflection.
-        /// </description>
-        /// </item>
-        /// </list>
-        /// </remarks>
-        /// <param name="hints">A series of individual binding hints to use to deduce explicit binding information.</param>
-        /// <returns>The pipeline layout extracted from shader reflection.</returns>
-        /// <seealso cref="PipelineBindingHint" />
-        /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
+        ///
+        /// - Input attachments in DirectX. Instead, input attachments are treated as `DescriptorType::Texture`. This is usually not a problem, since DirectX does not have a concept of render pass outputs/inputs anyway. However, keep this in mind, if you want to filter descriptors based on their type, for example.
+        ///
+        /// @param hints A series of individual binding hints to use to deduce explicit binding information.
+        /// @return The pipeline layout extracted from shader reflection.
+        /// @see PipelineBindingHint
+        /// @see https://github.com/crud89/LiteFX/wiki/Shader-Development
         inline SharedPtr<IPipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints = {}) const {
             return this->parsePipelineLayout(hints);
         };
 
-        /// <summary>
-        /// Builds a shader record collection based on the current shader program.
-        /// </summary>
-        /// <returns>The shader record collection instance.</returns>
+        /// @brief Builds a shader record collection based on the current shader program.
+        ///
+        /// @return The shader record collection instance.
         [[nodiscard]] inline ShaderRecordCollection buildShaderRecordCollection() const {
             return { this->shared_from_this() };
         }
@@ -7584,9 +6082,7 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<IPipelineLayout> parsePipelineLayout(Enumerable<PipelineBindingHint> hints) const = 0;
     };
 
-    /// <summary>
-    /// The interface for a pipeline layout.
-    /// </summary>
+    /// @brief The interface for a pipeline layout.
     class LITEFX_RENDERING_API IPipelineLayout : public SharedObject {
     protected:
         IPipelineLayout() noexcept = default;
@@ -7599,52 +6095,44 @@ namespace LiteFX::Rendering {
         ~IPipelineLayout() noexcept override = default;
 
     public:
-        ///// <summary>
-        ///// Returns a reference to the parent device.
-        ///// </summary>
-        ///// <returns>A reference to the parent device.</returns>
+        ///// @brief Returns a reference to the parent device.
+        /////
+        ///// @return A reference to the parent device.
         //virtual const IGraphicsDevice& device() const noexcept;
 
-        /// <summary>
-        /// Returns the descriptor set layout for the descriptor set that is bound to the space provided by <paramref name="space" />.
-        /// </summary>
-        /// <param name="space">The space to request the descriptor set layout for.</param>
-        /// <returns>The descriptor set layout for the descriptor set that is bound to the space provided by <paramref name="space" />.</returns>
+        /// @brief Returns the descriptor set layout for the descriptor set that is bound to the space provided by @p space.
+        ///
+        /// @param space The space to request the descriptor set layout for.
+        /// @return The descriptor set layout for the descriptor set that is bound to the space provided by @p space.
         virtual const IDescriptorSetLayout& descriptorSet(UInt32 space) const = 0;
 
-        /// <summary>
-        /// Returns all descriptor set layouts, the pipeline has been initialized with.
-        /// </summary>
-        /// <returns>All descriptor set layouts, the pipeline has been initialized with.</returns>
+        /// @brief Returns all descriptor set layouts, the pipeline has been initialized with.
+        ///
+        /// @return All descriptor set layouts, the pipeline has been initialized with.
         inline Enumerable<SharedPtr<const IDescriptorSetLayout>> descriptorSets() const {
             return this->getDescriptorSets();
         }
 
-        /// <summary>
-        /// Returns the push constants layout, or <c>nullptr</c>, if the pipeline does not use any push constants.
-        /// </summary>
-        /// <returns>The push constants layout, or <c>nullptr</c>, if the pipeline does not use any push constants.</returns>
+        /// @brief Returns the push constants layout, or `nullptr`, if the pipeline does not use any push constants.
+        ///
+        /// @return The push constants layout, or `nullptr`, if the pipeline does not use any push constants.
         virtual const IPushConstantsLayout* pushConstants() const noexcept = 0;
 
-        /// <summary>
-        /// Returns `true`, if the pipeline supports directly indexing into a resource heap and `false` otherwise.
-        /// </summary>
-        /// <returns>`true`, if the pipeline supports directly indexing into a resource heap and `false` otherwise</returns>
+        /// @brief Returns `true`, if the pipeline supports directly indexing into a resource heap and `false` otherwise.
+        ///
+        /// @return `true`, if the pipeline supports directly indexing into a resource heap and `false` otherwise
         virtual bool dynamicResourceHeapAccess() const = 0;
 
-        /// <summary>
-        /// Returns `true`, if the pipeline supports directly indexing into a sampler heap and `false` otherwise.
-        /// </summary>
-        /// <returns>`true`, if the pipeline supports directly indexing into a sampler heap and `false` otherwise</returns>
+        /// @brief Returns `true`, if the pipeline supports directly indexing into a sampler heap and `false` otherwise.
+        ///
+        /// @return `true`, if the pipeline supports directly indexing into a sampler heap and `false` otherwise
         virtual bool dynamicSamplerHeapAccess() const = 0;
 
     private:
         virtual Enumerable<SharedPtr<const IDescriptorSetLayout>> getDescriptorSets() const = 0;
     };
 
-    /// <summary>
-    /// The interface for an input assembler state.
-    /// </summary>
+    /// @brief The interface for an input assembler state.
     class LITEFX_RENDERING_API IInputAssembler : public SharedObject {
     protected:
         IInputAssembler() noexcept = default;
@@ -7657,50 +6145,44 @@ namespace LiteFX::Rendering {
         ~IInputAssembler() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns all vertex buffer layouts of the input assembly.
-        /// </summary>
-        /// <returns>All vertex buffer layouts of the input assembly.</returns>
+        /// @brief Returns all vertex buffer layouts of the input assembly.
+        ///
+        /// @return All vertex buffer layouts of the input assembly.
         inline Enumerable<const IVertexBufferLayout&> vertexBufferLayouts() const {
             return this->getVertexBufferLayouts();
         }
 
-        /// <summary>
-        /// Returns a pointer the vertex buffer layout for binding provided with <paramref name="binding" />.
-        /// </summary>
-        /// <param name="binding">The binding point of the vertex buffer layout.</param>
-        /// <returns>The vertex buffer layout for binding provided with <paramref name="binding" />.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if no vertex buffer layout is bound to <paramref name="binding" />.</exception>
+        /// @brief Returns a pointer the vertex buffer layout for binding provided with @p binding.
+        ///
+        /// @param binding The binding point of the vertex buffer layout.
+        /// @return The vertex buffer layout for binding provided with @p binding.
+        /// @throws ArgumentOutOfRangeException Thrown, if no vertex buffer layout is bound to @p binding.
         virtual const IVertexBufferLayout& vertexBufferLayout(UInt32 binding) const = 0;
 
-        /// <summary>
-        /// Returns a pointer to the index buffer layout, or `nullptr` if the input assembler does not handle indices.
-        /// </summary>
-        /// <returns>The index buffer layout, or `nullptr` if the input assembler does not handle indices.</returns>
+        /// @brief Returns a pointer to the index buffer layout, or `nullptr` if the input assembler does not handle indices.
+        ///
+        /// @return The index buffer layout, or `nullptr` if the input assembler does not handle indices.
         virtual const IIndexBufferLayout* indexBufferLayout() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the primitive topology.
-        /// </summary>
-        /// <returns>The primitive topology.</returns>
+        /// @brief Returns the primitive topology.
+        ///
+        /// @return The primitive topology.
         virtual PrimitiveTopology topology() const noexcept = 0;
 
-        /// <summary>
-        /// The number of control points for a patch, if the <see cref="topology" /> is set to `PrimitiveTopology::PatchList`.
-        /// </summary>
-        /// <returns>The number of control points for a patch.</returns>
+        /// @brief The number of control points for a patch, if the @ref topology is set to `PrimitiveTopology::PatchList`.
+        ///
+        /// @return The number of control points for a patch.
         virtual UInt32 controlPoints() const noexcept = 0;
 
     private:
         virtual Enumerable<const IVertexBufferLayout&> getVertexBufferLayouts() const = 0;
     };
 
-    /// <summary>
-    /// The interface for a pipeline.
-    /// </summary>
-    /// <seealso cref="IComputePipeline" />
-    /// <seealso cref="IRenderPipeline" />
-    /// <seealso cref="IRayTracingPipeline" />
+    /// @brief The interface for a pipeline.
+    ///
+    /// @see IComputePipeline
+    /// @see IRenderPipeline
+    /// @see IRayTracingPipeline
     class LITEFX_RENDERING_API IPipeline : public virtual IStateResource {
     protected:
         IPipeline() noexcept = default;
@@ -7713,18 +6195,16 @@ namespace LiteFX::Rendering {
         ~IPipeline() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns the shader program used by the pipeline.
-        /// </summary>
-        /// <returns>The shader program used by the pipeline.</returns>
+        /// @brief Returns the shader program used by the pipeline.
+        ///
+        /// @return The shader program used by the pipeline.
         inline SharedPtr<const IShaderProgram> program() const noexcept {
             return this->getProgram();
         }
 
-        /// <summary>
-        /// Returns the layout of the render pipeline.
-        /// </summary>
-        /// <returns>The layout of the render pipeline.</returns>
+        /// @brief Returns the layout of the render pipeline.
+        ///
+        /// @return The layout of the render pipeline.
         inline SharedPtr<const IPipelineLayout> layout() const noexcept {
             return this->getLayout();
         }
@@ -7734,9 +6214,7 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<const IPipelineLayout> getLayout() const noexcept = 0;
     };
 
-    /// <summary>
-    /// The interface for a command buffer.
-    /// </summary>
+    /// @brief The interface for a command buffer.
     class LITEFX_RENDERING_API ICommandBuffer : public SharedObject {
     public:
         friend class ICommandQueue;
@@ -7752,450 +6230,349 @@ namespace LiteFX::Rendering {
         ~ICommandBuffer() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <see cref="CommandQueue" />.
-        /// </summary>
-        /// <remarks>
-        /// Note that you have to wait for a command buffer to be executed on the parent <see cref="CommandQueue" /> before you can begin recording on it again.
-        /// </remarks>
-        /// <exception cref="RuntimeException">Thrown, if the command buffer is already recording.</exception>
-        /// <seealso cref="end" />
+        /// @brief Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent @ref CommandQueue.
+        ///
+        /// Note that you have to wait for a command buffer to be executed on the parent @ref CommandQueue before you can begin recording on it again.
+        ///
+        /// @throws RuntimeException Thrown, if the command buffer is already recording.
+        /// @see end
         virtual void begin() const = 0;
 
-        /// <summary>
-        /// Ends recording commands on the command buffer.
-        /// </summary>
-        /// <remarks>
+        /// @brief Ends recording commands on the command buffer.
+        ///
         /// It is valid to call this method multiple times. If a command buffer is already closed, nothing will happen.
-        /// </remarks>
-        /// <seealso cref="begin" />
+        ///
+        /// @see begin
         virtual void end() const = 0;
 
-        /// <summary>
-        /// Returns `true`, if the command buffer is a secondary command buffer, or `false` otherwise.
-        /// </summary>
-        /// <returns>`true`, if the command buffer is a secondary command buffer, or `false` otherwise.</returns>
+        /// @brief Returns `true`, if the command buffer is a secondary command buffer, or `false` otherwise.
+        ///
+        /// @return `true`, if the command buffer is a secondary command buffer, or `false` otherwise.
         virtual bool isSecondary() const noexcept = 0;
 
-        /// <summary>
-        /// Sets up tracking for a buffer, so that it will not be destroyed until the command buffer has been executed.
-        /// </summary>
-        /// <remarks>
-        /// When working with resources, often times you only need them for a single execution cycle of a command buffer. Having to manually check if the command buffer has been 
-        /// executed (by waiting for it's submission fence on the target queue) and releasing the resource afterwards can be difficult and intricate. Resource tracking allows the
-        /// command buffer to store a reference of a resource and releasing it at some point after the command buffer has been executed automatically. Note that this does not 
-        /// automatically destroy the resource, which only happens if all references to it are released. However, if the only reference left is the one that is tracked by the 
-        /// command buffer, this process also destroys the resource.
-        /// 
-        /// Resources can only be tracked, if the command buffer is currently recording. The command buffer will not track uninitialized resources, i.e., a submitted `nullptr`
-        /// will be discarded.
-        /// </remarks>
-        /// <param name="buffer">The buffer to track.</param>
-        /// <exception cref="RuntimeException">Thrown, if the command buffer is not currently recording.</exception>
-        /// <seealso cref="track(SharedPtr&le;const IImage&ge;)" />
-        /// <seealso cref="track(SharedPtr&le;const ISampler&ge;)" />
+        /// @brief Sets up tracking for a buffer, so that it will not be destroyed until the command buffer has been executed.
+        ///
+        /// When working with resources, often times you only need them for a single execution cycle of a command buffer. Having to manually check if the command buffer has been executed (by waiting for it's
+        /// submission fence on the target queue) and releasing the resource afterwards can be difficult and intricate. Resource tracking allows the command buffer to store a reference of a resource and releasing
+        /// it at some point after the command buffer has been executed automatically. Note that this does not automatically destroy the resource, which only happens if all references to it are released. However,
+        /// if the only reference left is the one that is tracked by the command buffer, this process also destroys the resource.
+        ///
+        /// Resources can only be tracked, if the command buffer is currently recording. The command buffer will not track uninitialized resources, i.e., a submitted `nullptr` will be discarded.
+        ///
+        /// @param buffer The buffer to track.
+        /// @throws RuntimeException Thrown, if the command buffer is not currently recording.
+        /// @see track(SharedPtr&le;const IImage&ge;)
+        /// @see track(SharedPtr&le;const ISampler&ge;)
         virtual void track(SharedPtr<const IBuffer> buffer) const = 0;
 
-        /// <summary>
-        /// Sets up tracking for an image, so that it will not be destroyed until the command buffer has been executed.
-        /// </summary>
-        /// <param name="image">The image to track.</param>
-        /// <exception cref="RuntimeException">Thrown, if the command buffer is not currently recording.</exception>
-        /// <seealso cref="track(SharedPtr&le;const IBuffer&ge;)" />
+        /// @brief Sets up tracking for an image, so that it will not be destroyed until the command buffer has been executed.
+        ///
+        /// @param image The image to track.
+        /// @throws RuntimeException Thrown, if the command buffer is not currently recording.
+        /// @see track(SharedPtr&le;const IBuffer&ge;)
         virtual void track(SharedPtr<const IImage> image) const = 0;
 
-        /// <summary>
-        /// Sets up tracking for a sampler state, so that it will not be destroyed until the command buffer has been executed.
-        /// </summary>
-        /// <param name="sampler">The sampler to track.</param>
-        /// <exception cref="RuntimeException">Thrown, if the command buffer is not currently recording.</exception>
-        /// <seealso cref="track(SharedPtr&le;const IBuffer&ge;)" />
+        /// @brief Sets up tracking for a sampler state, so that it will not be destroyed until the command buffer has been executed.
+        ///
+        /// @param sampler The sampler to track.
+        /// @throws RuntimeException Thrown, if the command buffer is not currently recording.
+        /// @see track(SharedPtr&le;const IBuffer&ge;)
         virtual void track(SharedPtr<const ISampler> sampler) const = 0;
 
-        /// <summary>
-        /// Sets up tracking for a descriptor set, so that bindings aren't released until the command buffer has been executed.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set to track.</param>
+        /// @brief Sets up tracking for a descriptor set, so that bindings aren't released until the command buffer has been executed.
+        ///
+        /// @param descriptorSet The descriptor set to track.
         virtual void track(UniquePtr<const IDescriptorSet>&& descriptorSet) const = 0;
 
     public:
-        /// <summary>
-        /// Gets a pointer to the command queue that this command buffer was allocated from or `nullptr`, if the queue has already been released.
-        /// </summary>
-        /// <returns>A reference to the command queue that this command buffer was allocated from.</returns>
+        /// @brief Gets a pointer to the command queue that this command buffer was allocated from or `nullptr`, if the queue has already been released.
+        ///
+        /// @return A reference to the command queue that this command buffer was allocated from.
         inline SharedPtr<const ICommandQueue> queue() const noexcept {
             return this->getQueue();
         }
 
-        /// <summary>
-        /// Creates a new barrier instance.
-        /// </summary>
-        /// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
-        /// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
-        /// <returns>The instance of the barrier.</returns>
+        /// @brief Creates a new barrier instance.
+        ///
+        /// @param syncBefore The pipeline stage(s) all previous commands have to finish before the barrier is executed.
+        /// @param syncAfter The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.
+        /// @return The instance of the barrier.
         [[nodiscard]] inline UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const {
             return this->getBarrier(syncBefore, syncAfter);
         }
 
-        /// <summary>
-        /// Executes the transitions that have been added to <paramref name="barrier" />.
-        /// </summary>
-        /// <remarks>
-        /// Calling this method will also update the resource states of each resource within the barrier. However, the actual state of the resource does not change until the barrier
-        /// is executed on the command queue. Keep this in mind when inserting multiple barriers from different threads or in different command buffers, which may not be executed in 
-        /// order. You might have to manually synchronize barrier execution.
-        /// </remarks>
-        /// <param name="barrier">The barrier containing the transitions to perform.</param>
+        /// @brief Executes the transitions that have been added to @p barrier.
+        ///
+        /// Calling this method will also update the resource states of each resource within the barrier. However, the actual state of the resource does not change until the barrier is executed on the command
+        /// queue. Keep this in mind when inserting multiple barriers from different threads or in different command buffers, which may not be executed in order. You might have to manually synchronize barrier
+        /// execution.
+        ///
+        /// @param barrier The barrier containing the transitions to perform.
         inline void barrier(const IBarrier& barrier) const noexcept {
             this->cmdBarrier(barrier);
         }
 
-        /// <summary>
-        /// Performs a buffer-to-buffer transfer from <paramref name="source" /> to <paramref name="target" />.
-        /// </summary>
-        /// <remarks>
-        /// Note that you have to manually ensure that <paramref name="source" /> and <paramref name="target" /> are in the proper state for transfer operations. You might have to
-        /// use a <see cref="IBarrier" /> before starting the transfer.
-        /// </remarks>
-        /// <param name="source">The source buffer to transfer data from.</param>
-        /// <param name="target">The target buffer to transfer data to.</param>
-        /// <param name="sourceElement">The index of the first element in the source buffer to copy.</param>
-        /// <param name="targetElement">The index of the first element in the target buffer to copy to.</param>
-        /// <param name="elements">The number of elements to copy from the source buffer into the target buffer.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        /// <seealso cref="IBarrier" />
+        /// @brief Performs a buffer-to-buffer transfer from @p source to @p target.
+        ///
+        /// Note that you have to manually ensure that @p source and @p target are in the proper state for transfer operations. You might have to use a @ref IBarrier before starting the transfer.
+        ///
+        /// @param source The source buffer to transfer data from.
+        /// @param target The target buffer to transfer data to.
+        /// @param sourceElement The index of the first element in the source buffer to copy.
+        /// @param targetElement The index of the first element in the target buffer to copy to.
+        /// @param elements The number of elements to copy from the source buffer into the target buffer.
+        /// @throws ArgumentOutOfRangeException Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified @p elements parameter.
+        /// @see IBarrier
         inline void transfer(const IBuffer& source, const IBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, targetElement, elements);
         }
         
-        /// <summary>
-        /// Performs a buffer-to-buffer transfer from <paramref name="source" /> to <paramref name="target" />.
-        /// </summary>
-        /// <remarks>
-        /// This method takes shared ownership over <paramref name="source" />, which means that a reference is hold until the parent command queue finished using the command buffer. At this point,
-        /// the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this is a relaxed constraint. It is only guaranteed, that the queue calls this
-        /// method at some point after the command buffer has been executed.
-        /// 
-        /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging
-        /// buffer and delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
-        /// 
-        /// Note that you have to manually ensure that <paramref name="source" /> and <paramref name="target" /> are in the proper state for transfer operations. You might have to
-        /// use a <see cref="IBarrier" /> before starting the transfer.
-        /// </remarks>
-        /// <param name="source">The source buffer to transfer data from.</param>
-        /// <param name="target">The target buffer to transfer data to.</param>
-        /// <param name="sourceElement">The index of the first element in the source buffer to copy.</param>
-        /// <param name="targetElement">The index of the first element in the target buffer to copy to.</param>
-        /// <param name="elements">The number of elements to copy from the source buffer into the target buffer.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+        /// @brief Performs a buffer-to-buffer transfer from @p source to @p target.
+        ///
+        /// This method takes shared ownership over @p source, which means that a reference is hold until the parent command queue finished using the command buffer. At this point, the command queue calls @ref
+        /// releaseSharedState to release all shared references. Note that this is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been
+        /// executed.
+        ///
+        /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging buffer and
+        /// delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
+        ///
+        /// Note that you have to manually ensure that @p source and @p target are in the proper state for transfer operations. You might have to use a @ref IBarrier before starting the transfer.
+        ///
+        /// @param source The source buffer to transfer data from.
+        /// @param target The target buffer to transfer data to.
+        /// @param sourceElement The index of the first element in the source buffer to copy.
+        /// @param targetElement The index of the first element in the target buffer to copy to.
+        /// @param elements The number of elements to copy from the source buffer into the target buffer.
+        /// @throws ArgumentOutOfRangeException Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified @p elements parameter.
         inline void transfer(const SharedPtr<const IBuffer>& source, const IBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, targetElement, elements);
         }
 
-        /// <summary>
-        /// Performs a buffer-to-buffer transfer from a temporary buffer into <paramref name="target" />.
-        /// </summary>
-        /// <remarks>
-        /// This method creates a temporary buffer and maps <paramref name="data" /> into it, before transferring it into <paramref name="target" />. A reference of the temporary buffer is stored 
-        /// until the parent command queue finished using the command buffer. At this point, the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this
-        /// is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been executed. 
-        /// </remarks>
-        /// <param name="data">The address that marks the beginning of the data to map.</param>
-        /// <param name="size">The number of bytes to map.</param>
-        /// <param name="target">The target buffer to transfer data to.</param>
-        /// <param name="targetElement">The array element to map the data to.</param>
-        /// <param name="elements">The number of elements to copy.</param>
+        /// @brief Performs a buffer-to-buffer transfer from a temporary buffer into @p target.
+        ///
+        /// This method creates a temporary buffer and maps @p data into it, before transferring it into @p target. A reference of the temporary buffer is stored until the parent command queue finished using the
+        /// command buffer. At this point, the command queue calls @ref releaseSharedState to release all shared references. Note that this is a relaxed constraint. It is only guaranteed, that the queue calls
+        /// this method at some point after the command buffer has been executed.
+        ///
+        /// @param data The address that marks the beginning of the data to map.
+        /// @param size The number of bytes to map.
+        /// @param target The target buffer to transfer data to.
+        /// @param targetElement The array element to map the data to.
+        /// @param elements The number of elements to copy.
         inline void transfer(const void* const data, size_t size, const IBuffer& target, UInt32 targetElement = 0, UInt32 elements = 1) const {
             this->cmdTransfer(data, size, target, targetElement, elements);
         }
 
-        /// <summary>
-        /// Performs a buffer-to-buffer transfer from a temporary buffer into <paramref name="target" />.
-        /// </summary>
-        /// <remarks>
-        /// This method creates a temporary buffer and maps <paramref name="data" /> into it, before transferring it into <paramref name="target" />. A reference of the temporary buffer is stored 
-        /// until the parent command queue finished using the command buffer. At this point, the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this
-        /// is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been executed. 
-        /// </remarks>
-        /// <param name="data">The addresses that mark the beginning of the element data to map.</param>
-        /// <param name="elementSize">The number of bytes to map for each element.</param>
-        /// <param name="target">The target buffer to transfer data to.</param>
-        /// <param name="targetElement">The first array element to transfer the data to.</param>
+        /// @brief Performs a buffer-to-buffer transfer from a temporary buffer into @p target.
+        ///
+        /// This method creates a temporary buffer and maps @p data into it, before transferring it into @p target. A reference of the temporary buffer is stored until the parent command queue finished using the
+        /// command buffer. At this point, the command queue calls @ref releaseSharedState to release all shared references. Note that this is a relaxed constraint. It is only guaranteed, that the queue calls
+        /// this method at some point after the command buffer has been executed.
+        ///
+        /// @param data The addresses that mark the beginning of the element data to map.
+        /// @param elementSize The number of bytes to map for each element.
+        /// @param target The target buffer to transfer data to.
+        /// @param targetElement The first array element to transfer the data to.
         inline void transfer(Span<const void* const> data, size_t elementSize, const IBuffer& target, UInt32 targetElement = 0) const {
             this->cmdTransfer(data, elementSize, target, targetElement);
         }
 
-        /// <summary>
-        /// Performs a buffer-to-image transfer from <paramref name="source" /> to <paramref name="target" />.
-        /// </summary>
-        /// <remarks>
-        /// The <paramref name="subresource" /> parameter describes the index of the first sub-resource to copy. Each element gets copied into the subsequent sub-resource, where 
-        /// resources are counted in the following order:
-        /// 
-        /// <list type="bullet">
-        ///     <item>
-        ///         <term>Level</term>
-        ///         <description>Contains the mip-map levels.</description>
-        ///     </item>
-        ///     <item>
-        ///         <term>Layer</term>
-        ///         <description>Contains the array slices.</description>
-        ///     </item>
-        ///     <item>
-        ///         <term>Plane</term>
-        ///         <description>Contains planes for multi-planar formats.</description>
-        ///     </item>
-        /// </list>
-        /// 
-        /// E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 
-        /// contain the three mip-map levels of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure 
-        /// would be repeated for each plane, however one buffer element only maps to one sub-resource.
-        /// 
-        /// Note that you have to manually ensure that <paramref name="source" /> and <paramref name="target" /> are in the proper state for transfer operations. You might have to
-        /// use a <see cref="IBarrier" /> before starting the transfer.
-        /// </remarks>
-        /// <param name="source">The source buffer to transfer data from.</param>
-        /// <param name="target">The target image to transfer data to.</param>
-        /// <param name="sourceElement">The index of the first element in the source buffer to copy.</param>
-        /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
-        /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+        /// @brief Performs a buffer-to-image transfer from @p source to @p target.
+        ///
+        /// The @p subresource parameter describes the index of the first sub-resource to copy. Each element gets copied into the subsequent sub-resource, where resources are counted in the following order:
+        ///
+        /// - **Level**: Contains the mip-map levels.
+        /// - **Layer**: Contains the array slices.
+        /// - **Plane**: Contains planes for multi-planar formats.
+        ///
+        /// E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 contain the three mip-map levels
+        /// of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure would be repeated for each plane, however one buffer element
+        /// only maps to one sub-resource.
+        ///
+        /// Note that you have to manually ensure that @p source and @p target are in the proper state for transfer operations. You might have to use a @ref IBarrier before starting the transfer.
+        ///
+        /// @param source The source buffer to transfer data from.
+        /// @param target The target image to transfer data to.
+        /// @param sourceElement The index of the first element in the source buffer to copy.
+        /// @param firstSubresource The index of the first sub-resource of the target image to receive data.
+        /// @param elements The number of elements to copy from the source buffer into the target image sub-resources.
+        /// @throws ArgumentOutOfRangeException Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified @p elements parameter.
         inline void transfer(const IBuffer& source, const IImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
         }
 
-        /// <summary>
-        /// Performs a buffer-to-image transfer from <paramref name="source" /> to <paramref name="target" />.
-        /// </summary>
-        /// <remarks>
-        /// The <paramref name="subresource" /> parameter describes the index of the first sub-resource to copy. Each element gets copied into the subsequent sub-resource, where 
-        /// resources are counted in the following order:
-        /// 
-        /// <list type="bullet">
-        ///     <item>
-        ///         <term>Level</term>
-        ///         <description>Contains the mip-map levels.</description>
-        ///     </item>
-        ///     <item>
-        ///         <term>Layer</term>
-        ///         <description>Contains the array slices.</description>
-        ///     </item>
-        ///     <item>
-        ///         <term>Plane</term>
-        ///         <description>Contains planes for multi-planar formats.</description>
-        ///     </item>
-        /// </list>
-        /// 
-        /// E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 
-        /// contain the three mip-map levels of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure 
-        /// would be repeated for each plane, however one buffer element only maps to one sub-resource.
-        /// 
-        /// This method takes shared ownership over <paramref name="source" />, which means that a reference is hold until the parent command queue finished using the command buffer. At this point,
-        /// the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this is a relaxed constraint. It is only guaranteed, that the queue calls this
-        /// method at some point after the command buffer has been executed.
-        /// 
-        /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging
-        /// buffer and delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
-        /// 
-        /// Note that you have to manually ensure that <paramref name="source" /> and <paramref name="target" /> are in the proper state for transfer operations. You might have to
-        /// use a <see cref="IBarrier" /> before starting the transfer.
-        /// </remarks>
-        /// <param name="source">The source buffer to transfer data from.</param>
-        /// <param name="target">The target image to transfer data to.</param>
-        /// <param name="sourceElement">The index of the first element in the source buffer to copy.</param>
-        /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
-        /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+        /// @brief Performs a buffer-to-image transfer from @p source to @p target.
+        ///
+        /// The @p subresource parameter describes the index of the first sub-resource to copy. Each element gets copied into the subsequent sub-resource, where resources are counted in the following order:
+        ///
+        /// - **Level**: Contains the mip-map levels.
+        /// - **Layer**: Contains the array slices.
+        /// - **Plane**: Contains planes for multi-planar formats.
+        ///
+        /// E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 contain the three mip-map levels
+        /// of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure would be repeated for each plane, however one buffer element
+        /// only maps to one sub-resource.
+        ///
+        /// This method takes shared ownership over @p source, which means that a reference is hold until the parent command queue finished using the command buffer. At this point, the command queue calls @ref
+        /// releaseSharedState to release all shared references. Note that this is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been
+        /// executed.
+        ///
+        /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging buffer and
+        /// delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
+        ///
+        /// Note that you have to manually ensure that @p source and @p target are in the proper state for transfer operations. You might have to use a @ref IBarrier before starting the transfer.
+        ///
+        /// @param source The source buffer to transfer data from.
+        /// @param target The target image to transfer data to.
+        /// @param sourceElement The index of the first element in the source buffer to copy.
+        /// @param firstSubresource The index of the first sub-resource of the target image to receive data.
+        /// @param elements The number of elements to copy from the source buffer into the target image sub-resources.
+        /// @throws ArgumentOutOfRangeException Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified @p elements parameter.
         inline void transfer(const SharedPtr<const IBuffer>& source, const IImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
         }
 
-        /// <summary>
-        /// Performs a buffer-to-buffer transfer from a temporary buffer into <paramref name="target" />.
-        /// </summary>
-        /// <remarks>
-        /// This method creates a temporary buffer and maps <paramref name="data" /> into it, before transferring it into <paramref name="target" />. A reference of the temporary buffer is stored 
-        /// until the parent command queue finished using the command buffer. At this point, the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this
-        /// is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been executed. 
-        /// </remarks>
-        /// <param name="data">The address that marks the beginning of the data to map.</param>
-        /// <param name="size">The number of bytes to map.</param>
-        /// <param name="target">The target buffer to transfer data to.</param>
-        /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
-        /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
+        /// @brief Performs a buffer-to-buffer transfer from a temporary buffer into @p target.
+        ///
+        /// This method creates a temporary buffer and maps @p data into it, before transferring it into @p target. A reference of the temporary buffer is stored until the parent command queue finished using the
+        /// command buffer. At this point, the command queue calls @ref releaseSharedState to release all shared references. Note that this is a relaxed constraint. It is only guaranteed, that the queue calls
+        /// this method at some point after the command buffer has been executed.
+        ///
+        /// @param data The address that marks the beginning of the data to map.
+        /// @param size The number of bytes to map.
+        /// @param target The target buffer to transfer data to.
+        /// @param firstSubresource The index of the first sub-resource of the target image to receive data.
+        /// @param elements The number of elements to copy from the source buffer into the target image sub-resources.
         inline void transfer(const void* const data, size_t size, const IImage& target, UInt32 subresource = 0) const {
             this->cmdTransfer(data, size, target, subresource);
         }
 
-        /// <summary>
-        /// Performs a buffer-to-buffer transfer from a temporary buffer into <paramref name="target" />.
-        /// </summary>
-        /// <remarks>
-        /// This method creates a temporary buffer and maps <paramref name="data" /> into it, before transferring it into <paramref name="target" />. A reference of the temporary buffer is stored 
-        /// until the parent command queue finished using the command buffer. At this point, the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this
-        /// is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been executed. 
-        /// </remarks>
-        /// <param name="data">The addresses that mark the beginning of the element data to map.</param>
-        /// <param name="elementSize">The number of bytes to map for each element.</param>
-        /// <param name="target">The target buffer to transfer data to.</param>
-        /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
-        /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
+        /// @brief Performs a buffer-to-buffer transfer from a temporary buffer into @p target.
+        ///
+        /// This method creates a temporary buffer and maps @p data into it, before transferring it into @p target. A reference of the temporary buffer is stored until the parent command queue finished using the
+        /// command buffer. At this point, the command queue calls @ref releaseSharedState to release all shared references. Note that this is a relaxed constraint. It is only guaranteed, that the queue calls
+        /// this method at some point after the command buffer has been executed.
+        ///
+        /// @param data The addresses that mark the beginning of the element data to map.
+        /// @param elementSize The number of bytes to map for each element.
+        /// @param target The target buffer to transfer data to.
+        /// @param firstSubresource The index of the first sub-resource of the target image to receive data.
+        /// @param elements The number of elements to copy from the source buffer into the target image sub-resources.
         inline void transfer(Span<const void* const> data, size_t elementSize, const IImage& target, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
             this->cmdTransfer(data, elementSize, target, firstSubresource, elements);
         }
 
-        /// <summary>
-        /// Performs an image-to-image transfer from <paramref name="source" /> to <paramref name="target" />.
-        /// </summary>
-        /// <remarks>
-        /// Note that you have to manually ensure that <paramref name="source" /> and <paramref name="target" /> are in the proper state for transfer operations. You might have to
-        /// use a <see cref="IBarrier" /> before starting the transfer.
-        /// </remarks>
-        /// <param name="source">The source image to transfer data from.</param>
-        /// <param name="target">The target image to transfer data to.</param>
-        /// <param name="sourceSubresource">The index of the first sub-resource to copy from the source image.</param>
-        /// <param name="targetSubresource">The image of the first sub-resource in the target image to receive data.</param>
-        /// <param name="subresources">The number of sub-resources to copy between the images.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+        /// @brief Performs an image-to-image transfer from @p source to @p target.
+        ///
+        /// Note that you have to manually ensure that @p source and @p target are in the proper state for transfer operations. You might have to use a @ref IBarrier before starting the transfer.
+        ///
+        /// @param source The source image to transfer data from.
+        /// @param target The target image to transfer data to.
+        /// @param sourceSubresource The index of the first sub-resource to copy from the source image.
+        /// @param targetSubresource The image of the first sub-resource in the target image to receive data.
+        /// @param subresources The number of sub-resources to copy between the images.
+        /// @throws ArgumentOutOfRangeException Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified @p elements parameter.
         inline void transfer(const IImage& source, const IImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
         }
 
-        /// <summary>
-        /// Performs an image-to-image transfer from <paramref name="source" /> to <paramref name="target" />.
-        /// </summary>
-        /// <remarks>
-        /// This method takes shared ownership over <paramref name="source" />, which means that a reference is hold until the parent command queue finished using the command buffer. At this point,
-        /// the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this is a relaxed constraint. It is only guaranteed, that the queue calls this
-        /// method at some point after the command buffer has been executed.
-        /// 
-        /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging
-        /// buffer and delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
-        /// 
-        /// Note that you have to manually ensure that <paramref name="source" /> and <paramref name="target" /> are in the proper state for transfer operations. You might have to
-        /// use a <see cref="IBarrier" /> before starting the transfer.
-        /// </remarks>
-        /// <param name="source">The source image to transfer data from.</param>
-        /// <param name="target">The target image to transfer data to.</param>
-        /// <param name="sourceSubresource">The index of the first sub-resource to copy from the source image.</param>
-        /// <param name="targetSubresource">The image of the first sub-resource in the target image to receive data.</param>
-        /// <param name="subresources">The number of sub-resources to copy between the images.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+        /// @brief Performs an image-to-image transfer from @p source to @p target.
+        ///
+        /// This method takes shared ownership over @p source, which means that a reference is hold until the parent command queue finished using the command buffer. At this point, the command queue calls @ref
+        /// releaseSharedState to release all shared references. Note that this is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been
+        /// executed.
+        ///
+        /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging buffer and
+        /// delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
+        ///
+        /// Note that you have to manually ensure that @p source and @p target are in the proper state for transfer operations. You might have to use a @ref IBarrier before starting the transfer.
+        ///
+        /// @param source The source image to transfer data from.
+        /// @param target The target image to transfer data to.
+        /// @param sourceSubresource The index of the first sub-resource to copy from the source image.
+        /// @param targetSubresource The image of the first sub-resource in the target image to receive data.
+        /// @param subresources The number of sub-resources to copy between the images.
+        /// @throws ArgumentOutOfRangeException Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified @p elements parameter.
         inline void transfer(const SharedPtr<const IImage>& source, const IImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
         }
 
-        /// <summary>
-        /// Performs an image-to-buffer transfer from <paramref name="source" /> to <paramref name="target" />.
-        /// </summary>
-        /// <remarks>
-        /// The <paramref name="firstSubresource" /> parameter describes the index of the first sub-resource to copy. Each element gets copied into the subsequent sub-resource, where 
-        /// resources are counted in the following order:
-        /// 
-        /// <list type="bullet">
-        ///     <item>
-        ///         <term>Level</term>
-        ///         <description>Contains the mip-map levels.</description>
-        ///     </item>
-        ///     <item>
-        ///         <term>Layer</term>
-        ///         <description>Contains the array slices.</description>
-        ///     </item>
-        ///     <item>
-        ///         <term>Plane</term>
-        ///         <description>Contains planes for multi-planar formats.</description>
-        ///     </item>
-        /// </list>
-        /// 
-        /// E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 
-        /// contain the three mip-map levels of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure 
-        /// would be repeated for each plane, however one buffer element only maps to one sub-resource.
-        /// 
-        /// Note that you have to manually ensure that <paramref name="source" /> and <paramref name="target" /> are in the proper state for transfer operations. You might have to
-        /// use a <see cref="IBarrier" /> before starting the transfer.
-        /// </remarks>
-        /// <param name="source">The source image to transfer data from.</param>
-        /// <param name="target">The target buffer to transfer data to.</param>
-        /// <param name="firstSubresource">The index of the first sub-resource to copy from the source image.</param>
-        /// <param name="targetElement">The index of the first target element to receive data.</param>
-        /// <param name="subresources">The number of sub-resources to copy.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+        /// @brief Performs an image-to-buffer transfer from @p source to @p target.
+        ///
+        /// The @p firstSubresource parameter describes the index of the first sub-resource to copy. Each element gets copied into the subsequent sub-resource, where resources are counted in the following order:
+        ///
+        /// - **Level**: Contains the mip-map levels.
+        /// - **Layer**: Contains the array slices.
+        /// - **Plane**: Contains planes for multi-planar formats.
+        ///
+        /// E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 contain the three mip-map levels
+        /// of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure would be repeated for each plane, however one buffer element
+        /// only maps to one sub-resource.
+        ///
+        /// Note that you have to manually ensure that @p source and @p target are in the proper state for transfer operations. You might have to use a @ref IBarrier before starting the transfer.
+        ///
+        /// @param source The source image to transfer data from.
+        /// @param target The target buffer to transfer data to.
+        /// @param firstSubresource The index of the first sub-resource to copy from the source image.
+        /// @param targetElement The index of the first target element to receive data.
+        /// @param subresources The number of sub-resources to copy.
+        /// @throws ArgumentOutOfRangeException Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified @p elements parameter.
         inline void transfer(const IImage& source, const IBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, firstSubresource, targetElement, subresources);
         }
 
-        /// <summary>
-        /// Performs an image-to-buffer transfer from <paramref name="source" /> to <paramref name="target" />.
-        /// </summary>
-        /// <remarks>
-        /// The <paramref name="firstSubresource" /> parameter describes the index of the first sub-resource to copy. Each element gets copied into the subsequent sub-resource, where 
-        /// resources are counted in the following order:
-        /// 
-        /// <list type="bullet">
-        ///     <item>
-        ///         <term>Level</term>
-        ///         <description>Contains the mip-map levels.</description>
-        ///     </item>
-        ///     <item>
-        ///         <term>Layer</term>
-        ///         <description>Contains the array slices.</description>
-        ///     </item>
-        ///     <item>
-        ///         <term>Plane</term>
-        ///         <description>Contains planes for multi-planar formats.</description>
-        ///     </item>
-        /// </list>
-        /// 
-        /// E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 
-        /// contain the three mip-map levels of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure 
-        /// would be repeated for each plane, however one buffer element only maps to one sub-resource.
-        /// 
-        /// This method takes shared ownership over <paramref name="source" />, which means that a reference is hold until the parent command queue finished using the command buffer. At this point,
-        /// the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this is a relaxed constraint. It is only guaranteed, that the queue calls this
-        /// method at some point after the command buffer has been executed.
-        /// 
-        /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging
-        /// buffer and delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
-        /// 
-        /// Note that you have to manually ensure that <paramref name="source" /> and <paramref name="target" /> are in the proper state for transfer operations. You might have to
-        /// use a <see cref="IBarrier" /> before starting the transfer.
-        /// </remarks>
-        /// <param name="source">The source image to transfer data from.</param>
-        /// <param name="target">The target buffer to transfer data to.</param>
-        /// <param name="firstSubresource">The index of the first sub-resource to copy from the source image.</param>
-        /// <param name="targetElement">The index of the first target element to receive data.</param>
-        /// <param name="subresources">The number of sub-resources to copy.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+        /// @brief Performs an image-to-buffer transfer from @p source to @p target.
+        ///
+        /// The @p firstSubresource parameter describes the index of the first sub-resource to copy. Each element gets copied into the subsequent sub-resource, where resources are counted in the following order:
+        ///
+        /// - **Level**: Contains the mip-map levels.
+        /// - **Layer**: Contains the array slices.
+        /// - **Plane**: Contains planes for multi-planar formats.
+        ///
+        /// E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 contain the three mip-map levels
+        /// of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure would be repeated for each plane, however one buffer element
+        /// only maps to one sub-resource.
+        ///
+        /// This method takes shared ownership over @p source, which means that a reference is hold until the parent command queue finished using the command buffer. At this point, the command queue calls @ref
+        /// releaseSharedState to release all shared references. Note that this is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been
+        /// executed.
+        ///
+        /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging buffer and
+        /// delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
+        ///
+        /// Note that you have to manually ensure that @p source and @p target are in the proper state for transfer operations. You might have to use a @ref IBarrier before starting the transfer.
+        ///
+        /// @param source The source image to transfer data from.
+        /// @param target The target buffer to transfer data to.
+        /// @param firstSubresource The index of the first sub-resource to copy from the source image.
+        /// @param targetElement The index of the first target element to receive data.
+        /// @param subresources The number of sub-resources to copy.
+        /// @throws ArgumentOutOfRangeException Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified @p elements parameter.
         inline void transfer(const SharedPtr<const IImage>& source, const IBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, firstSubresource, targetElement, subresources);
         }
 
-        /// <summary>
-        /// Sets the active pipeline state.
-        /// </summary>
+        /// @brief Sets the active pipeline state.
         inline void use(const IPipeline& pipeline) const noexcept {
             this->cmdUse(pipeline);
         }
 
-        /// <summary>
-        /// Binds the provided descriptor to the last pipeline that was used by the command buffer.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set to bind.</param>
-        /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
-        /// <seealso cref="use" />
+        /// @brief Binds the provided descriptor to the last pipeline that was used by the command buffer.
+        ///
+        /// @param descriptorSet The descriptor set to bind.
+        /// @throws RuntimeException Thrown, if no pipeline has been used before attempting to bind the descriptor set.
+        /// @see use
         inline void bind(const IDescriptorSet& descriptorSet) const {
             this->cmdBind(descriptorSet);
         }
 
-        /// <summary>
-        /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
-        /// </summary>
-        /// <remarks>
-        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
-        /// </remarks>
-        /// <typeparam name="T">The type of the descriptor sets.</typeparam>
-        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
-        /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
+        /// @brief Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
+        ///
+        /// Note that if an element of @p descriptorSets is `nullptr`, it will be ignored.
+        ///
+        /// @tparam T The type of the descriptor sets.
+        /// @param descriptorSets The pointers to the descriptor sets to bind.
+        /// @throws RuntimeException Thrown, if no pipeline has been used before attempting to bind the descriptor set.
         template <typename TSelf, typename T>
         inline void bind(this const TSelf& self, std::initializer_list<const T*> descriptorSets) requires
             std::derived_from<T, IDescriptorSet>
@@ -8205,14 +6582,12 @@ namespace LiteFX::Rendering {
             self.bind(Span<const T*>(sets));
         }
 
-        /// <summary>
-        /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
-        /// </summary>
-        /// <remarks>
-        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
-        /// </remarks>
-        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
-        /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
+        /// @brief Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
+        ///
+        /// Note that if an element of @p descriptorSets is `nullptr`, it will be ignored.
+        ///
+        /// @param descriptorSets The pointers to the descriptor sets to bind.
+        /// @throws RuntimeException Thrown, if no pipeline has been used before attempting to bind the descriptor set.
         template <typename TSelf>
         inline void bind(this const TSelf& self, std::ranges::input_range auto&& descriptorSets) requires 
             std::derived_from<std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>, IDescriptorSet>
@@ -8222,36 +6597,31 @@ namespace LiteFX::Rendering {
             self.bind(Span<const descriptor_set_type*>(sets));
         }
 
-        /// <summary>
-        /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
-        /// </summary>
-        /// <remarks>
-        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
-        /// </remarks>
-        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        /// @brief Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
+        ///
+        /// Note that if an element of @p descriptorSets is `nullptr`, it will be ignored.
+        ///
+        /// @param descriptorSets The pointers to the descriptor sets to bind.
         inline void bind(Span<const IDescriptorSet*> descriptorSets) const {
             this->cmdBind(descriptorSets);
         }
 
-        /// <summary>
-        /// Binds the provided descriptor set to the provided pipeline.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set to bind.</param>
-        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        /// @brief Binds the provided descriptor set to the provided pipeline.
+        ///
+        /// @param descriptorSet The descriptor set to bind.
+        /// @param pipeline The pipeline to bind the descriptor set to.
         inline void bind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const {
             this->cmdBind(descriptorSet, pipeline);
         }
 
-        /// <summary>
-        /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
-        /// </summary>
-        /// <remarks>
-        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
-        /// </remarks>
-        /// <typeparam name="T">The type of the descriptor sets.</typeparam>
-        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
-        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
-        /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
+        /// @brief Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
+        ///
+        /// Note that if an element of @p descriptorSets is `nullptr`, it will be ignored.
+        ///
+        /// @tparam T The type of the descriptor sets.
+        /// @param descriptorSets The pointers to the descriptor sets to bind.
+        /// @param pipeline The pipeline to bind the descriptor set to.
+        /// @throws RuntimeException Thrown, if no pipeline has been used before attempting to bind the descriptor set.
         template <typename TSelf, typename T>
         inline void bind(this const TSelf& self, std::initializer_list<const T*> descriptorSets, const typename TSelf::pipeline_type& pipeline) 
         {
@@ -8260,14 +6630,12 @@ namespace LiteFX::Rendering {
             self.bind(Span<const T*>(sets), pipeline);
         }
 
-        /// <summary>
-        /// Binds an arbitrary input range of descriptor sets to the provided pipeline.
-        /// </summary>
-        /// <remarks>
-        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
-        /// </remarks>
-        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
-        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        /// @brief Binds an arbitrary input range of descriptor sets to the provided pipeline.
+        ///
+        /// Note that if an element of @p descriptorSets is `nullptr`, it will be ignored.
+        ///
+        /// @param descriptorSets The pointers to the descriptor sets to bind.
+        /// @param pipeline The pipeline to bind the descriptor set to.
         template <typename TSelf>
         inline void bind(this const TSelf& self, std::ranges::input_range auto&& descriptorSets, const typename TSelf::pipeline_type& pipeline) requires 
             std::derived_from<std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>, IDescriptorSet>
@@ -8277,459 +6645,400 @@ namespace LiteFX::Rendering {
             self.bind(Span<const descriptor_set_type*>(sets), pipeline);
         }
 
-        /// <summary>
-        /// Binds an arbitrary input range of descriptor sets to the provided pipeline.
-        /// </summary>
-        /// <remarks>
-        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
-        /// </remarks>
-        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
-        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        /// @brief Binds an arbitrary input range of descriptor sets to the provided pipeline.
+        ///
+        /// Note that if an element of @p descriptorSets is `nullptr`, it will be ignored.
+        ///
+        /// @param descriptorSets The pointers to the descriptor sets to bind.
+        /// @param pipeline The pipeline to bind the descriptor set to.
         inline void bind(Span<const IDescriptorSet*> descriptorSets, const IPipeline& pipeline) const {
             this->cmdBind(descriptorSets, pipeline);
         }
 
-        /// <summary>
-        /// Binds a vertex buffer to the pipeline.
-        /// </summary>
-        /// <remarks>
-        /// After binding the vertex buffer, the next call to <see cref="draw" /> or <see cref="drawIndexed" /> will read from it, until another vertex buffer is bound. 
-        /// </remarks>
-        /// <param name="buffer">The vertex buffer to bind to the pipeline.</param>
-        /// <seealso cref="VertexBuffer" />
-        /// <seealso cref="draw" />
-        /// <seealso cref="drawIndexed" />
+        /// @brief Binds a vertex buffer to the pipeline.
+        ///
+        /// After binding the vertex buffer, the next call to @ref draw or @ref drawIndexed will read from it, until another vertex buffer is bound.
+        ///
+        /// @param buffer The vertex buffer to bind to the pipeline.
+        /// @see VertexBuffer
+        /// @see draw
+        /// @see drawIndexed
         inline void bind(const IVertexBuffer& buffer) const {
             this->cmdBind(buffer);
         }
 
-        /// <summary>
-        /// Binds a index buffer to the pipeline.
-        /// </summary>
-        /// <remarks>
-        /// After binding the index buffer, the next call to <see cref="drawIndexed" /> will read from it, until another index buffer is bound. 
-        /// </remarks>
-        /// <param name="buffer">The index buffer to bind to the pipeline.</param>
-        /// <seealso cref="IndexBuffer" />
-        /// <seealso cref="drawIndexed" />
+        /// @brief Binds a index buffer to the pipeline.
+        ///
+        /// After binding the index buffer, the next call to @ref drawIndexed will read from it, until another index buffer is bound.
+        ///
+        /// @param buffer The index buffer to bind to the pipeline.
+        /// @see IndexBuffer
+        /// @see drawIndexed
         inline void bind(const IIndexBuffer& buffer) const {
             this->cmdBind(buffer);
         }
 
-        /// <summary>
-        /// Executes a compute shader.
-        /// </summary>
-        /// <param name="threadCount">The number of thread groups per dimension.</param>
-        /// <seealso cref="dispatchIndirect" />
+        /// @brief Executes a compute shader.
+        ///
+        /// @param threadCount The number of thread groups per dimension.
+        /// @see dispatchIndirect
         virtual void dispatch(const Vector3u& threadGroupCount) const noexcept = 0;
 
-        /// <summary>
-        /// Executes a compute shader.
-        /// </summary>
-        /// <param name="x">The number of thread groups along the x dimension.</param>
-        /// <param name="y">The number of thread groups along the y dimension.</param>
-        /// <param name="z">The number of thread groups along the z dimension.</param>
+        /// @brief Executes a compute shader.
+        ///
+        /// @param x The number of thread groups along the x dimension.
+        /// @param y The number of thread groups along the y dimension.
+        /// @param z The number of thread groups along the z dimension.
         inline void dispatch(UInt32 x, UInt32 y, UInt32 z) const noexcept {
             this->dispatch({ x, y, z });
         }
 
-        /// <summary>
-        /// Executes a set of indirect dispatches.
-        /// </summary>
-        /// <param name="batchBuffer">The buffer that contains the batches.</param>
-        /// <param name="batchCount">The number of batches in the buffer to execute.</param>
-        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
-        /// <seealso cref="dispatch" />
+        /// @brief Executes a set of indirect dispatches.
+        ///
+        /// @param batchBuffer The buffer that contains the batches.
+        /// @param batchCount The number of batches in the buffer to execute.
+        /// @param offset The offset (in bytes) to the first batch in the @p batchBuffer.
+        /// @see dispatch
         inline void dispatchIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept {
             this->cmdDispatchIndirect(batchBuffer, batchCount, offset);
         }
         
-        /// <summary>
-        /// Executes a mesh shader pipeline.
-        /// </summary>
-        /// <remarks>
-        /// This method is only supported if the <see cref="GraphicsDeviceFeature::MeshShaders" /> feature is enabled.
-        /// </remarks>
-        /// <param name="threadCount">The number of thread groups per dimension.</param>
+        /// @brief Executes a mesh shader pipeline.
+        ///
+        /// This method is only supported if the @ref GraphicsDeviceFeature::MeshShaders feature is enabled.
+        ///
+        /// @param threadCount The number of thread groups per dimension.
         virtual void dispatchMesh(const Vector3u& threadGroupCount) const noexcept = 0;
 
-        /// <summary>
-        /// Executes a mesh shader pipeline.
-        /// </summary>
-        /// <remarks>
-        /// This method is only supported if the <see cref="GraphicsDeviceFeature::MeshShaders" /> feature is enabled.
-        /// </remarks>
-        /// <param name="x">The number of thread groups along the x dimension.</param>
-        /// <param name="y">The number of thread groups along the y dimension.</param>
-        /// <param name="z">The number of thread groups along the z dimension.</param>
+        /// @brief Executes a mesh shader pipeline.
+        ///
+        /// This method is only supported if the @ref GraphicsDeviceFeature::MeshShaders feature is enabled.
+        ///
+        /// @param x The number of thread groups along the x dimension.
+        /// @param y The number of thread groups along the y dimension.
+        /// @param z The number of thread groups along the z dimension.
         inline void dispatchMesh(UInt32 x, UInt32 y, UInt32 z) const noexcept {
             this->dispatchMesh({ x, y, z });
         }
 
-        /// <summary>
-        /// Executes a set of indirect mesh shader dispatches.
-        /// </summary>
-        /// <param name="batchBuffer">The buffer that contains the batches.</param>
-        /// <param name="batchCount">The number of batches in the buffer to execute.</param>
-        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
-        /// <seealso cref="dispatchMesh" />
+        /// @brief Executes a set of indirect mesh shader dispatches.
+        ///
+        /// @param batchBuffer The buffer that contains the batches.
+        /// @param batchCount The number of batches in the buffer to execute.
+        /// @param offset The offset (in bytes) to the first batch in the @p batchBuffer.
+        /// @see dispatchMesh
         inline void dispatchMeshIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept {
             this->cmdDispatchMeshIndirect(batchBuffer, batchCount, offset);
         }
 
-        /// <summary>
-        /// Executes a set of indirect mesh shader dispatches.
-        /// </summary>
-        /// <param name="batchBuffer">The buffer that contains the batches.</param>
-        /// <param name="countBuffer">The buffer that contains the number of batches to execute.</param>
-        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
-        /// <param name="countOffset">The offset (in bytes) to the number of batches in the <paramref name="countBuffer" />.</param>
-        /// <param name="maxBatches">The maximum number of batches executed, even if there are more batches in <paramref name="countBuffer"/>.</param>
-        /// <seealso cref="dispatch" />
+        /// @brief Executes a set of indirect mesh shader dispatches.
+        ///
+        /// @param batchBuffer The buffer that contains the batches.
+        /// @param countBuffer The buffer that contains the number of batches to execute.
+        /// @param offset The offset (in bytes) to the first batch in the @p batchBuffer.
+        /// @param countOffset The offset (in bytes) to the number of batches in the @p countBuffer.
+        /// @param maxBatches The maximum number of batches executed, even if there are more batches in @p countBuffer.
+        /// @see dispatch
         inline void dispatchMeshIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept {
             this->cmdDispatchMeshIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
         }
 
-        /// <summary>
-        /// Executes a query on a ray-tracing pipeline.
-        /// </summary>
-        /// <remarks>
-        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
-        /// </remarks>
-        /// <param name="width">The width of the ray-tracing query.</param>
-        /// <param name="height">The height of the ray-tracing query.</param>
-        /// <param name="depth">The depth of the ray-tracing query.</param>
-        /// <param name="offsets">The offsets, sizes and strides for each shader binding table.</param>
-        /// <param name="rayGenerationShaderBindingTable">The shader binding table that contains the ray generation shader.</param>
-        /// <param name="missShaderBindingTable">The shader binding table that contains the miss shaders.</param>
-        /// <param name="hitShaderBindingTable">The shader binding table that contains the hit shaders.</param>
-        /// <param name="callableShaderBindingTable">The shader binding table that contains the callable shaders.</param>
+        /// @brief Executes a query on a ray-tracing pipeline.
+        ///
+        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        ///
+        /// @param width The width of the ray-tracing query.
+        /// @param height The height of the ray-tracing query.
+        /// @param depth The depth of the ray-tracing query.
+        /// @param offsets The offsets, sizes and strides for each shader binding table.
+        /// @param rayGenerationShaderBindingTable The shader binding table that contains the ray generation shader.
+        /// @param missShaderBindingTable The shader binding table that contains the miss shaders.
+        /// @param hitShaderBindingTable The shader binding table that contains the hit shaders.
+        /// @param callableShaderBindingTable The shader binding table that contains the callable shaders.
         inline void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable = nullptr, const IBuffer* hitShaderBindingTable = nullptr, const IBuffer* callableShaderBindingTable = nullptr) const noexcept {
             this->cmdTraceRays(width, height, depth, offsets, rayGenerationShaderBindingTable, missShaderBindingTable, hitShaderBindingTable, callableShaderBindingTable);
         }
 
-        /// <summary>
-        /// Executes a query on a ray-tracing pipeline.
-        /// </summary>
-        /// <remarks>
-        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
-        /// </remarks>
-        /// <param name="dimensions">The dimensions of the ray-tracing query.</param>
-        /// <param name="offsets">The offsets, sizes and strides for each shader binding table.</param>
-        /// <param name="rayGenerationShaderBindingTable">The shader binding table that contains the ray generation shader.</param>
-        /// <param name="missShaderBindingTable">The shader binding table that contains the miss shaders.</param>
-        /// <param name="hitShaderBindingTable">The shader binding table that contains the hit shaders.</param>
-        /// <param name="callableShaderBindingTable">The shader binding table that contains the callable shaders.</param>
+        /// @brief Executes a query on a ray-tracing pipeline.
+        ///
+        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        ///
+        /// @param dimensions The dimensions of the ray-tracing query.
+        /// @param offsets The offsets, sizes and strides for each shader binding table.
+        /// @param rayGenerationShaderBindingTable The shader binding table that contains the ray generation shader.
+        /// @param missShaderBindingTable The shader binding table that contains the miss shaders.
+        /// @param hitShaderBindingTable The shader binding table that contains the hit shaders.
+        /// @param callableShaderBindingTable The shader binding table that contains the callable shaders.
         inline void traceRays(const Vector3u& dimensions, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable = nullptr, const IBuffer* hitShaderBindingTable = nullptr, const IBuffer* callableShaderBindingTable = nullptr) const noexcept {
             this->traceRays(dimensions.x(), dimensions.y(), dimensions.z(), offsets, rayGenerationShaderBindingTable, missShaderBindingTable, hitShaderBindingTable, callableShaderBindingTable);
         }
 
-        /// <summary>
-        /// Draws a number of vertices from the currently bound vertex buffer.
-        /// </summary>
-        /// <param name="vertices">The number of vertices to draw.</param>
-        /// <param name="instances">The number of instances to draw.</param>
-        /// <param name="firstVertex">The index of the first vertex to start drawing from.</param>
-        /// <param name="firstInstance">The index of the first instance to draw.</param>
-        /// <seealso cref="drawIndirect" />
+        /// @brief Draws a number of vertices from the currently bound vertex buffer.
+        ///
+        /// @param vertices The number of vertices to draw.
+        /// @param instances The number of instances to draw.
+        /// @param firstVertex The index of the first vertex to start drawing from.
+        /// @param firstInstance The index of the first instance to draw.
+        /// @see drawIndirect
         virtual void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept = 0;
 
-        /// <summary>
-        /// Draws all vertices from the vertex buffer provided in <paramref name="vertexBuffer" />.
-        /// </summary>
-        /// <remarks>
+        /// @brief Draws all vertices from the vertex buffer provided in @p vertexBuffer.
+        ///
         /// This helper method binds the vertex buffer and issues a draw command for all vertices.
-        /// </remarks>
-        /// <param name="vertexBuffer">The vertex buffer to draw from.</param>
-        /// <param name="instances">The number of instances to draw.</param>
-        /// <param name="firstVertex">The index of the first vertex to start drawing from.</param>
-        /// <param name="firstInstance">The index of the first instance to draw.</param>
+        ///
+        /// @param vertexBuffer The vertex buffer to draw from.
+        /// @param instances The number of instances to draw.
+        /// @param firstVertex The index of the first vertex to start drawing from.
+        /// @param firstInstance The index of the first instance to draw.
         inline void draw(const IVertexBuffer& vertexBuffer, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const {
             this->cmdDraw(vertexBuffer, instances, firstVertex, firstInstance);
         }
 
-        /// <summary>
-        /// Executes a set of indirect non-indexed draw calls.
-        /// </summary>
-        /// <param name="batchBuffer">The buffer that contains the batches.</param>
-        /// <param name="batchCount">The number of batches in the buffer to execute.</param>
-        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
-        /// <seealso cref="draw" />
+        /// @brief Executes a set of indirect non-indexed draw calls.
+        ///
+        /// @param batchBuffer The buffer that contains the batches.
+        /// @param batchCount The number of batches in the buffer to execute.
+        /// @param offset The offset (in bytes) to the first batch in the @p batchBuffer.
+        /// @see draw
         inline void drawIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept {
             this->cmdDrawIndirect(batchBuffer, batchCount, offset);
         }
 
-        /// <summary>
-        /// Executes a set of indirect non-indexed draw calls.
-        /// </summary>
-        /// <param name="batchBuffer">The buffer that contains the batches.</param>
-        /// <param name="countBuffer">The buffer that contains the number of batches to execute.</param>
-        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
-        /// <param name="countOffset">The offset (in bytes) to the number of batches in the <paramref name="countBuffer" />.</param>
-        /// <param name="maxBatches">The maximum number of batches executed, even if there are more batches in <paramref name="countBuffer"/>.</param>
-        /// <seealso cref="draw" />
+        /// @brief Executes a set of indirect non-indexed draw calls.
+        ///
+        /// @param batchBuffer The buffer that contains the batches.
+        /// @param countBuffer The buffer that contains the number of batches to execute.
+        /// @param offset The offset (in bytes) to the first batch in the @p batchBuffer.
+        /// @param countOffset The offset (in bytes) to the number of batches in the @p countBuffer.
+        /// @param maxBatches The maximum number of batches executed, even if there are more batches in @p countBuffer.
+        /// @see draw
         inline void drawIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept {
             this->cmdDrawIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
         }
 
-        /// <summary>
-        /// Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.
-        /// </summary>
-        /// <param name="indices">The number of indices to draw.</param>
-        /// <param name="instances">The number of instances to draw.</param>
-        /// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
-        /// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
-        /// <param name="firstInstance">The index of the first instance to draw.</param>
-        /// <seealso cref="drawIndexedIndirect" />
+        /// @brief Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.
+        ///
+        /// @param indices The number of indices to draw.
+        /// @param instances The number of instances to draw.
+        /// @param firstIndex The index of the first element of the index buffer to start drawing from.
+        /// @param vertexOffset The offset added to each index to find the corresponding vertex.
+        /// @param firstInstance The index of the first instance to draw.
+        /// @see drawIndexedIndirect
         virtual void drawIndexed(UInt32 indices, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const noexcept = 0;
 
-        /// <summary>
-        /// Draws the currently bound vertex buffer using the index buffer provided in <paramref name="indexBuffer" />.
-        /// </summary>
-        /// <remarks>
+        /// @brief Draws the currently bound vertex buffer using the index buffer provided in @p indexBuffer.
+        ///
         /// This helper method binds the index buffer and issues a draw command for all indices.
-        /// </remarks>
-        /// <param name="indexBuffer">The index buffer to draw with.</param>
-        /// <param name="instances">The number of instances to draw.</param>
-        /// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
-        /// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
-        /// <param name="firstInstance">The index of the first instance to draw.</param>
+        ///
+        /// @param indexBuffer The index buffer to draw with.
+        /// @param instances The number of instances to draw.
+        /// @param firstIndex The index of the first element of the index buffer to start drawing from.
+        /// @param vertexOffset The offset added to each index to find the corresponding vertex.
+        /// @param firstInstance The index of the first instance to draw.
         inline void drawIndexed(const IIndexBuffer& indexBuffer, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const {
             this->cmdDrawIndexed(indexBuffer, instances, firstIndex, vertexOffset, firstInstance);
         }
 
-        /// <summary>
-        /// Draws the vertex buffer provided by <paramref name="vertexBuffer" /> using the index buffer, provided by <paramref name="indexBuffer" />.
-        /// </summary>
-        /// <remarks>
+        /// @brief Draws the vertex buffer provided by @p vertexBuffer using the index buffer, provided by @p indexBuffer.
+        ///
         /// This helper method binds the provided vertex and index buffers and issues a draw command for all indices.
-        /// </remarks>
-        /// <param name="vertexBuffer">The vertex buffer to draw from.</param>
-        /// <param name="indexBuffer">The index buffer to draw with.</param>
-        /// <param name="instances">The number of instances to draw.</param>
-        /// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
-        /// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
-        /// <param name="firstInstance">The index of the first instance to draw.</param>
+        ///
+        /// @param vertexBuffer The vertex buffer to draw from.
+        /// @param indexBuffer The index buffer to draw with.
+        /// @param instances The number of instances to draw.
+        /// @param firstIndex The index of the first element of the index buffer to start drawing from.
+        /// @param vertexOffset The offset added to each index to find the corresponding vertex.
+        /// @param firstInstance The index of the first instance to draw.
         inline void drawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const {
             this->cmdDrawIndexed(vertexBuffer, indexBuffer, instances, firstIndex, vertexOffset, firstInstance);
         }
 
-        /// <summary>
-        /// Executes a set of indirect indexed draw calls.
-        /// </summary>
-        /// <param name="batchBuffer">The buffer that contains the batches.</param>
-        /// <param name="batchCount">The number of batches in the buffer to execute.</param>
-        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
-        /// <seealso cref="drawIndexed" />
+        /// @brief Executes a set of indirect indexed draw calls.
+        ///
+        /// @param batchBuffer The buffer that contains the batches.
+        /// @param batchCount The number of batches in the buffer to execute.
+        /// @param offset The offset (in bytes) to the first batch in the @p batchBuffer.
+        /// @see drawIndexed
         inline void drawIndexedIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept {
             this->cmdDrawIndexedIndirect(batchBuffer, batchCount, offset);
         }
 
-        /// <summary>
-        /// Executes a set of indirect indexed draw calls.
-        /// </summary>
-        /// <param name="batchBuffer">The buffer that contains the batches.</param>
-        /// <param name="countBuffer">The buffer that contains the number of batches to execute.</param>
-        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
-        /// <param name="countOffset">The offset (in bytes) to the number of batches in the <paramref name="countBuffer" />.</param>
-        /// <param name="maxBatches">The maximum number of batches executed, even if there are more batches in <paramref name="countBuffer"/>.</param>
-        /// <seealso cref="drawIndexed" />
+        /// @brief Executes a set of indirect indexed draw calls.
+        ///
+        /// @param batchBuffer The buffer that contains the batches.
+        /// @param countBuffer The buffer that contains the number of batches to execute.
+        /// @param offset The offset (in bytes) to the first batch in the @p batchBuffer.
+        /// @param countOffset The offset (in bytes) to the number of batches in the @p countBuffer.
+        /// @param maxBatches The maximum number of batches executed, even if there are more batches in @p countBuffer.
+        /// @see drawIndexed
         inline void drawIndexedIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept {
             this->cmdDrawIndexedIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
         }
 
-        /// <summary>
-        /// Pushes a block of memory into the push constants backing memory.
-        /// </summary>
-        /// <param name="layout">The layout of the push constants to update.</param>
-        /// <param name="memory">A pointer to the source memory.</param>
+        /// @brief Pushes a block of memory into the push constants backing memory.
+        ///
+        /// @param layout The layout of the push constants to update.
+        /// @param memory A pointer to the source memory.
         inline void pushConstants(const IPushConstantsLayout& layout, const void* const memory) const {
             this->cmdPushConstants(layout, memory);
         }
 
-        /// <summary>
-        /// Sets the viewports used for the subsequent draw calls.
-        /// </summary>
-        /// <param name="viewports">The viewports used for the subsequent draw calls.</param>
+        /// @brief Sets the viewports used for the subsequent draw calls.
+        ///
+        /// @param viewports The viewports used for the subsequent draw calls.
         virtual void setViewports(Span<const IViewport*> viewports) const = 0;
 
-        /// <summary>
-        /// Sets the viewport used for the subsequent draw calls.
-        /// </summary>
-        /// <param name="viewport">The viewport used for the subsequent draw calls.</param>
+        /// @brief Sets the viewport used for the subsequent draw calls.
+        ///
+        /// @param viewport The viewport used for the subsequent draw calls.
         virtual void setViewports(const IViewport* viewport) const = 0;
 
-        /// <summary>
-        /// Sets the scissor rectangles used for the subsequent draw calls.
-        /// </summary>
-        /// <param name="scissors">The scissor rectangles used for the subsequent draw calls.</param>
+        /// @brief Sets the scissor rectangles used for the subsequent draw calls.
+        ///
+        /// @param scissors The scissor rectangles used for the subsequent draw calls.
         virtual void setScissors(Span<const IScissor*> scissors) const = 0;
 
-        /// <summary>
-        /// Sets the scissor rectangle used for the subsequent draw calls.
-        /// </summary>
-        /// <param name="scissors">The scissor rectangle used for the subsequent draw calls.</param>
+        /// @brief Sets the scissor rectangle used for the subsequent draw calls.
+        ///
+        /// @param scissors The scissor rectangle used for the subsequent draw calls.
         virtual void setScissors(const IScissor* scissor) const = 0;
 
-        /// <summary>
-        /// Sets the blend factors for the subsequent draw calls.
-        /// </summary>
-        /// <remarks>
-        /// Blend factors are set for all render targets that use the blend modes <c>BlendFactor::ConstantColor</c>, <c>BlendFactor::OneMinusConstantColor</c>, <c>BlendFactor::ConstantAlpha</c> or 
-        /// <c>BlendFactor::OneMinusConstantAlpha</c>.
-        /// </remarks>
-        /// <param name="blendFactors">The blend factors for the subsequent draw calls.</param>
+        /// @brief Sets the blend factors for the subsequent draw calls.
+        ///
+        /// Blend factors are set for all render targets that use the blend modes `BlendFactor::ConstantColor`, `BlendFactor::OneMinusConstantColor`, `BlendFactor::ConstantAlpha` or
+        /// `BlendFactor::OneMinusConstantAlpha`.
+        ///
+        /// @param blendFactors The blend factors for the subsequent draw calls.
         virtual void setBlendFactors(const Vector4f& blendFactors) const noexcept = 0;
 
-        /// <summary>
-        /// Sets the stencil reference for the subsequent draw calls.
-        /// </summary>
-        /// <param name="stencilRef">The stencil reference for the subsequent draw calls.</param>
+        /// @brief Sets the stencil reference for the subsequent draw calls.
+        ///
+        /// @param stencilRef The stencil reference for the subsequent draw calls.
         virtual void setStencilRef(UInt32 stencilRef) const noexcept = 0;
 
-        /// <summary>
-        /// Sets the depth range for the depth bounds test.
-        /// </summary>
-        /// <remarks>
-        /// In order to use the depth bounds test, the currently bound render pipeline must have been created with the depth bounds test enabled, which requires the device to be created with the
-        /// <see cref="GraphicsDeviceFeatures::DepthBoundsTest" /> enabled.
-        /// </remarks>
-        /// <param name="minBounds"></param>
-        /// <param name="maxBounds"></param>
-        /// <seealso cref="GraphicsDeviceFeatures::DepthBoundsTest" />
-        /// <seealso cref="DepthStencilState::DepthState::DepthBoundsTestEnable" />
+        /// @brief Sets the depth range for the depth bounds test.
+        ///
+        /// In order to use the depth bounds test, the currently bound render pipeline must have been created with the depth bounds test enabled, which requires the device to be created with the @ref
+        /// GraphicsDeviceFeatures::DepthBoundsTest enabled.
+        ///
+        /// @param minBounds
+        /// @param maxBounds
+        /// @see GraphicsDeviceFeatures::DepthBoundsTest
+        /// @see DepthStencilState::DepthState::DepthBoundsTestEnable
         virtual void setDepthBounds(Float minBounds, Float maxBounds) const noexcept = 0;
 
-        /// <summary>
-        /// Submits the command buffer to parent command
-        /// </summary>
-        /// <exception cref="RuntimeException">Thrown, if the command buffer is a secondary command buffer.</exception>
+        /// @brief Submits the command buffer to parent command
+        ///
+        /// @throws RuntimeException Thrown, if the command buffer is a secondary command buffer.
         virtual UInt64 submit() const = 0;
 
-        /// <summary>
-        /// Writes the current GPU time stamp value for the timing event.
-        /// </summary>
-        /// <param name="timingEvent">The timing event for which the time stamp is written.</param>
+        /// @brief Writes the current GPU time stamp value for the timing event.
+        ///
+        /// @param timingEvent The timing event for which the time stamp is written.
         virtual void writeTimingEvent(const SharedPtr<const TimingEvent>& timingEvent) const = 0;
 
-        /// <summary>
-        /// Executes a secondary command buffer/bundle.
-        /// </summary>
-        /// <param name="commandBuffer">The secondary command buffer/bundle to execute.</param>
+        /// @brief Executes a secondary command buffer/bundle.
+        ///
+        /// @param commandBuffer The secondary command buffer/bundle to execute.
         inline void execute(const SharedPtr<const ICommandBuffer>& commandBuffer) const {
             this->cmdExecute(commandBuffer);
         }
 
-        /// <summary>
-        /// Executes a series of secondary command buffers/bundles.
-        /// </summary>
-        /// <param name="commandBuffers">The command buffers to execute.</param>
+        /// @brief Executes a series of secondary command buffers/bundles.
+        ///
+        /// @param commandBuffers The command buffers to execute.
         inline void execute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const {
             this->cmdExecute(std::move(commandBuffers));
         }
 
-        /// <summary>
-        /// Builds a bottom-level acceleration structure.
-        /// </summary>
-        /// <remarks>
-        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
-        /// </remarks>
-        /// <param name="blas">The bottom-level acceleration structure to build.</param>
-        /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration structure.</param>
-        /// <param name="buffer">The buffer that contains the acceleration structure after the build.</param>
-        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
-        /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
-        /// <seealso cref="IAccelerationStructure::build" />
+        /// @brief Builds a bottom-level acceleration structure.
+        ///
+        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        ///
+        /// @param blas The bottom-level acceleration structure to build.
+        /// @param scratchBuffer The scratch buffer to use for building the acceleration structure.
+        /// @param buffer The buffer that contains the acceleration structure after the build.
+        /// @param offset The offset into @p buffer at which the acceleration structure gets stored after the build.
+        /// @throws ArgumentNotInitializedException Thrown, if the provided @p scratchBuffer is not initialized.
+        /// @see IAccelerationStructure::build
         inline void buildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
             this->cmdBuildAccelerationStructure(blas, scratchBuffer, buffer, offset);
         }
 
-        /// <summary>
-        /// Builds a top-level acceleration structure.
-        /// </summary>
-        /// <remarks>
-        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
-        /// </remarks>
-        /// <param name="tlas">The top-level acceleration structure to build.</param>
-        /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration structure.</param>
-        /// <param name="buffer">The buffer that contains the acceleration structure after the build.</param>
-        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
-        /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
-        /// <seealso cref="IAccelerationStructure::build" />
+        /// @brief Builds a top-level acceleration structure.
+        ///
+        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        ///
+        /// @param tlas The top-level acceleration structure to build.
+        /// @param scratchBuffer The scratch buffer to use for building the acceleration structure.
+        /// @param buffer The buffer that contains the acceleration structure after the build.
+        /// @param offset The offset into @p buffer at which the acceleration structure gets stored after the build.
+        /// @throws ArgumentNotInitializedException Thrown, if the provided @p scratchBuffer is not initialized.
+        /// @see IAccelerationStructure::build
         inline void buildAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
             this->cmdBuildAccelerationStructure(tlas, scratchBuffer, buffer, offset);
         }
 
-        /// <summary>
-        /// Updates a bottom-level acceleration structure.
-        /// </summary>
-        /// <remarks>
-        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
-        /// </remarks>
-        /// <param name="blas">The bottom-level acceleration structure to build.</param>
-        /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration structure.</param>
-        /// <param name="buffer">The buffer that contains the acceleration structure after the build.</param>
-        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
-        /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
-        /// <seealso cref="IAccelerationStructure::build" />
+        /// @brief Updates a bottom-level acceleration structure.
+        ///
+        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        ///
+        /// @param blas The bottom-level acceleration structure to build.
+        /// @param scratchBuffer The scratch buffer to use for building the acceleration structure.
+        /// @param buffer The buffer that contains the acceleration structure after the build.
+        /// @param offset The offset into @p buffer at which the acceleration structure gets stored after the build.
+        /// @throws ArgumentNotInitializedException Thrown, if the provided @p scratchBuffer is not initialized.
+        /// @see IAccelerationStructure::build
         inline void updateAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
             this->cmdUpdateAccelerationStructure(blas, scratchBuffer, buffer, offset);
         }
 
-        /// <summary>
-        /// Updates a top-level acceleration structure.
-        /// </summary>
-        /// <remarks>
-        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
-        /// </remarks>
-        /// <param name="tlas">The top-level acceleration structure to build.</param>
-        /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration structure.</param>
-        /// <param name="buffer">The buffer that contains the acceleration structure after the build.</param>
-        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
-        /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
-        /// <seealso cref="IAccelerationStructure::build" />
+        /// @brief Updates a top-level acceleration structure.
+        ///
+        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        ///
+        /// @param tlas The top-level acceleration structure to build.
+        /// @param scratchBuffer The scratch buffer to use for building the acceleration structure.
+        /// @param buffer The buffer that contains the acceleration structure after the build.
+        /// @param offset The offset into @p buffer at which the acceleration structure gets stored after the build.
+        /// @throws ArgumentNotInitializedException Thrown, if the provided @p scratchBuffer is not initialized.
+        /// @see IAccelerationStructure::build
         inline void updateAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
             this->cmdUpdateAccelerationStructure(tlas, scratchBuffer, buffer, offset);
         }
 
-        /// <summary>
-        /// Copies the acceleration structure <paramref name="from" /> into the acceleration structure <paramref name="to" />.
-        /// </summary>
-        /// <remarks>
-        /// Prefer calling <see cref="IBottomLevelAccelerationStructure::copy" /> over directly issuing copy commands on a command buffer, as this will make sure that the destination buffer will 
-        /// be properly allocated and contains enough memory to store the copy. Only issue copies on the command buffer directly, if you want to retain the destination buffer and know for certain,
-        /// that it contains a sufficient amount of memory.
-        /// 
-        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
-        /// </remarks>
-        /// <param name="from">The source acceleration structure to copy from.</param>
-        /// <param name="to">The destination acceleration structure to copy to.</param>
-        /// <param name="compress">If set to `true`, the acceleration structure will be compressed.</param>
+        /// @brief Copies the acceleration structure @p from into the acceleration structure @p to.
+        ///
+        /// Prefer calling @ref IBottomLevelAccelerationStructure::copy over directly issuing copy commands on a command buffer, as this will make sure that the destination buffer will be properly allocated and
+        /// contains enough memory to store the copy. Only issue copies on the command buffer directly, if you want to retain the destination buffer and know for certain, that it contains a sufficient amount of
+        /// memory.
+        ///
+        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        ///
+        /// @param from The source acceleration structure to copy from.
+        /// @param to The destination acceleration structure to copy to.
+        /// @param compress If set to `true`, the acceleration structure will be compressed.
         inline void copyAccelerationStructure(const IBottomLevelAccelerationStructure& from, const IBottomLevelAccelerationStructure& to, bool compress = false) const noexcept {
             this->cmdCopyAccelerationStructure(from, to, compress);
         }
 
-        /// <summary>
-        /// Copies the acceleration structure <paramref name="from" /> into the acceleration structure <paramref name="to" />.
-        /// </summary>
-        /// <remarks>
-        /// Prefer calling <see cref="ITopLevelAccelerationStructure::copy" /> over directly issuing copy commands on a command buffer, as this will make sure that the destination buffer will be 
-        /// properly allocated and contains enough memory to store the copy. Only issue copies on the command buffer directly, if you want to retain the destination buffer and know for certain,
-        /// that it contains a sufficient amount of memory.
-        /// 
-        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
-        /// </remarks>
-        /// <param name="from">The source acceleration structure to copy from.</param>
-        /// <param name="to">The destination acceleration structure to copy to.</param>
-        /// <param name="compress">If set to `true`, the acceleration structure will be compressed.</param>
+        /// @brief Copies the acceleration structure @p from into the acceleration structure @p to.
+        ///
+        /// Prefer calling @ref ITopLevelAccelerationStructure::copy over directly issuing copy commands on a command buffer, as this will make sure that the destination buffer will be properly allocated and
+        /// contains enough memory to store the copy. Only issue copies on the command buffer directly, if you want to retain the destination buffer and know for certain, that it contains a sufficient amount of
+        /// memory.
+        ///
+        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        ///
+        /// @param from The source acceleration structure to copy from.
+        /// @param to The destination acceleration structure to copy to.
+        /// @param compress If set to `true`, the acceleration structure will be compressed.
         inline void copyAccelerationStructure(const ITopLevelAccelerationStructure& from, const ITopLevelAccelerationStructure& to, bool compress = false) const noexcept {
             this->cmdCopyAccelerationStructure(from, to, compress);
         }
 
     protected:
-        /// <summary>
-        /// Called by the parent command queue to signal that the command buffer should release it's shared state.
-        /// </summary>
+        /// @brief Called by the parent command queue to signal that the command buffer should release it's shared state.
         virtual void releaseSharedState() const = 0;
 
     private:
@@ -8777,9 +7086,7 @@ namespace LiteFX::Rendering {
         virtual void cmdTraceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable, const IBuffer* hitShaderBindingTable, const IBuffer* callableShaderBindingTable) const noexcept = 0;
     };
 
-    /// <summary>
-    /// The interface for a render pipeline.
-    /// </summary>
+    /// @brief The interface for a render pipeline.
     class LITEFX_RENDERING_API IRenderPipeline : public virtual IPipeline {
     protected:
         IRenderPipeline() noexcept = default;
@@ -8792,54 +7099,44 @@ namespace LiteFX::Rendering {
         ~IRenderPipeline() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns the input assembler state used by the render pipeline.
-        /// </summary>
-        /// <returns>The input assembler state used by the render pipeline.</returns>
+        /// @brief Returns the input assembler state used by the render pipeline.
+        ///
+        /// @return The input assembler state used by the render pipeline.
         inline SharedPtr<IInputAssembler> inputAssembler() const noexcept {
             return this->getInputAssembler();
         }
 
-        /// <summary>
-        /// Returns the rasterizer state used by the render pipeline.
-        /// </summary>
-        /// <returns>The rasterizer state used by the render pipeline.</returns>
+        /// @brief Returns the rasterizer state used by the render pipeline.
+        ///
+        /// @return The rasterizer state used by the render pipeline.
         inline SharedPtr<IRasterizer> rasterizer() const noexcept {
             return this->getRasterizer();
         }
 
-        /// <summary>
-        /// Returns <c>true</c>, if the pipeline uses <i>Alpha-to-Coverage</i> multi-sampling.
-        /// </summary>
-        /// <remarks>
-        /// Alpha-to-Coverage is a multi-sampling technique used for partially transparent sprites or textures (such as foliage) to prevent visible flickering 
-        /// along edges. If enabled, the alpha-channel of the first (non-depth/stencil) render target is used to generate a temporary coverage mask that is combined
-        /// with the fragment coverage mask using a logical <b>AND</b>.
-        /// </remarks>
-        /// <returns><c>true</c>, if the pipeline uses <i>Alpha-to-Coverage</i> multi-sampling.</returns>
-        /// <seealso href="https://bgolus.medium.com/anti-aliased-alpha-test-the-esoteric-alpha-to-coverage-8b177335ae4f" />
-        /// <seealso href="https://en.wikipedia.org/wiki/Alpha_to_coverage" />
-        /// <seealso href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#fragops-covg" />
-        /// <seealso href="https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-blend-state#alpha-to-coverage" />
+        /// @brief Returns `true`, if the pipeline uses *Alpha-to-Coverage* multi-sampling.
+        ///
+        /// Alpha-to-Coverage is a multi-sampling technique used for partially transparent sprites or textures (such as foliage) to prevent visible flickering along edges. If enabled, the alpha-channel of the
+        /// first (non-depth/stencil) render target is used to generate a temporary coverage mask that is combined with the fragment coverage mask using a logical **AND**.
+        ///
+        /// @return `true`, if the pipeline uses *Alpha-to-Coverage* multi-sampling.
+        /// @see https://bgolus.medium.com/anti-aliased-alpha-test-the-esoteric-alpha-to-coverage-8b177335ae4f
+        /// @see https://en.wikipedia.org/wiki/Alpha_to_coverage
+        /// @see https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#fragops-covg
+        /// @see https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-blend-state#alpha-to-coverage
         virtual bool alphaToCoverage() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the multi-sampling level of the pipeline.
-        /// </summary>
-        /// <remarks>
+        /// @brief Returns the multi-sampling level of the pipeline.
+        ///
         /// When using the pipeline, the multi-sampling level must match the level of the render target images.
-        /// </remarks>
-        /// <returns>The multi-sampling level of the pipeline.</returns>
-        /// <seealso cref="updateSamples" />
+        ///
+        /// @return The multi-sampling level of the pipeline.
+        /// @see updateSamples
         virtual MultiSamplingLevel samples() const noexcept = 0;
 
-        /// <summary>
-        /// Changes the multi-sampling level of the pipeline.
-        /// </summary>
-        /// <remarks>
-        /// Changing the multi-sampling level of a pipeline causes it to be re-created, which is considered an expensive operation. Don't use this method to change 
-        /// samples frequently, for example when binding frame buffers with different sample levels. Instead, use multiple pipelines for this purpose.
-        /// </remarks>
+        /// @brief Changes the multi-sampling level of the pipeline.
+        ///
+        /// Changing the multi-sampling level of a pipeline causes it to be re-created, which is considered an expensive operation. Don't use this method to change samples frequently, for example when binding
+        /// frame buffers with different sample levels. Instead, use multiple pipelines for this purpose.
         virtual void updateSamples(MultiSamplingLevel samples) = 0;
 
     private:
@@ -8847,9 +7144,7 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<IRasterizer> getRasterizer() const noexcept = 0;
     };
 
-    /// <summary>
-    /// The interface for a compute pipeline.
-    /// </summary>
+    /// @brief The interface for a compute pipeline.
     class LITEFX_RENDERING_API IComputePipeline : public virtual IPipeline {
     protected:
         IComputePipeline() noexcept = default;
@@ -8862,9 +7157,7 @@ namespace LiteFX::Rendering {
         ~IComputePipeline() noexcept override = default;
     };
 
-    /// <summary>
-    /// The interface for a ray tracing pipeline.
-    /// </summary>
+    /// @brief The interface for a ray tracing pipeline.
     class LITEFX_RENDERING_API IRayTracingPipeline : public virtual IPipeline {
     protected:
         IRayTracingPipeline() noexcept = default;
@@ -8877,58 +7170,49 @@ namespace LiteFX::Rendering {
         ~IRayTracingPipeline() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns the shader record collection of the ray tracing pipeline.
-        /// </summary>
-        /// <returns>The shader record collection of the ray tracing pipeline.</returns>
+        /// @brief Returns the shader record collection of the ray tracing pipeline.
+        ///
+        /// @return The shader record collection of the ray tracing pipeline.
         virtual const ShaderRecordCollection& shaderRecords() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the maximum number of ray bounces.
-        /// </summary>
-        /// <returns>The shader record collection of the ray tracing pipeline.</returns>
+        /// @brief Returns the maximum number of ray bounces.
+        ///
+        /// @return The shader record collection of the ray tracing pipeline.
         virtual UInt32 maxRecursionDepth() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the maximum size of a single ray payload.
-        /// </summary>
-        /// <remarks>
-        /// A ray payload is the data that is passed down the `TraceRay` function call chain. It can be zero, if 
-        /// [Ray Payload Qualifiers](https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#payload-access-qualifiers) are used. Otherwise it must be set to the largest ray
-        /// payload size used in the ray-tracing pipeline. 
-        /// 
+        /// @brief Returns the maximum size of a single ray payload.
+        ///
+        /// A ray payload is the data that is passed down the `TraceRay` function call chain. It can be zero, if [Ray Payload
+        /// Qualifiers](https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#payload-access-qualifiers) are used. Otherwise it must be set to the largest ray payload size used in the ray-tracing
+        /// pipeline.
+        ///
         /// This property can currently not be queried from reflection.
-        /// </remarks>
-        /// <returns>The maximum size of a single ray payload.</returns>
+        ///
+        /// @return The maximum size of a single ray payload.
         virtual UInt32 maxPayloadSize() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the maximum size of a single ray attribute.
-        /// </summary>
-        /// <remarks>
-        /// A ray attribute is the data that is passed to a hit shader for a specific event. Different to ray payloads, it only contains the data that describe the event (such as 
-        /// the hit coordinates, etc.).
-        /// 
+        /// @brief Returns the maximum size of a single ray attribute.
+        ///
+        /// A ray attribute is the data that is passed to a hit shader for a specific event. Different to ray payloads, it only contains the data that describe the event (such as the hit coordinates, etc.).
+        ///
         /// This property can currently not be queried from reflection.
-        /// </remarks>
-        /// <returns>The maximum size of the ray attribute.</returns>
+        ///
+        /// @return The maximum size of the ray attribute.
         virtual UInt32 maxAttributeSize() const noexcept = 0;
 
-        /// <summary>
-        /// Allocates a buffer that contains the shader binding table containing the shader groups specified by the <paramref name="groups" /> parameter.
-        /// </summary>
-        /// <remarks>
-        /// The shader binding table consists out of individual shader records, where each record refers to a shader record plus its local data, as specified in the shader record 
-        /// collection that was passed to the ray-tracing pipeline during creation. The size of a record within the shader binding table is determined by the largest local data
-        /// size of all records of the groups to be included. It makes sense to pack multiple records into the same buffer for efficiency, however it may generally be a good
-        /// idea to separate groups that require large amount of local shader data into their own buffers to keep the other buffers smaller.
-        /// 
-        /// The shader binding table is created on the default resource heap (<see cref="ResourceHeap::Dynamic" />). However, for best performance, consider transferring it to a
-        /// buffer on the GPU resource heap (<see cref="ResourceHeap::Resource" />) afterwards.
-        /// </remarks>
-        /// <param name="offsets">A reference to a structure that receives the offsets and sizes to the groups within the shader binding table.</param>
-        /// <param name="groups">The groups to include into the shader binding table.</param>
-        /// <returns>The buffer that stores the shader binding table.</returns>
+        /// @brief Allocates a buffer that contains the shader binding table containing the shader groups specified by the @p groups parameter.
+        ///
+        /// The shader binding table consists out of individual shader records, where each record refers to a shader record plus its local data, as specified in the shader record collection that was passed to the
+        /// ray-tracing pipeline during creation. The size of a record within the shader binding table is determined by the largest local data size of all records of the groups to be included. It makes sense to
+        /// pack multiple records into the same buffer for efficiency, however it may generally be a good idea to separate groups that require large amount of local shader data into their own buffers to keep the
+        /// other buffers smaller.
+        ///
+        /// The shader binding table is created on the default resource heap (@ref ResourceHeap::Dynamic). However, for best performance, consider transferring it to a buffer on the GPU resource heap (@ref
+        /// ResourceHeap::Resource) afterwards.
+        ///
+        /// @param offsets A reference to a structure that receives the offsets and sizes to the groups within the shader binding table.
+        /// @param groups The groups to include into the shader binding table.
+        /// @return The buffer that stores the shader binding table.
         inline SharedPtr<IBuffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups = ShaderBindingGroup::All) const {
             return this->getShaderBindingTable(offsets, groups);
         }
@@ -8937,58 +7221,46 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<IBuffer> getShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const = 0;
     };
 
-    /// <summary>
-    /// The interface for a frame buffer.
-    /// </summary>
-    /// <remarks>
-    /// A frame buffer is a set of images of equal size, that are used by render targets and/or input attachments in a <see cref="IRenderPass" />. When creating a new frame buffer,
-    /// it is empty by default and needs images to be added into it. When beginning a render pass during rendering, a frame buffer instance needs to be passed to it. The render 
-    /// pass then tries to obtain an image for each render target from the frame buffer. It does this by resolving it's render targets (<see cref="IRenderPass::renderTargets" />).
-    /// A render target stores a unique identifier (<see cref="IRenderTarget::identifier" />), that is used to obtain the image. Before this resolution process can be successful, 
-    /// the render targets must first be mapped to the images in the frame buffer by calling <see cref="IFrameBuffer::mapRenderTarget" />. Calling this method multiple times will
-    /// overwrite the mapping. It is also possible to remove a render target mapping by calling <see cref="IFrameBuffer::unmapRenderTarget" />. This will result in future attempts
-    /// to resolve this render target using the frame buffer instance to fail.
-    /// 
-    /// The images in the frame buffer can be resized by calling <see cref="IFrameBuffer::resize" />. As this involves re-creating the images, it is important to properly 
-    /// synchronize resizing with rendering, i.e., resizing while a frame is still being rendered is not allowed. Calling <see cref="IFrameBuffer::resize" /> invokes two events,
-    /// <see cref="IFrameBuffer::resizing" /> before the actual resize occurs and <see cref="IFrameBuffer::resized" /> afterwards.
-    /// 
-    /// The main purpose of those events is to provide convenient points for manually controlling image allocation for the frame buffer. Whenever the frame buffer needs to create
-    /// a new image instance, it checks, if a <see cref="IFrameBuffer::allocation_callback_type" /> has been provided during initialization. If provided, this callback is invoked
-    /// instead of directly creating the image. Only if the callback returns `nullptr`, the frame buffer will proceed with the default behavior of allocating the image itself. 
-    /// This way, it is possible to selectively deviate from the default image allocation behavior, for example to allocate a fixed-size image or to provide pre-allocated images, 
-    /// which can be helpful if render targets should be aliased.
-    /// </remarks>
+    /// @brief The interface for a frame buffer.
+    ///
+    /// A frame buffer is a set of images of equal size, that are used by render targets and/or input attachments in a @ref IRenderPass. When creating a new frame buffer, it is empty by default and needs
+    /// images to be added into it. When beginning a render pass during rendering, a frame buffer instance needs to be passed to it. The render pass then tries to obtain an image for each render target from
+    /// the frame buffer. It does this by resolving it's render targets (@ref IRenderPass::renderTargets). A render target stores a unique identifier (@ref IRenderTarget::identifier), that is used to obtain
+    /// the image. Before this resolution process can be successful, the render targets must first be mapped to the images in the frame buffer by calling @ref IFrameBuffer::mapRenderTarget. Calling this
+    /// method multiple times will overwrite the mapping. It is also possible to remove a render target mapping by calling @ref IFrameBuffer::unmapRenderTarget. This will result in future attempts to resolve
+    /// this render target using the frame buffer instance to fail.
+    ///
+    /// The images in the frame buffer can be resized by calling @ref IFrameBuffer::resize. As this involves re-creating the images, it is important to properly synchronize resizing with rendering, i.e.,
+    /// resizing while a frame is still being rendered is not allowed. Calling @ref IFrameBuffer::resize invokes two events, @ref IFrameBuffer::resizing before the actual resize occurs and @ref
+    /// IFrameBuffer::resized afterwards.
+    ///
+    /// The main purpose of those events is to provide convenient points for manually controlling image allocation for the frame buffer. Whenever the frame buffer needs to create a new image instance, it
+    /// checks, if a @ref IFrameBuffer::allocation_callback_type has been provided during initialization. If provided, this callback is invoked instead of directly creating the image. Only if the callback
+    /// returns `nullptr`, the frame buffer will proceed with the default behavior of allocating the image itself. This way, it is possible to selectively deviate from the default image allocation behavior,
+    /// for example to allocate a fixed-size image or to provide pre-allocated images, which can be helpful if render targets should be aliased.
     class LITEFX_RENDERING_API IFrameBuffer : public virtual IStateResource, public SharedObject {
     public:
-        /// <summary>
-        /// A function that gets invoked as a callback, if the frame buffer needs to allocate an image. 
-        /// </summary>
-        /// <remarks>
-        /// A frame buffer may allocate image resources, during it's initialization stage, as well as during resize events. The default behavior, if no callback is provided, is
-        /// to re-create the image resource with the same parameters as it has been initialized with, except a different resolution. The resolution in this case is always equal 
-        /// to the frame buffer extent.
-        /// 
-        /// Defining render-targets that render at a different resolution is possible by providing an allocation callback that creates the resource externally. Another use case
-        /// for this callback is to re-use images from a pool of potentially aliasing image resources. Only in case this callback returns `nullptr` the default behavior gets 
-        /// invoked.
-        /// 
-        /// <example>
-        /// auto callback = [this](Optional<UInt64> renderTargetId, Size2d size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) {
-        ///     return m_device->factory().createTexture(name, format, size, ImageDimensions::DIM_2, 1u, 1u, samples, usage); // Emulates the default behavior.
-        /// };
-        /// </example>
-        /// </remarks>
-        /// <see cref="resize" />
+        /// @brief A function that gets invoked as a callback, if the frame buffer needs to allocate an image.
+        ///
+        /// A frame buffer may allocate image resources, during it's initialization stage, as well as during resize events. The default behavior, if no callback is provided, is to re-create the image resource
+        /// with the same parameters as it has been initialized with, except a different resolution. The resolution in this case is always equal to the frame buffer extent.
+        ///
+        /// Defining render-targets that render at a different resolution is possible by providing an allocation callback that creates the resource externally. Another use case for this callback is to re-use
+        /// images from a pool of potentially aliasing image resources. Only in case this callback returns `nullptr` the default behavior gets invoked.
+        ///
+        /// @par Example
+        /// auto callback = [this](Optional<UInt64> renderTargetId, Size2d size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) { return
+        /// m_device->factory().createTexture(name, format, size, ImageDimensions::DIM_2, 1u, 1u, samples, usage); // Emulates the default behavior. };
+        ///
+        /// @ref resize
         template <typename TImage>
         using allocation_callback_type = std::function<SharedPtr<const TImage>(Optional<UInt64>, Size2d, ResourceUsage, Format, MultiSamplingLevel, const String&)>;
 
     public:
-        /// <summary>
-        /// Event arguments that are published to subscribers when a frame buffer gets resized.
-        /// </summary>
-        /// <seealso cref="IFrameBuffer::resize" />
-        /// <seealso cref="IFrameBuffer::resized" />
+        /// @brief Event arguments that are published to subscribers when a frame buffer gets resized.
+        ///
+        /// @see IFrameBuffer::resize
+        /// @see IFrameBuffer::resized
         struct ResizeEventArgs : public EventArgs {
         private:
             Size2d m_newSize;
@@ -9003,20 +7275,18 @@ namespace LiteFX::Rendering {
             ~ResizeEventArgs() noexcept override = default;
 
         public:
-            /// <summary>
-            /// Returns the new size of the frame buffer.
-            /// </summary>
-            /// <returns>The new size of the frame buffer.</returns>
+            /// @brief Returns the new size of the frame buffer.
+            ///
+            /// @return The new size of the frame buffer.
             inline const Size2d& newSize() const noexcept {
                 return m_newSize;
             }
         };
 
-        /// <summary>
-        /// Event arguments that are published to subscribers when a frame buffer gets released.
-        /// </summary>
-        /// <seealso cref="IFrameBuffer::~IFrameBuffer" />
-        /// <seealso cref="IFrameBuffer::released" />
+        /// @brief Event arguments that are published to subscribers when a frame buffer gets released.
+        ///
+        /// @see IFrameBuffer::~IFrameBuffer
+        /// @see IFrameBuffer::released
         struct ReleasedEventArgs : public EventArgs {
         public:
             ReleasedEventArgs() noexcept :
@@ -9036,324 +7306,284 @@ namespace LiteFX::Rendering {
         IFrameBuffer& operator=(const IFrameBuffer&) = delete;
 
     public:
-        /// <summary>
-        /// Releases the frame buffer.
-        /// </summary>
+        /// @brief Releases the frame buffer.
         inline ~IFrameBuffer() noexcept override {
             released.invoke(this, { });
         }
 
     public:
-        /// <summary>
-        /// Invoked if the frame buffer gets resized.
-        /// </summary>
-        /// <seealso cref="resize" />
-        /// <seealso cref="resized" />
+        /// @brief Invoked if the frame buffer gets resized.
+        ///
+        /// @see resize
+        /// @see resized
         mutable Event<ResizeEventArgs> resizing;
 
-        /// <summary>
-        /// Invoked after the frame buffer has been resized.
-        /// </summary>
-        /// <seealso cref="resize" />
-        /// <seealso cref="resizing" />
+        /// @brief Invoked after the frame buffer has been resized.
+        ///
+        /// @see resize
+        /// @see resizing
         mutable Event<ResizeEventArgs> resized;
 
-        /// <summary>
-        /// Invoked when the frame buffer gets released.
-        /// </summary>
-        /// <remarks>
-        /// Note that it is no longer valid to access the frame buffer when receiving this event. The only thing that can be assumed to still be valid is the pointer to the frame 
-        /// buffer. The intent of this event is to release any resources that depend on the frame buffer instance. Internally, render passes and pipelines use this event to release
-        /// cached frame buffer states they hold, such as descriptor sets for input attachment bindings or command buffers associated with the frame buffer.
-        /// </remarks>
-        /// <seealso cref="~IFrameBuffer" />
+        /// @brief Invoked when the frame buffer gets released.
+        ///
+        /// Note that it is no longer valid to access the frame buffer when receiving this event. The only thing that can be assumed to still be valid is the pointer to the frame buffer. The intent of this event
+        /// is to release any resources that depend on the frame buffer instance. Internally, render passes and pipelines use this event to release cached frame buffer states they hold, such as descriptor sets
+        /// for input attachment bindings or command buffers associated with the frame buffer.
+        ///
+        /// @see ~IFrameBuffer
         mutable Event<ReleasedEventArgs> released;
 
     public:
-        /// <summary>
-        /// Returns the current size of the frame buffer.
-        /// </summary>
-        /// <returns>The current size of the frame buffer.</returns>
-        /// <seealso cref="height" />
-        /// <seealso cref="width" />
-        /// <seealso cref="resize" />
+        /// @brief Returns the current size of the frame buffer.
+        ///
+        /// @return The current size of the frame buffer.
+        /// @see height
+        /// @see width
+        /// @see resize
         virtual const Size2d& size() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the current width of the frame buffer.
-        /// </summary>
-        /// <returns>The current width of the frame buffer.</returns>
-        /// <seealso cref="height" />
-        /// <seealso cref="size" />
-        /// <seealso cref="resize" />
+        /// @brief Returns the current width of the frame buffer.
+        ///
+        /// @return The current width of the frame buffer.
+        /// @see height
+        /// @see size
+        /// @see resize
         virtual size_t getWidth() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the current height of the frame buffer.
-        /// </summary>
-        /// <returns>The current height of the frame buffer.</returns>
-        /// <seealso cref="width" />
-        /// <seealso cref="size" />
-        /// <seealso cref="resize" />
+        /// @brief Returns the current height of the frame buffer.
+        ///
+        /// @return The current height of the frame buffer.
+        /// @see width
+        /// @see size
+        /// @see resize
         virtual size_t getHeight() const noexcept = 0;
 
-        /// <summary>
-        /// Maps a render target to a frame buffer image.
-        /// </summary>
-        /// <remarks>
-        /// When calling <see cref="IRenderPass::begin" />, passing a frame buffer, the render pass attempts to resolve all render target images. In order for this resolution to be 
-        /// successful, a mapping first needs to be established between the render target and the image. This method establishes this mapping.
-        /// 
+        /// @brief Maps a render target to a frame buffer image.
+        ///
+        /// When calling @ref IRenderPass::begin, passing a frame buffer, the render pass attempts to resolve all render target images. In order for this resolution to be successful, a mapping first needs to be
+        /// established between the render target and the image. This method establishes this mapping.
+        ///
         /// Calling this method multiple times will overwrite the mapped index.
-        /// </remarks>
-        /// <param name="renderTarget">The render target to map the image to.</param>
-        /// <param name="index">The index of the image to map to the render target.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="index" /> does not address an image in the frame buffer.</exception>
-        /// <seealso cref="unmapRenderTarget" />
+        ///
+        /// @param renderTarget The render target to map the image to.
+        /// @param index The index of the image to map to the render target.
+        /// @throws ArgumentOutOfRangeException Thrown, if @p index does not address an image in the frame buffer.
+        /// @see unmapRenderTarget
         virtual void mapRenderTarget(const RenderTarget& renderTarget, UInt32 index) = 0;
 
-        /// <summary>
-        /// Maps a render target to a frame buffer image.
-        /// </summary>
-        /// <remarks>
-        /// When calling <see cref="IRenderPass::begin" />, passing a frame buffer, the render pass attempts to resolve all render target images. In order for this resolution to be 
-        /// successful, a mapping first needs to be established between the render target and the image. This method establishes this mapping.
-        /// 
+        /// @brief Maps a render target to a frame buffer image.
+        ///
+        /// When calling @ref IRenderPass::begin, passing a frame buffer, the render pass attempts to resolve all render target images. In order for this resolution to be successful, a mapping first needs to be
+        /// established between the render target and the image. This method establishes this mapping.
+        ///
         /// Calling this method multiple times will overwrite the mapped index.
-        /// </remarks>
-        /// <param name="renderTarget">The render target to map the image to.</param>
-        /// <param name="imageName">The name of the image the render target maps to.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if the frame buffer does not contain an image with the name specified in <paramref name="imageName" />.</exception>
-        /// <seealso cref="unmapRenderTarget" />
+        ///
+        /// @param renderTarget The render target to map the image to.
+        /// @param imageName The name of the image the render target maps to.
+        /// @throws InvalidArgumentException Thrown, if the frame buffer does not contain an image with the name specified in @p imageName.
+        /// @see unmapRenderTarget
         virtual void mapRenderTarget(const RenderTarget& renderTarget, StringView imageName) = 0;
 
-        /// <summary>
-        /// Maps a render target to a frame buffer image using the render targets name to look up the image.
-        /// </summary>
-        /// <remarks>
-        /// When calling <see cref="IRenderPass::begin" />, passing a frame buffer, the render pass attempts to resolve all render target images. In order for this resolution to be 
-        /// successful, a mapping first needs to be established between the render target and the image. This method establishes this mapping.
-        /// 
+        /// @brief Maps a render target to a frame buffer image using the render targets name to look up the image.
+        ///
+        /// When calling @ref IRenderPass::begin, passing a frame buffer, the render pass attempts to resolve all render target images. In order for this resolution to be successful, a mapping first needs to be
+        /// established between the render target and the image. This method establishes this mapping.
+        ///
         /// Calling this method multiple times will overwrite the mapped index.
-        /// </remarks>
-        /// <param name="renderTarget">The render target to map the image to.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if the frame buffer does not contain an image with the same name as the render target.</exception>
-        /// <seealso cref="unmapRenderTarget" />
+        ///
+        /// @param renderTarget The render target to map the image to.
+        /// @throws InvalidArgumentException Thrown, if the frame buffer does not contain an image with the same name as the render target.
+        /// @see unmapRenderTarget
         inline void mapRenderTarget(const RenderTarget& renderTarget) {
             this->mapRenderTarget(renderTarget, renderTarget.name());
         }
 
-        /// <summary>
-        /// Maps a set of render targets to the frame buffer images, using the names of the render targets to look up the images.
-        /// </summary>
-        /// <param name="renderTargets">The render targets to map to the frame buffer.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if the frame buffer cannot map the name of one or more render targets to images.</exception>
-        /// <seealso cref="mapRenderTarget" />
-        /// <seealso cref="unmapRenderTarget" />
+        /// @brief Maps a set of render targets to the frame buffer images, using the names of the render targets to look up the images.
+        ///
+        /// @param renderTargets The render targets to map to the frame buffer.
+        /// @throws InvalidArgumentException Thrown, if the frame buffer cannot map the name of one or more render targets to images.
+        /// @see mapRenderTarget
+        /// @see unmapRenderTarget
         inline void mapRenderTargets(Span<const RenderTarget> renderTargets) {
             std::ranges::for_each(renderTargets, [this](auto& renderTarget) { this->mapRenderTarget(renderTarget); });
         }
 
-        /// <summary>
-        /// Removes a mapping between a render target and an image in the frame buffer.
-        /// </summary>
-        /// <remarks>
-        /// If no image in the frame buffer is currently mapped to <paramref name="renderTarget" />, calling this method will have no effect.
-        /// </remarks>
-        /// <param name="renderTarget">The render target to remove the mapping for.</param>
-        /// <seealso cref="mapRenderTarget" />
+        /// @brief Removes a mapping between a render target and an image in the frame buffer.
+        ///
+        /// If no image in the frame buffer is currently mapped to @p renderTarget, calling this method will have no effect.
+        ///
+        /// @param renderTarget The render target to remove the mapping for.
+        /// @see mapRenderTarget
         virtual void unmapRenderTarget(const RenderTarget& renderTarget) noexcept = 0;
 
-        /// <summary>
-        /// Returns all images contained by the frame buffer.
-        /// </summary>
-        /// <returns>A set of pointers to the images contained by the frame buffer.</returns>
+        /// @brief Returns all images contained by the frame buffer.
+        ///
+        /// @return A set of pointers to the images contained by the frame buffer.
         inline Enumerable<const IImage&> images() const {
             return this->getImages();
         }
 
-        /// <summary>
-        /// Returns an image from the frame buffer.
-        /// </summary>
-        /// <param name="index">The index of the image.</param>
-        /// <returns>The image from the frame buffer with the index <paramref name="index" />.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the <paramref name="index" /> does not address an image in the frame buffer.</exception>
+        /// @brief Returns an image from the frame buffer.
+        ///
+        /// @param index The index of the image.
+        /// @return The image from the frame buffer with the index @p index.
+        /// @throws ArgumentOutOfRangeException Thrown, if the @p index does not address an image in the frame buffer.
         virtual const IImage& operator[](UInt32 index) const = 0;
 
-        /// <summary>
-        /// Returns an image from the frame buffer.
-        /// </summary>
-        /// <param name="index">The index of the image.</param>
-        /// <returns>The image from the frame buffer with the index <paramref name="index" />.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the <paramref name="index" /> does not address an image in the frame buffer.</exception>
+        /// @brief Returns an image from the frame buffer.
+        ///
+        /// @param index The index of the image.
+        /// @return The image from the frame buffer with the index @p index.
+        /// @throws ArgumentOutOfRangeException Thrown, if the @p index does not address an image in the frame buffer.
         virtual const IImage& image(UInt32 index) const = 0;
 
-        /// <summary>
-        /// Resolves a render target and returns the image mapped to it.
-        /// </summary>
-        /// <param name="renderTarget">The render target to resolve.</param>
-        /// <returns>The image mapped to the render target.</returns>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="renderTarget" /> is not mapped to an image in the frame buffer.</exception>
+        /// @brief Resolves a render target and returns the image mapped to it.
+        ///
+        /// @param renderTarget The render target to resolve.
+        /// @return The image mapped to the render target.
+        /// @throws InvalidArgumentException Thrown, if @p renderTarget is not mapped to an image in the frame buffer.
         virtual const IImage& operator[](const RenderTarget& renderTarget) const = 0;
 
-        /// <summary>
-        /// Resolves a render target and returns the image mapped to it.
-        /// </summary>
-        /// <param name="renderTarget">The render target to resolve.</param>
-        /// <returns>The image mapped to the render target.</returns>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="renderTarget" /> is not mapped to an image in the frame buffer.</exception>
+        /// @brief Resolves a render target and returns the image mapped to it.
+        ///
+        /// @param renderTarget The render target to resolve.
+        /// @return The image mapped to the render target.
+        /// @throws InvalidArgumentException Thrown, if @p renderTarget is not mapped to an image in the frame buffer.
         virtual const IImage& image(const RenderTarget& renderTarget) const = 0;
 
-        /// <summary>
-        /// Resolves a render target name and returns the image mapped to it.
-        /// </summary>
-        /// <param name="renderTargetName">The render target name to resolve.</param>
-        /// <returns>The image mapped to the render target.</returns>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="renderTargetName" /> is not mapped to an image in the frame buffer.</exception>
+        /// @brief Resolves a render target name and returns the image mapped to it.
+        ///
+        /// @param renderTargetName The render target name to resolve.
+        /// @return The image mapped to the render target.
+        /// @throws InvalidArgumentException Thrown, if @p renderTargetName is not mapped to an image in the frame buffer.
         virtual const IImage& operator[](StringView renderTargetName) const = 0;
 
-        /// <summary>
-        /// Resolves a render target name and returns the image mapped to it.
-        /// </summary>
-        /// <param name="renderTargetName">The render target name to resolve.</param>
-        /// <returns>The image mapped to the render target.</returns>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="renderTargetName" /> is not mapped to an image in the frame buffer.</exception>
+        /// @brief Resolves a render target name and returns the image mapped to it.
+        ///
+        /// @param renderTargetName The render target name to resolve.
+        /// @return The image mapped to the render target.
+        /// @throws InvalidArgumentException Thrown, if @p renderTargetName is not mapped to an image in the frame buffer.
         virtual const IImage& image(StringView renderTargetName) const = 0;
 
-        /// <summary>
-        /// Resolves a render target name hash and returns the image mapped to it.
-        /// </summary>
-        /// <param name="hash">The render target name hash to resolve.</param>
-        /// <returns>The image mapped to the render target.</returns>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="hash" /> is not mapped to an image in the frame buffer.</exception>
-        /// <seealso cref="image" />
+        /// @brief Resolves a render target name hash and returns the image mapped to it.
+        ///
+        /// @param hash The render target name hash to resolve.
+        /// @return The image mapped to the render target.
+        /// @throws InvalidArgumentException Thrown, if @p hash is not mapped to an image in the frame buffer.
+        /// @see image
         virtual const IImage& resolveImage(UInt64 hash) const = 0;
 
-        /// <summary>
-        /// Adds an image to the frame buffer.
-        /// </summary>
-        /// <param name="format">The format of the image.</param>
-        /// <param name="samples">The number of samples of the image.</param>
-        /// <param name="usage">The desired resource usage flags for the image.</param>
+        /// @brief Adds an image to the frame buffer.
+        ///
+        /// @param format The format of the image.
+        /// @param samples The number of samples of the image.
+        /// @param usage The desired resource usage flags for the image.
         template <typename TSelf>
         inline auto addImage(this TSelf&& self, Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
             self.addImage(format, samples, usage);
             return std::forward<TSelf>(self);
         }
 
-        /// <summary>
-        /// Adds an image to the frame buffer.
-        /// </summary>
-        /// <param name="format">The format of the image.</param>
-        /// <param name="samples">The number of samples of the image.</param>
-        /// <param name="usage">The desired resource usage flags for the image.</param>
+        /// @brief Adds an image to the frame buffer.
+        ///
+        /// @param format The format of the image.
+        /// @param samples The number of samples of the image.
+        /// @param usage The desired resource usage flags for the image.
         inline void addImage(Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) {
             this->addImage("", format, samples, usage);
         }
 
-        /// <summary>
-        /// Adds an image to the frame buffer.
-        /// </summary>
-        /// <param name="name">The name of the image.</param>
-        /// <param name="format">The format of the image.</param>
-        /// <param name="samples">The number of samples of the image.</param>
-        /// <param name="usage">The desired resource usage flags for the image.</param>
+        /// @brief Adds an image to the frame buffer.
+        ///
+        /// @param name The name of the image.
+        /// @param format The format of the image.
+        /// @param samples The number of samples of the image.
+        /// @param usage The desired resource usage flags for the image.
         template <typename TSelf>
         inline auto addImage(this TSelf&& self, StringView name, Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
             self.addImage(name, format, samples, usage);
             return std::forward<TSelf>(self);
         }
 
-        /// <summary>
-        /// Adds an image to the frame buffer.
-        /// </summary>
-        /// <param name="name">The name of the image.</param>
-        /// <param name="format">The format of the image.</param>
-        /// <param name="samples">The number of samples of the image.</param>
-        /// <param name="usage">The desired resource usage flags for the image.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if another image with the same name as provided in <paramref name="name" /> has already been added to the frame buffer.</exception>
+        /// @brief Adds an image to the frame buffer.
+        ///
+        /// @param name The name of the image.
+        /// @param format The format of the image.
+        /// @param samples The number of samples of the image.
+        /// @param usage The desired resource usage flags for the image.
+        /// @throws InvalidArgumentException Thrown, if another image with the same name as provided in @p name has already been added to the frame buffer.
         virtual void addImage(const String& name, Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) = 0;
 
-        /// <summary>
-        /// Adds an image for a render target to the frame buffer.
-        /// </summary>
-        /// <param name="renderTarget">The render target for which to add an image.</param>
-        /// <param name="samples">The number of samples of the image.</param>
-        /// <param name="usage">The desired resource usage flags for the image.</param>
+        /// @brief Adds an image for a render target to the frame buffer.
+        ///
+        /// @param renderTarget The render target for which to add an image.
+        /// @param samples The number of samples of the image.
+        /// @param usage The desired resource usage flags for the image.
         template <typename TSelf>
         inline auto addImage(this TSelf&& self, const RenderTarget& renderTarget, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
             self.addImage(renderTarget, samples, usage);
             return std::forward<TSelf>(self);
         }
 
-        /// <summary>
-        /// Adds an image for a render target to the frame buffer.
-        /// </summary>
-        /// <param name="renderTarget">The render target for which to add an image.</param>
-        /// <param name="samples">The number of samples of the image.</param>
-        /// <param name="usage">The desired resource usage flags for the image.</param>
+        /// @brief Adds an image for a render target to the frame buffer.
+        ///
+        /// @param renderTarget The render target for which to add an image.
+        /// @param samples The number of samples of the image.
+        /// @param usage The desired resource usage flags for the image.
         inline void addImage(const RenderTarget& renderTarget, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) {
             this->addImage(renderTarget.name(), renderTarget, samples, usage);
         }
 
-        /// <summary>
-        /// Adds an image for a render target to the frame buffer.
-        /// </summary>
-        /// <param name="name">The name of the image.</param>
-        /// <param name="renderTarget">The render target for which to add an image.</param>
-        /// <param name="samples">The number of samples of the image.</param>
-        /// <param name="usage">The desired resource usage flags for the image.</param>
+        /// @brief Adds an image for a render target to the frame buffer.
+        ///
+        /// @param name The name of the image.
+        /// @param renderTarget The render target for which to add an image.
+        /// @param samples The number of samples of the image.
+        /// @param usage The desired resource usage flags for the image.
         template <typename TSelf>
         inline auto addImage(this TSelf&& self, StringView name, const RenderTarget& renderTarget, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
             self.addImage(name, renderTarget, samples, usage);
             return std::forward<TSelf>(self);
         }
 
-        /// <summary>
-        /// Adds an image for a render target to the frame buffer.
-        /// </summary>
-        /// <param name="name">The name of the image.</param>
-        /// <param name="renderTarget">The render target for which to add an image.</param>
-        /// <param name="samples">The number of samples of the image.</param>
-        /// <param name="usage">The desired resource usage flags for the image.</param>
+        /// @brief Adds an image for a render target to the frame buffer.
+        ///
+        /// @param name The name of the image.
+        /// @param renderTarget The render target for which to add an image.
+        /// @param samples The number of samples of the image.
+        /// @param usage The desired resource usage flags for the image.
         virtual void addImage(const String& name, const RenderTarget& renderTarget, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) = 0;
 
-        /// <summary>
-        /// Adds multiple images for a set of render targets to the frame buffer.
-        /// </summary>
-        /// <remarks>
+        /// @brief Adds multiple images for a set of render targets to the frame buffer.
+        ///
         /// Note that the names of the images are built from the render target names.
-        /// </remarks>
-        /// <param name="renderTargets">The render targets for which to add an image.</param>
-        /// <param name="samples">The number of samples of the image.</param>
-        /// <param name="usage">The desired resource usage flags for the image.</param>
+        ///
+        /// @param renderTargets The render targets for which to add an image.
+        /// @param samples The number of samples of the image.
+        /// @param usage The desired resource usage flags for the image.
         template <typename TSelf>
         inline auto addImages(this TSelf&& self, Span<const RenderTarget> renderTargets, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
             std::ranges::for_each(renderTargets, [&](auto& renderTarget) { self.addImage(renderTarget.name(), renderTarget, samples, usage); });
             return std::forward<TSelf>(self);
         }
 
-        /// <summary>
-        /// Causes the frame buffer to be invalidated and recreated with a new size.
-        /// </summary>
-        /// <param name="renderArea">The new dimensions of the frame buffer.</param>
-        /// <seealso cref="resizing" />
-        /// <seealso cref="resized" />
+        /// @brief Causes the frame buffer to be invalidated and recreated with a new size.
+        ///
+        /// @param renderArea The new dimensions of the frame buffer.
+        /// @see resizing
+        /// @see resized
         virtual void resize(const Size2d& renderArea) = 0;
 
     private:
         virtual Enumerable<const IImage&> getImages() const = 0;
     };
 
-    /// <summary>
-    /// The interface for a render pass.
-    /// </summary>
+    /// @brief The interface for a render pass.
     class LITEFX_RENDERING_API IRenderPass : public virtual IStateResource, public SharedObject {
     public:
-        /// <summary>
-        /// Event arguments that are published to subscribers when a render pass is beginning.
-        /// </summary>
-        /// <seealso cref="IRenderPass::beginning" />
+        /// @brief Event arguments that are published to subscribers when a render pass is beginning.
+        ///
+        /// @see IRenderPass::beginning
         struct BeginEventArgs : public EventArgs {
         private:
             const IFrameBuffer* m_frameBuffer;
@@ -9368,10 +7598,9 @@ namespace LiteFX::Rendering {
             ~BeginEventArgs() noexcept override = default;
 
         public:
-            /// <summary>
-            /// Gets the frame buffer on which the render pass is executing.
-            /// </summary>
-            /// <returns>The buffer on which the render pass is executing.</returns>
+            /// @brief Gets the frame buffer on which the render pass is executing.
+            ///
+            /// @return The buffer on which the render pass is executing.
             inline const IFrameBuffer& frameBuffer() const noexcept {
                 return *m_frameBuffer;
             }
@@ -9388,145 +7617,121 @@ namespace LiteFX::Rendering {
         ~IRenderPass() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Invoked, when the render pass is beginning.
-        /// </summary>
-        /// <seealso cref="begin" />
+        /// @brief Invoked, when the render pass is beginning.
+        ///
+        /// @see begin
         mutable Event<BeginEventArgs> beginning;
 
-        /// <summary>
-        /// Invoked, when the render pass is ending.
-        /// </summary>
-        /// <seealso cref="end" />
+        /// @brief Invoked, when the render pass is ending.
+        ///
+        /// @see end
         mutable Event<EventArgs> ending;
 
     public:
-        ///// <summary>
-        ///// Returns a reference to the parent device.
-        ///// </summary>
-        ///// <returns>A reference to the parent device.</returns>
+        ///// @brief Returns a reference to the parent device.
+        ///// 
+        ///// @return A reference to the parent device.
         //virtual const IGraphicsDevice& device() const noexcept;
 
-        /// <summary>
-        /// Returns the current frame buffer from of the render pass.
-        /// </summary>
-        /// <remarks>
-        /// The frame buffer can only be obtained, if the render pass has been started by calling <see cref="begin" />. If the render pass has ended or not yet started, the
-        /// method will instead raise an exception.
-        /// </remarks>
-        /// <param name="buffer">The index of the frame buffer.</param>
-        /// <returns>A pointer to the currently active frame buffer or `nullptr`, if the render pass has not been started.</returns>
-        /// <seealso cref="begin" />
+        /// @brief Returns the current frame buffer from of the render pass.
+        ///
+        /// The frame buffer can only be obtained, if the render pass has been started by calling @ref begin. If the render pass has ended or not yet started, the method will instead raise an exception.
+        ///
+        /// @param buffer The index of the frame buffer.
+        /// @return A pointer to the currently active frame buffer or `nullptr`, if the render pass has not been started.
+        /// @see begin
         inline SharedPtr<const IFrameBuffer> activeFrameBuffer() const noexcept {
             return this->getActiveFrameBuffer();
         }
 
-        /// <summary>
-        /// Returns the command queue, the render pass is executing on or `nullptr`, if the queue has already been released.
-        /// </summary>
-        /// <returns>A pointer to the command queue, the render pass is executing on.</returns>
+        /// @brief Returns the command queue, the render pass is executing on or `nullptr`, if the queue has already been released.
+        ///
+        /// @return A pointer to the command queue, the render pass is executing on.
         inline const ICommandQueue& commandQueue() const noexcept {
             return this->getCommandQueue();
         }
 
-        /// <summary>
-        /// Returns all command buffers, that can be currently used for recording multi-threaded commands in the render pass.
-        /// </summary>
-        /// <returns>
-        /// All command buffers, that can be currently used for recording multi-threaded commands in the render pass, or an empty set, if the render pass has not been 
-        /// initialized with additional command buffers, or the render pass is currently not active.
-        /// </returns>
-        /// <seealso cref="commandBuffer" />
+        /// @brief Returns all command buffers, that can be currently used for recording multi-threaded commands in the render pass.
+        ///
+        /// @return All command buffers, that can be currently used for recording multi-threaded commands in the render pass, or an empty set, if the render pass has not been initialized with additional command
+        /// buffers, or the render pass is currently not active.
+        /// @see commandBuffer
         inline Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers() const {
             return this->getCommandBuffers();
         }
 
-        /// <summary>
-        /// Returns a command buffer that can be currently used for recording multi-threaded commands in the render pass.
-        /// </summary>
-        /// <param name="index">The index of the command buffer.</param>
-        /// <returns>A command buffer that can be currently used for recording multi-threaded commands in the render pass.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the render pass has not been begun.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the frame buffer does not store a command buffer at <paramref name="index" />.</exception>
-        /// <seealso cref="commandBuffers" />
+        /// @brief Returns a command buffer that can be currently used for recording multi-threaded commands in the render pass.
+        ///
+        /// @param index The index of the command buffer.
+        /// @return A command buffer that can be currently used for recording multi-threaded commands in the render pass.
+        /// @throws RuntimeException Thrown, if the render pass has not been begun.
+        /// @throws ArgumentOutOfRangeException Thrown, if the frame buffer does not store a command buffer at @p index.
+        /// @see commandBuffers
         inline SharedPtr<const ICommandBuffer> commandBuffer(UInt32 index) const {
             return this->getCommandBuffer(index);
         }
 
-        /// <summary>
-        /// Returns the number of secondary command buffers the render pass stores for multi-threaded command recording.
-        /// </summary>
-        /// <returns>The number of secondary command buffers the render pass stores for multi-threaded command recording.</returns>
+        /// @brief Returns the number of secondary command buffers the render pass stores for multi-threaded command recording.
+        ///
+        /// @return The number of secondary command buffers the render pass stores for multi-threaded command recording.
         virtual UInt32 secondaryCommandBuffers() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the list of render targets, the render pass renders into.
-        /// </summary>
-        /// <remarks>
-        /// Note that the actual render target image resources are stored within the individual <see cref="FrameBuffer" />s of the render pass.
-        /// </remarks>
-        /// <returns>A list of render targets, the render pass renders into.</returns>
-        /// <seealso cref="IFrameBuffer" />
+        /// @brief Returns the list of render targets, the render pass renders into.
+        ///
+        /// Note that the actual render target image resources are stored within the individual @ref FrameBuffers of the render pass.
+        ///
+        /// @return A list of render targets, the render pass renders into.
+        /// @see IFrameBuffer
         virtual const Array<RenderTarget>& renderTargets() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the render target mapped to the location provided by <paramref name="location" />.
-        /// </summary>
-        /// <param name="location">The location to return the render target for.</param>
-        /// <returns>The render target mapped to the location provided by <paramref name="location" />.</returns>
+        /// @brief Returns the render target mapped to the location provided by @p location.
+        ///
+        /// @param location The location to return the render target for.
+        /// @return The render target mapped to the location provided by @p location.
         virtual const RenderTarget& renderTarget(UInt32 location) const = 0;
 
-        /// <summary>
-        /// Returns <c>true</c>, if one of the render targets is used for presentation on a swap chain.
-        /// </summary>
-        /// <returns><c>true</c>, if one of the render targets is used for presentation on a swap chain.</returns>
-        /// <seealso cref="renderTargets" />
+        /// @brief Returns `true`, if one of the render targets is used for presentation on a swap chain.
+        ///
+        /// @return `true`, if one of the render targets is used for presentation on a swap chain.
+        /// @see renderTargets
         virtual bool hasPresentTarget() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the input attachment the render pass is consuming.
-        /// </summary>
-        /// <returns>An array of input attachment mappings, that are mapped to the render pass.</returns>
+        /// @brief Returns the input attachment the render pass is consuming.
+        ///
+        /// @return An array of input attachment mappings, that are mapped to the render pass.
         virtual const Array<RenderPassDependency>& inputAttachments() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the input attachment at a <paramref name="location" />.
-        /// </summary>
-        /// <returns>The input attachment at a <paramref name="location" />.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if no input attachment is defined at the specified <paramref name="location" />.</exception>
+        /// @brief Returns the input attachment at a @p location.
+        ///
+        /// @return The input attachment at a @p location.
+        /// @throws ArgumentOutOfRangeException Thrown, if no input attachment is defined at the specified @p location.
         virtual const RenderPassDependency& inputAttachment(UInt32 location) const = 0;
 
-        /// <summary>
-        /// Returns the binding point for input attachment samplers.
-        /// </summary>
-        /// <remarks>
+        /// @brief Returns the binding point for input attachment samplers.
+        ///
         /// Note that in Vulkan this is ignored, as render pass inputs are mapped to sub-pass inputs directly, which do not need to be sampled.
-        /// </remarks>
-        /// <returns>The binding point for input attachment samplers.</returns>
+        ///
+        /// @return The binding point for input attachment samplers.
         virtual const Optional<DescriptorBindingPoint>& inputAttachmentSamplerBinding() const noexcept = 0;
 
-        /// <summary>
-        /// Begins the render pass.
-        /// </summary>
-        /// <param name="frameBuffer">The frame buffer to obtain input attachments and render targets from.</param>
+        /// @brief Begins the render pass.
+        ///
+        /// @param frameBuffer The frame buffer to obtain input attachments and render targets from.
         inline void begin(const IFrameBuffer& frameBuffer) const {
             this->beginRenderPass(frameBuffer);
         };
 
-        /// <summary>
-        /// Ends the render pass.
-        /// </summary>
-        /// <remarks>
+        /// @brief Ends the render pass.
+        ///
         /// If the frame buffer has a present render target, this causes the render pass to synchronize with the swap chain and issue a present command.
-        /// </remarks>
-        /// <returns>The value of the fence that indicates the end of the render pass.</returns>
+        ///
+        /// @return The value of the fence that indicates the end of the render pass.
         virtual UInt64 end() const = 0;
 
-        /// <summary>
-        /// Returns the mask that identifies the views that are enabled during rendering.
-        /// </summary>
-        /// <returns>A mask that identifies the views that are enabled during rendering.</returns>
-        /// <seealso cref="GraphicsDeviceFeatures::ViewInstancing" />
+        /// @brief Returns the mask that identifies the views that are enabled during rendering.
+        ///
+        /// @return A mask that identifies the views that are enabled during rendering.
+        /// @see GraphicsDeviceFeatures::ViewInstancing
         virtual UInt32 viewMask() const noexcept = 0;
 
     private:
@@ -9537,14 +7742,10 @@ namespace LiteFX::Rendering {
         virtual Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const = 0;
     };
 
-    /// <summary>
-    /// Interface for a swap chain.
-    /// </summary>
+    /// @brief Interface for a swap chain.
     class LITEFX_RENDERING_API ISwapChain {
     public:
-        /// <summary>
-        /// Event arguments for a <see cref="ISwapChain::reseted" /> event.
-        /// </summary>
+        /// @brief Event arguments for a @ref ISwapChain::reseted event.
         struct ResetEventArgs : public EventArgs {
         private:
             Format m_surfaceFormat;
@@ -9562,42 +7763,36 @@ namespace LiteFX::Rendering {
             ~ResetEventArgs() noexcept override = default;
 
         public:
-            /// <summary>
-            /// Gets the new surface format of the swap chain back-buffers.
-            /// </summary>
-            /// <returns>The new surface format of the swap chain back-buffers.</returns>
+            /// @brief Gets the new surface format of the swap chain back-buffers.
+            ///
+            /// @return The new surface format of the swap chain back-buffers.
             inline Format surfaceFormat() const noexcept {
                 return m_surfaceFormat;
             }
 
-            /// <summary>
-            /// Gets the new render area of the swap chain back-buffers.
-            /// </summary>
-            /// <returns>The size of the new render area of the swap chain back-buffers.</returns>
+            /// @brief Gets the new render area of the swap chain back-buffers.
+            ///
+            /// @return The size of the new render area of the swap chain back-buffers.
             inline const Size2d& renderArea() const noexcept {
                 return m_renderArea;
             }
 
-            /// <summary>
-            /// Gets the number of back-buffers in the swap chain.
-            /// </summary>
-            /// <returns>The number of back-buffers in the swap chain.</returns>
+            /// @brief Gets the number of back-buffers in the swap chain.
+            ///
+            /// @return The number of back-buffers in the swap chain.
             inline UInt32 buffers() const noexcept {
                 return m_buffers;
             }
 
-            /// <summary>
-            /// Returns `true` if vertical synchronization is enabled or `false` otherwise.
-            /// </summary>
-            /// <returns>`true` if vertical synchronization is enabled or `false` otherwise.</returns>
+            /// @brief Returns `true` if vertical synchronization is enabled or `false` otherwise.
+            ///
+            /// @return `true` if vertical synchronization is enabled or `false` otherwise.
             inline bool enableVsync() const noexcept {
                 return m_vsync;
             }
         };
 
-        /// <summary>
-        /// Event arguments for a <see cref="ISwapChain::swapped" /> event.
-        /// </summary>
+        /// @brief Event arguments for a @ref ISwapChain::swapped event.
         struct BackBufferSwapEventArgs : public EventArgs {
         private:
             UInt32 m_backBuffer;
@@ -9613,10 +7808,9 @@ namespace LiteFX::Rendering {
             ~BackBufferSwapEventArgs() noexcept override = default;
 
         public:
-            /// <summary>
-            /// Returns the index of the new back buffer on the swap chain.
-            /// </summary>
-            /// <returns>The index of the new back buffer on the swap chain.</returns>
+            /// @brief Returns the index of the new back buffer on the swap chain.
+            ///
+            /// @return The index of the new back buffer on the swap chain.
             UInt32 backBuffer() const noexcept {
                 return m_backBuffer;
             }
@@ -9633,161 +7827,138 @@ namespace LiteFX::Rendering {
         virtual ~ISwapChain() noexcept = default;
 
     public:
-        /// <summary>
-        /// Creates a new instance of a <see cref="TimingEvent" />.
-        /// </summary>
-        /// <remarks>
-        /// Note that registering a new timing event does invalidate previously registered events, i.e. they do not return meaningful time stamps for
-        /// the next frame. Timing events should only be registered during application startup, before the first frame is rendered.
-        /// </remarks>
-        /// <param name="name">The name of the timing event.</param>
-        /// <returns>A pointer with shared ownership to the newly created timing event instance.</returns>
+        /// @brief Creates a new instance of a @ref TimingEvent.
+        ///
+        /// Note that registering a new timing event does invalidate previously registered events, i.e. they do not return meaningful time stamps for the next frame. Timing events should only be registered during
+        /// application startup, before the first frame is rendered.
+        ///
+        /// @param name The name of the timing event.
+        /// @return A pointer with shared ownership to the newly created timing event instance.
         [[nodiscard]] inline SharedPtr<const TimingEvent> registerTimingEvent(StringView name = "") {
             auto timingEvent = TimingEvent::create(*this, name);
             this->addTimingEvent(timingEvent);
             return timingEvent;
         }
 
-        /// <summary>
-        /// Returns all registered timing events.
-        /// </summary>
-        /// <returns>An array, containing all registered timing events.</returns>
+        /// @brief Returns all registered timing events.
+        ///
+        /// @return An array, containing all registered timing events.
         virtual const Array<SharedPtr<const TimingEvent>>& timingEvents() const = 0;
 
-        /// <summary>
-        /// Returns the timing event registered for <paramref name="queryId" />.
-        /// </summary>
-        /// <param name="queryId">The query ID of the timing event.</param>
-        /// <returns>The timing event registered for <paramref name="queryId" />.</returns>
+        /// @brief Returns the timing event registered for @p queryId.
+        ///
+        /// @param queryId The query ID of the timing event.
+        /// @return The timing event registered for @p queryId.
         virtual SharedPtr<const TimingEvent> timingEvent(UInt32 queryId) const = 0;
 
-        /// <summary>
-        /// Reads the current time stamp value (in ticks) of a timing event.
-        /// </summary>
-        /// <remarks>
-        /// In order to convert the number of ticks to (milli-)seconds, this value needs to be divided by <see cref="IGraphicsDevice::ticksPerMillisecond" />. To improve precision,
-        /// calculate the difference between two time stamps in ticks first and only then convert them to seconds.
-        /// </remarks>
-        /// <param name="timingEvent">The timing event to read the current value for.</param>
-        /// <returns>The current time stamp value of the timing event in ticks.</returns>
-        /// <seealso cref="TimingEvent::readTimestamp" />
+        /// @brief Reads the current time stamp value (in ticks) of a timing event.
+        ///
+        /// In order to convert the number of ticks to (milli-)seconds, this value needs to be divided by @ref IGraphicsDevice::ticksPerMillisecond. To improve precision, calculate the difference between two time
+        /// stamps in ticks first and only then convert them to seconds.
+        ///
+        /// @param timingEvent The timing event to read the current value for.
+        /// @return The current time stamp value of the timing event in ticks.
+        /// @see TimingEvent::readTimestamp
         virtual UInt64 readTimingEvent(SharedPtr<const TimingEvent> timingEvent) const = 0;
 
-        /// <summary>
-        /// Returns the query ID for the timing event.
-        /// </summary>
-        /// <param name="timingEvent">The timing event to return the query ID for.</param>
-        /// <returns>The query ID for the <paramref name="timingEvent" />.</returns>
-        /// <seealso cref="TimingEvent::queryId" />
+        /// @brief Returns the query ID for the timing event.
+        ///
+        /// @param timingEvent The timing event to return the query ID for.
+        /// @return The query ID for the @p timingEvent.
+        /// @see TimingEvent::queryId
         virtual UInt32 resolveQueryId(SharedPtr<const TimingEvent> timingEvent) const = 0;
 
-        /// <summary>
-        /// Returns the swap chain's parent device instance.
-        /// </summary>
-        /// <returns>A reference of the swap chain's parent device instance.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the device is already released.</exception>
+        /// @brief Returns the swap chain's parent device instance.
+        ///
+        /// @return A reference of the swap chain's parent device instance.
+        /// @throws RuntimeException Thrown, if the device is already released.
         virtual const IGraphicsDevice& device() const  = 0;
 
     public:
-        /// <summary>
-        /// Returns the swap chain image format.
-        /// </summary>
-        /// <returns>The swap chain image format.</returns>
+        /// @brief Returns the swap chain image format.
+        ///
+        /// @return The swap chain image format.
         virtual Format surfaceFormat() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the number of images in the swap chain.
-        /// </summary>
-        /// <returns>The number of images in the swap chain.</returns>
+        /// @brief Returns the number of images in the swap chain.
+        ///
+        /// @return The number of images in the swap chain.
         virtual UInt32 buffers() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the size of the render area.
-        /// </summary>
-        /// <returns>The size of the render area.</returns>
+        /// @brief Returns the size of the render area.
+        ///
+        /// @return The size of the render area.
         virtual const Size2d& renderArea() const noexcept = 0;
 
-        /// <summary>
-        /// Returns `true`, if vertical synchronization should be used, otherwise `false`.
-        /// </summary>
-        /// <returns>`true`, if vertical synchronization should be used, otherwise `false`.</returns>
+        /// @brief Returns `true`, if vertical synchronization should be used, otherwise `false`.
+        ///
+        /// @return `true`, if vertical synchronization should be used, otherwise `false`.
         virtual bool verticalSynchronization() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the swap chain present image for <paramref name="backBuffer" />.
-        /// </summary>
-        /// <param name="backBuffer">The index of the back buffer for which to return the swap chain present image.</param>
-        /// <returns>A pointer to the back buffers swap chain present image.</returns>
+        /// @brief Returns the swap chain present image for @p backBuffer.
+        ///
+        /// @param backBuffer The index of the back buffer for which to return the swap chain present image.
+        /// @return A pointer to the back buffers swap chain present image.
         virtual IImage* image(UInt32 backBuffer) const = 0;
 
-        /// <summary>
-        /// Returns the current swap chain back buffer image.
-        /// </summary>
-        /// <returns>A reference of the current swap chain back buffer image.</returns>
+        /// @brief Returns the current swap chain back buffer image.
+        ///
+        /// @return A reference of the current swap chain back buffer image.
         virtual const IImage& image() const noexcept = 0;
 
-        /// <summary>
-        /// Returns an array of the swap chain present images.
-        /// </summary>
-        /// <returns>Returns an array of the swap chain present images.</returns>
+        /// @brief Returns an array of the swap chain present images.
+        ///
+        /// @return Returns an array of the swap chain present images.
         inline Enumerable<IImage&> images() const {
             return this->getImages();
         };
 
-        /// <summary>
-        /// Queues a present that gets executed after <paramref name="fence" /> has been signaled on the default graphics queue.
-        /// </summary>
-        /// <remarks>
-        /// You can use this overload in situations where you do not have an <see cref="IRenderPass" /> or <see cref="IFrameBuffer" /> to render into before presenting. Instead, you typically
-        /// copy into the swap chain back buffer images directly (<see cref="image" />). This copy is done in a command buffer that must be submitted to the default graphics queue. The swap
-        /// chain can then wait for the copy to finish before presenting it. Example scenarios where this is useful are, where you want to write to the back buffer from a compute shader, that
-        /// does not have an equivalent to render passes.
-        /// </remarks>
-        /// <param name="fence">The fence to pass on the default graphics queue after which the present is executed.</param>
+        /// @brief Queues a present that gets executed after @p fence has been signaled on the default graphics queue.
+        ///
+        /// You can use this overload in situations where you do not have an @ref IRenderPass or @ref IFrameBuffer to render into before presenting. Instead, you typically copy into the swap chain back buffer
+        /// images directly (@ref image). This copy is done in a command buffer that must be submitted to the default graphics queue. The swap chain can then wait for the copy to finish before presenting it.
+        /// Example scenarios where this is useful are, where you want to write to the back buffer from a compute shader, that does not have an equivalent to render passes.
+        ///
+        /// @param fence The fence to pass on the default graphics queue after which the present is executed.
         virtual void present(UInt64 fence) const = 0;
 
     public:
-        /// <summary>
-        /// Invoked, when the swap chain has swapped the back buffers.
-        /// </summary>
-        /// <seealso cref="swapBackBuffer" />
+        /// @brief Invoked, when the swap chain has swapped the back buffers.
+        ///
+        /// @see swapBackBuffer
         mutable Event<BackBufferSwapEventArgs> swapped;
 
-        /// <summary>
-        /// Invoked, after the swap chain has been reseted.
-        /// </summary>
-        /// <seealso cref="reset" />
+        /// @brief Invoked, after the swap chain has been reseted.
+        ///
+        /// @see reset
        mutable Event<ResetEventArgs> reseted;
 
-        /// <summary>
-        /// Returns an array of supported formats, that can be drawn to the surface.
-        /// </summary>
-        /// <returns>An array of supported formats, that can be drawn to the surface.</returns>
-        /// <see cref="surface" />
-        /// <seealso cref="ISurface" />
+        /// @brief Returns an array of supported formats, that can be drawn to the surface.
+        ///
+        /// @ref surface
+        ///
+        /// @return An array of supported formats, that can be drawn to the surface.
+        /// @see ISurface
         virtual Enumerable<Format> getSurfaceFormats() const = 0;
 
-        /// <summary>
-        /// Causes the swap chain to be re-created. All frame and command buffers will be invalidated and rebuilt.
-        /// </summary>
-        /// <remarks>
-        /// There is no guarantee, that the swap chain images will end up in the exact format, as specified by <paramref name="surfaceFormat" />. If the format itself is not
-        /// supported, a compatible format may be looked up. If the lookup fails, the method may raise an exception.
-        /// 
-        /// Similarly, it is not guaranteed, that the number of images returned by <see cref="images" /> matches the number specified in <paramref name="buffers" />. A swap chain may 
-        /// require a minimum number of images or may constraint a maximum number of images. In both cases, <paramref name="buffers" /> will be clamped.
-        /// </remarks>
-        /// <param name="surfaceFormat">The swap chain image format.</param>
-        /// <param name="renderArea">The dimensions of the frame buffers.</param>
-        /// <param name="buffers">The number of buffers in the swap chain.</param>
-        /// <param name="enableVsync">`true`, if vertical synchronization should be used, otherwise `false`.</param>
-        /// <seealso cref="multiSamplingLevel" />
+        /// @brief Causes the swap chain to be re-created. All frame and command buffers will be invalidated and rebuilt.
+        ///
+        /// There is no guarantee, that the swap chain images will end up in the exact format, as specified by @p surfaceFormat. If the format itself is not supported, a compatible format may be looked up. If the
+        /// lookup fails, the method may raise an exception.
+        ///
+        /// Similarly, it is not guaranteed, that the number of images returned by @ref images matches the number specified in @p buffers. A swap chain may require a minimum number of images or may constraint a
+        /// maximum number of images. In both cases, @p buffers will be clamped.
+        ///
+        /// @param surfaceFormat The swap chain image format.
+        /// @param renderArea The dimensions of the frame buffers.
+        /// @param buffers The number of buffers in the swap chain.
+        /// @param enableVsync `true`, if vertical synchronization should be used, otherwise `false`.
+        /// @see multiSamplingLevel
         virtual void reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers, bool enableVsync = false) = 0;
 
-        /// <summary>
-        /// Swaps the front buffer with the next back buffer in order.
-        /// </summary>
-        /// <returns>A reference of the front buffer after the buffer swap.</returns>
+        /// @brief Swaps the front buffer with the next back buffer in order.
+        ///
+        /// @return A reference of the front buffer after the buffer swap.
         [[nodiscard]] virtual UInt32 swapBackBuffer() const = 0;
 
     private:
@@ -9795,14 +7966,10 @@ namespace LiteFX::Rendering {
         virtual void addTimingEvent(SharedPtr<const TimingEvent> timingEvent) = 0;
     };
 
-    /// <summary>
-    /// The interface for a command queue.
-    /// </summary>
+    /// @brief The interface for a command queue.
     class LITEFX_RENDERING_API ICommandQueue : public SharedObject {
     public:
-        /// <summary>
-        /// Event arguments for a <see cref="ICommandQueue::submitting" /> event.
-        /// </summary>
+        /// @brief Event arguments for a @ref ICommandQueue::submitting event.
         struct QueueSubmittingEventArgs : public EventArgs {
         private:
             Array<SharedPtr<const ICommandBuffer>> m_commandBuffers;
@@ -9818,18 +7985,15 @@ namespace LiteFX::Rendering {
             ~QueueSubmittingEventArgs() noexcept override = default;
 
         public:
-            /// <summary>
-            /// Gets the command buffers that are about to be submitted to the queue.
-            /// </summary>
-            /// <returns>An array containing the command buffers that are about to be submitted to the queue.</returns>
+            /// @brief Gets the command buffers that are about to be submitted to the queue.
+            ///
+            /// @return An array containing the command buffers that are about to be submitted to the queue.
             inline const Array<SharedPtr<const ICommandBuffer>>& commandBuffers() const noexcept {
                 return m_commandBuffers;
             }
         };
 
-        /// <summary>
-        /// Event arguments for a <see cref="ICommandQueue::submitted" /> event.
-        /// </summary>
+        /// @brief Event arguments for a @ref ICommandQueue::submitted event.
         struct QueueSubmittedEventArgs : public EventArgs {
         private:
             UInt64 m_fence;
@@ -9844,10 +8008,9 @@ namespace LiteFX::Rendering {
             ~QueueSubmittedEventArgs() noexcept override = default;
 
         public:
-            /// <summary>
-            /// Gets the fence that is triggered, if the command buffers have been executed.
-            /// </summary>
-            /// <returns>The fence that is triggered, if the command buffers have been executed.</returns>
+            /// @brief Gets the fence that is triggered, if the command buffers have been executed.
+            ///
+            /// @return The fence that is triggered, if the command buffers have been executed.
             inline UInt64 fence() const noexcept {
                 return m_fence;
             }
@@ -9864,166 +8027,138 @@ namespace LiteFX::Rendering {
         ~ICommandQueue() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns the priority of the queue.
-        /// </summary>
-        /// <returns>The priority of the queue.</returns>
+        /// @brief Returns the priority of the queue.
+        ///
+        /// @return The priority of the queue.
         virtual QueuePriority priority() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the type of the queue.
-        /// </summary>
-        /// <returns>The type of the queue.</returns>
+        /// @brief Returns the type of the queue.
+        ///
+        /// @return The type of the queue.
         virtual QueueType type() const noexcept = 0;
 
     public:
-        /// <summary>
-        /// The default color value for a debug region or marker, if no other has been specified.
-        /// </summary>
-        /// <seealso cref="beginDebugRegion" />
-        /// <seealso cref="setDebugMarker" />
+        /// @brief The default color value for a debug region or marker, if no other has been specified.
+        ///
+        /// @see beginDebugRegion
+        /// @see setDebugMarker
         static constexpr Vectors::ByteVector3 DEFAULT_DEBUG_COLOR = { 128_ui8, 128_ui8, 128_ui8 };
 
-        /// <summary>
-        /// Starts a new debug region.
-        /// </summary>
-        /// <remarks>
+        /// @brief Starts a new debug region.
+        ///
         /// This method is a debug helper, that is not required to be implemented. In the built-in backends, it will no-op by default in non-debug builds.
-        /// </remarks>
-        /// <param name="label">The name of the debug region.</param>
-        /// <param name="color">The color of the debug region.</param>
+        ///
+        /// @param label The name of the debug region.
+        /// @param color The color of the debug region.
         virtual void beginDebugRegion([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept { };
         
-        /// <summary>
-        /// Ends the current debug region.
-        /// </summary>
-        /// <remarks>
+        /// @brief Ends the current debug region.
+        ///
         /// This is a debug helper, that is not required to be implemented. In the built-in backends, it will no-op by default in non-debug builds.
-        /// </remarks>
         virtual void endDebugRegion() const noexcept { };
 
-        /// <summary>
-        /// Inserts a debug marker.
-        /// </summary>
-        /// <remarks>
+        /// @brief Inserts a debug marker.
+        ///
         /// This method is a debug helper, that is not required to be implemented. In the built-in backends, it will no-op by default in non-debug builds.
-        /// </remarks>
-        /// <param name="label">The name of the debug marker.</param>
-        /// <param name="color">The color of the debug marker.</param>
+        ///
+        /// @param label The name of the debug marker.
+        /// @param color The color of the debug marker.
         virtual void setDebugMarker([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept { };
 
     public:
-        /// <summary>
-        /// Invoked, when one or more command buffers are submitted to the queue.
-        /// </summary>
+        /// @brief Invoked, when one or more command buffers are submitted to the queue.
         mutable Event<QueueSubmittingEventArgs> submitting;
 
-        /// <summary>
-        /// Invoked, after one or more command buffers have been submitted to the queue.
-        /// </summary>
+        /// @brief Invoked, after one or more command buffers have been submitted to the queue.
         mutable Event<QueueSubmittedEventArgs> submitted;
 
-        /// <summary>
-        /// Creates a command buffer that can be used to allocate commands on the queue.
-        /// </summary>
-        /// <remarks>
-        /// Specifying <paramref name="secondary" /> allows to create secondary command buffers (aka. bundles). Those are intended to be used as efficient pre-recorded command buffers
-        /// that are re-used multiple times. Using such a command buffer allows drivers to pre-apply optimizations, which causes a one-time cost during setup, but reduces cost when re-
-        /// applying the command buffer multiple times. Ideally they are used as small chunks of re-occurring workloads.
-        /// 
-        /// A secondary command buffer must not be submitted to a queue, but rather to a primary command buffer by calling <see cref="ICommandBuffer::execute" />.
-        /// </remarks>
-        /// <param name="beginRecording">If set to <c>true</c>, the command buffer will be initialized in recording state and can receive commands straight away.</param>
-        /// <param name="secondary">If set to `true`, the method will create a secondary command buffer/bundle.</param>
-        /// <returns>The instance of the command buffer.</returns>
+        /// @brief Creates a command buffer that can be used to allocate commands on the queue.
+        ///
+        /// Specifying @p secondary allows to create secondary command buffers (aka. bundles). Those are intended to be used as efficient pre-recorded command buffers that are re-used multiple times. Using such a
+        /// command buffer allows drivers to pre-apply optimizations, which causes a one-time cost during setup, but reduces cost when re- applying the command buffer multiple times. Ideally they are used as
+        /// small chunks of re-occurring workloads.
+        ///
+        /// A secondary command buffer must not be submitted to a queue, but rather to a primary command buffer by calling @ref ICommandBuffer::execute.
+        ///
+        /// @param beginRecording If set to `true`, the command buffer will be initialized in recording state and can receive commands straight away.
+        /// @param secondary If set to `true`, the method will create a secondary command buffer/bundle.
+        /// @return The instance of the command buffer.
         inline SharedPtr<ICommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const {
             return this->getCommandBuffer(beginRecording, secondary);
         }
 
-        /// <summary>
-        /// Submits a single command buffer with shared ownership and inserts a fence to wait for it.
-        /// </summary>
-        /// <remarks>
-        /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffer" /> until the fence is passed. The reference will be released
-        /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
-        /// 
+        /// @brief Submits a single command buffer with shared ownership and inserts a fence to wait for it.
+        ///
+        /// By calling this method, the queue takes shared ownership over the @p commandBuffer until the fence is passed. The reference will be released during a @ref waitFor, if the awaited fence is inserted
+        /// after the associated one.
+        ///
         /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
-        /// </remarks>
-        /// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
-        /// <returns>The value of the fence, inserted after the command buffer.</returns>
-        /// <seealso cref="waitFor" />
+        ///
+        /// @param commandBuffer The command buffer to submit to the command queue.
+        /// @return The value of the fence, inserted after the command buffer.
+        /// @see waitFor
         inline UInt64 submit(const SharedPtr<const ICommandBuffer>& commandBuffer) const {
             return this->submitCommandBuffer(commandBuffer);
         }
 
-        /// <summary>
-        /// Submits a single command buffer with shared ownership and inserts a fence to wait for it.
-        /// </summary>
-        /// <remarks>
-        /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffer" /> until the fence is passed. The reference will be released
-        /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
-        /// 
+        /// @brief Submits a single command buffer with shared ownership and inserts a fence to wait for it.
+        ///
+        /// By calling this method, the queue takes shared ownership over the @p commandBuffer until the fence is passed. The reference will be released during a @ref waitFor, if the awaited fence is inserted
+        /// after the associated one.
+        ///
         /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
-        /// </remarks>
-        /// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
-        /// <returns>The value of the fence, inserted after the command buffer.</returns>
-        /// <seealso cref="waitFor" />
+        ///
+        /// @param commandBuffer The command buffer to submit to the command queue.
+        /// @return The value of the fence, inserted after the command buffer.
+        /// @see waitFor
         inline UInt64 submit(const SharedPtr<ICommandBuffer>& commandBuffer) const {
             return this->submitCommandBuffer(commandBuffer);
         }
 
-        /// <summary>
-        /// Submits a set of command buffers with shared ownership and inserts a fence to wait for them.
-        /// </summary>
-        /// <remarks>
-        /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffers" /> until the fence is passed. The reference will be released
-        /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
-        /// 
+        /// @brief Submits a set of command buffers with shared ownership and inserts a fence to wait for them.
+        ///
+        /// By calling this method, the queue takes shared ownership over the @p commandBuffers until the fence is passed. The reference will be released during a @ref waitFor, if the awaited fence is inserted
+        /// after the associated one.
+        ///
         /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
-        /// </remarks>
-        /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
-        /// <returns>The value of the fence, inserted after the command buffers.</returns>
-        /// <seealso cref="waitFor" />
+        ///
+        /// @param commandBuffers The command buffers to submit to the command queue.
+        /// @return The value of the fence, inserted after the command buffers.
+        /// @see waitFor
         inline UInt64 submit(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const {
             return this->submitCommandBuffers(std::move(commandBuffers));
         }
 
-        /// <summary>
-        /// Lets the CPU wait for a certain fence value to complete on the command queue.
-        /// </summary>
-        /// <remarks>
-        /// This overload performs a CPU-side wait, i.e., the CPU blocks until the current queue has passed the fence value provided by the <paramref name="fence" /> parameter.
-        /// </remarks>
-        /// <param name="fence">The value of the fence to wait for.</param>
-        /// <seealso cref="submit" />
+        /// @brief Lets the CPU wait for a certain fence value to complete on the command queue.
+        ///
+        /// This overload performs a CPU-side wait, i.e., the CPU blocks until the current queue has passed the fence value provided by the @p fence parameter.
+        ///
+        /// @param fence The value of the fence to wait for.
+        /// @see submit
         virtual void waitFor(UInt64 fence) const = 0;
 
-        /// <summary>
-        /// Lets the command queue wait for a certain fence value to complete on another queue.
-        /// </summary>
-        /// <remarks>
-        /// This overload performs a GPU-side wait, i.e., the current command queue waits until <paramref name="queue" /> has passed the fence value provided by the <paramref name="fence" />
-        /// parameter. This overload does return immediately and does not block the CPU.
-        /// </remarks>
-        /// <param name="queue">The queue to wait upon.</param>
-        /// <param name="fence">The value of the fence to wait upon on the other queue.</param>
+        /// @brief Lets the command queue wait for a certain fence value to complete on another queue.
+        ///
+        /// This overload performs a GPU-side wait, i.e., the current command queue waits until @p queue has passed the fence value provided by the @p fence parameter. This overload does return immediately and
+        /// does not block the CPU.
+        ///
+        /// @param queue The queue to wait upon.
+        /// @param fence The value of the fence to wait upon on the other queue.
         inline void waitFor(const ICommandQueue& queue, UInt64 fence) const {
             this->waitForQueue(queue, fence);
         }
 
-        /// <summary>
-        /// Returns the value of the latest fence inserted into the queue.
-        /// </summary>
-        /// <returns>The value of the latest fence inserted into the queue.</returns>
-        /// <seealso cref="waitFor" />
-        /// <seealso cref="lastCompletedFence" />
+        /// @brief Returns the value of the latest fence inserted into the queue.
+        ///
+        /// @return The value of the latest fence inserted into the queue.
+        /// @see waitFor
+        /// @see lastCompletedFence
         virtual UInt64 currentFence() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the last fence that was completed on the queue.
-        /// </summary>
-        /// <returns>The last fence that was completed on the queue.</returns>
-        /// <seealso cref="currentFence" />
+        /// @brief Returns the last fence that was completed on the queue.
+        ///
+        /// @return The last fence that was completed on the queue.
+        /// @see currentFence
         virtual UInt64 lastCompletedFence() const noexcept = 0;
 
     private:
@@ -10038,144 +8173,90 @@ namespace LiteFX::Rendering {
         }
     };
 
-    /// <summary>
-    /// Stores simple memory heap statistics, that can be quickly queried by calling <see cref="IGraphicsFactory::memoryStatistics" />
-    /// </summary>
+    /// @brief Stores simple memory heap statistics, that can be quickly queried by calling @ref IGraphicsFactory::memoryStatistics
     struct LITEFX_RENDERING_API MemoryHeapStatistics {
-        /// <summary>
-        /// `true`, if the heap is located in video memory and `false` otherwise.
-        /// </summary>
+        /// @brief `true`, if the heap is located in video memory and `false` otherwise.
         bool onGpu{ false };
 
-        /// <summary>
-        /// `true`, of the heap is accessible for the CPU and `false` otherwise.
-        /// </summary>
+        /// @brief `true`, of the heap is accessible for the CPU and `false` otherwise.
         bool cpuVisible{ false };
 
-        /// <summary>
-        /// Returns the number of memory blocks in the heap.
-        /// </summary>
+        /// @brief Returns the number of memory blocks in the heap.
         UInt32 blocks{};
 
-        /// <summary>
-        /// Returns the total number of allocations in the heap.
-        /// </summary>
+        /// @brief Returns the total number of allocations in the heap.
         UInt32 allocations{};
 
-        /// <summary>
-        /// Returns the total size of allocated memory across all blocks in the heap.
-        /// </summary>
+        /// @brief Returns the total size of allocated memory across all blocks in the heap.
         UInt64 blockSize{};
 
-        /// <summary>
-        /// Returns the total size of memory for all allocations in the heap. Always less or equal to <see cref="totalBlockSize" />.
-        /// </summary>
+        /// @brief Returns the total size of memory for all allocations in the heap. Always less or equal to @ref totalBlockSize.
         UInt64 allocationSize{};
 
-        /// <summary>
-        /// Estimated memory used by the program in the heap.
-        /// </summary>
-        /// <remarks>
+        /// @brief Estimated memory used by the program in the heap.
+        ///
         /// This value best represents the actual memory pressure of the program in the heap, as it not only factors in allocations, but also other resources.
-        /// </remarks>
         UInt64 usedMemory{};
 
-        /// <summary>
-        /// Estimated memory available to the program in the heap.
-        /// </summary>
-        /// <remarks>
+        /// @brief Estimated memory available to the program in the heap.
+        ///
         /// This value best represents the actual memory available to the program in the heap
-        /// </remarks>
-        /// <seealso cref="usedMemory" />
+        ///
+        /// @see usedMemory
         UInt64 availableMemory{};
     };
 
-    /// <summary>
-    /// Stores extended memory statistics, that can be queried by calling <see cref="IGraphicsFactory::detailedMemoryStatistics" />.
-    /// </summary>
-    /// <remarks>
-    /// Note that those statistics should only be used for debugging purposes, as their computation may be significantly slower compared to calling <see cref="IGraphicsFactory::memoryStatistics" />.
-    /// </remarks>
+    /// @brief Stores extended memory statistics, that can be queried by calling @ref IGraphicsFactory::detailedMemoryStatistics.
+    ///
+    /// Note that those statistics should only be used for debugging purposes, as their computation may be significantly slower compared to calling @ref IGraphicsFactory::memoryStatistics.
     struct LITEFX_RENDERING_API DetailedMemoryStatistics {
-        /// <summary>
-        /// Defines a single statistics block.
-        /// </summary>
+        /// @brief Defines a single statistics block.
         struct StatisticsBlock {
-            /// <summary>
-            /// `true`, if the heap is located in video memory and `false` otherwise.
-            /// </summary>
+            /// @brief `true`, if the heap is located in video memory and `false` otherwise.
             bool onGpu{ false };
 
-            /// <summary>
-            /// `true`, of the heap is accessible for the CPU and `false` otherwise.
-            /// </summary>
+            /// @brief `true`, of the heap is accessible for the CPU and `false` otherwise.
             bool cpuVisible{ false };
 
-            /// <summary>
-            /// Returns the number of memory blocks in the heap.
-            /// </summary>
+            /// @brief Returns the number of memory blocks in the heap.
             UInt32 blocks{};
 
-            /// <summary>
-            /// Returns the total number of allocations in the heap.
-            /// </summary>
+            /// @brief Returns the total number of allocations in the heap.
             UInt32 allocations{};
 
-            /// <summary>
-            /// Returns the total size of allocated memory across all blocks in the heap.
-            /// </summary>
+            /// @brief Returns the total size of allocated memory across all blocks in the heap.
             UInt64 blockSize{};
 
-            /// <summary>
-            /// Returns the total size of memory for all allocations in the heap. Always less or equal to <see cref="totalBlockSize" />.
-            /// </summary>
+            /// @brief Returns the total size of memory for all allocations in the heap. Always less or equal to @ref totalBlockSize.
             UInt64 allocationSize{};
 
-            /// <summary>
-            /// The number of unoccupied memory ranges between allocations.
-            /// </summary>
+            /// @brief The number of unoccupied memory ranges between allocations.
             UInt32 unusedRangeCount{};
 
-            /// <summary>
-            /// The size of the smallest allocation.
-            /// </summary>
+            /// @brief The size of the smallest allocation.
             UInt64 minAllocationSize{};
 
-            /// <summary>
-            /// The size of the largest allocation.
-            /// </summary>
+            /// @brief The size of the largest allocation.
             UInt64 maxAllocationSize{};
 
-            /// <summary>
-            /// The size of the smallest unused memory range.
-            /// </summary>
+            /// @brief The size of the smallest unused memory range.
             UInt64 minUnusedRangeSize{};
 
-            /// <summary>
-            /// The size of the largest unused memory range.
-            /// </summary>
+            /// @brief The size of the largest unused memory range.
             UInt64 maxUnusedRangeSize{};
         };
 
-        /// <summary>
-        /// Stores the memory statistics per location (e.g., VRAM/RAM).
-        /// </summary>
+        /// @brief Stores the memory statistics per location (e.g., VRAM/RAM).
         Array<StatisticsBlock> perLocation{};
 
-        /// <summary>
-        /// Stores the memory statistics per <see cref="ResourceHeap" />.
-        /// </summary>
+        /// @brief Stores the memory statistics per @ref ResourceHeap.
         Array<StatisticsBlock> perResourceHeap{};
 
-        /// <summary>
-        /// Stores the total memory statistics.
-        /// </summary>
+        /// @brief Stores the total memory statistics.
         StatisticsBlock total{};
     };
 
-    /// <summary>
-    /// The interface for a graphics factory.
-    /// </summary>
+    /// @brief The interface for a graphics factory.
     class LITEFX_RENDERING_API IGraphicsFactory : public SharedObject {
     protected:
         IGraphicsFactory() noexcept = default;
@@ -10188,85 +8269,72 @@ namespace LiteFX::Rendering {
         ~IGraphicsFactory() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Creates a virtual allocator that can be used to manage allocation from a custom block of memory.
-        /// </summary>
-        /// <param name="overallMemory">The overall size (in bytes) of memory available to the allocator.</param>
-        /// <param name="algorithm">The algorithm used to find a suitable block in the allocator memory.</param>
-        /// <returns>The instance of the virtual allocator.</returns>
+        /// @brief Creates a virtual allocator that can be used to manage allocation from a custom block of memory.
+        ///
+        /// @param overallMemory The overall size (in bytes) of memory available to the allocator.
+        /// @param algorithm The algorithm used to find a suitable block in the allocator memory.
+        /// @return The instance of the virtual allocator.
         [[nodiscard]] virtual VirtualAllocator createAllocator(UInt64 overallMemory, AllocationAlgorithm algorithm = AllocationAlgorithm::Default) const = 0;
 
-        /// <summary>
-        /// Starts a defragmentation process for the resources allocated from the factory.
-        /// </summary>
-        /// <remarks>
-        /// Defragmentation is an iterative process. Calling this method starts defragmentation, which is then advanced by alternating calls to 
-        /// <see cref="beginDefragmentationPass" /> and <see cref="endDefragmentationPass" />. The process ends if <see cref="endDefragmentationPass" /> returns `true`.
-        /// 
-        /// During a defragmentation pass, a number of resources may get allocated and the memory and filled with memory from resources that will later be destroyed. 
-        /// Each iteration will only create a certain number of such move events, which is mainly influenced by the <paramref name="maxBytesToMove" /> and 
-        /// <paramref name="maxAllocationsToMove" /> parameters, as well as the provided <paramref name="strategy" />. This way, the number of moves per frame can be 
-        /// limited, which helps with keeping a steady frame rate.
-        /// 
-        /// Moving a resource happens by recording copy commands on a command buffer created from <paramref name="queue" />. If a resource does not need to be copied,
-        /// for example because it only contains temporary data, you can set the <see cref="IDeviceMemory::volatileMove" /> property to `true`. This will only allocate
-        /// a new resource, but wont copy the contents of the old allocation.
-        /// 
-        /// Calling <see cref="beginDefragmentationPass" /> returns the fence on that queue after which the move commands have been executed. You can either manually 
-        /// wait for the fence (e.g., by calling <see cref="ICommandQueue::lastCompletedFence" />) or call <see cref="endDefragmentationPass" /> directly. Keep in mind 
-        /// that <see cref="endDefragmentationPass" /> blocks to wait for the last fence to finish, so you might want to consider the alternative approach if you are 
-        /// doing per-frame defragmentation.
-        /// 
+        /// @brief Starts a defragmentation process for the resources allocated from the factory.
+        ///
+        /// Defragmentation is an iterative process. Calling this method starts defragmentation, which is then advanced by alternating calls to @ref beginDefragmentationPass and @ref endDefragmentationPass. The
+        /// process ends if @ref endDefragmentationPass returns `true`.
+        ///
+        /// During a defragmentation pass, a number of resources may get allocated and the memory and filled with memory from resources that will later be destroyed. Each iteration will only create a certain
+        /// number of such move events, which is mainly influenced by the @p maxBytesToMove and @p maxAllocationsToMove parameters, as well as the provided @p strategy. This way, the number of moves per frame can
+        /// be limited, which helps with keeping a steady frame rate.
+        ///
+        /// Moving a resource happens by recording copy commands on a command buffer created from @p queue. If a resource does not need to be copied, for example because it only contains temporary data, you can
+        /// set the @ref IDeviceMemory::volatileMove property to `true`. This will only allocate a new resource, but wont copy the contents of the old allocation.
+        ///
+        /// Calling @ref beginDefragmentationPass returns the fence on that queue after which the move commands have been executed. You can either manually wait for the fence (e.g., by calling @ref
+        /// ICommandQueue::lastCompletedFence) or call @ref endDefragmentationPass directly. Keep in mind that @ref endDefragmentationPass blocks to wait for the last fence to finish, so you might want to
+        /// consider the alternative approach if you are doing per-frame defragmentation.
+        ///
         /// Calling this method while another defragmentation process is active will raise an exception.
-        /// </remarks>
-        /// <param name="queue">The queue to execute the move commands on.</param>
-        /// <param name="strategy">The strategy to pack the fragmented memory.</param>
-        /// <param name="maxBytesToMove">The maximum number of bytes to move during this pass or `0`, if no limitation should be imposed.</param>
-        /// <param name="maxAllocationsToMove">The maximum number of allocations to move during this pass or `0`, if no limitation should be imposed.</param>
-        /// <exception cref="RuntimeException">Thrown, if another defragmentation process is currently running and has not yet finished.</exception>
+        ///
+        /// @param queue The queue to execute the move commands on.
+        /// @param strategy The strategy to pack the fragmented memory.
+        /// @param maxBytesToMove The maximum number of bytes to move during this pass or `0`, if no limitation should be imposed.
+        /// @param maxAllocationsToMove The maximum number of allocations to move during this pass or `0`, if no limitation should be imposed.
+        /// @throws RuntimeException Thrown, if another defragmentation process is currently running and has not yet finished.
         virtual void beginDefragmentation(const ICommandQueue& queue, DefragmentationStrategy strategy = DefragmentationStrategy::Balanced, UInt64 maxBytesToMove = 0u, UInt32 maxAllocationsToMove = 0u) const = 0;
 
-        /// <summary>
-        /// Starts a new defragmentation pass.
-        /// </summary>
-        /// <remarks>
-        /// Before calling this method, make sure you have started a defragmentation process by calling <see cref="beginDefragmentation" />. If no defragmentation
-        /// process is currently started, calling this method raises an exception.
-        /// 
-        /// You are expected to issue alternating calls to this method and <see cref="endDefragmentationPass" />. This can happen either at the beginning or end of a 
-        /// frame, or on a separate thread.
-        /// 
-        /// In between a call to this method and <see cref="endDefragmentationPass" />, the moved-from resources remain valid. Only after the move has finished and 
-        /// <see cref="endDefragmentationPass" /> has been called, they will get invalidated. This means, that you might have to update descriptor bindings for the 
-        /// resource. You can subscribe to the <see cref="IDeviceMemory::moved" /> event for this purpose. You might also want to issue a barrier to transition an 
-        /// image resource back into the required layout. Calling this method will leave the new resource in a <see cref="ImageLayout::Common" /> state.
-        /// </remarks>
-        /// <seealso cref="beginDefragmentation" />
-        /// <seealso cref="endDefragmentationPass" />
-        /// <exception cref="RuntimeException">Thrown, if no defragmentation process is currently active.</exception>
+        /// @brief Starts a new defragmentation pass.
+        ///
+        /// Before calling this method, make sure you have started a defragmentation process by calling @ref beginDefragmentation. If no defragmentation process is currently started, calling this method raises an
+        /// exception.
+        ///
+        /// You are expected to issue alternating calls to this method and @ref endDefragmentationPass. This can happen either at the beginning or end of a frame, or on a separate thread.
+        ///
+        /// In between a call to this method and @ref endDefragmentationPass, the moved-from resources remain valid. Only after the move has finished and @ref endDefragmentationPass has been called, they will get
+        /// invalidated. This means, that you might have to update descriptor bindings for the resource. You can subscribe to the @ref IDeviceMemory::moved event for this purpose. You might also want to issue a
+        /// barrier to transition an image resource back into the required layout. Calling this method will leave the new resource in a @ref ImageLayout::Common state.
+        ///
+        /// @throws RuntimeException Thrown, if no defragmentation process is currently active.
+        /// @see beginDefragmentation
+        /// @see endDefragmentationPass
         virtual UInt64 beginDefragmentationPass() const = 0;
 
-        /// <summary>
-        /// Ends a defragmentation pass.
-        /// </summary>
-        /// <remarks>
-        /// Before calling this method, make sure you have started a defragmentation process by calling <see cref="beginDefragmentation" />. If no defragmentation
-        /// process is currently started, calling this method raises an exception.
-        /// 
-        /// This method waits for the fence issued by the last call to <see cref="beginDefragmentation" /> before first invoking the <see cref="IDeviceMemory::moved" />
-        /// event on all affected resources and finally destroying the moved-from resources.
-        /// </remarks>
-        /// <seealso cref="beginDefragmentation" />
-        /// <seealso cref="beginDefragmentationPass" />
-        /// <exception cref="RuntimeException">Thrown, if no defragmentation process is currently active.</exception>
+        /// @brief Ends a defragmentation pass.
+        ///
+        /// Before calling this method, make sure you have started a defragmentation process by calling @ref beginDefragmentation. If no defragmentation process is currently started, calling this method raises an
+        /// exception.
+        ///
+        /// This method waits for the fence issued by the last call to @ref beginDefragmentation before first invoking the @ref IDeviceMemory::moved event on all affected resources and finally destroying the
+        /// moved-from resources.
+        ///
+        /// @throws RuntimeException Thrown, if no defragmentation process is currently active.
+        /// @see beginDefragmentation
+        /// @see beginDefragmentationPass
         virtual bool endDefragmentationPass() const = 0;
 
-        /// <summary>
-        /// Allocates a single resource as described by <paramref name="allocationInfo" />.
-        /// </summary>
-        /// <param name="allocationInfo">The description of the resource to allocate.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The resource allocation result.</returns>
+        /// @brief Allocates a single resource as described by @p allocationInfo.
+        ///
+        /// @param allocationInfo The description of the resource to allocate.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The resource allocation result.
         virtual ResourceAllocationResult allocate(const ResourceAllocationInfo& allocationInfo, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             if (std::holds_alternative<ResourceAllocationInfo::ImageInfo>(allocationInfo.ResourceInfo))
             {
@@ -10288,720 +8356,660 @@ namespace LiteFX::Rendering {
             }
         }
 
-        /// <summary>
-        /// Allocates a set of resources as described by <paramref name="allocationInfos" />.
-        /// </summary>
-        /// <remarks>
-        /// If the <paramref name="alias" /> parameter is set to `true`, the allocator attempts to overlap the resources in a single allocation, which saves memory. 
-        /// However, this implies that the resources must be properly synchronized and accessed according to the aliasing rules imposed by the backend. Most notably,
-        /// you have to manually insert aliasing barriers to isolate access.
-        /// 
-        /// Note that overlapping arbitrary resource types might not be possible on each GPU. You can check if aliasing is supported for the desired resources by
-        /// calling <see cref="canAlias" /> first. If aliasing is not possible, you can instead fallback to non-overlapping resources by setting the 
-        /// <paramref name="alias" /> parameter to `false` accordingly. If you attempt to allocate aliasing resources on an unsupported GPU directly, this method
-        /// will raise an error.
-        /// </remarks>
-        /// <param name="allocationInfos">The description of the resources to allocate.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <param name="alias">`true` if the allocator should attempt to overlap the allocations and `false` otherwise.</param>
-        /// <returns>A generator that returns the individual resources that have been allocated.</returns>
-        /// <seealso cref="canAlias" />
-        /// <seealso href="https://gpuopen-librariesandsdks.github.io/D3D12MemoryAllocator/html/resource_aliasing.html" />
-        /// <seealso href="https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/resource_aliasing.html" />
-        /// <exception cref="InvalidArgumentException">Thrown, if the <paramref name="alias" /> parameter is set to `true`, but the provided <paramref name="allocationInfos" /> cannot be overlapped on the system's GPU.</exception>
+        /// @brief Allocates a set of resources as described by @p allocationInfos.
+        ///
+        /// If the @p alias parameter is set to `true`, the allocator attempts to overlap the resources in a single allocation, which saves memory. However, this implies that the resources must be properly
+        /// synchronized and accessed according to the aliasing rules imposed by the backend. Most notably, you have to manually insert aliasing barriers to isolate access.
+        ///
+        /// Note that overlapping arbitrary resource types might not be possible on each GPU. You can check if aliasing is supported for the desired resources by calling @ref canAlias first. If aliasing is not
+        /// possible, you can instead fallback to non-overlapping resources by setting the @p alias parameter to `false` accordingly. If you attempt to allocate aliasing resources on an unsupported GPU directly,
+        /// this method will raise an error.
+        ///
+        /// @param allocationInfos The description of the resources to allocate.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @param alias `true` if the allocator should attempt to overlap the allocations and `false` otherwise.
+        /// @return A generator that returns the individual resources that have been allocated.
+        /// @throws InvalidArgumentException Thrown, if the @p alias parameter is set to `true`, but the provided @p allocationInfos cannot be overlapped on the system's GPU.
+        /// @see canAlias
+        /// @see https://gpuopen-librariesandsdks.github.io/D3D12MemoryAllocator/html/resource_aliasing.html
+        /// @see https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/resource_aliasing.html
         virtual Generator<ResourceAllocationResult> allocate(Enumerable<const ResourceAllocationInfo&> allocationInfos, AllocationBehavior allocationBehavior = AllocationBehavior::Default, bool alias = false) const = 0;
 
-        /// <summary>
-        /// Checks if the resources described by <paramref name="allocationInfos" /> can be overlapped.
-        /// </summary>
-        /// <param name="allocationInfos">The resource descriptions to check.</param>
-        /// <returns>`true`, if the resources described by  <paramref name="allocationInfos" /> can be overlapped and `false` otherwise.</returns>
-        /// <seealso cref="allocate" />
-        /// <seealso cref="ResourceAllocationInfo::AliasingOffset" />
+        /// @brief Checks if the resources described by @p allocationInfos can be overlapped.
+        ///
+        /// @param allocationInfos The resource descriptions to check.
+        /// @return `true`, if the resources described by @p allocationInfos can be overlapped and `false` otherwise.
+        /// @see allocate
+        /// @see ResourceAllocationInfo::AliasingOffset
         virtual bool canAlias(Enumerable<const ResourceAllocationInfo&> allocationInfos) const = 0;
 
-        /// <summary>
-        /// Creates a buffer of type <paramref name="type" />.
-        /// </summary>
-        /// <param name="type">The type of the buffer.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The instance of the buffer.</returns>
+        /// @brief Creates a buffer of type @p type.
+        ///
+        /// @param type The type of the buffer.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elementSize The size of an element in the buffer (in bytes).
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The instance of the buffer.
         inline SharedPtr<IBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->getBuffer(type, heap, elementSize, elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Tries to create a buffer of type <paramref name="type" />.
-        /// </summary>
-        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
-        /// <param name="type">The type of the buffer.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        /// @brief Tries to create a buffer of type @p type.
+        ///
+        /// @param buffer The instance of the buffer, or `nullptr`, if the buffer could not be allocated.
+        /// @param type The type of the buffer.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elementSize The size of an element in the buffer (in bytes).
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return `true`, if the buffer was created successfully and `false` otherwise.
         inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->tryGetBuffer(buffer, type, heap, elementSize, elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Creates a buffer that can be bound to a specific descriptor.
-        /// </summary>
-        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
-        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The instance of the buffer.</returns>
+        /// @brief Creates a buffer that can be bound to a specific descriptor.
+        ///
+        /// @param descriptorSet The layout of the descriptors parent descriptor set.
+        /// @param binding The binding point of the descriptor within the parent descriptor set.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The instance of the buffer.
         inline SharedPtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(descriptor.type(), heap, descriptor.elementSize(), elements, usage, allocationBehavior);
         };
         
-        /// <summary>
-        /// Tries to create a buffer that can be bound to a specific descriptor.
-        /// </summary>
-        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
-        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
-        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        /// @brief Tries to create a buffer that can be bound to a specific descriptor.
+        ///
+        /// @param buffer The instance of the buffer, or `nullptr`, if the buffer could not be allocated.
+        /// @param descriptorSet The layout of the descriptors parent descriptor set.
+        /// @param binding The binding point of the descriptor within the parent descriptor set.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return `true`, if the buffer was created successfully and `false` otherwise.
         inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer,const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->tryCreateBuffer(buffer, descriptor.type(), heap, descriptor.elementSize(), elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Creates a buffer that can be bound to a specific descriptor.
-        /// </summary>
-        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
-        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The instance of the buffer.</returns>
+        /// @brief Creates a buffer that can be bound to a specific descriptor.
+        ///
+        /// @param descriptorSet The layout of the descriptors parent descriptor set.
+        /// @param binding The binding point of the descriptor within the parent descriptor set.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The instance of the buffer.
         inline SharedPtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(descriptor.type(), heap, elementSize, elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Tries to create a buffer that can be bound to a specific descriptor.
-        /// </summary>
-        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
-        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
-        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        /// @brief Tries to create a buffer that can be bound to a specific descriptor.
+        ///
+        /// @param buffer The instance of the buffer, or `nullptr`, if the buffer could not be allocated.
+        /// @param descriptorSet The layout of the descriptors parent descriptor set.
+        /// @param binding The binding point of the descriptor within the parent descriptor set.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return `true`, if the buffer was created successfully and `false` otherwise.
         inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->tryCreateBuffer(buffer, descriptor.type(), heap, elementSize, elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Creates a buffer that can be bound to a descriptor of a specific descriptor set.
-        /// </summary>
-        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
-        /// <param name="space">The space, the descriptor set is bound to.</param>
-        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The instance of the buffer.</returns>
+        /// @brief Creates a buffer that can be bound to a descriptor of a specific descriptor set.
+        ///
+        /// @param pipeline The pipeline that provides the descriptor set.
+        /// @param space The space, the descriptor set is bound to.
+        /// @param binding The binding point of the descriptor within the parent descriptor set.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The instance of the buffer.
         inline SharedPtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, heap, elementSize, elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Tries to create a buffer that can be bound to a descriptor of a specific descriptor set.
-        /// </summary>
-        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
-        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
-        /// <param name="space">The space, the descriptor set is bound to.</param>
-        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        /// @brief Tries to create a buffer that can be bound to a descriptor of a specific descriptor set.
+        ///
+        /// @param buffer The instance of the buffer, or `nullptr`, if the buffer could not be allocated.
+        /// @param pipeline The pipeline that provides the descriptor set.
+        /// @param space The space, the descriptor set is bound to.
+        /// @param binding The binding point of the descriptor within the parent descriptor set.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return `true`, if the buffer was created successfully and `false` otherwise.
         inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->tryCreateBuffer(buffer, pipeline.layout()->descriptorSet(space), binding, heap, elementSize, elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Creates a buffer that can be bound to a descriptor of a specific descriptor set.
-        /// </summary>
-        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
-        /// <param name="space">The space, the descriptor set is bound to.</param>
-        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The instance of the buffer.</returns>
+        /// @brief Creates a buffer that can be bound to a descriptor of a specific descriptor set.
+        ///
+        /// @param pipeline The pipeline that provides the descriptor set.
+        /// @param space The space, the descriptor set is bound to.
+        /// @param binding The binding point of the descriptor within the parent descriptor set.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The instance of the buffer.
         inline SharedPtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, heap, elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Tries to create a buffer that can be bound to a descriptor of a specific descriptor set.
-        /// </summary>
-        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
-        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
-        /// <param name="space">The space, the descriptor set is bound to.</param>
-        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        /// @brief Tries to create a buffer that can be bound to a descriptor of a specific descriptor set.
+        ///
+        /// @param buffer The instance of the buffer, or `nullptr`, if the buffer could not be allocated.
+        /// @param pipeline The pipeline that provides the descriptor set.
+        /// @param space The space, the descriptor set is bound to.
+        /// @param binding The binding point of the descriptor within the parent descriptor set.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return `true`, if the buffer was created successfully and `false` otherwise.
         inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->tryCreateBuffer(buffer, pipeline.layout()->descriptorSet(space), binding, heap, elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Creates a buffer of type <paramref name="type" />.
-        /// </summary>
-        /// <param name="name">The name of the buffer.</param>
-        /// <param name="type">The type of the buffer.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The instance of the buffer.</returns>
+        /// @brief Creates a buffer of type @p type.
+        ///
+        /// @param name The name of the buffer.
+        /// @param type The type of the buffer.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elementSize The size of an element in the buffer (in bytes).
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The instance of the buffer.
         inline SharedPtr<IBuffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->getBuffer(name, type, heap, elementSize, elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Tries to create a buffer of type <paramref name="type" />.
-        /// </summary>
-        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
-        /// <param name="name">The name of the buffer.</param>
-        /// <param name="type">The type of the buffer.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        /// @brief Tries to create a buffer of type @p type.
+        ///
+        /// @param buffer The instance of the buffer, or `nullptr`, if the buffer could not be allocated.
+        /// @param name The name of the buffer.
+        /// @param type The type of the buffer.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elementSize The size of an element in the buffer (in bytes).
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return `true`, if the buffer was created successfully and `false` otherwise.
         inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->tryGetBuffer(buffer, name, type, heap, elementSize, elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Creates a buffer that can be bound to a specific descriptor.
-        /// </summary>
-        /// <param name="name">The name of the buffer.</param>
-        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
-        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The instance of the buffer.</returns>
+        /// @brief Creates a buffer that can be bound to a specific descriptor.
+        ///
+        /// @param name The name of the buffer.
+        /// @param descriptorSet The layout of the descriptors parent descriptor set.
+        /// @param binding The binding point of the descriptor within the parent descriptor set.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The instance of the buffer.
         inline SharedPtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(name, descriptor.type(), heap, descriptor.elementSize(), elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Tries to create a buffer that can be bound to a specific descriptor.
-        /// </summary>
-        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
-        /// <param name="name">The name of the buffer.</param>
-        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
-        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        /// @brief Tries to create a buffer that can be bound to a specific descriptor.
+        ///
+        /// @param buffer The instance of the buffer, or `nullptr`, if the buffer could not be allocated.
+        /// @param name The name of the buffer.
+        /// @param descriptorSet The layout of the descriptors parent descriptor set.
+        /// @param binding The binding point of the descriptor within the parent descriptor set.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return `true`, if the buffer was created successfully and `false` otherwise.
         inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->tryCreateBuffer(buffer, name, descriptor.type(), heap, descriptor.elementSize(), elements, usage, allocationBehavior);
         };
         
-        /// <summary>
-        /// Creates a buffer that can be bound to a specific descriptor.
-        /// </summary>
-        /// <param name="name">The name of the buffer.</param>
-        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
-        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The instance of the buffer.</returns>
+        /// @brief Creates a buffer that can be bound to a specific descriptor.
+        ///
+        /// @param name The name of the buffer.
+        /// @param descriptorSet The layout of the descriptors parent descriptor set.
+        /// @param binding The binding point of the descriptor within the parent descriptor set.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elementSize The size of an element in the buffer (in bytes).
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The instance of the buffer.
         inline SharedPtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(name, descriptor.type(), heap, elementSize, elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Tries to create a buffer that can be bound to a specific descriptor.
-        /// </summary>
-        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
-        /// <param name="name">The name of the buffer.</param>
-        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
-        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        /// @brief Tries to create a buffer that can be bound to a specific descriptor.
+        ///
+        /// @param buffer The instance of the buffer, or `nullptr`, if the buffer could not be allocated.
+        /// @param name The name of the buffer.
+        /// @param descriptorSet The layout of the descriptors parent descriptor set.
+        /// @param binding The binding point of the descriptor within the parent descriptor set.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elementSize The size of an element in the buffer (in bytes).
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return `true`, if the buffer was created successfully and `false` otherwise.
         inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->tryCreateBuffer(buffer, name, descriptor.type(), heap, elementSize, elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Creates a buffer that can be bound to a descriptor of a specific descriptor set.
-        /// </summary>
-        /// <param name="name">The name of the buffer.</param>
-        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
-        /// <param name="space">The space, the descriptor set is bound to.</param>
-        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The instance of the buffer.</returns>
+        /// @brief Creates a buffer that can be bound to a descriptor of a specific descriptor set.
+        ///
+        /// @param name The name of the buffer.
+        /// @param pipeline The pipeline that provides the descriptor set.
+        /// @param space The space, the descriptor set is bound to.
+        /// @param binding The binding point of the descriptor within the parent descriptor set.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The instance of the buffer.
         inline SharedPtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, heap, elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Tries to create a buffer that can be bound to a descriptor of a specific descriptor set.
-        /// </summary>
-        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
-        /// <param name="name">The name of the buffer.</param>
-        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
-        /// <param name="space">The space, the descriptor set is bound to.</param>
-        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        /// @brief Tries to create a buffer that can be bound to a descriptor of a specific descriptor set.
+        ///
+        /// @param buffer The instance of the buffer, or `nullptr`, if the buffer could not be allocated.
+        /// @param name The name of the buffer.
+        /// @param pipeline The pipeline that provides the descriptor set.
+        /// @param space The space, the descriptor set is bound to.
+        /// @param binding The binding point of the descriptor within the parent descriptor set.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return `true`, if the buffer was created successfully and `false` otherwise.
         inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->tryCreateBuffer(buffer, name, pipeline.layout()->descriptorSet(space), binding, heap, elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Creates a buffer that can be bound to a descriptor of a specific descriptor set.
-        /// </summary>
-        /// <param name="name">The name of the buffer.</param>
-        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
-        /// <param name="space">The space, the descriptor set is bound to.</param>
-        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The instance of the buffer.</returns>
+        /// @brief Creates a buffer that can be bound to a descriptor of a specific descriptor set.
+        ///
+        /// @param name The name of the buffer.
+        /// @param pipeline The pipeline that provides the descriptor set.
+        /// @param space The space, the descriptor set is bound to.
+        /// @param binding The binding point of the descriptor within the parent descriptor set.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elementSize The size of an element in the buffer (in bytes).
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The instance of the buffer.
         inline SharedPtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, heap, elementSize, elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Tries to create a buffer that can be bound to a descriptor of a specific descriptor set.
-        /// </summary>
-        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
-        /// <param name="name">The name of the buffer.</param>
-        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
-        /// <param name="space">The space, the descriptor set is bound to.</param>
-        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        /// @brief Tries to create a buffer that can be bound to a descriptor of a specific descriptor set.
+        ///
+        /// @param buffer The instance of the buffer, or `nullptr`, if the buffer could not be allocated.
+        /// @param name The name of the buffer.
+        /// @param pipeline The pipeline that provides the descriptor set.
+        /// @param space The space, the descriptor set is bound to.
+        /// @param binding The binding point of the descriptor within the parent descriptor set.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elementSize The size of an element in the buffer (in bytes).
+        /// @param elements The number of elements in the buffer (in case the buffer is an array).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return `true`, if the buffer was created successfully and `false` otherwise.
         inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->tryCreateBuffer(buffer, name, pipeline.layout()->descriptorSet(space), binding, heap, elementSize, elements, usage, allocationBehavior);
         };
 
-        /// <summary>
-        /// Creates a vertex buffer, based on the <paramref name="layout" />.
-        /// </summary>
-        /// <remarks>
-        /// A vertex buffer can be used by different <see cref="RenderPipeline" />s, as long as they share a common input assembler state.
-        /// 
-        /// The size of the buffer is computed from the element size vertex buffer layout, times the number of elements given by the <paramref name="elements" /> parameter.
-        /// </remarks>
-        /// <param name="layout">The layout of the vertex buffer.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The instance of the vertex buffer.</returns>
+        /// @brief Creates a vertex buffer, based on the @p layout.
+        ///
+        /// A vertex buffer can be used by different @ref RenderPipelines, as long as they share a common input assembler state.
+        ///
+        /// The size of the buffer is computed from the element size vertex buffer layout, times the number of elements given by the @p elements parameter.
+        ///
+        /// @param layout The layout of the vertex buffer.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements within the vertex buffer (i.e. the number of vertices).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The instance of the vertex buffer.
         inline SharedPtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->getVertexBuffer(layout, heap, elements, usage, allocationBehavior);
         }
 
-        /// <summary>
-        /// Tries to create a vertex buffer, based on the <paramref name="layout" />.
-        /// </summary>
-        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
-        /// <param name="layout">The layout of the vertex buffer.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        /// @brief Tries to create a vertex buffer, based on the @p layout.
+        ///
+        /// @param buffer The instance of the buffer, or `nullptr`, if the buffer could not be allocated.
+        /// @param layout The layout of the vertex buffer.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements within the vertex buffer (i.e. the number of vertices).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return `true`, if the buffer was created successfully and `false` otherwise.
         inline bool tryCreateVertexBuffer(SharedPtr<IVertexBuffer>& buffer, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->tryGetVertexBuffer(buffer, layout, heap, elements, usage, allocationBehavior);
         }
 
-        /// <summary>
-        /// Creates a vertex buffer, based on the <paramref name="layout" />.
-        /// </summary>
-        /// <remarks>
-        /// A vertex buffer can be used by different <see cref="RenderPipeline" />s, as long as they share a common input assembler state.
-        /// 
-        /// The size of the buffer is computed from the element size vertex buffer layout, times the number of elements given by the <paramref name="elements" /> parameter.
-        /// </remarks>
-        /// <param name="name">The name of the buffer.</param>
-        /// <param name="layout">The layout of the vertex buffer.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The instance of the vertex buffer.</returns>
+        /// @brief Creates a vertex buffer, based on the @p layout.
+        ///
+        /// A vertex buffer can be used by different @ref RenderPipelines, as long as they share a common input assembler state.
+        ///
+        /// The size of the buffer is computed from the element size vertex buffer layout, times the number of elements given by the @p elements parameter.
+        ///
+        /// @param name The name of the buffer.
+        /// @param layout The layout of the vertex buffer.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements within the vertex buffer (i.e. the number of vertices).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The instance of the vertex buffer.
         inline SharedPtr<IVertexBuffer> createVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->getVertexBuffer(name, layout, heap, elements, usage, allocationBehavior);
         }
 
-        /// <summary>
-        /// Tries to create a vertex buffer, based on the <paramref name="layout" />.
-        /// </summary>
-        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
-        /// <param name="name">The name of the buffer.</param>
-        /// <param name="layout">The layout of the vertex buffer.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        /// @brief Tries to create a vertex buffer, based on the @p layout.
+        ///
+        /// @param buffer The instance of the buffer, or `nullptr`, if the buffer could not be allocated.
+        /// @param name The name of the buffer.
+        /// @param layout The layout of the vertex buffer.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements within the vertex buffer (i.e. the number of vertices).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return `true`, if the buffer was created successfully and `false` otherwise.
         inline bool tryCreateVertexBuffer(SharedPtr<IVertexBuffer>& buffer, const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->tryGetVertexBuffer(buffer, name, layout, heap, elements, usage, allocationBehavior);
         }
 
-        /// <summary>
-        /// Creates an index buffer, based on the <paramref name="layout" />.
-        /// </summary>
-        /// <remarks>
-        /// An index buffer can be used by different <see cref="RenderPipeline" />s, as long as they share a common input assembler state.
-        /// 
-        /// The size of the buffer is computed from the element size index buffer layout, times the number of elements given by the <paramref name="elements" /> parameter.
-        /// </remarks>
-        /// <param name="layout">The layout of the index buffer.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The instance of the index buffer.</returns>
+        /// @brief Creates an index buffer, based on the @p layout.
+        ///
+        /// An index buffer can be used by different @ref RenderPipelines, as long as they share a common input assembler state.
+        ///
+        /// The size of the buffer is computed from the element size index buffer layout, times the number of elements given by the @p elements parameter.
+        ///
+        /// @param layout The layout of the index buffer.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements within the vertex buffer (i.e. the number of indices).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The instance of the index buffer.
         inline SharedPtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->getIndexBuffer(layout, heap, elements, usage, allocationBehavior);
         }
 
-        /// <summary>
-        /// Tries to create an index buffer, based on the <paramref name="layout" />.
-        /// </summary>
-        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
-        /// <param name="layout">The layout of the index buffer.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        /// @brief Tries to create an index buffer, based on the @p layout.
+        ///
+        /// @param buffer The instance of the buffer, or `nullptr`, if the buffer could not be allocated.
+        /// @param layout The layout of the index buffer.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param elements The number of elements within the vertex buffer (i.e. the number of indices).
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return `true`, if the buffer was created successfully and `false` otherwise.
         inline bool tryCreateIndexBuffer(SharedPtr<IIndexBuffer>& buffer, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->tryGetIndexBuffer(buffer, layout, heap, elements, usage, allocationBehavior);
         }
 
-        /// <summary>
-        /// Creates an index buffer, based on the <paramref name="layout" />.
-        /// </summary>
-        /// <remarks>
-        /// An index buffer can be used by different <see cref="RenderPipeline" />s, as long as they share a common input assembler state.
-        /// 
-        /// The size of the buffer is computed from the element size index buffer layout, times the number of elements given by the <paramref name="elements" /> parameter.
-        /// </remarks>
-        /// <param name="name">The name of the buffer.</param>
-        /// <param name="layout">The layout of the index buffer.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The instance of the index buffer.</returns>
+        /// @brief Creates an index buffer, based on the @p layout.
+        ///
+        /// An index buffer can be used by different @ref RenderPipelines, as long as they share a common input assembler state.
+        ///
+        /// The size of the buffer is computed from the element size index buffer layout, times the number of elements given by the @p elements parameter.
+        ///
+        /// @param name The name of the buffer.
+        /// @param layout The layout of the index buffer.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param usage The intended usage for the buffer.
+        /// @param elements The number of elements within the vertex buffer (i.e. the number of indices).
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The instance of the index buffer.
         inline SharedPtr<IIndexBuffer> createIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->getIndexBuffer(name, layout, heap, elements, usage, allocationBehavior);
         }
 
-        /// <summary>
-        /// Tries to create an index buffer, based on the <paramref name="layout" />.
-        /// </summary>
-        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
-        /// <param name="name">The name of the buffer.</param>
-        /// <param name="layout">The layout of the index buffer.</param>
-        /// <param name="heap">The heap to allocate the buffer on.</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        /// @brief Tries to create an index buffer, based on the @p layout.
+        ///
+        /// @param buffer The instance of the buffer, or `nullptr`, if the buffer could not be allocated.
+        /// @param name The name of the buffer.
+        /// @param layout The layout of the index buffer.
+        /// @param heap The heap to allocate the buffer on.
+        /// @param usage The intended usage for the buffer.
+        /// @param elements The number of elements within the vertex buffer (i.e. the number of indices).
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return `true`, if the buffer was created successfully and `false` otherwise.
         inline bool tryCreateIndexBuffer(SharedPtr<IIndexBuffer>& buffer, const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->tryGetIndexBuffer(buffer, name, layout, heap, elements, usage, allocationBehavior);
         }
 
-        /// <summary>
-        /// Creates a texture.
-        /// </summary>
-        /// <remarks>
-        /// A texture in LiteFX is always backed by GPU-only visible memory and thus can only be transferred to/from. Thus you typically have to create a buffer using 
-        /// <see cref="createBuffer" /> first that holds the actual image bytes. You than can transfer/copy the contents into the texture.
-        /// </remarks>
-        /// <param name="format">The format of the texture image.</param>
-        /// <param name="size">The dimensions of the texture.</param>
-        /// <param name="dimension">The dimensionality of the texture.</param>
-        /// <param name="layers">The number of layers (slices) in this texture.</param>
-        /// <param name="levels">The number of mip map levels of the texture.</param>
-        /// <param name="samples">The number of samples, the texture should be sampled with.</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The instance of the texture.</returns>
-        /// <seealso cref="createTextures" />
+        /// @brief Creates a texture.
+        ///
+        /// A texture in LiteFX is always backed by GPU-only visible memory and thus can only be transferred to/from. Thus you typically have to create a buffer using @ref createBuffer first that holds the actual
+        /// image bytes. You than can transfer/copy the contents into the texture.
+        ///
+        /// @param format The format of the texture image.
+        /// @param size The dimensions of the texture.
+        /// @param dimension The dimensionality of the texture.
+        /// @param layers The number of layers (slices) in this texture.
+        /// @param levels The number of mip map levels of the texture.
+        /// @param samples The number of samples, the texture should be sampled with.
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The instance of the texture.
+        /// @see createTextures
         inline SharedPtr<IImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->getTexture(format, size, dimension, levels, layers, samples, usage, allocationBehavior);
         }
 
-        /// <summary>
-        /// Tries to create a texture.
-        /// </summary>
-        /// <param name="image">The instance of the buffer, or `nullptr`, if the texture could not be allocated.</param>
-        /// <param name="format">The format of the texture image.</param>
-        /// <param name="size">The dimensions of the texture.</param>
-        /// <param name="dimension">The dimensionality of the texture.</param>
-        /// <param name="layers">The number of layers (slices) in this texture.</param>
-        /// <param name="levels">The number of mip map levels of the texture.</param>
-        /// <param name="samples">The number of samples, the texture should be sampled with.</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>`true`, if the texture was created successfully and `false` otherwise.</returns>
+        /// @brief Tries to create a texture.
+        ///
+        /// @param image The instance of the buffer, or `nullptr`, if the texture could not be allocated.
+        /// @param format The format of the texture image.
+        /// @param size The dimensions of the texture.
+        /// @param dimension The dimensionality of the texture.
+        /// @param layers The number of layers (slices) in this texture.
+        /// @param levels The number of mip map levels of the texture.
+        /// @param samples The number of samples, the texture should be sampled with.
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return `true`, if the texture was created successfully and `false` otherwise.
         inline bool tryCreateTexture(SharedPtr<IImage>& image, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->tryGetTexture(image, format, size, dimension, levels, layers, samples, usage, allocationBehavior);
         }
 
-        /// <summary>
-        /// Creates a texture.
-        /// </summary>
-        /// <remarks>
-        /// A texture in LiteFX is always backed by GPU-only visible memory and thus can only be transferred to/from. Thus you typically have to create a buffer using 
-        /// <see cref="createBuffer" /> first that holds the actual image bytes. You than can transfer/copy the contents into the texture.
-        /// </remarks>
-        /// <param name="name">The name of the texture image.</param>
-        /// <param name="format">The format of the texture image.</param>
-        /// <param name="size">The dimensions of the texture.</param>
-        /// <param name="dimension">The dimensionality of the texture.</param>
-        /// <param name="layers">The number of layers (slices) in this texture.</param>
-        /// <param name="levels">The number of mip map levels of the texture.</param>
-        /// <param name="samples">The number of samples, the texture should be sampled with.</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>The instance of the texture.</returns>
-        /// <seealso cref="createTextures" />
+        /// @brief Creates a texture.
+        ///
+        /// A texture in LiteFX is always backed by GPU-only visible memory and thus can only be transferred to/from. Thus you typically have to create a buffer using @ref createBuffer first that holds the actual
+        /// image bytes. You than can transfer/copy the contents into the texture.
+        ///
+        /// @param name The name of the texture image.
+        /// @param format The format of the texture image.
+        /// @param size The dimensions of the texture.
+        /// @param dimension The dimensionality of the texture.
+        /// @param layers The number of layers (slices) in this texture.
+        /// @param levels The number of mip map levels of the texture.
+        /// @param samples The number of samples, the texture should be sampled with.
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return The instance of the texture.
+        /// @see createTextures
         inline SharedPtr<IImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->getTexture(name, format, size, dimension, levels, layers, samples, usage, allocationBehavior);
         }
 
-        /// <summary>
-        /// Tries to create a texture.
-        /// </summary>
-        /// <param name="image">The instance of the buffer, or `nullptr`, if the texture could not be allocated.</param>
-        /// <param name="name">The name of the texture image.</param>
-        /// <param name="format">The format of the texture image.</param>
-        /// <param name="size">The dimensions of the texture.</param>
-        /// <param name="dimension">The dimensionality of the texture.</param>
-        /// <param name="layers">The number of layers (slices) in this texture.</param>
-        /// <param name="levels">The number of mip map levels of the texture.</param>
-        /// <param name="samples">The number of samples, the texture should be sampled with.</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>`true`, if the texture was created successfully and `false` otherwise.</returns>
+        /// @brief Tries to create a texture.
+        ///
+        /// @param image The instance of the buffer, or `nullptr`, if the texture could not be allocated.
+        /// @param name The name of the texture image.
+        /// @param format The format of the texture image.
+        /// @param size The dimensions of the texture.
+        /// @param dimension The dimensionality of the texture.
+        /// @param layers The number of layers (slices) in this texture.
+        /// @param levels The number of mip map levels of the texture.
+        /// @param samples The number of samples, the texture should be sampled with.
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return `true`, if the texture was created successfully and `false` otherwise.
         inline bool tryCreateTexture(SharedPtr<IImage>& image, const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->tryGetTexture(image, name, format, size, dimension, levels, layers, samples, usage, allocationBehavior);
         }
 
-        /// <summary>
-        /// Creates a series of textures.
-        /// </summary>
-        /// <param name="format">The format of the texture images.</param>
-        /// <param name="size">The dimensions of the textures.</param>
-        /// <param name="layers">The number of layers (slices) in this texture.</param>
-        /// <param name="levels">The number of mip map levels of the textures.</param>
-        /// <param name="samples">The number of samples, the textures should be sampled with.</param>
-        /// <param name="usage">The intended usage for the buffer.</param>
-        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
-        /// <returns>A generator for texture instances.</returns>
-        /// <seealso cref="createTexture" />
+        /// @brief Creates a series of textures.
+        ///
+        /// @param format The format of the texture images.
+        /// @param size The dimensions of the textures.
+        /// @param layers The number of layers (slices) in this texture.
+        /// @param levels The number of mip map levels of the textures.
+        /// @param samples The number of samples, the textures should be sampled with.
+        /// @param usage The intended usage for the buffer.
+        /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
+        /// @return A generator for texture instances.
+        /// @see createTexture
         inline Generator<SharedPtr<IImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             return this->getTextures(format, size, dimension, layers, levels, samples, usage, allocationBehavior);
         }
 
-        /// <summary>
-        /// Creates a texture sampler.
-        /// </summary>
-        /// <param name="magFilter">The filter operation used for magnifying.</param>
-        /// <param name="minFilter">The filter operation used for minifying.</param>
-        /// <param name="borderU">The border mode along the U-axis.</param>
-        /// <param name="borderV">The border mode along the V-axis.</param>
-        /// <param name="borderW">The border mode along the W-axis.</param>
-        /// <param name="mipMapMode">The mip map mode.</param>
-        /// <param name="mipMapBias">The mip map bias.</param>
-        /// <param name="maxLod">The maximum level of detail value.</param>
-        /// <param name="minLod">The minimum level of detail value.</param>
-        /// <param name="anisotropy">The level of anisotropic filtering.</param>
-        /// <returns>The instance of the sampler.</returns>
-        /// <seealso cref="createSamplers" />
+        /// @brief Creates a texture sampler.
+        ///
+        /// @param magFilter The filter operation used for magnifying.
+        /// @param minFilter The filter operation used for minifying.
+        /// @param borderU The border mode along the U-axis.
+        /// @param borderV The border mode along the V-axis.
+        /// @param borderW The border mode along the W-axis.
+        /// @param mipMapMode The mip map mode.
+        /// @param mipMapBias The mip map bias.
+        /// @param maxLod The maximum level of detail value.
+        /// @param minLod The minimum level of detail value.
+        /// @param anisotropy The level of anisotropic filtering.
+        /// @return The instance of the sampler.
+        /// @see createSamplers
         inline SharedPtr<ISampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const {
             return this->getSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
-        /// <summary>
-        /// Creates a texture sampler.
-        /// </summary>
-        /// <param name="name">The name of the sampler.</param>
-        /// <param name="magFilter">The filter operation used for magnifying.</param>
-        /// <param name="minFilter">The filter operation used for minifying.</param>
-        /// <param name="borderU">The border mode along the U-axis.</param>
-        /// <param name="borderV">The border mode along the V-axis.</param>
-        /// <param name="borderW">The border mode along the W-axis.</param>
-        /// <param name="mipMapMode">The mip map mode.</param>
-        /// <param name="mipMapBias">The mip map bias.</param>
-        /// <param name="maxLod">The maximum level of detail value.</param>
-        /// <param name="minLod">The minimum level of detail value.</param>
-        /// <param name="anisotropy">The level of anisotropic filtering.</param>
-        /// <returns>The instance of the sampler.</returns>
-        /// <seealso cref="createSamplers" />
+        /// @brief Creates a texture sampler.
+        ///
+        /// @param name The name of the sampler.
+        /// @param magFilter The filter operation used for magnifying.
+        /// @param minFilter The filter operation used for minifying.
+        /// @param borderU The border mode along the U-axis.
+        /// @param borderV The border mode along the V-axis.
+        /// @param borderW The border mode along the W-axis.
+        /// @param mipMapMode The mip map mode.
+        /// @param mipMapBias The mip map bias.
+        /// @param maxLod The maximum level of detail value.
+        /// @param minLod The minimum level of detail value.
+        /// @param anisotropy The level of anisotropic filtering.
+        /// @return The instance of the sampler.
+        /// @see createSamplers
         inline SharedPtr<ISampler> createSampler(const String& name, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const {
             return this->getSampler(name, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
-        /// <summary>
-        /// Creates a series of texture samplers.
-        /// </summary>
-        /// <param name="magFilter">The filter operation used for magnifying.</param>
-        /// <param name="minFilter">The filter operation used for minifying.</param>
-        /// <param name="borderU">The border mode along the U-axis.</param>
-        /// <param name="borderV">The border mode along the V-axis.</param>
-        /// <param name="borderW">The border mode along the W-axis.</param>
-        /// <param name="mipMapMode">The mip map mode.</param>
-        /// <param name="mipMapBias">The mip map bias.</param>
-        /// <param name="maxLod">The maximum level of detail value.</param>
-        /// <param name="minLod">The minimum level of detail value.</param>
-        /// <param name="anisotropy">The level of anisotropic filtering.</param>
-        /// <returns>A generator for sampler instances.</returns>
-        /// <seealso cref="createSampler" />
+        /// @brief Creates a series of texture samplers.
+        ///
+        /// @param magFilter The filter operation used for magnifying.
+        /// @param minFilter The filter operation used for minifying.
+        /// @param borderU The border mode along the U-axis.
+        /// @param borderV The border mode along the V-axis.
+        /// @param borderW The border mode along the W-axis.
+        /// @param mipMapMode The mip map mode.
+        /// @param mipMapBias The mip map bias.
+        /// @param maxLod The maximum level of detail value.
+        /// @param minLod The minimum level of detail value.
+        /// @param anisotropy The level of anisotropic filtering.
+        /// @return A generator for sampler instances.
+        /// @see createSampler
         inline Generator<SharedPtr<ISampler>> createSamplers(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const {
             return this->getSamplers(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
-        /// <summary>
-        /// Creates a bottom-level acceleration structure.
-        /// </summary>
-        /// <remarks>
-        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
-        /// </remarks>
-        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
-        /// <returns>The bottom-level acceleration structure instance.</returns>
-        /// <seealso cref="IBottomLevelAccelerationStructure" />
+        /// @brief Creates a bottom-level acceleration structure.
+        ///
+        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        ///
+        /// @param flags The flags that define how the acceleration structure is built.
+        /// @return The bottom-level acceleration structure instance.
+        /// @see IBottomLevelAccelerationStructure
         inline UniquePtr<IBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None) const {
             return this->createBottomLevelAccelerationStructure("", flags);
         }
 
-        /// <summary>
-        /// Creates a bottom-level acceleration structure.
-        /// </summary>
-        /// <remarks>
-        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
-        /// </remarks>
-        /// <param name="name">The name of the acceleration structure resource.</param>
-        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
-        /// <returns>The bottom-level acceleration structure instance.</returns>
-        /// <seealso cref="IBottomLevelAccelerationStructure" />
+        /// @brief Creates a bottom-level acceleration structure.
+        ///
+        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        ///
+        /// @param name The name of the acceleration structure resource.
+        /// @param flags The flags that define how the acceleration structure is built.
+        /// @return The bottom-level acceleration structure instance.
+        /// @see IBottomLevelAccelerationStructure
         inline UniquePtr<IBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const {
             return this->getBlas(name, flags);
         }
 
-        /// <summary>
-        /// Creates a top-level acceleration structure.
-        /// </summary>
-        /// <remarks>
-        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
-        /// </remarks>
-        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
-        /// <returns>The top-level acceleration structure instance.</returns>
-        /// <seealso cref="ITopLevelAccelerationStructure" />
+        /// @brief Creates a top-level acceleration structure.
+        ///
+        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        ///
+        /// @param flags The flags that define how the acceleration structure is built.
+        /// @return The top-level acceleration structure instance.
+        /// @see ITopLevelAccelerationStructure
         inline UniquePtr<ITopLevelAccelerationStructure> createTopLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None) const {
             return this->createTopLevelAccelerationStructure("", flags);
         }
 
-        /// <summary>
-        /// Creates a top-level acceleration structure.
-        /// </summary>
-        /// <remarks>
-        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
-        /// </remarks>
-        /// <param name="name">The name of the acceleration structure resource.</param>
-        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
-        /// <returns>The top-level acceleration structure instance.</returns>
-        /// <seealso cref="ITopLevelAccelerationStructure" />
+        /// @brief Creates a top-level acceleration structure.
+        ///
+        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        ///
+        /// @param name The name of the acceleration structure resource.
+        /// @param flags The flags that define how the acceleration structure is built.
+        /// @return The top-level acceleration structure instance.
+        /// @see ITopLevelAccelerationStructure
         inline UniquePtr<ITopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const {
             return this->getTlas(name, flags);
         }
 
-        /// <summary>
-        /// Returns `true`, if the GPU supports resizable base address register (ReBAR) and `false` otherwise.
-        /// </summary>
-        /// <remarks>
-        /// If the GPU supports resizable base address register (ReBAR), you can use <see cref="ResourceHeap::GPUUpload" /> for buffers to directly write map into GPU memory. If it is
-        /// not supported, you may want to fall back to a <see cref="ResourceHeap::Dynamic" /> resource instead.
-        /// </remarks>
-        /// <returns>`true`, if the GPU supports resizable base address register (ReBAR) and `false` otherwise.</returns>
+        /// @brief Returns `true`, if the GPU supports resizable base address register (ReBAR) and `false` otherwise.
+        ///
+        /// If the GPU supports resizable base address register (ReBAR), you can use @ref ResourceHeap::GPUUpload for buffers to directly write map into GPU memory. If it is not supported, you may want to fall
+        /// back to a @ref ResourceHeap::Dynamic resource instead.
+        ///
+        /// @return `true`, if the GPU supports resizable base address register (ReBAR) and `false` otherwise.
         virtual bool supportsResizableBaseAddressRegister() const noexcept = 0;
 
-        /// <summary>
-        /// Returns an array of objects, that contain information about the current memory usage and available memory for a memory heap.
-        /// </summary>
-        /// <returns>An array of objects, containing memory statistics for a memory heap.</returns>
+        /// @brief Returns an array of objects, that contain information about the current memory usage and available memory for a memory heap.
+        ///
+        /// @return An array of objects, containing memory statistics for a memory heap.
         virtual Array<MemoryHeapStatistics> memoryStatistics() const = 0;
 
-        /// <summary>
-        /// Returns detailed memory statistics.
-        /// </summary>
-        /// <remarks>
-        /// Only call this method for debugging purposes, as it is significantly slower compared to <see cref="memoryStatistics" />, which can be called multiple times every frame 
-        /// without any significant performance impact.
-        /// </remarks>
-        /// <returns>The detailed memory statistics of the application.</returns>
+        /// @brief Returns detailed memory statistics.
+        ///
+        /// Only call this method for debugging purposes, as it is significantly slower compared to @ref memoryStatistics, which can be called multiple times every frame without any significant performance
+        /// impact.
+        ///
+        /// @return The detailed memory statistics of the application.
         virtual DetailedMemoryStatistics detailedMemoryStatistics() const = 0;
 
     private:
@@ -11029,83 +9037,62 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<ITopLevelAccelerationStructure> getTlas(StringView name, AccelerationStructureFlags flags) const = 0;
     };
 
-    /// <summary>
-    /// Describes optional features that can be supported by a device.
-    /// </summary>
-    /// <remarks>
-    /// Device features are evaluated when creating a <see cref="IGraphicsDevice" />. If a feature is not supported by the device, an exception is raised.
-    /// 
-    /// Note that feature support is not strictly enforced by the engine. For example, if you are calling any feature-related API, the call may succeed even if the feature is not enabled, if the GPU 
-    /// supports it. Graphics API validation may warn about it and the same program may fail on GPUs that do not support this feature. Enabling a feature through the settings in this structure makes
-    /// the device check for support creation, resulting in a clear fail path, if a required extension is not supported by the system hardware.
-    /// </remarks>
+    /// @brief Describes optional features that can be supported by a device.
+    ///
+    /// Device features are evaluated when creating a @ref IGraphicsDevice. If a feature is not supported by the device, an exception is raised.
+    ///
+    /// Note that feature support is not strictly enforced by the engine. For example, if you are calling any feature-related API, the call may succeed even if the feature is not enabled, if the GPU supports
+    /// it. Graphics API validation may warn about it and the same program may fail on GPUs that do not support this feature. Enabling a feature through the settings in this structure makes the device check
+    /// for support creation, resulting in a clear fail path, if a required extension is not supported by the system hardware.
     struct LITEFX_RENDERING_API GraphicsDeviceFeatures {
     public:
-        /// <summary>
-        /// Enables or disables mesh shader support.
-        /// </summary>
+        /// @brief Enables or disables mesh shader support.
         bool MeshShaders { false };
 
-        /// <summary>
-        /// Enables or disables ray-tracing support.
-        /// </summary>
+        /// @brief Enables or disables ray-tracing support.
         bool RayTracing { false };
 
-        /// <summary>
-        /// Enables or disables ray query and inline ray-tracing support.
-        /// </summary>
+        /// @brief Enables or disables ray query and inline ray-tracing support.
         bool RayQueries { false };
 
-        /// <summary>
-        /// Enables or disables support for indirect draw.
-        /// </summary>
+        /// @brief Enables or disables support for indirect draw.
         bool DrawIndirect { false };
 
-        /// <summary>
-        /// Enables or disables support for dynamic descriptor types ([SM 6.6 dynamic resources](https://microsoft.github.io/DirectX-Specs/d3d/HLSL_SM_6_6_DynamicResources.html) and 
+        /// @brief Enables or disables support for dynamic descriptor types ([SM 6.6 dynamic resources](https://microsoft.github.io/DirectX-Specs/d3d/HLSL_SM_6_6_DynamicResources.html) and
         /// [VK_EXT_mutable_descriptor_type](https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_mutable_descriptor_type.html)).
-        /// </summary>
-        /// <remarks>
-        /// Note that support for this feature is limited in the engine. It's purpose is to bind resources of different <see cref="DescriptorType" />s within a single descriptor array.
-        /// However, you still have to allocate a <see cref="IDescriptorSet" /> to be able to bind resources and retrieve resource indices by calling 
-        /// <see cref="IDescriptorSet::bindToHeap" />.
-        /// 
-        /// If you are only using the DirectX 12 backend, you can generally index any bound resource this way. However, in the Vulkan backend, only resources within the descriptor set can be 
-        /// indexed. Descriptor sets that contain descriptors of <see cref="DescriptorType::ResourceDescriptorHeap" /> or <see cref="DescriptorType::SamplerDescriptorHeap" /> can be used to
-        /// bind those descriptors. Such descriptor sets are called proxy sets, because they do not actually occur in the shader. Instead they are directly accessed using the 
-        /// `ResourceDescriptorHeap` or `SamplerDescriptorHeap` syntax. In order to acquire a resource from those heaps, you need to provide the index, that can be retrieved as described 
-        /// above.
-        /// 
-        /// Be aware that dynamic descriptors (aka mutable descriptors) are considered inefficient in Vulkan. You should not use them, if you could instead use multiple descriptor sets 
-        /// containing unbounded descriptor arrays. They can, however, be more efficient if you can replace multiple pipeline layouts with a single one that relies on mutable type descriptors.
-        /// </remarks>
+        ///
+        /// Note that support for this feature is limited in the engine. It's purpose is to bind resources of different @ref DescriptorTypes within a single descriptor array. However, you still have to allocate a
+        /// @ref IDescriptorSet to be able to bind resources and retrieve resource indices by calling @ref IDescriptorSet::bindToHeap.
+        ///
+        /// If you are only using the DirectX 12 backend, you can generally index any bound resource this way. However, in the Vulkan backend, only resources within the descriptor set can be indexed. Descriptor
+        /// sets that contain descriptors of @ref DescriptorType::ResourceDescriptorHeap or @ref DescriptorType::SamplerDescriptorHeap can be used to bind those descriptors. Such descriptor sets are called proxy
+        /// sets, because they do not actually occur in the shader. Instead they are directly accessed using the `ResourceDescriptorHeap` or `SamplerDescriptorHeap` syntax. In order to acquire a resource from
+        /// those heaps, you need to provide the index, that can be retrieved as described above.
+        ///
+        /// Be aware that dynamic descriptors (aka mutable descriptors) are considered inefficient in Vulkan. You should not use them, if you could instead use multiple descriptor sets containing unbounded
+        /// descriptor arrays. They can, however, be more efficient if you can replace multiple pipeline layouts with a single one that relies on mutable type descriptors.
         bool DynamicDescriptors { false };
 
-        /// <summary>
-        /// Enables support for enabling depth bounds test on <see cref="IRenderPipeline" /> creation.
-        /// </summary>
-        /// <seealso href="https://microsoft.github.io/DirectX-Specs/d3d/DepthBoundsTest.html" />
-        /// <seealso href="https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html#features-depthBounds" />
+        /// @brief Enables support for enabling depth bounds test on @ref IRenderPipeline creation.
+        ///
+        /// @see https://microsoft.github.io/DirectX-Specs/d3d/DepthBoundsTest.html
+        /// @see https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html#features-depthBounds
         bool DepthBoundsTest { false };
 
-        /// <summary>
-        /// Enables support for conservative rasterization.
-        /// </summary>
-        /// <seealso href="https://learn.microsoft.com/en-us/windows/win32/direct3d12/conservative-rasterization" />
-        /// <seealso href="https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_conservative_rasterization.html" />
+        /// @brief Enables support for conservative rasterization.
+        ///
+        /// @see https://learn.microsoft.com/en-us/windows/win32/direct3d12/conservative-rasterization
+        /// @see https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_conservative_rasterization.html
         bool ConservativeRasterization { false };
 
-        /// <summary>
-        /// Enables support for view instancing/multi-view.
-        /// </summary>
-        /// <seealso href="https://microsoft.github.io/DirectX-Specs/d3d/ViewInstancing.html#view-instance-masking" />
-        /// <seealso href="https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_multiview.html" />
+        /// @brief Enables support for view instancing/multi-view.
+        ///
+        /// @see https://microsoft.github.io/DirectX-Specs/d3d/ViewInstancing.html#view-instance-masking
+        /// @see https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_multiview.html
         bool ViewInstancing { false };
     };
 
-    /// <summary>
-    /// The interface for a graphics device that.
-    /// </summary>
+    /// @brief The interface for a graphics device that.
     class LITEFX_RENDERING_API IGraphicsDevice : public SharedObject {
     protected:
         IGraphicsDevice() noexcept = default;
@@ -11118,216 +9105,183 @@ namespace LiteFX::Rendering {
         ~IGraphicsDevice() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns the device state that can be used to manage resources.
-        /// </summary>
-        /// <returns>A reference of the device state.</returns>
+        /// @brief Returns the device state that can be used to manage resources.
+        ///
+        /// @return A reference of the device state.
         virtual DeviceState& state() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the surface, the device draws to.
-        /// </summary>
-        /// <returns>A reference of the surface, the device draws to.</returns>
+        /// @brief Returns the surface, the device draws to.
+        ///
+        /// @return A reference of the surface, the device draws to.
         virtual const ISurface& surface() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the graphics adapter, the device uses for drawing.
-        /// </summary>
-        /// <returns>A reference of the graphics adapter, the device uses for drawing.</returns>
+        /// @brief Returns the graphics adapter, the device uses for drawing.
+        ///
+        /// @return A reference of the graphics adapter, the device uses for drawing.
         virtual const IGraphicsAdapter& adapter() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the swap chain, that contains the back and front buffers used for presentation.
-        /// </summary>
-        /// <returns>The swap chain, that contains the back and front buffers used for presentation.</returns>
+        /// @brief Returns the swap chain, that contains the back and front buffers used for presentation.
+        ///
+        /// @return The swap chain, that contains the back and front buffers used for presentation.
         virtual const ISwapChain& swapChain() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the swap chain, that contains the back and front buffers used for presentation.
-        /// </summary>
-        /// <returns>The swap chain, that contains the back and front buffers used for presentation.</returns>
+        /// @brief Returns the swap chain, that contains the back and front buffers used for presentation.
+        ///
+        /// @return The swap chain, that contains the back and front buffers used for presentation.
         virtual ISwapChain& swapChain() noexcept = 0;
 
-        /// <summary>
-        /// Returns the factory instance, used to create instances from the device.
-        /// </summary>
-        /// <returns>The factory instance, used to create instances from the device.</returns>
+        /// @brief Returns the factory instance, used to create instances from the device.
+        ///
+        /// @return The factory instance, used to create instances from the device.
         virtual const IGraphicsFactory& factory() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the instance of the default <see cref="ICommandQueue" /> that supports the combination of queue types specified by the <paramref name="type" /> parameter.
-        /// </summary>
-        /// <remarks>
-        /// When the device is created, it attempts to create a queue for each singular queue type. Each GPU is expected to provide at least one queue that is capable of supporting all
-        /// queue types. This queue is used as a fallback queue, if no dedicated queue for a certain type is supported. For example, if no dedicated <see cref="QueueType::Transfer" />
-        /// queue can be created, calling this method for the default transfer queue will return the same queue instance as the default graphics queue, which implicitly always supports
-        /// transfer operations. The same is true for compute queues. This default graphics queue is ensured to support presentation and is also created with the highest queue priority.
-        /// </remarks>
-        /// <param name="type">The type or a combination of types that specifies the operation the queue should support.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if no default queue for the combination of queue types specified with the <paramref name="type" /> parameter has been created.</exception>
-        /// <returns>The instance of the queue, used to process draw calls.</returns>
-        /// <seealso cref="createQueue" />
+        /// @brief Returns the instance of the default @ref ICommandQueue that supports the combination of queue types specified by the @p type parameter.
+        ///
+        /// When the device is created, it attempts to create a queue for each singular queue type. Each GPU is expected to provide at least one queue that is capable of supporting all queue types. This queue is
+        /// used as a fallback queue, if no dedicated queue for a certain type is supported. For example, if no dedicated @ref QueueType::Transfer queue can be created, calling this method for the default
+        /// transfer queue will return the same queue instance as the default graphics queue, which implicitly always supports transfer operations. The same is true for compute queues. This default graphics queue
+        /// is ensured to support presentation and is also created with the highest queue priority.
+        ///
+        /// @param type The type or a combination of types that specifies the operation the queue should support.
+        /// @return The instance of the queue, used to process draw calls.
+        /// @throws InvalidArgumentException Thrown, if no default queue for the combination of queue types specified with the @p type parameter has been created.
+        /// @see createQueue
         inline const ICommandQueue& defaultQueue(QueueType type) const {
             return this->getDefaultQueue(type);
         }
 
-        /// <summary>
-        /// Attempts to create a new queue that supports the combination of queue types specified by the <paramref name="type" /> parameter.
-        /// </summary>
-        /// <remarks>
-        /// Note that a queue is not guaranteed to represent an *actual* hardware queue that runs in parallel to other hardware queues. Backends might create *virtual* queues, that map
-        /// the same hardware queue. In this case, creating a new queue is always possible but might not yield performance benefits. As a good practice, it is advised to create only as
-        /// few queues as required.
-        /// 
-        /// If this method is not able to create a new queue (i.e., it returns `nullptr`), you can either fall back to the default queue (<see cref="defaultQueue" />) or use any queue
-        /// that you created earlier instead.
-        /// 
-        /// The <paramref name="priority" /> parameter can be specified to request a queue with a certain priority. However, the backend is not required to return a queue with that 
-        /// actual priority. The default queues are always prioritized highest.
-        /// </remarks>
-        /// <param name="type">The type of the queue or a combination of capabilities the queue is required to support.</param>
-        /// <param name="priority">The preferred priority of the queue.</param>
-        /// <returns>A pointer to the newly created queue, or `nullptr`, if no queue could be created.</returns>
-        /// <seealso cref="defaultQueue" />
+        /// @brief Attempts to create a new queue that supports the combination of queue types specified by the @p type parameter.
+        ///
+        /// Note that a queue is not guaranteed to represent an *actual* hardware queue that runs in parallel to other hardware queues. Backends might create *virtual* queues, that map the same hardware queue. In
+        /// this case, creating a new queue is always possible but might not yield performance benefits. As a good practice, it is advised to create only as few queues as required.
+        ///
+        /// If this method is not able to create a new queue (i.e., it returns `nullptr`), you can either fall back to the default queue (@ref defaultQueue) or use any queue that you created earlier instead.
+        ///
+        /// The @p priority parameter can be specified to request a queue with a certain priority. However, the backend is not required to return a queue with that actual priority. The default queues are always
+        /// prioritized highest.
+        ///
+        /// @param type The type of the queue or a combination of capabilities the queue is required to support.
+        /// @param priority The preferred priority of the queue.
+        /// @return A pointer to the newly created queue, or `nullptr`, if no queue could be created.
+        /// @see defaultQueue
         inline SharedPtr<const ICommandQueue> createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) {
             return this->getNewQueue(type, priority);
         }
 
-        /// <summary>
-        /// Creates a memory barrier instance.
-        /// </summary>
-        /// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
-        /// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
-        /// <returns>The instance of the memory barrier.</returns>
+        /// @brief Creates a memory barrier instance.
+        ///
+        /// @param syncBefore The pipeline stage(s) all previous commands have to finish before the barrier is executed.
+        /// @param syncAfter The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.
+        /// @return The instance of the memory barrier.
         [[nodiscard]] inline UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const {
             return this->getNewBarrier(syncBefore, syncAfter);
         }
 
-        /// <summary>
-        /// Creates a new frame buffer instance.
-        /// </summary>
-        /// <param name="renderArea">The initial render area of the frame buffer.</param>
-        /// <returns>The instance of the frame buffer.</returns>
+        /// @brief Creates a new frame buffer instance.
+        ///
+        /// @param renderArea The initial render area of the frame buffer.
+        /// @return The instance of the frame buffer.
         [[nodiscard]] inline SharedPtr<IFrameBuffer> makeFrameBuffer(const Size2d& renderArea) const {
             return this->makeFrameBuffer("", renderArea);
         }
 
-        /// <summary>
-        /// Creates a new frame buffer instance.
-        /// </summary>
-        /// <param name="name">The name of the frame buffer.</param>
-        /// <param name="renderArea">The initial render area of the frame buffer.</param>
-        /// <returns>The instance of the frame buffer.</returns>
+        /// @brief Creates a new frame buffer instance.
+        ///
+        /// @param name The name of the frame buffer.
+        /// @param renderArea The initial render area of the frame buffer.
+        /// @return The instance of the frame buffer.
         [[nodiscard]] inline SharedPtr<IFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const {
             return this->getNewFrameBuffer(name, renderArea);
         }
 
-        /// <summary>
-        /// Queries the device for the maximum supported number of multi-sampling levels.
-        /// </summary>
-        /// <remarks>
-        /// This method returns the maximum supported multi-sampling level for a certain format. Typically you want to pass a back-buffer format for your swap-chain here. All lower 
-        /// multi-sampling levels are implicitly supported for this format.
-        /// </remarks>
-        /// <param name="format">The target (i.e. back-buffer) format.</param>
-        /// <returns>The maximum multi-sampling level.</returns>
+        /// @brief Queries the device for the maximum supported number of multi-sampling levels.
+        ///
+        /// This method returns the maximum supported multi-sampling level for a certain format. Typically you want to pass a back-buffer format for your swap-chain here. All lower multi-sampling levels are
+        /// implicitly supported for this format.
+        ///
+        /// @param format The target (i.e. back-buffer) format.
+        /// @return The maximum multi-sampling level.
         virtual MultiSamplingLevel maximumMultiSamplingLevel(Format format) const = 0;
 
-        /// <summary>
-        /// Returns the number of GPU ticks per milliseconds.
-        /// </summary>
-        /// <returns>The number of GPU ticks per milliseconds.</returns>
-        /// <seealso cref="TimingEvent" />
+        /// @brief Returns the number of GPU ticks per milliseconds.
+        ///
+        /// @return The number of GPU ticks per milliseconds.
+        /// @see TimingEvent
         virtual double ticksPerMillisecond() const noexcept = 0;
 
-        /// <summary>
-        /// Computes the required amount of device memory for an <see cref="IBottomLevelAccelerationStructure" />.
-        /// </summary>
-        /// <remarks>
-        /// Acceleration structures are built on the GPU, which requires additional memory called *scratch memory*. When creating an acceleration structure (AS), you have to 
-        /// provide a temporary buffer containing the scratch memory, alongside the actual buffer that stores the AS itself. This method can be used to pre-compute the buffer
-        /// sizes for both buffers.
-        /// 
-        /// This method is only supported, if the <see cref="GraphicsDeviceFeatures::RayTracing" /> feature is enabled.
-        /// </remarks>
-        /// <param name="blas">The bottom-level acceleration structure to compute the memory requirements for.</param>
-        /// <param name="bufferSize">The size of the acceleration structure buffer.</param>
-        /// <param name="scratchSize">The size of the scratch memory buffer.</param>
-        /// <param name="forUpdate">If set to `true`, <paramref name="scratchSize" /> will contain the amount of scratch memory required for an update.</param>
+        /// @brief Computes the required amount of device memory for an @ref IBottomLevelAccelerationStructure.
+        ///
+        /// Acceleration structures are built on the GPU, which requires additional memory called *scratch memory*. When creating an acceleration structure (AS), you have to provide a temporary buffer containing
+        /// the scratch memory, alongside the actual buffer that stores the AS itself. This method can be used to pre-compute the buffer sizes for both buffers.
+        ///
+        /// This method is only supported, if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
+        ///
+        /// @param blas The bottom-level acceleration structure to compute the memory requirements for.
+        /// @param bufferSize The size of the acceleration structure buffer.
+        /// @param scratchSize The size of the scratch memory buffer.
+        /// @param forUpdate If set to `true`, @p scratchSize will contain the amount of scratch memory required for an update.
         inline void computeAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const {
             this->getAccelerationStructureSizes(blas, bufferSize, scratchSize, forUpdate);
         }
 
-        /// <summary>
-        /// Computes the required amount of device memory for an <see cref="ITopLevelAccelerationStructure" />.
-        /// </summary>
-        /// <remarks>
-        /// Acceleration structures are built on the GPU, which requires additional memory called *scratch memory*. When creating an acceleration structure (AS), you have to 
-        /// provide a temporary buffer containing the scratch memory, alongside the actual buffer that stores the AS itself. This method can be used to pre-compute the buffer
-        /// sizes for both buffers.
-        /// 
-        /// This method is only supported, if the <see cref="GraphicsDeviceFeatures::RayTracing" /> feature is enabled.
-        /// </remarks>
-        /// <param name="tlas">The top-level acceleration structure to compute the memory requirements for.</param>
-        /// <param name="bufferSize">The size of the acceleration structure buffer.</param>
-        /// <param name="scratchSize">The size of the scratch memory buffer.</param>
-        /// <param name="forUpdate">If set to `true`, <paramref name="scratchSize" /> will contain the amount of scratch memory required for an update.</param>
+        /// @brief Computes the required amount of device memory for an @ref ITopLevelAccelerationStructure.
+        ///
+        /// Acceleration structures are built on the GPU, which requires additional memory called *scratch memory*. When creating an acceleration structure (AS), you have to provide a temporary buffer containing
+        /// the scratch memory, alongside the actual buffer that stores the AS itself. This method can be used to pre-compute the buffer sizes for both buffers.
+        ///
+        /// This method is only supported, if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
+        ///
+        /// @param tlas The top-level acceleration structure to compute the memory requirements for.
+        /// @param bufferSize The size of the acceleration structure buffer.
+        /// @param scratchSize The size of the scratch memory buffer.
+        /// @param forUpdate If set to `true`, @p scratchSize will contain the amount of scratch memory required for an update.
         inline void computeAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const {
             this->getAccelerationStructureSizes(tlas, bufferSize, scratchSize, forUpdate);
         }
 
-        /// <summary>
-        /// Allocates a range of descriptors in the global descriptor heaps for the provided <paramref name="descriptorSet" />.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set containing the descriptors to update.</param>
-        /// <param name="heapType">The type of the descriptor heap to allocate descriptors on.</param>
-        /// <returns>The allocation for the descriptor set at the descriptor heap indicated by <paramref name="heapType" />.</returns>
+        /// @brief Allocates a range of descriptors in the global descriptor heaps for the provided @p descriptorSet.
+        ///
+        /// @param descriptorSet The descriptor set containing the descriptors to update.
+        /// @param heapType The type of the descriptor heap to allocate descriptors on.
+        /// @return The allocation for the descriptor set at the descriptor heap indicated by @p heapType.
         [[nodiscard]] inline VirtualAllocator::Allocation allocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const {
             return this->doAllocateGlobalDescriptors(descriptorSet, heapType);
         }
 
-        /// <summary>
-        /// Releases a range of descriptors from the global descriptor heaps.
-        /// </summary>
-        /// <remarks>
-        /// This is done, if a descriptor set layout is destroyed, of a descriptor set, which contains an unbounded array is freed. It will cause the global 
-        /// descriptor heaps to fragment, which may result in inefficient future descriptor allocations and should be avoided. Consider caching descriptor
-        /// sets with unbounded arrays instead. Also avoid relying on creating and releasing pipeline layouts during runtime. Instead, it may be more efficient
-        /// to write shaders that support multiple pipeline variations, that can be kept alive for the lifetime of the whole application.
-        /// </remarks>
+        /// @brief Releases a range of descriptors from the global descriptor heaps.
+        ///
+        /// This is done, if a descriptor set layout is destroyed, of a descriptor set, which contains an unbounded array is freed. It will cause the global descriptor heaps to fragment, which may result in
+        /// inefficient future descriptor allocations and should be avoided. Consider caching descriptor sets with unbounded arrays instead. Also avoid relying on creating and releasing pipeline layouts during
+        /// runtime. Instead, it may be more efficient to write shaders that support multiple pipeline variations, that can be kept alive for the lifetime of the whole application.
         inline void releaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const {
             this->doReleaseGlobalDescriptors(descriptorSet);
         }
 
-        /// <summary>
-        /// Updates a range of descriptors in the global buffer descriptor heap with the descriptors from <paramref name="descriptorSet" />.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set to copy the descriptors from.</param>
-        /// <param name="binding">The binding point for which to update the descriptors.</param>
-        /// <param name="offset">The index of the first descriptor in a descriptor array at the binding point.</param>
-        /// <param name="descriptors">The number of descriptors in a descriptor array to copy, starting at the offset.</param>
+        /// @brief Updates a range of descriptors in the global buffer descriptor heap with the descriptors from @p descriptorSet.
+        ///
+        /// @param descriptorSet The descriptor set to copy the descriptors from.
+        /// @param binding The binding point for which to update the descriptors.
+        /// @param offset The index of the first descriptor in a descriptor array at the binding point.
+        /// @param descriptors The number of descriptors in a descriptor array to copy, starting at the offset.
         inline void updateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const {
             this->doUpdateGlobalDescriptors(descriptorSet, binding, offset, descriptors);
         }
 
-        /// <summary>
-        /// Binds the descriptors of the descriptor set to the global descriptor heaps.
-        /// </summary>
-        /// <remarks>
-        /// Note that after binding the descriptor set, the descriptors must not be updated anymore, unless they are elements on unbounded descriptor arrays, 
-        /// in which case you have to ensure manually to not update them, as long as they may still be in use!
-        /// </remarks>
-        /// <param name="commandBuffer">The command buffer to bind the descriptor set on.</param>
-        /// <param name="descriptorSet">The descriptor set to bind.</param>
-        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        /// @brief Binds the descriptors of the descriptor set to the global descriptor heaps.
+        ///
+        /// Note that after binding the descriptor set, the descriptors must not be updated anymore, unless they are elements on unbounded descriptor arrays, in which case you have to ensure manually to not
+        /// update them, as long as they may still be in use!
+        ///
+        /// @param commandBuffer The command buffer to bind the descriptor set on.
+        /// @param descriptorSet The descriptor set to bind.
+        /// @param pipeline The pipeline to bind the descriptor set to.
         inline void bindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const {
             this->doBindDescriptorSet(commandBuffer, descriptorSet, pipeline);
         }
 
-        /// <summary>
-        /// Binds the global descriptor heap.
-        /// </summary>
-        /// <param name="commandBuffer">The command buffer to issue the bind command on.</param>
+        /// @brief Binds the global descriptor heap.
+        ///
+        /// @param commandBuffer The command buffer to issue the bind command on.
         inline void bindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept {
             this->doBindGlobalDescriptorHeaps(commandBuffer);
         }
@@ -11342,13 +9296,10 @@ namespace LiteFX::Rendering {
         virtual void doBindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept = 0;
 
     public:
-        /// <summary>
-        /// Waits until all queues allocated from the device have finished the work issued prior to this point.
-        /// </summary>
-        /// <remarks>
-        /// Note that you must synchronize calls to this method, i.e., you have to ensure no other thread is submitting work on any queue while waiting. Calling this method only 
-        /// guarantees that all *prior* work is finished after returning. If any other thread submits work to any queue after calling this method, this workload is not waited on.
-        /// </remarks>
+        /// @brief Waits until all queues allocated from the device have finished the work issued prior to this point.
+        ///
+        /// Note that you must synchronize calls to this method, i.e., you have to ensure no other thread is submitting work on any queue while waiting. Calling this method only guarantees that all *prior* work
+        /// is finished after returning. If any other thread submits work to any queue after calling this method, this workload is not waited on.
         virtual void wait() const = 0;
 
     private:
@@ -11358,9 +9309,7 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<const ICommandQueue> getNewQueue(QueueType type, QueuePriority priority) = 0;
     };
 
-    /// <summary>
-    /// The interface to access a render backend.
-    /// </summary>
+    /// @brief The interface to access a render backend.
     class LITEFX_RENDERING_API IRenderBackend : public IBackend {
     protected:
         IRenderBackend() noexcept = default;
@@ -11373,69 +9322,58 @@ namespace LiteFX::Rendering {
         ~IRenderBackend() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Lists all available graphics adapters.
-        /// </summary>
-        /// <returns>An array of pointers to all available graphics adapters.</returns>
+        /// @brief Lists all available graphics adapters.
+        ///
+        /// @return An array of pointers to all available graphics adapters.
         inline Enumerable<SharedPtr<const IGraphicsAdapter>> listAdapters() const {
             return this->getAdapters();
         }
 
-        /// <summary>
-        /// Finds an adapter using its unique ID.
-        /// </summary>
-        /// <remarks>
-        /// Note that the adapter ID is optional, which allows the back-end to return a default adapter instance. Which adapter is used as <i>default</i> adapter, depends on
-        /// the actual back-end implementation. The interface does not make any constraints on the default adapter to choose. A naive implementation might simply return the 
-        /// first available adapter.
-        /// </remarks>
-        /// <param name="adapterId">The unique ID of the adapter, or <c>std::nullopt</c> to find the default adapter.</param>
-        /// <returns>A pointer to a graphics adapter, or <c>nullptr</c>, if no adapter could be found.</returns>
-        /// <seealso cref="IGraphicsAdapter" />
+        /// @brief Finds an adapter using its unique ID.
+        ///
+        /// Note that the adapter ID is optional, which allows the back-end to return a default adapter instance. Which adapter is used as *default* adapter, depends on the actual back-end implementation. The
+        /// interface does not make any constraints on the default adapter to choose. A naive implementation might simply return the first available adapter.
+        ///
+        /// @param adapterId The unique ID of the adapter, or `std::nullopt` to find the default adapter.
+        /// @return A pointer to a graphics adapter, or `nullptr`, if no adapter could be found.
+        /// @see IGraphicsAdapter
         virtual const IGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const = 0;
 
-        /// <summary>
-        /// Finds an adapter using a preference setting, based on the user preferences made in the operating system settings.
-        /// </summary>
-        /// <remarks>
-        /// Note that the backend might return any adapter if the operating system does not support GPU preference settings, or if the backend does not support querying
-        /// adapters from such a setting.
-        /// 
+        /// @brief Finds an adapter using a preference setting, based on the user preferences made in the operating system settings.
+        ///
+        /// Note that the backend might return any adapter if the operating system does not support GPU preference settings, or if the backend does not support querying adapters from such a setting.
+        ///
         /// The Vulkan backend only supports this method if the DirectX 12 backend is also available, as it performs the query through DXGI.
-        /// </remarks>
-        /// <param name="preference">The profile for the preferred adapter.</param>
-        /// <returns>A pointer to a graphics adapter, or <c>nullptr</c>, if no adapter could be found.</returns>
-        /// <seealso cref="IGraphicsAdapter" />
+        ///
+        /// @param preference The profile for the preferred adapter.
+        /// @return A pointer to a graphics adapter, or `nullptr`, if no adapter could be found.
+        /// @see IGraphicsAdapter
         virtual const IGraphicsAdapter* findAdapter(GpuPreference preference) const = 0;
 
-        /// <summary>
-        /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
-        /// </summary>
-        /// <param name="name">The name of the device.</param>
-        /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
+        /// @brief Looks up a device and returns a pointer to it, or `nullptr`, if no device with the provided @p name could be found.
+        ///
+        /// @param name The name of the device.
+        /// @return A pointer to the device or `nullptr`, if no device could be found.
         virtual IGraphicsDevice* device(const String& name) = 0;
 
-        /// <summary>
-        /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
-        /// </summary>
-        /// <param name="name">The name of the device.</param>
-        /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
+        /// @brief Looks up a device and returns a pointer to it, or `nullptr`, if no device with the provided @p name could be found.
+        ///
+        /// @param name The name of the device.
+        /// @return A pointer to the device or `nullptr`, if no device could be found.
         virtual const IGraphicsDevice* device(const String& name) const = 0;
 
-        /// <summary>
-        /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
-        /// </summary>
-        /// <param name="name">The name of the device.</param>
-        /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
+        /// @brief Looks up a device and returns a pointer to it, or `nullptr`, if no device with the provided @p name could be found.
+        ///
+        /// @param name The name of the device.
+        /// @return A pointer to the device or `nullptr`, if no device could be found.
         virtual inline const IGraphicsDevice* operator[](const String& name) const noexcept {
             return this->device(name);
         };
 
-        /// <summary>
-        /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
-        /// </summary>
-        /// <param name="name">The name of the device.</param>
-        /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
+        /// @brief Looks up a device and returns a pointer to it, or `nullptr`, if no device with the provided @p name could be found.
+        ///
+        /// @param name The name of the device.
+        /// @return A pointer to the device or `nullptr`, if no device could be found.
         virtual inline IGraphicsDevice* operator[](const String& name) noexcept {
             return this->device(name);
         };
@@ -11444,9 +9382,7 @@ namespace LiteFX::Rendering {
         virtual Enumerable<SharedPtr<const IGraphicsAdapter>> getAdapters() const = 0;
     };
 
-    /// <summary>
-    /// Concept that can be used to refer to render backend implementations.
-    /// </summary>
+    /// @brief Concept that can be used to refer to render backend implementations.
     template <typename T>
     concept render_backend = meta::implements<T, IRenderBackend>;
 

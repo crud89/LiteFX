@@ -20,9 +20,7 @@ namespace LiteFX::Rendering::Backends {
 
 	typedef SharedPtr<VmaAllocation_T> AllocationPtr;
 
-	/// <summary>
-	/// Implements a Vulkan <see cref="IBuffer" />.
-	/// </summary>
+	/// @brief Implements a Vulkan @ref IBuffer.
 	class VulkanBuffer : public virtual IVulkanBuffer, public Resource<VkBuffer>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanBufferImpl);
 		friend struct SharedObject::Allocator<VulkanBuffer>;
@@ -41,54 +39,61 @@ namespace LiteFX::Rendering::Backends {
 
 		// IBuffer interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc IBuffer::type()
 		BufferType type() const noexcept override;
 
 		// IDeviceMemory interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::elements()
 		UInt32 elements() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::size()
 		size_t size() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::elementSize()
 		size_t elementSize() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::elementAlignment()
 		size_t elementAlignment() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::alignedElementSize()
 		size_t alignedElementSize() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::usage()
 		ResourceUsage usage() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::virtualAddress()
 		UInt64 virtualAddress() const noexcept override;
 
 		// IMappable interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc IMappable::map(const void* const, size_t, UInt32)
 		void map(const void* const data, size_t size, UInt32 element = 0) override;
 
-		/// <inheritdoc />
+		/// @copydoc IMappable::map(Span<const void* const>, size_t, UInt32)
 		void map(Span<const void* const> data, size_t elementSize, UInt32 firstElement = 0) override;
 
-		/// <inheritdoc />
+		/// @copydoc IMappable::map(void*, size_t, UInt32, bool)
 		void map(void* data, size_t size, UInt32 element = 0, bool write = true) override;
 
-		/// <inheritdoc />
+		/// @copydoc IMappable::map(Span<void*>, size_t, UInt32, bool)
 		void map(Span<void*> data, size_t elementSize, UInt32 firstElement = 0, bool write = true) override;
-		
-		/// <inheritdoc />
+
+		/// @copydoc IMappable::write
 		void write(const void* const data, size_t size, size_t offset = 0) override;
 
-		/// <inheritdoc />
+		/// @copydoc IMappable::read
 		void read(void* data, size_t size, size_t offset = 0) override;
 
 	protected:
+		/// @brief Returns the underlying allocator handle.
+		/// 
+		/// @return The handle of the underlying allocator.
 		VmaAllocator allocator() const noexcept;
+
+		/// @brief Returns the allocation info.
+		/// 
+		/// @return The allocation info.
 		VmaAllocation allocationInfo() const noexcept;
 
 	private:
@@ -104,9 +109,7 @@ namespace LiteFX::Rendering::Backends {
 		static bool move(SharedPtr<IVulkanBuffer> buffer, VmaAllocation to, const VulkanCommandBuffer& commandBuffer);
 	};
 
-	/// <summary>
-	/// Implements a Vulkan <see cref="IVertexBuffer" />.
-	/// </summary>
+	/// @brief Implements a Vulkan @ref IVertexBuffer.
 	class VulkanVertexBuffer : public VulkanBuffer, public virtual IVulkanVertexBuffer {
 		LITEFX_IMPLEMENTATION(VulkanVertexBufferImpl);
 		friend struct SharedObject::Allocator<VulkanVertexBuffer>;
@@ -125,7 +128,7 @@ namespace LiteFX::Rendering::Backends {
 
 		// VertexBuffer interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc VertexBuffer::layout
 		const VulkanVertexBufferLayout& layout() const noexcept override;
 
 	private:
@@ -139,9 +142,7 @@ namespace LiteFX::Rendering::Backends {
 		static bool tryAllocate(SharedPtr<IVulkanVertexBuffer>& buffer, const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
-	/// <summary>
-	/// Implements a Vulkan <see cref="IIndexBuffer" />.
-	/// </summary>
+	/// @brief Implements a Vulkan @ref IIndexBuffer.
 	class VulkanIndexBuffer : public VulkanBuffer, public virtual IVulkanIndexBuffer {
 		LITEFX_IMPLEMENTATION(VulkanIndexBufferImpl);
 		friend struct SharedObject::Allocator<VulkanIndexBuffer>;
@@ -160,7 +161,7 @@ namespace LiteFX::Rendering::Backends {
 
 		// IndexBuffer interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc IndexBuffer::layout
 		const VulkanIndexBufferLayout& layout() const noexcept override;
 
 	private:

@@ -10,9 +10,7 @@
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
-	/// <summary>
-	/// Implements a Vulkan <see cref="IImage" />.
-	/// </summary>
+	/// @brief Implements a Vulkan @ref IImage.
 	class VulkanImage : public virtual IVulkanImage, public Resource<VkImage>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanImageImpl);
 		friend class VulkanSwapChain::VulkanSwapChainImpl;
@@ -32,60 +30,70 @@ namespace LiteFX::Rendering::Backends {
 
 		// IDeviceMemory interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::elements()
 		UInt32 elements() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::size()
 		size_t size() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::elementSize()
 		size_t elementSize() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::elementAlignment()
 		size_t elementAlignment() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::alignedElementSize()
 		size_t alignedElementSize() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::usage()
 		ResourceUsage usage() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::virtualAddress()
 		UInt64 virtualAddress() const noexcept override;
 
 		// IImage interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc IImage::size()
 		size_t size(UInt32 level) const override;
 
-		/// <inheritdoc />
+		/// @copydoc IImage::extent()
 		Size3d extent(UInt32 level = 0) const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IImage::format()
 		Format format() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IImage::dimensions()
 		ImageDimensions dimensions() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IImage::levels()
 		UInt32 levels() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IImage::layers()
 		UInt32 layers() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IImage::planes()
 		UInt32 planes() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IImage::samples()
 		MultiSamplingLevel samples() const noexcept override;
 
 		// IVulkanImage interface.
 	public:
+		/// @copydoc IVulkanImage::aspectMask()
 		VkImageAspectFlags aspectMask() const noexcept override;
+		
+		/// @copydoc IVulkanImage::aspectMask(UInt32)
 		VkImageAspectFlags aspectMask(UInt32 plane) const override;
 
 	protected:
+		/// @brief Returns the underlying allocator handle.
+		/// 
+		/// @return The handle of the underlying allocator.
 		VmaAllocator allocator() const noexcept;
+
+		/// @brief Returns the allocation info.
+		/// 
+		/// @return The allocation info.
 		VmaAllocation allocationInfo() const noexcept;
 
 	private:
@@ -100,28 +108,25 @@ namespace LiteFX::Rendering::Backends {
 		static bool move(SharedPtr<IVulkanImage> image, VmaAllocation to, const VulkanCommandBuffer& commandBuffer);
 	};
 
-	/// <summary>
-	/// Implements a Vulkan <see cref="ISampler" />.
-	/// </summary>
+	/// @brief Implements a Vulkan @ref ISampler.
 	class VulkanSampler : public virtual IVulkanSampler, public Resource<VkSampler>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanSamplerImpl);
 		friend struct SharedObject::Allocator<VulkanSampler>;
 
 	private:
-		/// <summary>
-		/// Initializes a new sampler instance.
-		/// </summary>
-		/// <param name="device"></param>
-		/// <param name="magFilter"></param>
-		/// <param name="minFilter"></param>
-		/// <param name="borderU"></param>
-		/// <param name="borderV"></param>
-		/// <param name="borderW"></param>
-		/// <param name="mipMapMode"></param>
-		/// <param name="mipMapBias"></param>
-		/// <param name="maxLod"></param>
-		/// <param name="minLod"></param>
-		/// <param name="anisotropy"></param>
+		/// @brief Initializes a new sampler instance.
+		///
+		/// @param device
+		/// @param magFilter
+		/// @param minFilter
+		/// @param borderU
+		/// @param borderV
+		/// @param borderW
+		/// @param mipMapMode
+		/// @param mipMapBias
+		/// @param maxLod
+		/// @param minLod
+		/// @param anisotropy
 		explicit VulkanSampler(const VulkanDevice& device, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f, const String& name = "");
 		
 		VulkanSampler(VulkanSampler&&) noexcept = delete;
@@ -137,34 +142,34 @@ namespace LiteFX::Rendering::Backends {
 
 		// ISampler interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc ISampler::getMinifyingFilter()
 		FilterMode getMinifyingFilter() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc ISampler::getMagnifyingFilter()
 		FilterMode getMagnifyingFilter() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc ISampler::getBorderModeU()
 		BorderMode getBorderModeU() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc ISampler::getBorderModeV()
 		BorderMode getBorderModeV() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc ISampler::getBorderModeW()
 		BorderMode getBorderModeW() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc ISampler::getAnisotropy()
 		Float getAnisotropy() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc ISampler::getMipMapMode()
 		MipMapMode getMipMapMode() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc ISampler::getMipMapBias()
 		Float getMipMapBias() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc ISampler::getMaxLOD()
 		Float getMaxLOD() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc ISampler::getMinLOD()
 		Float getMinLOD() const noexcept override;
 
 	public:

@@ -9,9 +9,7 @@
 namespace LiteFX::Logging {
     using namespace LiteFX;
 
-    /// <summary>
-    /// Defines the various log levels.
-    /// </summary>
+    /// @brief Defines the various log levels.
     enum class LogLevel : std::uint8_t {
         Trace = SPDLOG_LEVEL_TRACE,
         Debug = SPDLOG_LEVEL_DEBUG,
@@ -23,9 +21,7 @@ namespace LiteFX::Logging {
         Invalid = 0xFF
     };
 
-    /// <summary>
-    /// Interface for a class that receives log messages.
-    /// </summary>
+    /// @brief Interface for a class that receives log messages.
     class LITEFX_LOGGING_API ISink {
     protected:
         ISink() noexcept = default;
@@ -37,19 +33,13 @@ namespace LiteFX::Logging {
     public:
         virtual ~ISink() noexcept = default;
 
-        /// <summary>
-        /// Gets the minimum log level for messages to get written to the log.
-        /// </summary>
+        /// @brief Gets the minimum log level for messages to get written to the log.
         virtual LogLevel getLevel() const = 0;
 
-        /// <summary>
-        /// Gets the name of the sink.
-        /// </summary>
+        /// @brief Gets the name of the sink.
         virtual String getName() const = 0;
 
-        /// <summary>
-        /// Gets the pattern used to format the messages for the sink.
-        /// </summary>
+        /// @brief Gets the pattern used to format the messages for the sink.
         virtual String getPattern() const = 0;
 
     protected:
@@ -57,18 +47,15 @@ namespace LiteFX::Logging {
         virtual spdlog::sink_ptr get() const = 0;
     };
 
-    /// <summary>
-    /// Writes log messages to the console.
-    /// </summary>
+    /// @brief Writes log messages to the console.
     class LITEFX_LOGGING_API ConsoleSink : public ISink {
         LITEFX_IMPLEMENTATION(ConsoleSinkImpl);
 
     public:
-        /// <summary>
-        /// Creates a new console sink instance.
-        /// </summary>
-        /// <param name="level">The minimum log level for messages to be displayed on the console.</param>
-        /// <param name="pattern">The default format for log messages.</param>
+        /// @brief Creates a new console sink instance.
+        ///
+        /// @param level The minimum log level for messages to be displayed on the console.
+        /// @param pattern The default format for log messages.
         ConsoleSink(LogLevel level = LogLevel::Info, const String& pattern = "%+");
         ~ConsoleSink() noexcept override;
 
@@ -78,34 +65,31 @@ namespace LiteFX::Logging {
         auto operator=(ConsoleSink&&) noexcept = delete;
 
     public:
-        /// <inheritdoc />
+        /// @copydoc ISink::getLevel
         LogLevel getLevel() const override;
 
-        /// <inheritdoc />
+        /// @copydoc ISink::getName
         String getName() const override;
 
-        /// <inheritdoc />
+        /// @copydoc ISink::getPattern
         String getPattern() const override;
 
     protected:
         spdlog::sink_ptr get() const override;
     };
 
-    /// <summary>
-    /// Writes log messages to a rolling file.
-    /// </summary>
+    /// @brief Writes log messages to a rolling file.
     class LITEFX_LOGGING_API RollingFileSink : public ISink {
         LITEFX_IMPLEMENTATION(RollingFileSinkImpl);
 
     public:
-        /// <summary>
-        /// Creates a new rolling file sink instance.
-        /// </summary>
-        /// <param name="fileName">The name of the log file.</param>
-        /// <param name="level">The minimum log level for messages to be saved to the file.</param>
-        /// <param name="pattern">The default format for log messages.</param>
-        /// <param name="truncate">`true`, if the log messages should be truncated to the contents of the file. `false` to overwrite existing messages.</param>
-        /// <param name="maxFiles">The maximum number of files to keep.</param>
+        /// @brief Creates a new rolling file sink instance.
+        ///
+        /// @param fileName The name of the log file.
+        /// @param level The minimum log level for messages to be saved to the file.
+        /// @param pattern The default format for log messages.
+        /// @param truncate `true`, if the log messages should be truncated to the contents of the file. `false` to overwrite existing messages.
+        /// @param maxFiles The maximum number of files to keep.
         RollingFileSink(const String& fileName, LogLevel level = LogLevel::Info, const String& pattern = "%+", bool truncate = false, int maxFiles = 0);
         ~RollingFileSink() noexcept override;
 
@@ -115,59 +99,49 @@ namespace LiteFX::Logging {
         auto operator=(RollingFileSink&&) noexcept = delete;
 
     public:
-        /// <inheritdoc />
+        /// @copydoc ISink::getLevel
         LogLevel getLevel() const override;
 
-        /// <inheritdoc />
+        /// @copydoc ISink::getName
         String getName() const override;
 
-        /// <inheritdoc />
+        /// @copydoc ISink::getPattern
         String getPattern() const override;
 
-        /// <summary>
-        /// Gets the file name of the log file.
-        /// </summary>
-        /// <returns>The file name of the log file.</returns>
+        /// @brief Gets the file name of the log file.
+        ///
+        /// @return The file name of the log file.
         virtual String getFileName() const;
 
-        /// <summary>
-        /// Returns `true`, if the log messages should be truncated to the contents of the file, or `false` if existing messages are overwritten.
-        /// </summary>
-        /// <returns>`true`, if the log messages should be truncated to the contents of the file, or `false` if existing messages are overwritten.</returns>
+        /// @brief Returns `true`, if the log messages should be truncated to the contents of the file, or `false` if existing messages are overwritten.
+        ///
+        /// @return `true`, if the log messages should be truncated to the contents of the file, or `false` if existing messages are overwritten.
         virtual bool getTruncate() const;
 
-        /// <summary>
-        /// Returns the maximum number of log files to keep.
-        /// </summary>
-        /// <returns>The maximum number of log files to keep.</returns>
+        /// @brief Returns the maximum number of log files to keep.
+        ///
+        /// @return The maximum number of log files to keep.
         virtual int getMaxFiles() const;
 
     protected:
         spdlog::sink_ptr get() const override;
     };
 
-    /// <summary>
-    /// Forcefully terminates the application, if a log message of a certain level or higher is output.
-    /// </summary>
-    /// <remarks>
-    /// The purpose of this sink is to allow tests to catch errors during application runtime. You probably do not want to use this sink in an actual
-    /// application.
-    /// </remarks>
+    /// @brief Forcefully terminates the application, if a log message of a certain level or higher is output.
+    ///
+    /// The purpose of this sink is to allow tests to catch errors during application runtime. You probably do not want to use this sink in an actual application.
     class LITEFX_LOGGING_API TerminationSink : public ISink {
         LITEFX_IMPLEMENTATION(TerminationSinkImpl);
 
     public:
-        /// <summary>
-        /// The default status code used to exit the application.
-        /// </summary>
+        /// @brief The default status code used to exit the application.
         static constexpr std::uint32_t DEFAULT_TERMINATION_STATUS = 0xFF455252;
 
     public:
-        /// <summary>
-        /// Creates a new exception sink instance.
-        /// </summary>
-        /// <param name="level">The minimum log level at which an exception is thrown.</param>
-        /// <param name="status">The status code used to exit the application.</param>
+        /// @brief Creates a new exception sink instance.
+        ///
+        /// @param level The minimum log level at which an exception is thrown.
+        /// @param status The status code used to exit the application.
         TerminationSink(const LogLevel& level = LogLevel::Info, int status = static_cast<int>(DEFAULT_TERMINATION_STATUS));
         ~TerminationSink() noexcept override;
 
@@ -177,34 +151,30 @@ namespace LiteFX::Logging {
         auto operator=(TerminationSink&&) noexcept = delete;
 
     public:
-        /// <inheritdoc />
+        /// @copydoc ISink::getLevel
         LogLevel getLevel() const override;
 
-        /// <inheritdoc />
+        /// @copydoc ISink::getName
         String getName() const override;
 
-        /// <inheritdoc />
+        /// @copydoc ISink::getPattern
         String getPattern() const override;
 
     protected:
         spdlog::sink_ptr get() const override;
     };
 
-    /// <summary>
-    /// A log to which messages are written to.
-    /// </summary>
-    /// <remarks>
-    /// Note that in release builds, message at <see cref="LogLevel::Trace" /> and <see cref="LogLevel::Debug" /> are not forwarded and the corresponding functions are disabled. If you *really*
-    /// want to log such messages, you have to specify the log level explicitly by calling <see cref="Log::log" />.
-    /// </remarks>
+    /// @brief A log to which messages are written to.
+    ///
+    /// Note that in release builds, message at @ref LogLevel::Trace and @ref LogLevel::Debug are not forwarded and the corresponding functions are disabled. If you *really* want to log such messages, you
+    /// have to specify the log level explicitly by calling @ref Log::log.
     class LITEFX_LOGGING_API Log {
         LITEFX_IMPLEMENTATION(LogImpl);
 
     public:
-        /// <summary>
-        /// Creates a new log instance.
-        /// </summary>
-        /// <param name="name">The name of the log.</param>
+        /// @brief Creates a new log instance.
+        ///
+        /// @param name The name of the log.
         Log(const String& name);
         virtual ~Log() noexcept;
 
@@ -214,29 +184,25 @@ namespace LiteFX::Logging {
         auto operator=(const Log&) = delete;
 
     public:
-        /// <summary>
-        /// Gets the name of the logger.
-        /// </summary>
+        /// @brief Gets the name of the logger.
         virtual const String& getName() const noexcept;
 
     protected:
         virtual void log(LogLevel level, StringView message);
 
     public:
-        /// <summary>
-        /// Logs a message of <paramref name="level" /> with <paramref name="format" />.
-        /// </summary>
-        /// <param name="level">The log level of the message.</param>
-        /// <param name="format">The format of the message.</param>
+        /// @brief Logs a message of @p level with @p format.
+        ///
+        /// @param level The log level of the message.
+        /// @param format The format of the message.
         template<typename ...TArgs>
         inline void log(LogLevel level, std::format_string<TArgs...> format, TArgs&&... args) {
             this->log(level, std::format(format, std::forward<TArgs>(args)...));
         }
 
-        /// <summary>
-        /// Logs a trace message with <paramref name="format" />.
-        /// </summary>
-        /// <param name="format">The format of the message.</param>
+        /// @brief Logs a trace message with @p format.
+        ///
+        /// @param format The format of the message.
         template<typename ...TArgs>
         inline void trace([[maybe_unused]] std::format_string<TArgs...> format, [[maybe_unused]] TArgs&&... args) {
 #ifndef NDEBUG
@@ -244,10 +210,9 @@ namespace LiteFX::Logging {
 #endif
         }
 
-        /// <summary>
-        /// Logs a debug message with <paramref name="format" />.
-        /// </summary>
-        /// <param name="format">The format of the message.</param>
+        /// @brief Logs a debug message with @p format.
+        ///
+        /// @param format The format of the message.
         template<typename ...TArgs>
         inline void debug([[maybe_unused]] std::format_string<TArgs...> format, [[maybe_unused]] TArgs&&... args) {
 #ifndef NDEBUG
@@ -255,46 +220,40 @@ namespace LiteFX::Logging {
 #endif
         }
 
-        /// <summary>
-        /// Logs an info message with <paramref name="format" />.
-        /// </summary>
-        /// <param name="format">The format of the message.</param>
+        /// @brief Logs an info message with @p format.
+        ///
+        /// @param format The format of the message.
         template<typename ...TArgs>
         inline void info(std::format_string<TArgs...> format, TArgs&&... args) {
             this->log(LogLevel::Info, format, std::forward<TArgs>(args)...);
         }
 
-        /// <summary>
-        /// Logs a warning message with <paramref name="format" />.
-        /// </summary>
-        /// <param name="format">The format of the message.</param>
+        /// @brief Logs a warning message with @p format.
+        ///
+        /// @param format The format of the message.
         template<typename ...TArgs>
         inline void warning(std::format_string<TArgs...> format, TArgs&&... args) {
             this->log(LogLevel::Warning, format, std::forward<TArgs>(args)...);
         }
 
-        /// <summary>
-        /// Logs an error message with <paramref name="format" />.
-        /// </summary>
-        /// <param name="format">The format of the message.</param>
+        /// @brief Logs an error message with @p format.
+        ///
+        /// @param format The format of the message.
         template<typename ...TArgs>
         inline void error(std::format_string<TArgs...> format, TArgs&&... args) {
             this->log(LogLevel::Error, format, std::forward<TArgs>(args)...);
         }
 
-        /// <summary>
-        /// Logs a fatal error message with <paramref name="format" />.
-        /// </summary>
-        /// <param name="format">The format of the message.</param>
+        /// @brief Logs a fatal error message with @p format.
+        ///
+        /// @param format The format of the message.
         template<typename ...TArgs>
         inline void fatal(std::format_string<TArgs...> format, TArgs&&... args) {
             this->log(LogLevel::Fatal, format, std::forward<TArgs>(args)...);
         }
     };
 
-    /// <summary>
-    /// A provider for <see cref="Log" /> instances.
-    /// </summary>
+    /// @brief A provider for @ref Log instances.
     class LITEFX_LOGGING_API Logger {
     private:
         Logger() noexcept;
@@ -309,18 +268,16 @@ namespace LiteFX::Logging {
 
         // TODO: Cache logs by name and return them, instead of re-creating them with each call.
     public:
-        /// <summary>
-        /// Retrieves a log from <paramref name="name" />.
-        /// </summary>
-        /// <param name="name">The name of the log to query.</param>
-        /// <returns>A instance of a log.</returns>
+        /// @brief Retrieves a log from @p name.
+        ///
+        /// @param name The name of the log to query.
+        /// @return A instance of a log.
         static Log get(StringView name);
 
-        /// <summary>
-        /// Allows a log to write messages to <paramref name="sink" />.
-        /// </summary>
-        /// <param name="sink">The sink to write log messages to.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="sink" /> is not initialized.</exception>
+        /// @brief Allows a log to write messages to @p sink.
+        ///
+        /// @param sink The sink to write log messages to.
+        /// @throws InvalidArgumentException Thrown, if @p sink is not initialized.
         static void sinkTo(const ISink* sink);
     };
 

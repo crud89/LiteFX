@@ -9,15 +9,12 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Math;
 	using namespace LiteFX::Rendering;
 
-	/// <summary>
-	/// Builds a Vulkan  <see cref="Barrier" />.
-	/// </summary>
-	/// <seealso cref="VulkanBarrier" />
+	/// @brief Builds a Vulkan @ref Barrier.
+	///
+	/// @see VulkanBarrier
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanBarrierBuilder final : public BarrierBuilder<VulkanBarrier> {
 	public:
-		/// <summary>
-		/// Initializes a Vulkan barrier builder.
-		/// </summary>
+		/// @brief Initializes a Vulkan barrier builder.
 		explicit VulkanBarrierBuilder();
 		~VulkanBarrierBuilder() noexcept override;
 
@@ -28,29 +25,27 @@ namespace LiteFX::Rendering::Backends {
 
 		// BarrierBuilder interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc BarrierBuilder::setupStages
 		void setupStages(PipelineStage waitFor, PipelineStage continueWith) override;
 
-		/// <inheritdoc />
+		/// @copydoc BarrierBuilder::setupGlobalBarrier
 		void setupGlobalBarrier(ResourceAccess before, ResourceAccess after) override;
 
-		/// <inheritdoc />
+		/// @copydoc BarrierBuilder::setupBufferBarrier
 		void setupBufferBarrier(IBuffer& buffer, ResourceAccess before, ResourceAccess after) override;
 
-		/// <inheritdoc />
+		/// @copydoc BarrierBuilder::setupImageBarrier
 		void setupImageBarrier(IImage& image, ResourceAccess before, ResourceAccess after, ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane) override;
 	};
 
-	/// <summary>
-	/// Builds a Vulkan  <see cref="ShaderProgram" />.
-	/// </summary>
-	/// <seealso cref="VulkanShaderProgram" />
+	/// @brief Builds a Vulkan @ref ShaderProgram.
+	///
+	/// @see VulkanShaderProgram
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanShaderProgramBuilder final : public ShaderProgramBuilder<VulkanShaderProgram> {
 	public:
-		/// <summary>
-		/// Initializes a Vulkan graphics shader program builder.
-		/// </summary>
-		/// <param name="device">The parent device that hosts the shader program.</param>
+		/// @brief Initializes a Vulkan graphics shader program builder.
+		///
+		/// @param device The parent device that hosts the shader program.
 		explicit VulkanShaderProgramBuilder(const VulkanDevice& device);
 		~VulkanShaderProgramBuilder() noexcept override;
 
@@ -61,27 +56,24 @@ namespace LiteFX::Rendering::Backends {
 
 		// Builder interface.
 	protected:
-		/// <inheritdoc />
+		/// @copydoc Builder::build
 		void build() override;
 
 		// ShaderProgramBuilder interface.
 	protected:
-		/// <inheritdoc />
+		/// @copydoc ShaderProgramBuilder::makeShaderModule(ShaderStage, const String&, const String&, const Optional<DescriptorBindingPoint>&)
 		UniquePtr<VulkanShaderModule> makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) override;
 
-		/// <inheritdoc />
+		/// @copydoc ShaderProgramBuilder::makeShaderModule(ShaderStage, std::istream&, const String&, const String&, const Optional<DescriptorBindingPoint>&)
 		UniquePtr<VulkanShaderModule> makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) override;
 	};
 
-	/// <summary>
-	/// Builds a Vulkan <see cref="IRasterizer" />.
-	/// </summary>
-	/// <seealso cref="VulkanRasterizer" />
+	/// @brief Builds a Vulkan @ref IRasterizer.
+	///
+	/// @see VulkanRasterizer
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanRasterizerBuilder final : public RasterizerBuilder<VulkanRasterizer> {
 	public:
-		/// <summary>
-		/// Initializes a Vulkan input assembler builder.
-		/// </summary>
+		/// @brief Initializes a Vulkan input assembler builder.
 		explicit VulkanRasterizerBuilder();
 		~VulkanRasterizerBuilder() noexcept override;
 
@@ -92,21 +84,18 @@ namespace LiteFX::Rendering::Backends {
 
 		// Builder interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc Builder::build
 		void build() override;
 	};
 
-	/// <summary>
-	/// Builds a <see cref="VulkanInputAssembler" />.
-	/// </summary>
-	/// <seealso cref="VulkanInputAssembler" />
+	/// @brief Builds a @ref VulkanInputAssembler.
+	///
+	/// @see VulkanInputAssembler
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanInputAssemblerBuilder final : public InputAssemblerBuilder<VulkanInputAssembler> {
 		LITEFX_IMPLEMENTATION(VulkanInputAssemblerBuilderImpl);
 
 	public:
-		/// <summary>
-		/// Initializes a Vulkan input assembler builder.
-		/// </summary>
+		/// @brief Initializes a Vulkan input assembler builder.
 		explicit VulkanInputAssemblerBuilder();
 		~VulkanInputAssemblerBuilder() noexcept override;
 
@@ -117,21 +106,19 @@ namespace LiteFX::Rendering::Backends {
 
 		// Builder interface.
 	protected:
-		/// <inheritdoc />
+		/// @copydoc Builder::build
 		void build() override;
 
 	public:
-		/// <summary>
-		/// Starts building a vertex buffer layout.
-		/// </summary>
-		/// <param name="elementSize">The size of a vertex within the vertex buffer.</param>
-		/// <param name="binding">The binding point to bind the vertex buffer to.</param>
+		/// @brief Starts building a vertex buffer layout.
+		///
+		/// @param elementSize The size of a vertex within the vertex buffer.
+		/// @param binding The binding point to bind the vertex buffer to.
 		VulkanVertexBufferLayoutBuilder vertexBuffer(size_t elementSize, UInt32 binding = 0);
 
-		/// <summary>
-		/// Starts building an index buffer layout.
-		/// </summary>
-		/// <param name="type">The type of the index buffer.</param>
+		/// @brief Starts building an index buffer layout.
+		///
+		/// @param type The type of the index buffer.
 		template <typename TSelf>
 		auto indexType(this TSelf&& self, IndexType type) -> TSelf&& {
 			self.use(VulkanIndexBufferLayout::create(type));
@@ -139,34 +126,30 @@ namespace LiteFX::Rendering::Backends {
 		}
 	};
 	
-	/// <summary>
-	/// Builds a see <see cref="VulkanVertexBufferLayout" />.
-	/// </summary>
-	/// <seealso cref="VulkanVertexBuffer" />
-	/// <seealso cref="VulkanVertexBufferLayout" />
+	/// @brief Builds a see @ref VulkanVertexBufferLayout.
+	///
+	/// @see VulkanVertexBuffer
+	/// @see VulkanVertexBufferLayout
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanVertexBufferLayoutBuilder final : public VertexBufferLayoutBuilder<VulkanVertexBufferLayout, VulkanInputAssemblerBuilder> {
 	public:
 		using VertexBufferLayoutBuilder<VulkanVertexBufferLayout, VulkanInputAssemblerBuilder>::VertexBufferLayoutBuilder;
 
 		// Builder interface.
 	protected:
-		/// <inheritdoc />
+		/// @copydoc Builder::build
 		void build() override;
 	};
 
-	/// <summary>
-	/// Builds a Vulkan <see cref="PipelineLayout" /> for a pipeline.
-	/// </summary>
-	/// <seealso cref="VulkanPipelineLayout" />
-	/// <seealso cref="VulkanRenderPipeline" />
-	/// <seealso cref="VulkanComputePipeline" />
+	/// @brief Builds a Vulkan @ref PipelineLayout for a pipeline.
+	///
+	/// @see VulkanPipelineLayout
+	/// @see VulkanRenderPipeline
+	/// @see VulkanComputePipeline
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanPipelineLayoutBuilder final : public PipelineLayoutBuilder<VulkanPipelineLayout> {
 		friend class VulkanDescriptorSetLayoutBuilder;
 
 	public:
-		/// <summary>
-		/// Initializes a new Vulkan pipeline layout builder.
-		/// </summary>
+		/// @brief Initializes a new Vulkan pipeline layout builder.
 		explicit VulkanPipelineLayoutBuilder(const VulkanDevice& device);
 		~VulkanPipelineLayoutBuilder() noexcept override;
 
@@ -177,39 +160,35 @@ namespace LiteFX::Rendering::Backends {
 
 		// Builder interface.
 	protected:
-		/// <inheritdoc />
+		/// @copydoc Builder::build
 		void build() override;
 
 		// VulkanPipelineLayoutBuilder.
 	public:
-		/// <summary>
-		/// Builds a new descriptor set for the pipeline layout.
-		/// </summary>
-		/// <param name="space">The space, the descriptor set is bound to.</param>
-		/// <param name="stages">The stages, the descriptor set will be accessible from.</param>
+		/// @brief Builds a new descriptor set for the pipeline layout.
+		///
+		/// @param space The space, the descriptor set is bound to.
+		/// @param stages The stages, the descriptor set will be accessible from.
 		VulkanDescriptorSetLayoutBuilder descriptorSet(UInt32 space = 0, ShaderStage stages = ShaderStage::Any);
 
-		/// <summary>
-		/// Builds a new push constants layout for the pipeline layout.
-		/// </summary>
-		/// <param name="size">The size of the push constants backing memory.</param>
+		/// @brief Builds a new push constants layout for the pipeline layout.
+		///
+		/// @param size The size of the push constants backing memory.
 		VulkanPushConstantsLayoutBuilder pushConstants(UInt32 size);
 	};
 
-	/// <summary>
-	/// Builds a <see cref="VulkanDescriptorSetLayout" /> for a <see cref="VulkanPipelineLayout" />.
-	/// </summary>
-	/// <seealso cref="VulkanDescriptorSetLayout" />
-	/// <seealso cref="VulkanRenderPipeline" />
-	/// <seealso cref="VulkanComputePipeline" />
+	/// @brief Builds a @ref VulkanDescriptorSetLayout for a @ref VulkanPipelineLayout.
+	///
+	/// @see VulkanDescriptorSetLayout
+	/// @see VulkanRenderPipeline
+	/// @see VulkanComputePipeline
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanDescriptorSetLayoutBuilder final : public DescriptorSetLayoutBuilder<VulkanDescriptorSetLayout, VulkanPipelineLayoutBuilder> {
 	public:
-		/// <summary>
-		/// Initializes a Vulkan descriptor set layout builder.
-		/// </summary>
-		/// <param name="parent">The parent pipeline layout builder.</param>
-		/// <param name="space">The space the descriptor set is bound to.</param>
-		/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
+		/// @brief Initializes a Vulkan descriptor set layout builder.
+		///
+		/// @param parent The parent pipeline layout builder.
+		/// @param space The space the descriptor set is bound to.
+		/// @param stages The shader stages, the descriptor set is accessible from.
 		explicit VulkanDescriptorSetLayoutBuilder(VulkanPipelineLayoutBuilder& parent, UInt32 space = 0, ShaderStage stages = ShaderStage::Any);
 		~VulkanDescriptorSetLayoutBuilder() noexcept override;
 
@@ -220,29 +199,27 @@ namespace LiteFX::Rendering::Backends {
 
 		// Builder interface.
 	protected:
-		/// <inheritdoc />
+		/// @copydoc Builder::build
 		void build() override;
 
 		// DescriptorSetLayoutBuilder interface.
 	protected:
-		/// <inheritdoc />
+		/// @copydoc DescriptorSetLayoutBuilder::makeDescriptor(DescriptorType, UInt32, UInt32, UInt32, bool)
 		VulkanDescriptorLayout makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors, bool unbounded) override;
 
-		/// <inheritdoc />
+		/// @copydoc DescriptorSetLayoutBuilder::makeDescriptor(UInt32, FilterMode, FilterMode, BorderMode, BorderMode, BorderMode, MipMapMode, Float, Float, Float, Float)
 		VulkanDescriptorLayout makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) override;
 	};
 
-	/// <summary>
-	/// Builds a Vulkan <see cref="PushConstantsLayout" /> for a <see cref="VulkanPipelineLayout" />.
-	/// </summary>
-	/// <seealso cref="VulkanPushConstantsLayout" />
+	/// @brief Builds a Vulkan @ref PushConstantsLayout for a @ref VulkanPipelineLayout.
+	///
+	/// @see VulkanPushConstantsLayout
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanPushConstantsLayoutBuilder final : public PushConstantsLayoutBuilder<VulkanPushConstantsLayout, VulkanPipelineLayoutBuilder> {
 	public:
-		/// <summary>
-		/// Initializes a Vulkan render pipeline push constants layout builder.
-		/// </summary>
-		/// <param name="parent">The parent pipeline layout builder.</param>
-		/// <param name="size">The size of the push constants backing memory.</param>
+		/// @brief Initializes a Vulkan render pipeline push constants layout builder.
+		///
+		/// @param parent The parent pipeline layout builder.
+		/// @param size The size of the push constants backing memory.
 		explicit VulkanPushConstantsLayoutBuilder(VulkanPipelineLayoutBuilder& parent, UInt32 size);
 		~VulkanPushConstantsLayoutBuilder() noexcept override;
 
@@ -253,26 +230,24 @@ namespace LiteFX::Rendering::Backends {
 
 		// Builder interface.
 	protected:
-		/// <inheritdoc />
+		/// @copydoc Builder::build
 		void build() override;
 
 		// PushConstantsLayoutBuilder interface.
 	protected:
-		/// <inheritdoc />
+		/// @copydoc PushConstantsLayoutBuilder::makeRange
 		UniquePtr<VulkanPushConstantsRange> makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) override;
 	};
 
-	/// <summary>
-	/// Builds a Vulkan <see cref="RenderPipeline" />.
-	/// </summary>
-	/// <seealso cref="VulkanRenderPipeline" />
+	/// @brief Builds a Vulkan @ref RenderPipeline.
+	///
+	/// @see VulkanRenderPipeline
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanRenderPipelineBuilder final : public RenderPipelineBuilder<VulkanRenderPipeline> {
 	public:
-		/// <summary>
-		/// Initializes a Vulkan render pipeline builder.
-		/// </summary>
-		/// <param name="renderPass">The parent render pass</param>
-		/// <param name="name">A debug name for the render pipeline.</param>
+		/// @brief Initializes a Vulkan render pipeline builder.
+		///
+		/// @param renderPass The parent render pass
+		/// @param name A debug name for the render pipeline.
 		explicit VulkanRenderPipelineBuilder(const VulkanRenderPass& renderPass, const String& name = "");
 		~VulkanRenderPipelineBuilder() noexcept override;
 
@@ -283,21 +258,19 @@ namespace LiteFX::Rendering::Backends {
 
 		// Builder interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc Builder::build
 		void build() override;
 	};
 
-	/// <summary>
-	/// Builds a Vulkan <see cref="ComputePipeline" />.
-	/// </summary>
-	/// <seealso cref="VulkanComputePipeline" />
+	/// @brief Builds a Vulkan @ref ComputePipeline.
+	///
+	/// @see VulkanComputePipeline
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanComputePipelineBuilder final : public ComputePipelineBuilder<VulkanComputePipeline> {
 	public:
-		/// <summary>
-		/// Initializes a Vulkan compute pipeline builder.
-		/// </summary>
-		/// <param name="device">The parent device</param>
-		/// <param name="name">A debug name for the compute pipeline.</param>
+		/// @brief Initializes a Vulkan compute pipeline builder.
+		///
+		/// @param device The parent device
+		/// @param name A debug name for the compute pipeline.
 		explicit VulkanComputePipelineBuilder(const VulkanDevice& device, const String& name = "");
 		~VulkanComputePipelineBuilder() noexcept override;
 
@@ -308,22 +281,20 @@ namespace LiteFX::Rendering::Backends {
 
 		// Builder interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc Builder::build
 		void build() override;
 	};
 
-	/// <summary>
-	/// Builds a Vulkan <see cref="RayTracingPipeline" />.
-	/// </summary>
-	/// <seealso cref="VulkanRayTracingPipeline" />
+	/// @brief Builds a Vulkan @ref RayTracingPipeline.
+	///
+	/// @see VulkanRayTracingPipeline
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanRayTracingPipelineBuilder final : public RayTracingPipelineBuilder<VulkanRayTracingPipeline> {
 	public:
-		/// <summary>
-		/// Initializes a Vulkan ray-tracing pipeline builder.
-		/// </summary>
-		/// <param name="device">The parent device</param>
-        /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
-		/// <param name="name">A debug name for the ray-tracing pipeline.</param>
+		/// @brief Initializes a Vulkan ray-tracing pipeline builder.
+		///
+		/// @param device The parent device
+        /// @param shaderRecords The shader record collection that is used to build the shader binding table for the pipeline.
+		/// @param name A debug name for the ray-tracing pipeline.
 		explicit VulkanRayTracingPipelineBuilder(const VulkanDevice& device, ShaderRecordCollection&& shaderRecords, const String& name = "");
 		~VulkanRayTracingPipelineBuilder() noexcept override;
 
@@ -334,32 +305,29 @@ namespace LiteFX::Rendering::Backends {
 
 		// Builder interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc Builder::build
 		void build() override;
 	};
 
-	/// <summary>
-	/// Implements the Vulkan <see cref="RenderPassBuilder" />.
-	/// </summary>
-	/// <seealso cref="VulkanRenderPass" />
+	/// @brief Implements the Vulkan @ref RenderPassBuilder.
+	///
+	/// @see VulkanRenderPass
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanRenderPassBuilder final : public RenderPassBuilder<VulkanRenderPass> {
 	public:
-		/// <summary>
-		/// Initializes a Vulkan render pass builder.
-		/// </summary>
-		/// <param name="device">The parent device.</param>
-		/// <param name="name">A debug name for the render pass.</param>
+		/// @brief Initializes a Vulkan render pass builder.
+		///
+		/// @param device The parent device.
+		/// @param name A debug name for the render pass.
 		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const String& name = "");
 
-		/// <summary>
-		/// Initializes a Vulkan render pass builder.
-		/// </summary>
-		/// <param name="device">The parent device.</param>
-		/// <param name="commandBuffers">The number of command buffers to initialize.</param>
-		/// <param name="name">A debug name for the render pass.</param>
+		/// @brief Initializes a Vulkan render pass builder.
+		///
+		/// @param device The parent device.
+		/// @param commandBuffers The number of command buffers to initialize.
+		/// @param name A debug name for the render pass.
 		explicit VulkanRenderPassBuilder(const VulkanDevice& device, UInt32 commandBuffers, const String& name = "");
 
-		/// <inheritdoc />
+		/// @copydoc Builder::~Builder
 		~VulkanRenderPassBuilder() noexcept override;
 
 		VulkanRenderPassBuilder(VulkanRenderPassBuilder&&) noexcept = delete;
@@ -369,12 +337,12 @@ namespace LiteFX::Rendering::Backends {
 
 		// Builder interface.
 	protected:
-		/// <inheritdoc />
+		/// @copydoc Builder::build
 		void build() override;
 
 		// RenderPassBuilder interface.
 	protected:
-		/// <inheritdoc />
+		/// @copydoc RenderPassBuilder::makeInputAttachment
 		RenderPassDependency makeInputAttachment(DescriptorBindingPoint binding, const RenderTarget& renderTarget) override;
 	};
 

@@ -7,29 +7,19 @@ namespace LiteFX::Graphics {
     using namespace LiteFX;
     using namespace LiteFX::Math;
 
-    /// <summary>
-    /// Default definition for a simple vertex.
-    /// </summary>
+    /// @brief Default definition for a simple vertex.
     struct Vertex {
     public:
-        /// <summary>
-        /// The position of the vertex.
-        /// </summary>
+        /// @brief The position of the vertex.
         Vector3f Position;
 
-        /// <summary>
-        /// The color of the vertex.
-        /// </summary>
+        /// @brief The color of the vertex.
         Vector4f Color;
 
-        /// <summary>
-        /// The normal vector of the vertex.
-        /// </summary>
+        /// @brief The normal vector of the vertex.
         Vector3f Normal;
 
-        /// <summary>
-        /// The texture coordinate of the vertex.
-        /// </summary>
+        /// @brief The texture coordinate of the vertex.
         Vector2f TextureCoordinate0;
     };
 

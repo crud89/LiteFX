@@ -6,15 +6,13 @@
 namespace LiteFX {
 	using namespace LiteFX::Logging;
 
-	/// <summary>
-	/// The base class for an app backend.
-	/// </summary>
-	/// <remarks>
-	/// An <see cref="App" /> can have one or more backends configured per <see cref="BackendType" />. However, only one backend of a specific backend
-	/// type can be active at a time. Backends can be configured with a startup and shutdown callback. Starting a backend will automatically shutdown
-	/// the active backend of the same type, if any. If the app exits, all backends are shutdown accordingly, allowing to properly cleanup any resources.
-	/// </remarks>
-	/// <seealso cref="App" />
+	/// @brief The base class for an app backend.
+	///
+	/// An @ref App can have one or more backends configured per @ref BackendType. However, only one backend of a specific backend type can be active at a time. Backends can be configured with a startup and
+	/// shutdown callback. Starting a backend will automatically shutdown the active backend of the same type, if any. If the app exits, all backends are shutdown accordingly, allowing to properly cleanup any
+	/// resources.
+	///
+	/// @see App
 	class LITEFX_APPMODEL_API IBackend {
 		friend class App;
 
@@ -32,57 +30,46 @@ namespace LiteFX {
 		virtual ~IBackend() noexcept = default;
 
 	public:
-		/// <summary>
-		/// Gets the type of the backend.
-		/// </summary>
-		/// <returns>The type of the backend.</returns>
-		/// <seealso cref="BackendType" />
+		/// @brief Gets the type of the backend.
+		///
+		/// @return The type of the backend.
+		/// @see BackendType
 		virtual BackendType type() const noexcept = 0;
 
-		/// <summary>
-		/// Returns the state of the backend.
-		/// </summary>
-		/// <returns>The state of the backend.</returns>
-		/// <seealso cref="BackendState" />
+		/// @brief Returns the state of the backend.
+		///
+		/// @return The state of the backend.
+		/// @see BackendState
 		const BackendState& state() const noexcept { return m_state; }
 
-		/// <summary>
-		/// Gets the name of the backend.
-		/// </summary>
-		/// <returns>The name of the backend.</returns>
+		/// @brief Gets the name of the backend.
+		///
+		/// @return The name of the backend.
 		virtual StringView name() const noexcept = 0;
 
 	protected:
-		/// <summary>
-		/// Returns the state of the backend.
-		/// </summary>
-		/// <returns>The state of the backend.</returns>
+		/// @brief Returns the state of the backend.
+		///
+		/// @return The state of the backend.
 		BackendState& state() noexcept { return m_state; }
 
-		/// <summary>
-		/// Called by the parent <see cref="App" />, if the backend is started.
-		/// </summary>
+		/// @brief Called by the parent @ref App, if the backend is started.
 		virtual void activate() = 0;
 
-		/// <summary>
-		/// Called by the parent <see cref="App" />, if the backend is stopped.
-		/// </summary>
+		/// @brief Called by the parent @ref App, if the backend is stopped.
 		virtual void deactivate() = 0;
 
 	private:
 		std::type_index typeId() const noexcept { return typeid(*this); }
 	};
 
-	/// <summary>
-	/// Concept that can be used to refer to backend implementations.
-	/// </summary>
+	/// @brief Concept that can be used to refer to backend implementations.
 	template <typename T>
 	concept backend = meta::implements<T, IBackend>;
 
-	/// <summary>
-	/// Base class for additional event arguments.
-	/// </summary>
-	/// <seealso cref="Event" />
+	/// @brief Base class for additional event arguments.
+	///
+	/// @see Event
 	class LITEFX_APPMODEL_API EventArgs {
 	public:
 		EventArgs() = default;
@@ -94,16 +81,13 @@ namespace LiteFX {
 		virtual ~EventArgs() noexcept = default;
 	};
 
-	/// <summary>
-	/// Represents a handler for an <see cref="Event" />, that is assigned a unique token when created, so that it can be identified later.
-	/// </summary>
-	/// <remarks>
-	/// Since a `std::function` or callable is non-comparable, it is not possible to identify and remove event handlers from an event, after registering 
-	/// them. To support this functionality, the event handler will be encapsulated in a delegate, which gets assigned with a token. This token is unique
-	/// for the event, the delegate has been registered to.
-	/// </remarks>
-	/// <typeparam name="TResult">The result of the delegate function.</typeparam>
-	/// <typeparam name="...TArgs">The arguments of the delegate function.</typeparam>
+	/// @brief Represents a handler for an @ref Event, that is assigned a unique token when created, so that it can be identified later.
+	///
+	/// Since a `std::function` or callable is non-comparable, it is not possible to identify and remove event handlers from an event, after registering them. To support this functionality, the event handler
+	/// will be encapsulated in a delegate, which gets assigned with a token. This token is unique for the event, the delegate has been registered to.
+	///
+	/// @tparam TResult The result of the delegate function.
+	/// @tparam ...TArgs The arguments of the delegate function.
 	template <typename TResult, typename... TArgs>
 	class Delegate final {
 	public:
@@ -115,55 +99,48 @@ namespace LiteFX {
 		token_type m_token;
 
 	public:
-		/// <summary>
-		/// Creates a new delegate.
-		/// </summary>
-		/// <param name="fn">The delegate function.</param>
-		/// <param name="t">The unique token of the delegate within the parent event.</param>
+		/// @brief Creates a new delegate.
+		///
+		/// @param fn The delegate function.
+		/// @param t The unique token of the delegate within the parent event.
 		inline Delegate(function_type fn, token_type t) noexcept : 
 			m_target(std::move(fn)), m_token(t) { }
 
 	public:
-		/// <summary>
-		/// Invokes the delegate function.
-		/// </summary>
-		/// <param name="...args">The arguments passed to the function.</param>
-		/// <returns>The result of the delegate function call.</returns>
+		/// @brief Invokes the delegate function.
+		///
+		/// @param ...args The arguments passed to the function.
+		/// @return The result of the delegate function call.
 		inline TResult invoke(TArgs... args) const {
 			return m_target(std::move(args)...);
 		}
 
-		/// <summary>
-		/// Returns the unique token of the delegate.
-		/// </summary>
-		/// <returns>The unique token of the delegate.</returns>
+		/// @brief Returns the unique token of the delegate.
+		///
+		/// @return The unique token of the delegate.
 		inline token_type token() const {
 			return m_token;
 		}
 
 	public:
-		/// <summary>
-		/// Invokes the delegate function.
-		/// </summary>
-		/// <param name="...args">The arguments passed to the function.</param>
-		/// <returns>The result of the delegate function call.</returns>
+		/// @brief Invokes the delegate function.
+		///
+		/// @param ...args The arguments passed to the function.
+		/// @return The result of the delegate function call.
 		inline TResult operator()(TArgs... args) const {
 			return this->invoke(std::move(args)...);
 		}
 	};
 
-	/// <summary>
-	/// A class that is used to declare an event, which a number of listeners can subscribe to.
-	/// </summary>
-	/// <remarks>
-	/// A listener that subscribes to the event is called *event handler*. The event handler needs to be invokable and identifiable. Because of this, a
-	/// <see cref="Delegate" /> is created for the event handler. A delegate stores the event handler, as well as a token to identify the event handler.
-	/// Event handlers must expose the a common signature: they do not return anything and accept two parameters. The first parameter is an unformatted 
-	/// pointer to the event sender (i.e., the object that invoked the event handlers). The second parameter contains additional arguments 
-	/// (<typeparamref name="TEventArgs" />), that are passed to all handlers. Note that the sender can also be `nullptr`.
-	/// </remarks>
-	/// <typeparam name="TEventArgs">The type of the additional event arguments.</typeparam>
-	/// <seealso cref="EventArgs" />
+	/// @brief A class that is used to declare an event, which a number of listeners can subscribe to.
+	///
+	/// A listener that subscribes to the event is called *event handler*. The event handler needs to be invokable and identifiable. Because of this, a @ref Delegate is created for the event handler. A
+	/// delegate stores the event handler, as well as a token to identify the event handler. Event handlers must expose the a common signature: they do not return anything and accept two parameters. The first
+	/// parameter is an unformatted pointer to the event sender (i.e., the object that invoked the event handlers). The second parameter contains additional arguments (@p TEventArgs), that are passed to all
+	/// handlers. Note that the sender can also be `nullptr`.
+	///
+	/// @tparam TEventArgs The type of the additional event arguments.
+	/// @see EventArgs
 	template <typename TEventArgs>
 	class Event final {
 	public:
@@ -176,57 +153,46 @@ namespace LiteFX {
 		Array<delegate_type> m_subscribers{};
 
 	public:
-		/// <summary>
-		/// Initializes a new event.
-		/// </summary>
+		/// @brief Initializes a new event.
 		constexpr Event() = default;
 
-		/// <summary>
-		/// Creates a copy of a event.
-		/// </summary>
-		/// <remarks>
+		/// @brief Creates a copy of a event.
+		///
 		/// This constructor is implemented in order to support copying of types that contain events. Subscribers are not copied!
-		/// </remarks>
-		/// <param name="_other">The event instance to copy.</param>
+		///
+		/// @param _other The event instance to copy.
 		constexpr Event([[maybe_unused]] const Event& _other) { }
 
-		/// <summary>
-		/// Takes over another instance of a event.
-		/// </summary>
-		/// <param name="_other">The event instance to take over.</param>
+		/// @brief Takes over another instance of a event.
+		///
+		/// @param _other The event instance to take over.
 		constexpr Event(Event&& _other) noexcept = default;
 
-		/// <summary>
-		/// Assigns a event by copying it.
-		/// </summary>
-		/// <remarks>
+		/// @brief Assigns a event by copying it.
+		///
 		/// This operator is implemented in order to support copying of types that contain events. Subscribers are not copied and previous subscriptions are cleared!
-		/// </remarks>
-		/// <param name="_other">The event instance to copy.</param>
-		/// <returns>A reference to the current event instance.</returns>
+		///
+		/// @param _other The event instance to copy.
+		/// @return A reference to the current event instance.
 		constexpr Event& operator=([[maybe_unused]] const Event& _other) {
 			m_subscribers.clear();
 			return *this;
 		}
 
-		/// <summary>
-		/// Assigns a event by taking it over.
-		/// </summary>
-		/// <param name="_other">The event to take over.</param>
-		/// <returns>A reference to the current event instance.</returns>
+		/// @brief Assigns a event by taking it over.
+		///
+		/// @param _other The event to take over.
+		/// @return A reference to the current event instance.
 		constexpr Event& operator=(Event&& _other) noexcept = default;
 
-		/// <summary>
-		/// Releases the event instance.
-		/// </summary>
+		/// @brief Releases the event instance.
 		constexpr ~Event() noexcept = default;
 
 	public:
-		/// <summary>
-		/// Subscribes an event handler to the event.
-		/// </summary>
-		/// <param name="subscriber">A delegate for the event handler.</param>
-		/// <returns>A unique token of the event handler.</returns>
+		/// @brief Subscribes an event handler to the event.
+		///
+		/// @param subscriber A delegate for the event handler.
+		/// @return A unique token of the event handler.
 		event_token_type add(const function_type& subscriber) {
 			const auto match = std::max_element(m_subscribers.begin(), m_subscribers.end(), [](const auto& lhs, const auto& rhs) { return lhs.token() < rhs.token(); });
 			event_token_type token = match == m_subscribers.end() ? 0 : match->token() + 1;
@@ -234,20 +200,18 @@ namespace LiteFX {
 			return token;
 		}
 
-		/// <summary>
-		/// Unsubscribes an event handler from the event.
-		/// </summary>
-		/// <param name="subscriber">A delegate for the event handler.</param>
-		/// <returns>`true`, if the event handler has been removed, `false` otherwise.</returns>
+		/// @brief Unsubscribes an event handler from the event.
+		///
+		/// @param subscriber A delegate for the event handler.
+		/// @return `true`, if the event handler has been removed, `false` otherwise.
 		bool remove(const delegate_type& subscriber) noexcept {
 			return this->remove(subscriber.token());
 		}
 
-		/// <summary>
-		/// Unsubscribes an event handler from the event.
-		/// </summary>
-		/// <param name="toke">The unique token of the event handler.</param>
-		/// <returns>`true`, if the event handler has been removed, `false` otherwise.</returns>
+		/// @brief Unsubscribes an event handler from the event.
+		///
+		/// @param toke The unique token of the event handler.
+		/// @return `true`, if the event handler has been removed, `false` otherwise.
 		bool remove(event_token_type token) noexcept {
 			const auto last = std::remove_if(m_subscribers.begin(), m_subscribers.end(), [&token](const auto& s) { return s.token() == token; });
 
@@ -258,38 +222,33 @@ namespace LiteFX {
 			return true;
 		}
 
-		/// <summary>
-		/// Clears the event handlers.
-		/// </summary>
+		/// @brief Clears the event handlers.
 		void clear() noexcept {
 			m_subscribers.clear();
 		}
 
-		/// <summary>
-		/// Invokes all event handlers of the event.
-		/// </summary>
-		/// <param name="sender">The source of the event.</param>
-		/// <param name="args">The additional event arguments.</param>
+		/// @brief Invokes all event handlers of the event.
+		///
+		/// @param sender The source of the event.
+		/// @param args The additional event arguments.
 		void invoke(const void* sender, const TEventArgs& args) const {
 			for (const auto& handler : m_subscribers)
 				handler(sender, args);
 		}
 
-		/// <summary>
-		/// Returns `true`, if the event contains a subscriber with the provided <paramref name="token" />.
-		/// </summary>
-		/// <param name="token">The token of an event.</param>
-		/// <returns>`true`, if the event contains a subscriber with the provided <paramref name="token" />, `false` otherwise.</returns>
+		/// @brief Returns `true`, if the event contains a subscriber with the provided @p token.
+		///
+		/// @param token The token of an event.
+		/// @return `true`, if the event contains a subscriber with the provided @p token, `false` otherwise.
 		bool contains(event_token_type token) const noexcept {
 			return std::find_if(m_subscribers.begin(), m_subscribers.end(), [&token](const auto& d) { return d.token() == token; }) != m_subscribers.end();
 		}
 
-		/// <summary>
-		/// Returns the delegate associated with <paramref name="token" />.
-		/// </summary>
-		/// <param name="token">The token to query for.</param>
-		/// <returns>A reference of the delegate associated with <paramref name="token" />.</returns>
-		/// <exception cref="InvalidArgumentException">Thrown, if the event does not have a subscriber with the provided token.</exception>
+		/// @brief Returns the delegate associated with @p token.
+		///
+		/// @param token The token to query for.
+		/// @return A reference of the delegate associated with @p token.
+		/// @throws InvalidArgumentException Thrown, if the event does not have a subscriber with the provided token.
 		const delegate_type& handler(event_token_type token) const {
 			if (auto match = std::find_if(m_subscribers.begin(), m_subscribers.end(), [&token](const auto& d) { return d.token() == token; }); match != m_subscribers.end()) [[likely]]
 				return *match;
@@ -298,75 +257,67 @@ namespace LiteFX {
 		}
 
 	public:
-		/// <summary>
-		/// Returns `true`, if any event handler is attached to the event, `false` otherwise. 
-		/// </summary>
-		/// <returns>`true`, if any event handler is attached to the event, `false` otherwise.</returns>
+		/// @brief Returns `true`, if any event handler is attached to the event, `false` otherwise.
+		///
+		/// @return `true`, if any event handler is attached to the event, `false` otherwise.
 		explicit operator bool() const noexcept {
 			return !m_subscribers.empty();
 		}
 
-		/// <summary>
-		/// Subscribes an event handler to the event.
-		/// </summary>
-		/// <param name="subscriber">A delegate for the event handler.</param>
-		/// <returns>A unique token of the event handler.</returns>
+		/// @brief Subscribes an event handler to the event.
+		///
+		/// @param subscriber A delegate for the event handler.
+		/// @return A unique token of the event handler.
 		event_token_type operator +=(const function_type& subscriber) {
 			return this->add(subscriber);
 		}
 
-		/// <summary>
-		/// Unsubscribes an event handler from the event.
-		/// </summary>
-		/// <param name="subscriber">A delegate for the event handler.</param>
-		/// <returns>`true`, if the event handler has been removed, `false` otherwise.</returns>
+		/// @brief Unsubscribes an event handler from the event.
+		///
+		/// @param subscriber A delegate for the event handler.
+		/// @return `true`, if the event handler has been removed, `false` otherwise.
 		bool operator -=(const delegate_type& subscriber) noexcept {
 			return this->remove(subscriber);
 		}
 
-		/// <summary>
-		/// Unsubscribes an event handler from the event.
-		/// </summary>
-		/// <param name="toke">The unique token of the event handler.</param>
-		/// <returns>`true`, if the event handler has been removed, `false` otherwise.</returns>
+		/// @brief Unsubscribes an event handler from the event.
+		///
+		/// @param toke The unique token of the event handler.
+		/// @return `true`, if the event handler has been removed, `false` otherwise.
 		bool operator -=(event_token_type token) noexcept {
 			return this->remove(token);
 		}
 
-		/// <summary>
-		/// Invokes all event handlers of the event.
-		/// </summary>
-		/// <param name="sender">The source of the event.</param>
-		/// <param name="args">The additional event arguments.</param>
+		/// @brief Invokes all event handlers of the event.
+		///
+		/// @param sender The source of the event.
+		/// @param args The additional event arguments.
 		void operator ()(const void* sender, const TEventArgs& args) const {
 			this->invoke(sender, args);
 		}
 
-		/// <summary>
-		/// Returns the delegate associated with <paramref name="token" />.
-		/// </summary>
-		/// <param name="token">The token to query for.</param>
-		/// <returns>A reference of the delegate associated with <paramref name="token" />.</returns>
-		/// <exception cref="InvalidArgumentException">Thrown, if the event does not have a subscriber with the provided token.</exception>
+		/// @brief Returns the delegate associated with @p token.
+		///
+		/// @param token The token to query for.
+		/// @return A reference of the delegate associated with @p token.
+		/// @throws InvalidArgumentException Thrown, if the event does not have a subscriber with the provided token.
 		const delegate_type& operator [](event_token_type token) const {
 			return this->handler(token);
 		}
 	};
 
-	/// <summary>
-	/// Stores event arguments of a window resize event.
-	/// </summary>
-	/// <seealso cref="App::resize" />
+	/// @brief Stores event arguments of a window resize event.
+	///
+	/// @see App::resize
 	struct LITEFX_APPMODEL_API ResizeEventArgs : public EventArgs {
 	private:
 		int m_width, m_height;
 
 	public:
-		/// <summary>
-		/// Creates a new set of window resize event arguments.
-		/// </summary>
-		/// <param name="width">The old window width.</param>
-		/// <param name="height">The old window height.</param>
+		/// @brief Creates a new set of window resize event arguments.
+		///
+		/// @param width The old window width.
+		/// @param height The old window height.
 		ResizeEventArgs(int width, int height) noexcept : m_width(width), m_height(height) { }
 		ResizeEventArgs(const ResizeEventArgs&) = default;
 		ResizeEventArgs(ResizeEventArgs&&) noexcept = default;
@@ -377,36 +328,31 @@ namespace LiteFX {
 		ResizeEventArgs& operator=(ResizeEventArgs&&) noexcept = default;
 
 	public:
-		/// <summary>
-		/// Returns the new window width.
-		/// </summary>
-		/// <returns>The new window width.</returns>
+		/// @brief Returns the new window width.
+		///
+		/// @return The new window width.
 		inline int width() const noexcept {
 			return m_width;
 		}
 
-		/// <summary>
-		/// Returns the new window height.
-		/// </summary>
-		/// <returns>The new window height.</returns>
+		/// @brief Returns the new window height.
+		///
+		/// @return The new window height.
 		inline int height() const noexcept {
 			return m_height;
 		}
 	};
 
-	/// <summary>
-	/// The base class for an application.
-	/// </summary>
-	/// <seealso cref="AppBuilder" />
-	/// <seealso cref="AppVersion" />
+	/// @brief The base class for an application.
+	///
+	/// @see AppBuilder
+	/// @see AppVersion
 	class LITEFX_APPMODEL_API App {
 		LITEFX_IMPLEMENTATION(AppImpl);
 		LITEFX_BUILDER(AppBuilder);
 
 	public:
-		/// <summary>
-		/// Initializes a new app instance.
-		/// </summary>
+		/// @brief Initializes a new app instance.
 		App();
 		App(const App&) = delete;
 		App(App&&) noexcept = delete;
@@ -416,150 +362,125 @@ namespace LiteFX {
 		virtual ~App() noexcept;
 
 	public:
-		/// <summary>
-		/// Returns the name of the app.
-		/// </summary>
-		/// <returns>The name of the app.</returns>
+		/// @brief Returns the name of the app.
+		///
+		/// @return The name of the app.
 		virtual StringView name() const noexcept = 0;
 
-		/// <summary>
-		/// Returns the version of the app.
-		/// </summary>
-		/// <returns>The version of the app.</returns>
+		/// @brief Returns the version of the app.
+		///
+		/// @return The version of the app.
 		virtual AppVersion version() const noexcept = 0;
 
-		/// <summary>
-		/// Returns the platform, the app is running on.
-		/// </summary>
-		/// <returns>The platform, the app is running on.</returns>
+		/// @brief Returns the platform, the app is running on.
+		///
+		/// @return The platform, the app is running on.
 		Platform platform() const noexcept;
 
-		/// <summary>
-		/// Returns the registered backend instance for a type index.
-		/// </summary>
-		/// <param name="type">The type index of the requested backend.</param>
-		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
+		/// @brief Returns the registered backend instance for a type index.
+		///
+		/// @param type The type index of the requested backend.
+		/// @return The registered backend instance for a type index, or `nullptr`, if the app has no backend of the provided type.
 		const IBackend* operator[](std::type_index type) const;
 
-		/// <summary>
-		/// Returns the registered backend instance for a type index.
-		/// </summary>
-		/// <param name="type">The type index of the requested backend.</param>
-		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
+		/// @brief Returns the registered backend instance for a type index.
+		///
+		/// @param type The type index of the requested backend.
+		/// @return The registered backend instance for a type index, or `nullptr`, if the app has no backend of the provided type.
 		const IBackend* getBackend(std::type_index type) const;
 
-		/// <summary>
-		/// Returns all registered backend instances of a backend type.
-		/// </summary>
-		/// <param name="type">The backend type of the requested backends.</param>
-		/// <returns>All registered instances of <paramref name="type" />.</returns>
+		/// @brief Returns all registered backend instances of a backend type.
+		///
+		/// @param type The backend type of the requested backends.
+		/// @return All registered instances of @p type.
 		Enumerable<const IBackend&> getBackends(const BackendType type) const;
 
 	protected:
-		/// <summary>
-		/// Returns the registered backend instance for a type index.
-		/// </summary>
-		/// <param name="type">The type index of the requested backend.</param>
-		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
+		/// @brief Returns the registered backend instance for a type index.
+		///
+		/// @param type The type index of the requested backend.
+		/// @return The registered backend instance for a type index, or `nullptr`, if the app has no backend of the provided type.
 		IBackend* getBackend(std::type_index type);
 
-		/// <summary>
-		/// Returns the registered backend instance for a type index.
-		/// </summary>
-		/// <typeparam name="TBackend">The type, the type index is derived from.</typeparam>
-		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
+		/// @brief Returns the registered backend instance for a type index.
+		///
+		/// @tparam TBackend The type, the type index is derived from.
+		/// @return The registered backend instance for a type index, or `nullptr`, if the app has no backend of the provided type.
 		template <typename TBackend> requires
 			meta::implements<TBackend, IBackend>
 		TBackend* findBackend() {
 			return dynamic_cast<TBackend*>(this->getBackend(typeid(TBackend)));
 		}
 
-		/// <summary>
-		/// Starts a backend.
-		/// </summary>
-		/// <remarks>
-		/// Starting a backend will first stop the active backend of the same <see cref="BackendType" />. It will then call all start callbacks for the 
-		/// backend. If the backend has been started successfully, it calls <see cref="IBackend::activate" /> before returning.
-		/// </remarks>
-		/// <param name="type">The type index of the backend to start.</param>
-		/// <seealso cref="Backend" />
-		/// <seealso cref="onBackendStart" />
+		/// @brief Starts a backend.
+		///
+		/// Starting a backend will first stop the active backend of the same @ref BackendType. It will then call all start callbacks for the backend. If the backend has been started successfully, it calls @ref
+		/// IBackend::activate before returning.
+		///
+		/// @param type The type index of the backend to start.
+		/// @see Backend
+		/// @see onBackendStart
 		void startBackend(std::type_index type) const;
 
-		/// <summary>
-		/// Stops a backend.
-		/// </summary>
-		/// <remarks>
+		/// @brief Stops a backend.
+		///
 		/// This method calls all stop callbacks for the backend, before returing. If the backend is not running, calling this method has no effect.
-		/// </remarks>
-		/// <param name="type">The type index of the backend to start.</param>
-		/// <seealso cref="Backend" />
-		/// <seealso cref="onBackendStop" />
+		///
+		/// @param type The type index of the backend to start.
+		/// @see Backend
+		/// @see onBackendStop
 		void stopBackend(std::type_index type) const;
 
-		/// <summary>
-		/// Stops the active backend of <paramref name="type" />.
-		/// </summary>
-		/// <param name="type">The backend type for which the active backend should be stopped.</param>
-		/// <seealso cref="stopBackend" />
+		/// @brief Stops the active backend of @p type.
+		///
+		/// @param type The backend type for which the active backend should be stopped.
+		/// @see stopBackend
 		void stopActiveBackends(BackendType type) const;
 
-		/// <summary>
-		/// Returns the active backend of the provided backend <paramref name="type" />.
-		/// </summary>
-		/// <param name="type">The type of the backend.</param>
-		/// <returns>The active backend of the provided backend type, or <c>std::nullptr</c>, if no backend is active.</returns>
+		/// @brief Returns the active backend of the provided backend @p type.
+		///
+		/// @param type The type of the backend.
+		/// @return The active backend of the provided backend type, or `std::nullptr`, if no backend is active.
 		IBackend* activeBackend(BackendType type) const;
 
-		/// <summary>
-		/// Returns the type index of the active backend of the provided backend <paramref name="type" />.
-		/// </summary>
-		/// <param name="type">The type of the backend.</param>
-		/// <returns>Type index of the active backend of the provided backend type, or the type index of <c>std::nullptr_t</c>, if no backend is active.</returns>
+		/// @brief Returns the type index of the active backend of the provided backend @p type.
+		///
+		/// @param type The type of the backend.
+		/// @return Type index of the active backend of the provided backend type, or the type index of `std::nullptr_t`, if no backend is active.
 		std::type_index activeBackendType(BackendType type) const;
 
 	private:
-		/// <summary>
-		/// Registers a new callback, that gets called, if the backend of <paramref name="type" /> is started.
-		/// </summary>
-		/// <param name="type">The type of the backend for which the callback is registered.</param>
-		/// <param name="callback">The callback to register.</param>
+		/// @brief Registers a new callback, that gets called, if the backend of @p type is started.
+		///
+		/// @param type The type of the backend for which the callback is registered.
+		/// @param callback The callback to register.
 		void registerStartCallback(std::type_index type, const std::function<bool()>& callback);
 
-		/// <summary>
-		/// Registers a new callback, that gets called, if the backend of <paramref name="type" /> is stopped.
-		/// </summary>
-		/// <param name="type">The type of the backend for which the callback is registered.</param>
-		/// <param name="callback">The callback to register.</param>
+		/// @brief Registers a new callback, that gets called, if the backend of @p type is stopped.
+		///
+		/// @param type The type of the backend for which the callback is registered.
+		/// @param callback The callback to register.
 		void registerStopCallback(std::type_index type, const std::function<void()>& callback);
 
 	public:
-		/// <summary>
-		/// Invoked, if a backend has been started.
-		/// </summary>
+		/// @brief Invoked, if a backend has been started.
 		mutable Event<const IBackend*> backendStarted; // NOLINT
 
-		/// <summary>
-		/// Invoked, if a backend has been stopped.
-		/// </summary>
+		/// @brief Invoked, if a backend has been stopped.
 		mutable Event<const IBackend*> backendStopped; // NOLINT
 
-		/// <summary>
-		/// Sets a callback that is called, if a backend is started.
-		/// </summary>
-		/// <remarks>
-		/// A backend can have multiple start callbacks, that are executed if a backend is started. Typically such a callback is used to initialize
-		/// a device and surface for an application. An application might use multiple callbacks, if it creates multiple devices, for example to
-		/// create a plugin architecture.
-		/// </remarks>
-		/// <remarks>
-		/// Different to the <see cref="backendStarted" /> event, this event can be strongly typed at compile time, thus different callbacks can be 
-		/// provided per backend type without requiring to differentiate them at run-time.
-		/// </remarks>
-		/// <typeparam name="TBackend">The type of the backend.</typeparam>
-		/// <param name="callback">The function to call during backend startup.</param>
-		/// <seealso cref="onBackendStop" />
-		/// <seealso cref="backendStarted" />
+		/// @brief Sets a callback that is called, if a backend is started.
+		///
+		/// A backend can have multiple start callbacks, that are executed if a backend is started. Typically such a callback is used to initialize a device and surface for an application. An application might
+		/// use multiple callbacks, if it creates multiple devices, for example to create a plugin architecture.
+		///
+		/// Different to the @ref backendStarted event, this event can be strongly typed at compile time, thus different callbacks can be provided per backend type without requiring to differentiate them at
+		/// run-time.
+		///
+		/// @tparam TBackend The type of the backend.
+		/// @param callback The function to call during backend startup.
+		/// @see onBackendStop
+		/// @see backendStarted
 		template <typename TBackend> requires
 			meta::implements<TBackend, IBackend>
 		void onBackendStart(const std::function<bool(TBackend*)>& callback) {
@@ -576,17 +497,15 @@ namespace LiteFX {
 			});
 		}
 
-		/// <summary>
-		/// Sets a callback that is called, if a backend is stopped.
-		/// </summary>
-		/// <remarks>
-		/// Different to the <see cref="backendStopped" /> event, this event can be strongly typed at compile time, thus different callbacks can be 
-		/// provided per backend type without requiring to differentiate them at run-time.
-		/// </remarks>
-		/// <typeparam name="TBackend">The type of the backend.</typeparam>
-		/// <param name="callback">The function to call during backend shutdown.</param>
-		/// <seealso cref="onBackendStart" />
-		/// <seealso cref="backendStopped" />
+		/// @brief Sets a callback that is called, if a backend is stopped.
+		///
+		/// Different to the @ref backendStopped event, this event can be strongly typed at compile time, thus different callbacks can be provided per backend type without requiring to differentiate them at
+		/// run-time.
+		///
+		/// @tparam TBackend The type of the backend.
+		/// @param callback The function to call during backend shutdown.
+		/// @see onBackendStart
+		/// @see backendStopped
 		template <typename TBackend> requires
 			meta::implements<TBackend, IBackend>
 		void onBackendStop(const std::function<void(TBackend*)>& callback) {
@@ -602,33 +521,30 @@ namespace LiteFX {
 		}
 
 	public:
-		/// <summary>
-		/// Returns the registered backend instance for a type index.
-		/// </summary>
-		/// <typeparam name="TBackend">The type, the type index is derived from.</typeparam>
-		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
+		/// @brief Returns the registered backend instance for a type index.
+		///
+		/// @tparam TBackend The type, the type index is derived from.
+		/// @return The registered backend instance for a type index, or `nullptr`, if the app has no backend of the provided type.
 		template <typename TBackend> requires
 			meta::implements<TBackend, IBackend>
 		const TBackend* findBackend() const {
 			return dynamic_cast<const TBackend*>(this->getBackend(typeid(TBackend)));
 		}
 
-		/// <summary>
-		/// Attempts to start a backend of type <typeparamref name="TBackend" /> and stops the active backend of the same <see cref="BackendType" />, if any.
-		/// </summary>
-		/// <typeparam name="TBackend">The type of the backend to start.</typeparam>
-		/// <exception cref="InvalidArgumentException">Thrown, if no backend of type <typeparamref name="TBackend" /> is registered.</exception>
+		/// @brief Attempts to start a backend of type @p TBackend and stops the active backend of the same @ref BackendType, if any.
+		///
+		/// @tparam TBackend The type of the backend to start.
+		/// @throws InvalidArgumentException Thrown, if no backend of type @p TBackend is registered.
 		template <typename TBackend> requires
 			meta::implements<TBackend, IBackend>
 		void startBackend() {
 			this->startBackend(typeid(TBackend));
 		}
 
-		/// <summary>
-		/// Stops a backend, if it is currently running.
-		/// </summary>
-		/// <typeparam name="TBackend">The type of the backend to stop.</typeparam>
-		/// <exception cref="InvalidArgumentException">Thrown, if no backend of type <typeparamref name="TBackend" /> is registered.</exception>
+		/// @brief Stops a backend, if it is currently running.
+		///
+		/// @tparam TBackend The type of the backend to stop.
+		/// @throws InvalidArgumentException Thrown, if no backend of type @p TBackend is registered.
 		template <typename TBackend> requires
 			meta::implements<TBackend, IBackend>
 		void stopBackend() {
@@ -636,68 +552,50 @@ namespace LiteFX {
 		}
 
 	public:
-		/// <summary>
-		/// Invoked, if the application has been started.
-		/// </summary>
+		/// @brief Invoked, if the application has been started.
 		mutable Event<EventArgs> startup; // NOLINT
 
-		/// <summary>
-		/// Invoked during initialization.
-		/// </summary>
+		/// @brief Invoked during initialization.
 		mutable Event<EventArgs> initializing; // NOLINT
 
-		/// <summary>
-		/// Invoked, if the application has is shutting down.
-		/// </summary>
+		/// @brief Invoked, if the application has is shutting down.
 		mutable Event<EventArgs> shutdown; // NOLINT
 
-		/// <summary>
-		/// Adds a backend to the app.
-		/// </summary>
-		/// <param name="backend">The backend to add.</param>
-		/// <exception cref="InvalidArgumentException">Thrown, if the backend is not initialized.</exception>
+		/// @brief Adds a backend to the app.
+		///
+		/// @param backend The backend to add.
+		/// @throws InvalidArgumentException Thrown, if the backend is not initialized.
 		virtual void use(UniquePtr<IBackend>&& backend);
 
-		/// <summary>
-		/// Starts the application.
-		/// </summary>
+		/// @brief Starts the application.
 		void run();
 
 	public:
-		/// <summary>
-		/// Invoked, if the app window or context gets resized.
-		/// </summary>
+		/// @brief Invoked, if the app window or context gets resized.
 		mutable Event<ResizeEventArgs> resized; // NOLINT
 
-		/// <summary>
-		/// Called, if the application window resizes.
-		/// </summary>
-		/// <param name="width">The new width of the application window.</param>
-		/// <param name="height">The new height of the application window.</param>
+		/// @brief Called, if the application window resizes.
+		///
+		/// @param width The new width of the application window.
+		/// @param height The new height of the application window.
 		void resize(int width, int height);
 
 	public:
-		/// <summary>
-		/// Creates a new application builder.
-		/// </summary>
+		/// @brief Creates a new application builder.
 		template <typename TApp, typename ...TArgs>
 		[[nodiscard]] static AppBuilder build(TArgs&&... _args);
 	};
 
-	/// <summary>
-	/// Creates a new builder for an <see cref="App" />.
-	/// </summary>
+	/// @brief Creates a new builder for an @ref App.
 	class LITEFX_APPMODEL_API [[nodiscard]] AppBuilder : public Builder<App> {
 	public:
 		using Builder<App>::Builder;
 
 	public:
-		/// <inheritdoc />
+		/// @copydoc Builder::use
 		void use(UniquePtr<IBackend>&& backend);
 
-		/// <summary>
-		/// Registers a sink for logging.
-		/// </summary>
+		/// @brief Registers a sink for logging.
 		template <typename TSink, typename ...TArgs> requires
 			std::convertible_to<TSink*, ISink*>
 		AppBuilder& logTo(TArgs&&... args) {
@@ -706,9 +604,7 @@ namespace LiteFX {
 			return *this;
 		}
 
-		/// <summary>
-		/// Registers a new backend.
-		/// </summary>
+		/// @brief Registers a new backend.
 		template <typename TBackend, typename ...TArgs> requires
 			meta::implements<TBackend, IBackend>
 		AppBuilder& useBackend(TArgs&&... args) {

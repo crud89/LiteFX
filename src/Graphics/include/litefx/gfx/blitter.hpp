@@ -19,48 +19,36 @@ namespace LiteFX::Graphics {
     //    virtual generateMipMaps(IImage, ICommandBuffer)
     //};
 
-    /// <summary>
-    /// Utility class that can be used to issue blit commands and generate mip maps.
-    /// </summary>
-    /// <remarks>
-    /// This utility class can be used to generate mip maps for images. Note however, that it is more efficient to pre-compute mip maps if possible. Also note that if 
-    /// you need a direct copy of a image, use a <see cref="ICommandBuffer::transfer" /> command instead.
-    /// </remarks>
-    /// <typeparam name="TBackend">The type of render backend that implements the blitter.</typeparam>
+    /// @brief Utility class that can be used to issue blit commands and generate mip maps.
+    ///
+    /// This utility class can be used to generate mip maps for images. Note however, that it is more efficient to pre-compute mip maps if possible. Also note that if you need a direct copy of a image, use a
+    /// @ref ICommandBuffer::transfer command instead.
+    ///
+    /// @tparam TBackend The type of render backend that implements the blitter.
     template <render_backend TBackend>
     class LITEFX_GRAPHICS_API Blitter : public LiteFX::SharedObject {
         LITEFX_IMPLEMENTATION(BlitImpl);
         friend struct SharedObject::Allocator<Blitter>;
 
     private:
-        /// <summary>
-        /// Initializes a new blitter instance.
-        /// </summary>
-        /// <param name="device">The device to allocate resources from.</param>
+        /// @brief Initializes a new blitter instance.
+        ///
+        /// @param device The device to allocate resources from.
         explicit Blitter(const TBackend::device_type& device);
 
-        /// <inheritdoc />
         Blitter(const Blitter&) = delete;
-
-        /// <inheritdoc />
         Blitter(Blitter&&) noexcept = delete;
-
-        /// <inheritdoc />
         Blitter& operator=(const Blitter&) = delete;
-
-        /// <inheritdoc />
         Blitter& operator=(Blitter&&) noexcept = delete;
 
     public:
-        /// <inheritdoc />
         ~Blitter() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Creates a new blitter instance.
-        /// </summary>
-        /// <param name="device">The device to allocate resources from.</param>
-        /// <returns>A shared pointer to the newly created blitter instance.</returns>
+        /// @brief Creates a new blitter instance.
+        ///
+        /// @param device The device to allocate resources from.
+        /// @return A shared pointer to the newly created blitter instance.
         static inline auto create(const TBackend::device_type& device) {
             return SharedObject::create<Blitter<TBackend>>(device);
         }

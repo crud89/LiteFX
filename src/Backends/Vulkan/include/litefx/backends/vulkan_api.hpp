@@ -71,371 +71,276 @@ namespace LiteFX::Rendering::Backends {
     class VulkanBarrierBuilder;
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
 
-    /// <summary>
-    /// Contains conversion helpers for Vulkan.
-    /// </summary>
+    /// @brief Contains conversion helpers for Vulkan.
     namespace Vk
     {
-        /// <summary>
-        /// 
-        /// </summary>
         Format LITEFX_VULKAN_API getFormat(const VkFormat& format);
 
-        /// <summary>
-        /// 
-        /// </summary>
         VkFormat LITEFX_VULKAN_API getFormat(Format format);
 
-        /// <summary>
-        /// 
-        /// </summary>
         //BufferFormat LITEFX_VULKAN_API getFormat(const VkFormat& format);
 
-        /// <summary>
-        /// 
-        /// </summary>
         VkFormat LITEFX_VULKAN_API getFormat(BufferFormat format);
 
-        /// <summary>
-        /// 
-        /// </summary>
         PolygonMode LITEFX_VULKAN_API getPolygonMode(const VkPolygonMode& mode);
 
-        /// <summary>
-        /// 
-        /// </summary>
         VkPolygonMode LITEFX_VULKAN_API getPolygonMode(PolygonMode mode);
 
-        /// <summary>
-        /// 
-        /// </summary>
         CullMode LITEFX_VULKAN_API getCullMode(const VkCullModeFlags& mode);
 
-        /// <summary>
-        /// 
-        /// </summary>
         VkCullModeFlags LITEFX_VULKAN_API getCullMode(CullMode mode);
 
-        /// <summary>
-        /// 
-        /// </summary>
         PrimitiveTopology LITEFX_VULKAN_API getPrimitiveTopology(const VkPrimitiveTopology& topology);
 
-        /// <summary>
-        /// 
-        /// </summary>
         VkPrimitiveTopology LITEFX_VULKAN_API getPrimitiveTopology(PrimitiveTopology topology);
 
-        /// <summary>
-        /// 
-        /// </summary>
         ShaderStage LITEFX_VULKAN_API getShaderStage(const VkShaderStageFlagBits& shaderType);
 
-        /// <summary>
-        /// 
-        /// </summary>
         VkShaderStageFlagBits LITEFX_VULKAN_API getShaderStage(ShaderStage shaderType);
 
-        /// <summary>
-        /// 
-        /// </summary>
         MultiSamplingLevel LITEFX_VULKAN_API getSamples(const VkSampleCountFlagBits& samples);
 
-        /// <summary>
-        /// 
-        /// </summary>
         VkImageType LITEFX_VULKAN_API getImageType(ImageDimensions dimension);
 
-        /// <summary>
-        /// 
-        /// </summary>
         VkImageViewType LITEFX_VULKAN_API getImageViewType(ImageDimensions dimension, UInt32 layers = 1);
 
-        /// <summary>
-        /// 
-        /// </summary>
         VkSampleCountFlagBits LITEFX_VULKAN_API getSamples(MultiSamplingLevel samples);
 
-        /// <summary>
-        /// 
-        /// </summary>
         VkCompareOp LITEFX_VULKAN_API getCompareOp(CompareOperation compareOp);
 
-        /// <summary>
-        /// 
-        /// </summary>
         VkStencilOp LITEFX_VULKAN_API getStencilOp(StencilOperation stencilOp);
 
-        /// <summary>
-        /// 
-        /// </summary>
         VkBlendFactor LITEFX_VULKAN_API getBlendFactor(BlendFactor blendFactor);
 
-        /// <summary>
-        /// 
-        /// </summary>
         VkBlendOp LITEFX_VULKAN_API getBlendOperation(BlendOperation blendOperation);
 
-        /// <summary>
-        /// 
-        /// </summary>
         VkPipelineStageFlags2 LITEFX_VULKAN_API getPipelineStage(PipelineStage pipelineStage);
 
-        /// <summary>
-        /// 
-        /// </summary>
         VkAccessFlags2 LITEFX_VULKAN_API getResourceAccess(ResourceAccess resourceAccess);
 
-        /// <summary>
-        /// 
-        /// </summary>
         VkImageLayout LITEFX_VULKAN_API getImageLayout(ImageLayout imageLayout);
 
-        /// <summary>
-        /// Returns the address of a dispatchable handle.
-        /// </summary>
-        /// <typeparam name="THandle">The type of the handle.</typeparam>
-        /// <param name="handle">The handle to convert.</param>
-        /// <returns>The address of the handle.</returns>
+        /// @brief Returns the address of a dispatchable handle.
+        ///
+        /// @tparam THandle The type of the handle.
+        /// @param handle The handle to convert.
+        /// @return The address of the handle.
         template <typename THandle>
         constexpr UInt64 handleAddress(const THandle handle) noexcept {
             return reinterpret_cast<std::uintptr_t>(handle); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         }
 
-        /// <summary>
-        /// Returns the address of a non-dispatchable handle.
-        /// </summary>
-        /// <param name="handle">The handle to convert.</param>
-        /// <returns>The address of the handle.</returns>
+        /// @brief Returns the address of a non-dispatchable handle.
+        ///
+        /// @param handle The handle to convert.
+        /// @return The address of the handle.
         template <>
         constexpr UInt64 handleAddress(const UInt64 handle) noexcept {
             return handle;
         }
     }
 
-    /// <summary>
-    /// Represents a Vulkan <see cref="IGraphicsAdapter" />.
-    /// </summary>
+    /// @brief Represents a Vulkan @ref IGraphicsAdapter.
     class LITEFX_VULKAN_API VulkanGraphicsAdapter final : public IGraphicsAdapter, public Resource<VkPhysicalDevice> {
         LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl);
         friend struct SharedObject::Allocator<VulkanGraphicsAdapter>;
 
     private:
-        /// <summary>
-        /// Initializes a graphics adapter instance with a physical device.
-        /// </summary>
-        /// <param name="adapter">The physical device to initialize the instance with.</param>
+        /// @brief Initializes a graphics adapter instance with a physical device.
+        ///
+        /// @param adapter The physical device to initialize the instance with.
         explicit VulkanGraphicsAdapter(VkPhysicalDevice adapter);
 
     private:
-        /// <inheritdoc />
+        /// @copydoc IGraphicsAdapter::IGraphicsAdapter(IGraphicsAdapter&&)
         VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) noexcept = delete;
 
-        /// <inheritdoc />
+        /// @copydoc IGraphicsAdapter::IGraphicsAdapter(const IGraphicsAdapter&)
         VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
 
-        /// <inheritdoc />
+        /// @copydoc IGraphicsAdapter::operator=(IGraphicsAdapter&&)
         VulkanGraphicsAdapter& operator=(VulkanGraphicsAdapter&&) noexcept = delete;
 
-        /// <inheritdoc />
+        /// @copydoc IGraphicsAdapter::operator=(const IGraphicsAdapter&)
         VulkanGraphicsAdapter& operator=(const VulkanGraphicsAdapter&) = delete;
 
     public:
-        /// <inheritdoc />
+        /// @copydoc IGraphicsAdapter::~IGraphicsAdapter
         ~VulkanGraphicsAdapter() noexcept override;
 
     public:
-        /// <summary>
-        /// Creates a graphics adapter instance with a physical device.
-        /// </summary>
-        /// <param name="adapter">The physical device to initialize the instance with.</param>
-        /// <returns>A shared pointer to the newly created graphics adapter instance.</returns>
+        /// @brief Creates a graphics adapter instance with a physical device.
+        ///
+        /// @param adapter The physical device to initialize the instance with.
+        /// @return A shared pointer to the newly created graphics adapter instance.
         static inline auto create(VkPhysicalDevice adapter) {
             return SharedObject::create<VulkanGraphicsAdapter>(adapter);
         }
 
     public:
-        /// <inheritdoc />
+        /// @copydoc IGraphicsAdapter::name
         String name() const override;
 
-        /// <inheritdoc />
+        /// @copydoc IGraphicsAdapter::uniqueId
         UInt64 uniqueId() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IGraphicsAdapter::vendorId
         UInt32 vendorId() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IGraphicsAdapter::deviceId
         UInt32 deviceId() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IGraphicsAdapter::type
         GraphicsAdapterType type() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IGraphicsAdapter::driverVersion
         UInt64 driverVersion() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IGraphicsAdapter::apiVersion
         UInt32 apiVersion() const noexcept override;
 
-        /// <inheritdoc />
+        /// @copydoc IGraphicsAdapter::dedicatedMemory
         UInt64 dedicatedMemory() const noexcept override;
 
     public:
-        /// <summary>
-        /// Returns the limits of the physical device.
-        /// </summary>
-        /// <returns>The limits of the physical device.</returns>
+        /// @brief Returns the limits of the physical device.
+        ///
+        /// @return The limits of the physical device.
         VkPhysicalDeviceLimits limits() const noexcept;
 
-        /// <summary>
-        /// Returns <c>true</c>, if all elements of <paramref cref="extensions" /> are contained by the a list of available extensions.
-        /// </summary>
-        /// <returns><c>true</c>, if all elements of <paramref cref="extensions" /> are contained by the a list of available extensions.</returns>
-        /// <seealso cref="getAvailableDeviceExtensions" />
+        /// @brief Returns `true`, if all elements of @p are contained by the a list of available extensions.
+        ///
+        /// @return `true`, if all elements of @p are contained by the a list of available extensions.
+        /// @see getAvailableDeviceExtensions
         bool validateDeviceExtensions(Span<const String> extensions) const;
 
-        /// <summary>
-        /// Returns a list of available extensions.
-        /// </summary>
-        /// <returns>A list of available extensions.</returns>
-        /// <seealso cref="validateDeviceExtensions" />
+        /// @brief Returns a list of available extensions.
+        ///
+        /// @return A list of available extensions.
+        /// @see validateDeviceExtensions
         Enumerable<String> getAvailableDeviceExtensions() const;
 
-        /// <summary>
-        /// Returns <c>true</c>, if all elements of <paramref cref="validationLayers" /> are contained by the a list of available validation layers.
-        /// </summary>
-        /// <returns><c>true</c>, if all elements of <paramref cref="validationLayers" /> are contained by the a list of available validation layers.</returns>
-        /// <seealso cref="getDeviceValidationLayers" />
+        /// @brief Returns `true`, if all elements of @p are contained by the a list of available validation layers.
+        ///
+        /// @return `true`, if all elements of @p are contained by the a list of available validation layers.
+        /// @see getDeviceValidationLayers
         bool validateDeviceLayers(const Span<const String> validationLayers) const;
 
-        /// <summary>
-        /// Returns a list of available validation layers.
-        /// </summary>
-        /// <returns>A list of available validation layers.</returns>
-        /// <seealso cref="validateDeviceLayers" />
+        /// @brief Returns a list of available validation layers.
+        ///
+        /// @return A list of available validation layers.
+        /// @see validateDeviceLayers
         Enumerable<String> deviceValidationLayers() const;
     };
 
-    /// <summary>
-    /// Represents a Vulkan <see cref="ISurface" />.
-    /// </summary>
+    /// @brief Represents a Vulkan @ref ISurface.
     class LITEFX_VULKAN_API VulkanSurface final : public ISurface, public Resource<VkSurfaceKHR> {
         LITEFX_IMPLEMENTATION(VulkanSurfaceImpl)
 
     public:
 #ifdef VK_USE_PLATFORM_WIN32_KHR
-        /// <summary>
-        /// Initializes the surface from a surface and instance handle.
-        /// </summary>
-        /// <param name="surface">The handle of the Vulkan surface.</param>
-        /// <param name="instance">The handle of the parent instance.</param>
-        /// <param name="hwnd">The handle of the surface window.</param>
+        /// @brief Initializes the surface from a surface and instance handle.
+        ///
+        /// @param surface The handle of the Vulkan surface.
+        /// @param instance The handle of the parent instance.
+        /// @param hwnd The handle of the surface window.
         VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& instance, const HWND hwnd);
 #else
-        /// <summary>
-        /// Initializes the surface from a surface and instance handle.
-        /// </summary>
-        /// <param name="surface">The handle of the Vulkan surface.</param>
-        /// <param name="instance">The handle of the parent instance.</param>
+        /// @brief Initializes the surface from a surface and instance handle.
+        ///
+        /// @param surface The handle of the Vulkan surface.
+        /// @param instance The handle of the parent instance.
         VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& instance);
 #endif // VK_USE_PLATFORM_WIN32_KHR
 
 
-        /// <inheritdoc />
+        /// @copydoc ISurface::ISurface(ISurface&&)
         VulkanSurface(VulkanSurface&&) noexcept;
 
-        /// <inheritdoc />
+        /// @copydoc ISurface::ISurface(const ISurface&)
         VulkanSurface(const VulkanSurface&) = delete;
 
-        /// <inheritdoc />
+        /// @copydoc ISurface::operator=(ISurface&&)
         VulkanSurface& operator=(VulkanSurface&&) noexcept;
 
-        /// <inheritdoc />
+        /// @copydoc ISurface::operator=(const ISurface&)
         VulkanSurface& operator=(const VulkanSurface&) = delete;
 
-        /// <inheritdoc />
+        /// @copydoc ISurface::~ISurface
         ~VulkanSurface() noexcept override;
 
     public:
-        /// <summary>
-        /// Returns the handle of the backend, the surface has been created from.
-        /// </summary>
-        /// <returns>The handle of the backend, the surface has been created from.</returns>
+        /// @brief Returns the handle of the backend, the surface has been created from.
+        ///
+        /// @return The handle of the backend, the surface has been created from.
         const VkInstance& instance() const noexcept;
 
 #ifdef VK_USE_PLATFORM_WIN32_KHR
-        /// <summary>
-        /// Returns the window handle of the surface.
-        /// </summary>
-        /// <returns>The window handle of the surface.</returns>
-        /// <seealso cref="createSurface" />
+        /// @brief Returns the window handle of the surface.
+        ///
+        /// @return The window handle of the surface.
+        /// @see createSurface
         HWND windowHandle() const noexcept;
 #endif // VK_USE_PLATFORM_WIN32_KHR
     };
 
-    /// <summary>
-    /// An exception that is thrown, if a requested Vulkan operation could not be executed.
-    /// </summary>
+    /// @brief An exception that is thrown, if a requested Vulkan operation could not be executed.
     class LITEFX_VULKAN_API VulkanPlatformException : public RuntimeException {
     private:
         VkResult m_code;
 
     public:
-        /// <summary>
-        /// Initializes a new exception.
-        /// </summary>
-        /// <param name="result">The error code returned by the operation.</param>
+        /// @brief Initializes a new exception.
+        ///
+        /// @param result The error code returned by the operation.
         explicit VulkanPlatformException(VkResult result) :
             RuntimeException("Operation returned {0}.", result), m_code(result) { }
 
-        /// <summary>
-        /// Initializes a new exception.
-        /// </summary>
-        /// <param name="result">The error code returned by the operation.</param>
-        /// <param name="message">The error message.</param>
+        /// @brief Initializes a new exception.
+        ///
+        /// @param result The error code returned by the operation.
+        /// @param message The error message.
         explicit VulkanPlatformException(VkResult result, StringView message) :
             RuntimeException("{1} Operation returned {0}.", result, message), m_code(result) { }
 
-        /// <summary>
-        /// Initializes a new exception.
-        /// </summary>
-        /// <param name="format">The format string for the error message.</param>
-        /// <param name="result">The error code returned by the operation.</param>
-        /// <param name="args">The arguments passed to the error message format string.</param>
+        /// @brief Initializes a new exception.
+        ///
+        /// @param format The format string for the error message.
+        /// @param result The error code returned by the operation.
+        /// @param args The arguments passed to the error message format string.
         template <typename ...TArgs>
         explicit VulkanPlatformException(VkResult result, StringView format, TArgs&&... args) :
             VulkanPlatformException(result, std::format(format, std::forward<TArgs>(args)...)) { }
 
-        /// <inheritdoc />
+        /// @copydoc RuntimeException::RuntimeException(RuntimeException&&)
         VulkanPlatformException(VulkanPlatformException&&) noexcept = default;
 
-        /// <inheritdoc />
+        /// @copydoc RuntimeException::RuntimeException(const RuntimeException&)
         VulkanPlatformException(const VulkanPlatformException&) = default;
 
-        /// <inheritdoc />
+        /// @copydoc RuntimeException::operator=(RuntimeException&&)
         VulkanPlatformException& operator=(VulkanPlatformException&&) noexcept = default;
 
-        /// <inheritdoc />
+        /// @copydoc RuntimeException::operator=(const RuntimeException&)
         VulkanPlatformException& operator=(const VulkanPlatformException&) = default;
 
-        /// <inheritdoc />
+        /// @copydoc RuntimeException::~RuntimeException
         ~VulkanPlatformException() noexcept override = default;
 
     public:
-        /// <summary>
-        /// Returns the error code.
-        /// </summary>
-        /// <returns>The code of the error.</returns>
+        /// @brief Returns the error code.
+        ///
+        /// @return The code of the error.
         VkResult code() const noexcept {
             return m_code;
         }
     };
 
-    /// <summary>
-    /// Raises a <see cref="VulkanPlatformException" />, if <paramref name="result" /> does not equal `VK_SUCCESS`.
-    /// </summary>
-    /// <param name="hr">The error code returned by the operation.</param>
-    /// <param name="message">The format string for the error message.</param>
-    /// <param name="args">The arguments passed to the error message format string.</param>
+    /// @brief Raises a @ref VulkanPlatformException, if @p result does not equal `VK_SUCCESS`.
+    ///
+    /// @param hr The error code returned by the operation.
+    /// @param message The format string for the error message.
+    /// @param args The arguments passed to the error message format string.
     template <typename ...TArgs>
     static inline void raiseIfFailed(VkResult result, StringView message, TArgs&&... args) {
         if (result == VK_SUCCESS) [[likely]]

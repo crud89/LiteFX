@@ -17,455 +17,360 @@
 namespace LiteFX::Math {
 	using namespace LiteFX;
 
-	/// <summary>
-	/// A type for a single byte of raw memory.
-	/// </summary>
+	/// @brief A type for a single byte of raw memory.
 	using Byte = std::byte;
 
-	/// <summary>
-	/// A type for an unsigned 8 bit integer.
-	/// </summary>
+	/// @brief A type for an unsigned 8 bit integer.
 	using UInt8 = uint8_t;
 
-	/// <summary>
-	/// A type for a signed 16 bit integer.
-	/// </summary>
+	/// @brief A type for a signed 16 bit integer.
 	using Int16 = int16_t;
 
-	/// <summary>
-	/// A type for an unsigned 16 bit integer.
-	/// </summary>
+	/// @brief A type for an unsigned 16 bit integer.
 	using UInt16 = uint16_t;
 
-	/// <summary>
-	/// A type for a signed 32 bit integer.
-	/// </summary>
+	/// @brief A type for a signed 32 bit integer.
 	using Int32 = int32_t;
 
-	/// <summary>
-	/// A type for an unsigned 32 bit integer.
-	/// </summary>
+	/// @brief A type for an unsigned 32 bit integer.
 	using UInt32 = uint32_t;
 
-	/// <summary>
-	/// A type for a signed 64 bit integer.
-	/// </summary>
+	/// @brief A type for a signed 64 bit integer.
 	using Int64 = int64_t;
 
-	/// <summary>
-	/// A type for an unsigned 64 bit integer.
-	/// </summary>
+	/// @brief A type for an unsigned 64 bit integer.
 	using UInt64 = uint64_t;
 
-	/// <summary>
-	/// A type for a floating point value with single precision.
-	/// </summary>
+	/// @brief A type for a floating point value with single precision.
 	using Float = float_t;
 
-	/// <summary>
-	/// A type for a floating point value with double precision.
-	/// </summary>
+	/// @brief A type for a floating point value with double precision.
 	using Double = double_t;
 
-	/// <summary>
-	/// A literal to define a byte.
-	/// </summary>
-	/// <param name="arg">The value that should be assigned to the byte.</param>
-	/// <returns>The value as byte.</returns>
+	/// @brief A literal to define a byte.
+	///
+	/// @param arg The value that should be assigned to the byte.
+	/// @return The value as byte.
 	constexpr Byte operator ""_b(unsigned long long int arg) noexcept {
 		return static_cast<Byte>(arg);
 	}
 
-	/// <summary>
-	/// A literal to define a 8 bit unsigned integer.
-	/// </summary>
-	/// <param name="arg">The value that should be assigned to the integer.</param>
-	/// <returns>The value as integer.</returns>
+	/// @brief A literal to define a 8 bit unsigned integer.
+	///
+	/// @param arg The value that should be assigned to the integer.
+	/// @return The value as integer.
 	constexpr UInt8 operator ""_ui8(unsigned long long int arg) noexcept {
 		return static_cast<UInt8>(arg);
 	}
 
-	/// <summary>
-	/// A literal to define a 16 bit integer.
-	/// </summary>
-	/// <param name="arg">The value that should be assigned to the integer.</param>
-	/// <returns>The value as 16 bit integer.</returns>
+	/// @brief A literal to define a 16 bit integer.
+	///
+	/// @param arg The value that should be assigned to the integer.
+	/// @return The value as 16 bit integer.
 	constexpr Int16 operator ""_i16(unsigned long long int arg) noexcept {
 		return static_cast<Int16>(arg);
 	}
 
-	/// <summary>
-	/// A literal to define a 16 bit unsigned integer.
-	/// </summary>
-	/// <param name="arg">The value that should be assigned to the integer.</param>
-	/// <returns>The value as 16 bit unsigned integer.</returns>
+	/// @brief A literal to define a 16 bit unsigned integer.
+	///
+	/// @param arg The value that should be assigned to the integer.
+	/// @return The value as 16 bit unsigned integer.
 	constexpr UInt16 operator ""_ui16(unsigned long long int arg) noexcept {
 		return static_cast<UInt16>(arg);
 	}
 
-	/// <summary>
-	/// A literal to define a 32 bit integer.
-	/// </summary>
-	/// <param name="arg">The value that should be assigned to the integer.</param>
-	/// <returns>The value as 32 bit integer.</returns>
+	/// @brief A literal to define a 32 bit integer.
+	///
+	/// @param arg The value that should be assigned to the integer.
+	/// @return The value as 32 bit integer.
 	constexpr Int32 operator ""_i32(unsigned long long int arg) noexcept {
 		return static_cast<Int32>(arg);
 	}
 
-	/// <summary>
-	/// A literal to define a 32 bit unsigned integer.
-	/// </summary>
-	/// <param name="arg">The value that should be assigned to the integer.</param>
-	/// <returns>The value as 32 bit unsigned integer.</returns>
+	/// @brief A literal to define a 32 bit unsigned integer.
+	///
+	/// @param arg The value that should be assigned to the integer.
+	/// @return The value as 32 bit unsigned integer.
 	constexpr UInt32 operator ""_ui32(unsigned long long int arg) noexcept {
 		return static_cast<UInt32>(arg);
 	}
 
-	/// <summary>
-	/// A literal to define a 64 bit integer.
-	/// </summary>
-	/// <param name="arg">The value that should be assigned to the integer.</param>
-	/// <returns>The value as 64 bit integer.</returns>
+	/// @brief A literal to define a 64 bit integer.
+	///
+	/// @param arg The value that should be assigned to the integer.
+	/// @return The value as 64 bit integer.
 	constexpr Int64 operator ""_i64(unsigned long long int arg) noexcept {
 		return static_cast<Int64>(arg);
 	}
 
-	/// <summary>
-	/// A literal to define a 64 bit unsigned integer.
-	/// </summary>
-	/// <param name="arg">The value that should be assigned to the integer.</param>
-	/// <returns>The value as 64 bit unsigned integer.</returns>
+	/// @brief A literal to define a 64 bit unsigned integer.
+	///
+	/// @param arg The value that should be assigned to the integer.
+	/// @return The value as 64 bit unsigned integer.
 	constexpr UInt64 operator ""_ui64(unsigned long long int arg) noexcept {
 		return static_cast<UInt64>(arg);
 	}
 
-	/// <summary>
-	/// A literal to define a floating point value with single precision.
-	/// </summary>
-	/// <param name="arg">The value that should be assigned to the floating point number.</param>
-	/// <returns>The value as floating point number.</returns>
+	/// @brief A literal to define a floating point value with single precision.
+	///
+	/// @param arg The value that should be assigned to the floating point number.
+	/// @return The value as floating point number.
 	constexpr Float operator ""_f32(long double arg) noexcept {
 		return static_cast<Float>(arg);
 	}
 
-	/// <summary>
-	/// A literal to define a floating point value with double precision.
-	/// </summary>
-	/// <param name="arg">The value that should be assigned to the floating point number.</param>
-	/// <returns>The value as floating point number.</returns>
+	/// @brief A literal to define a floating point value with double precision.
+	///
+	/// @param arg The value that should be assigned to the floating point number.
+	/// @return The value as floating point number.
 	constexpr Double operator ""_f64(long double arg) noexcept {
 		return static_cast<Double>(arg);
 	}
 
-	/// <summary>
-	/// Aligns a value <paramref name="size" /> to an alignment <paramref name="alignment" />.
-	/// </summary>
-	/// <typeparam name="T">The type of the value to align.</typeparam>
-	/// <param name="size">The value to align.</param>
-	/// <param name="alignment">The alignment to align the value to.</param>
-	/// <returns>The aligned value.</returns>
+	/// @brief Aligns a value @p size to an alignment @p alignment.
+	///
+	/// @tparam T The type of the value to align.
+	/// @param size The value to align.
+	/// @param alignment The alignment to align the value to.
+	/// @return The aligned value.
 	template <typename T = UInt32>
 	static constexpr T align(T size, T alignment) { 
 		return (size + alignment - 1) & ~(alignment - 1); 
 	}
 
 #pragma region Vector
-	/// <summary>
-	/// A vector that contains a single float.
-	/// </summary>
+	/// @brief A vector that contains a single float.
 	class LITEFX_MATH_API Vector1f : public Vector<Float, 1> {
 	public:
 		using Vector::Vector;
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 	public:
-		/// <summary>
-		/// Converts a vector of type `glm::f32vec1`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `glm::f32vec1`.
+		///
+		/// @param v The vector to convert.
 		Vector1f(const glm::f32vec1& v) noexcept;
 
-		/// <summary>
-		/// Converts a vector of type `glm::f32vec1`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `glm::f32vec1`.
+		///
+		/// @param v The vector to convert.
 		Vector1f(glm::f32vec1&& v) noexcept;
 
-		/// <summary>
-		/// Converts the vector into the type `glm::f32vec1`.
-		/// </summary>
+		/// @brief Converts the vector into the type `glm::f32vec1`.
 		operator glm::f32vec1() const noexcept;
 #endif
 
 #if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 	public:
-		/// <summary>
-		/// Converts a vector of type `DirectX::XMVECTOR`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `DirectX::XMVECTOR`.
+		///
+		/// @param v The vector to convert.
 		Vector1f(const DirectX::XMVECTOR& v) noexcept;
 
-		/// <summary>
-		/// Converts a vector of type `DirectX::XMVECTOR`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `DirectX::XMVECTOR`.
+		///
+		/// @param v The vector to convert.
 		Vector1f(DirectX::XMVECTOR&& v) noexcept;
 
-		/// <summary>
-		/// Converts the vector into the type `DirectX::XMVECTOR`.
-		/// </summary>
+		/// @brief Converts the vector into the type `DirectX::XMVECTOR`.
 		operator DirectX::XMVECTOR() const noexcept;
 #endif
 	};
 
 	// NOTE: Vector1i unsupported, due to lack of `XMStoreSInt` overload for scalar signed integers.
 
-	/// <summary>
-	/// A vector that contains a single unsigned integer.
-	/// </summary>
+	/// @brief A vector that contains a single unsigned integer.
 	class LITEFX_MATH_API Vector1u : public Vector<UInt32, 1> {
 	public:
 		using Vector::Vector;
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 	public:
-		/// <summary>
-		/// Converts a vector of type `glm::u32vec1`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `glm::u32vec1`.
+		///
+		/// @param v The vector to convert.
 		Vector1u(const glm::u32vec1& v) noexcept;
 
-		/// <summary>
-		/// Converts a vector of type `glm::u32vec1`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `glm::u32vec1`.
+		///
+		/// @param v The vector to convert.
 		Vector1u(glm::u32vec1&& v) noexcept;
 
-		/// <summary>
-		/// Converts the vector into the type `glm::u32vec1`.
-		/// </summary>
+		/// @brief Converts the vector into the type `glm::u32vec1`.
 		operator glm::u32vec1() const noexcept;
 #endif
 
 #if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 	public:
-		/// <summary>
-		/// Converts a vector of type `DirectX::XMVECTOR`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `DirectX::XMVECTOR`.
+		///
+		/// @param v The vector to convert.
 		Vector1u(const DirectX::XMVECTOR& v) noexcept;
 
-		/// <summary>
-		/// Converts a vector of type `DirectX::XMVECTOR`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `DirectX::XMVECTOR`.
+		///
+		/// @param v The vector to convert.
 		Vector1u(DirectX::XMVECTOR&& v) noexcept;
 
-		/// <summary>
-		/// Converts the vector into the type `DirectX::XMVECTOR`.
-		/// </summary>
+		/// @brief Converts the vector into the type `DirectX::XMVECTOR`.
 		operator DirectX::XMVECTOR() const noexcept;
 #endif
 	};
 
-	/// <summary>
-	/// A vector that contains two floats.
-	/// </summary>
+	/// @brief A vector that contains two floats.
 	class LITEFX_MATH_API Vector2f : public Vector<Float, 2> {
 	public:
 		using Vector::Vector;
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 	public:
-		/// <summary>
-		/// Converts a vector of type `glm::f32vec2`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `glm::f32vec2`.
+		///
+		/// @param v The vector to convert.
 		Vector2f(const glm::f32vec2& v) noexcept;
 
-		/// <summary>
-		/// Converts a vector of type `glm::f32vec2`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `glm::f32vec2`.
+		///
+		/// @param v The vector to convert.
 		Vector2f(glm::f32vec2&& v) noexcept;
 
-		/// <summary>
-		/// Converts the vector into the type `glm::f32vec2`.
-		/// </summary>
+		/// @brief Converts the vector into the type `glm::f32vec2`.
 		operator glm::f32vec2() const noexcept;
 #endif
 
 #if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 	public:
-		/// <summary>
-		/// Converts a vector of type `DirectX::XMVECTOR`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `DirectX::XMVECTOR`.
+		///
+		/// @param v The vector to convert.
 		Vector2f(const DirectX::XMVECTOR& v) noexcept;
 
-		/// <summary>
-		/// Converts a vector of type `DirectX::XMVECTOR`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `DirectX::XMVECTOR`.
+		///
+		/// @param v The vector to convert.
 		Vector2f(DirectX::XMVECTOR&& v) noexcept;
 
-		/// <summary>
-		/// Converts a vector of type `DirectX::XMFLOAT2`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `DirectX::XMFLOAT2`.
+		///
+		/// @param v The vector to convert.
 		Vector2f(const DirectX::XMFLOAT2& v) noexcept;
 
-		/// <summary>
-		/// Converts a vector of type `DirectX::XMFLOAT2`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `DirectX::XMFLOAT2`.
+		///
+		/// @param v The vector to convert.
 		Vector2f(DirectX::XMFLOAT2&& v) noexcept;
 
-		/// <summary>
-		/// Converts the vector into the type `DirectX::XMVECTOR`.
-		/// </summary>
+		/// @brief Converts the vector into the type `DirectX::XMVECTOR`.
 		operator DirectX::XMVECTOR() const noexcept;
 
-		/// <summary>
-		/// Converts the vector into the type `DirectX::XMFLOAT2`.
-		/// </summary>
+		/// @brief Converts the vector into the type `DirectX::XMFLOAT2`.
 		operator DirectX::XMFLOAT2() const noexcept;
 #endif
 	};
 
-	/// <summary>
-	/// A vector that contains two unsigned integers.
-	/// </summary>
+	/// @brief A vector that contains two unsigned integers.
 	class LITEFX_MATH_API Vector2u : public Vector<UInt32, 2> {
 	public:
 		using Vector::Vector;
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 	public:
-		/// <summary>
-		/// Converts a vector of type `glm::u32vec2`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `glm::u32vec2`.
+		///
+		/// @param v The vector to convert.
 		Vector2u(const glm::u32vec2& v) noexcept;
 
-		/// <summary>
-		/// Converts a vector of type `glm::u32vec2`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `glm::u32vec2`.
+		///
+		/// @param v The vector to convert.
 		Vector2u(glm::u32vec2&& v) noexcept;
 
-		/// <summary>
-		/// Converts the vector into the type `glm::u32vec2`.
-		/// </summary>
+		/// @brief Converts the vector into the type `glm::u32vec2`.
 		operator glm::u32vec2() const noexcept;
 #endif
 
 #if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 	public:
-		/// <summary>
-		/// Converts a vector of type `DirectX::XMVECTOR`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `DirectX::XMVECTOR`.
+		///
+		/// @param v The vector to convert.
 		Vector2u(const DirectX::XMVECTOR& v) noexcept;
 
-		/// <summary>
-		/// Converts a vector of type `DirectX::XMVECTOR`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `DirectX::XMVECTOR`.
+		///
+		/// @param v The vector to convert.
 		Vector2u(DirectX::XMVECTOR&& v) noexcept;
 
-		/// <summary>
-		/// Converts a vector of type `DirectX::XMUINT2`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `DirectX::XMUINT2`.
+		///
+		/// @param v The vector to convert.
 		Vector2u(const DirectX::XMUINT2& v) noexcept;
 
-		/// <summary>
-		/// Converts a vector of type `DirectX::XMUINT2`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `DirectX::XMUINT2`.
+		///
+		/// @param v The vector to convert.
 		Vector2u(DirectX::XMUINT2&& v) noexcept;
 
-		/// <summary>
-		/// Converts the vector into the type `DirectX::XMVECTOR`.
-		/// </summary>
+		/// @brief Converts the vector into the type `DirectX::XMVECTOR`.
 		operator DirectX::XMVECTOR() const noexcept;
 
-		/// <summary>
-		/// Converts the vector into the type `DirectX::XMUINT2`.
-		/// </summary>
+		/// @brief Converts the vector into the type `DirectX::XMUINT2`.
 		operator DirectX::XMUINT2() const noexcept;
 #endif
 	};
 
-	/// <summary>
-	/// A vector that contains two signed integers.
-	/// </summary>
+	/// @brief A vector that contains two signed integers.
 	class LITEFX_MATH_API Vector2i : public Vector<Int32, 2> {
 	public:
 		using Vector::Vector;
 
 #if defined(LITEFX_BUILD_WITH_GLM)
 	public:
-		/// <summary>
-		/// Converts a vector of type `glm::i32vec2`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `glm::i32vec2`.
+		///
+		/// @param v The vector to convert.
 		Vector2i(const glm::i32vec2& v) noexcept;
 
-		/// <summary>
-		/// Converts a vector of type `glm::i32vec2`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `glm::i32vec2`.
+		///
+		/// @param v The vector to convert.
 		Vector2i(glm::i32vec2&& v) noexcept;
 
-		/// <summary>
-		/// Converts the vector into the type `glm::i32vec2`.
-		/// </summary>
+		/// @brief Converts the vector into the type `glm::i32vec2`.
 		operator glm::i32vec2() const noexcept;
 #endif
 
 #if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 	public:
-		/// <summary>
-		/// Converts a vector of type `DirectX::XMVECTOR`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `DirectX::XMVECTOR`.
+		///
+		/// @param v The vector to convert.
 		Vector2i(const DirectX::XMVECTOR& v) noexcept;
 
-		/// <summary>
-		/// Converts a vector of type `DirectX::XMVECTOR`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `DirectX::XMVECTOR`.
+		///
+		/// @param v The vector to convert.
 		Vector2i(DirectX::XMVECTOR&& v) noexcept;
 
-		/// <summary>
-		/// Converts a vector of type `DirectX::XMINT2`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `DirectX::XMINT2`.
+		///
+		/// @param v The vector to convert.
 		Vector2i(const DirectX::XMINT2& v) noexcept;
 
-		/// <summary>
-		/// Converts a vector of type `DirectX::XMINT2`.
-		/// </summary>
-		/// <param name="v">The vector to convert.</param>
+		/// @brief Converts a vector of type `DirectX::XMINT2`.
+		///
+		/// @param v The vector to convert.
 		Vector2i(DirectX::XMINT2&& v) noexcept;
 
-		/// <summary>
-		/// Converts the vector into the type `DirectX::XMVECTOR`.
-		/// </summary>
+		/// @brief Converts the vector into the type `DirectX::XMVECTOR`.
 		operator DirectX::XMVECTOR() const noexcept;
 
-		/// <summary>
-		/// Converts the vector into the type `DirectX::XMINT2`.
-		/// </summary>
+		/// @brief Converts the vector into the type `DirectX::XMINT2`.
 		operator DirectX::XMINT2() const noexcept;
 #endif
 	};
 
-	/// <summary>
-	/// A vector that stores three floats.
-	/// </summary>
+	/// @brief A vector that stores three floats.
 	class LITEFX_MATH_API Vector3f : public Vector<Float, 3> {
 	public:
 		using Vector::Vector;
@@ -598,188 +503,114 @@ namespace LiteFX::Math {
 #endif
 	};
 
-	/// <summary>
-	/// Contains additional exported vector types.
-	/// </summary>
+	/// @brief Contains additional exported vector types.
 	namespace Vectors {
-		/// <summary>
-		/// A vector that contains a single byte.
-		/// </summary>
+		/// @brief A vector that contains a single byte.
 		using ByteVector1 = TVector1<UInt8>;
 
-		/// <summary>
-		/// A vector that contains two bytes.
-		/// </summary>
+		/// @brief A vector that contains two bytes.
 		using ByteVector2 = TVector2<UInt8>;
 
-		/// <summary>
-		/// A vector that contains three bytes.
-		/// </summary>
+		/// @brief A vector that contains three bytes.
 		using ByteVector3 = TVector3<UInt8>;
 
-		/// <summary>
-		/// A vector that contains four bytes.
-		/// </summary>
+		/// @brief A vector that contains four bytes.
 		using ByteVector4 = TVector4<UInt8>;
 
-		/// <summary>
-		/// A vector that contains a single 16 bit signed integer.
-		/// </summary>
+		/// @brief A vector that contains a single 16 bit signed integer.
 		using Int16Vector1 = TVector1<Int16>;
 
-		/// <summary>
-		/// A vector that contains two 16 bit signed integers.
-		/// </summary>
+		/// @brief A vector that contains two 16 bit signed integers.
 		using Int16Vector2 = TVector2<Int16>;
 
-		/// <summary>
-		/// A vector that contains three 16 bit signed integers.
-		/// </summary>
+		/// @brief A vector that contains three 16 bit signed integers.
 		using Int16Vector3 = TVector3<Int16>;
 
-		/// <summary>
-		/// A vector that contains four 16 bit signed integers.
-		/// </summary>
+		/// @brief A vector that contains four 16 bit signed integers.
 		using Int16Vector4 = TVector4<Int16>;
 
-		/// <summary>
-		/// A vector that contains a single 16 bit unsigned integer.
-		/// </summary>
+		/// @brief A vector that contains a single 16 bit unsigned integer.
 		using UInt16Vector1 = TVector1<UInt16>;
 
-		/// <summary>
-		/// A vector that contains two 16 bit unsigned integers.
-		/// </summary>
+		/// @brief A vector that contains two 16 bit unsigned integers.
 		using UInt16Vector2 = TVector2<UInt16>;
 
-		/// <summary>
-		/// A vector that contains three 16 bit unsigned integers.
-		/// </summary>
+		/// @brief A vector that contains three 16 bit unsigned integers.
 		using UInt16Vector3 = TVector3<UInt16>;
 
-		/// <summary>
-		/// A vector that contains four 16 bit unsigned integers.
-		/// </summary>
+		/// @brief A vector that contains four 16 bit unsigned integers.
 		using UInt16Vector4 = TVector4<UInt16>;
 
-		/// <summary>
-		/// A vector that contains a single 32 bit signed integer.
-		/// </summary>
+		/// @brief A vector that contains a single 32 bit signed integer.
 		using Int32Vector1 = TVector1<Int32>;
 
-		/// <summary>
-		/// A vector that contains two 32 bit signed integers.
-		/// </summary>
+		/// @brief A vector that contains two 32 bit signed integers.
 		using Int32Vector2 = TVector2<Int32>;
 
-		/// <summary>
-		/// A vector that contains three 32 bit signed integers.
-		/// </summary>
+		/// @brief A vector that contains three 32 bit signed integers.
 		using Int32Vector3 = TVector3<Int32>;
 
-		/// <summary>
-		/// A vector that contains four 32 bit signed integers.
-		/// </summary>
+		/// @brief A vector that contains four 32 bit signed integers.
 		using Int32Vector4 = TVector4<Int32>;
 
-		/// <summary>
-		/// A vector that contains a single 32 bit unsigned integer.
-		/// </summary>
+		/// @brief A vector that contains a single 32 bit unsigned integer.
 		using UInt32Vector1 = TVector1<UInt32>;
 
-		/// <summary>
-		/// A vector that contains two 32 bit unsigned integers.
-		/// </summary>
+		/// @brief A vector that contains two 32 bit unsigned integers.
 		using UInt32Vector2 = TVector2<UInt32>;
 
-		/// <summary>
-		/// A vector that contains three 32 bit unsigned integers.
-		/// </summary>
+		/// @brief A vector that contains three 32 bit unsigned integers.
 		using UInt32Vector3 = TVector3<UInt32>;
 
-		/// <summary>
-		/// A vector that contains four 32 bit unsigned integers.
-		/// </summary>
+		/// @brief A vector that contains four 32 bit unsigned integers.
 		using UInt32Vector4 = TVector4<UInt32>;
 
-		/// <summary>
-		/// A vector that contains a single 64 bit signed integer.
-		/// </summary>
+		/// @brief A vector that contains a single 64 bit signed integer.
 		using Int64Vector1 = TVector1<Int64>;
 
-		/// <summary>
-		/// A vector that contains two 64 bit signed integers.
-		/// </summary>
+		/// @brief A vector that contains two 64 bit signed integers.
 		using Int64Vector2 = TVector2<Int64>;
 
-		/// <summary>
-		/// A vector that contains three 64 bit signed integers.
-		/// </summary>
+		/// @brief A vector that contains three 64 bit signed integers.
 		using Int64Vector3 = TVector3<Int64>;
 
-		/// <summary>
-		/// A vector that contains four 64 bit signed integers.
-		/// </summary>
+		/// @brief A vector that contains four 64 bit signed integers.
 		using Int64Vector4 = TVector4<Int64>;
 
-		/// <summary>
-		/// A vector that contains a single 64 bit unsigned integer.
-		/// </summary>
+		/// @brief A vector that contains a single 64 bit unsigned integer.
 		using UInt64Vector1 = TVector1<UInt64>;
 
-		/// <summary>
-		/// A vector that contains two 64 bit unsigned integers.
-		/// </summary>
+		/// @brief A vector that contains two 64 bit unsigned integers.
 		using UInt64Vector2 = TVector2<UInt64>;
 
-		/// <summary>
-		/// A vector that contains three 64 bit unsigned integers.
-		/// </summary>
+		/// @brief A vector that contains three 64 bit unsigned integers.
 		using UInt64Vector3 = TVector3<UInt64>;
 
-		/// <summary>
-		/// A vector that contains four 64 bit unsigned integers.
-		/// </summary>
+		/// @brief A vector that contains four 64 bit unsigned integers.
 		using UInt64Vector4 = TVector4<UInt64>;
 
-		/// <summary>
-		/// A vector that contains a single floating point value with single precision.
-		/// </summary>
+		/// @brief A vector that contains a single floating point value with single precision.
 		using FloatVector1 = TVector1<Float>;
 
-		/// <summary>
-		/// A vector that contains two floating point values with single precision.
-		/// </summary>
+		/// @brief A vector that contains two floating point values with single precision.
 		using FloatVector2 = TVector2<Float>;
 
-		/// <summary>
-		/// A vector that contains three floating point values with single precision.
-		/// </summary>
+		/// @brief A vector that contains three floating point values with single precision.
 		using FloatVector3 = TVector3<Float>;
 
-		/// <summary>
-		/// A vector that contains four floating point values with single precision.
-		/// </summary>
+		/// @brief A vector that contains four floating point values with single precision.
 		using FloatVector4 = TVector4<Float>;
 
-		/// <summary>
-		/// A vector that contains a single floating point value with double precision.
-		/// </summary>
+		/// @brief A vector that contains a single floating point value with double precision.
 		using DoubleVector1 = TVector1<Double>;
 
-		/// <summary>
-		/// A vector that contains two floating point values with double precision.
-		/// </summary>
+		/// @brief A vector that contains two floating point values with double precision.
 		using DoubleVector2 = TVector2<Double>;
 
-		/// <summary>
-		/// A vector that contains three floating point values with double precision.
-		/// </summary>
+		/// @brief A vector that contains three floating point values with double precision.
 		using DoubleVector3 = TVector3<Double>;
 
-		/// <summary>
-		/// A vector that contains four floating point values with double precision.
-		/// </summary>
+		/// @brief A vector that contains four floating point values with double precision.
 		using DoubleVector4 = TVector4<Double>;
 	}
 #pragma endregion

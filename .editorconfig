@@ -1,13 +1,16 @@
 root = true
 
-[*.{c++,cc,cpp,cppm,cu,cuh,cxx,h,h++,hh,hpp,hxx,inl,ipp,ixx,tlh,tli}]
+[*.{c++,cc,cpp,cppm,cxx,h,h++,hh,hpp,hxx,inl,ipp,ixx,tlh,tli}]
 
-cpp_generate_documentation_comments = xml
+cpp_generate_documentation_comments = doxygen_triple_slash
 
+indent_style = spaces
+indent_size = 4
+tab_width= 4
 cpp_indent_braces = false
 cpp_indent_multi_line_relative_to = innermost_parenthesis
 cpp_indent_within_parentheses = indent
-cpp_indent_preserve_within_parentheses = true
+cpp_indent_preserve_within_parentheses = false
 cpp_indent_case_contents = true
 cpp_indent_case_labels = false
 cpp_indent_case_contents_when_block = false
@@ -23,8 +26,8 @@ cpp_new_line_before_open_brace_function = ignore
 cpp_new_line_before_open_brace_block = ignore
 cpp_new_line_before_open_brace_lambda = ignore
 cpp_new_line_scope_braces_on_separate_lines = false
-cpp_new_line_close_brace_same_line_empty_type = false
-cpp_new_line_close_brace_same_line_empty_function = false
+cpp_new_line_close_brace_same_line_empty_type = true
+cpp_new_line_close_brace_same_line_empty_function = true
 cpp_new_line_before_catch = true
 cpp_new_line_before_else = true
 cpp_new_line_before_while_in_do_while = false
@@ -64,9 +67,11 @@ cpp_space_around_ternary_operator = insert
 cpp_use_unreal_engine_macro_formatting = true
 cpp_wrap_preserve_blocks = one_liners
 
-cpp_include_cleanup_add_missing_error_tag_type = suggestion
-cpp_include_cleanup_remove_unused_error_tag_type = dimmed
+cpp_include_cleanup_add_missing_error_tag_type = none
+cpp_include_cleanup_remove_unused_error_tag_type = none
+cpp_include_cleanup_optimize_unused_error_tag_type = none
 cpp_include_cleanup_sort_after_edits = false
+cpp_include_cleanup_format_after_edits = false
 cpp_sort_includes_error_tag_type = none
 cpp_sort_includes_priority_case_sensitive = false
 cpp_sort_includes_priority_style = quoted

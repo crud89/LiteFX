@@ -38,11 +38,10 @@ namespace LiteFX {
         return std::ranges::fold_left(elements | std::views::join_with(delimiter), WString{}, std::plus<>{});
     }
 
-    /// <summary>
-    /// Computes the FNVa hash for <paramref name="string" />.
-    /// </summary>
-    /// <param name="string">The string to hash.</param>
-    /// <returns>The FNVa hash for <paramref name="string" />.</returns>
+    /// @brief Computes the FNVa hash for @p string.
+    ///
+    /// @param string The string to hash.
+    /// @return The FNVa hash for @p string.
     constexpr static std::uint64_t hash(StringView string) noexcept 
     {
         const std::uint64_t prime = 0x00000100000001b3;
@@ -54,11 +53,10 @@ namespace LiteFX {
         return seed;
     }
 
-    /// <summary>
-    /// Computes the FNVa hash for <paramref name="string" />.
-    /// </summary>
-    /// <param name="string">The string to hash.</param>
-    /// <returns>The FNVa hash for <paramref name="string" />.</returns>
+    /// @brief Computes the FNVa hash for @p string.
+    ///
+    /// @param string The string to hash.
+    /// @return The FNVa hash for @p string.
     constexpr static std::uint64_t hash(WStringView string) noexcept 
     {
         const std::uint64_t prime = 0x00000100000001b3;
@@ -70,33 +68,30 @@ namespace LiteFX {
         return seed;
     }
 
-    /// <summary>
-    /// Computes the FNVa hash for <paramref name="string" />.
-    /// </summary>
-    /// <param name="string">The string to hash.</param>
-    /// <param name="chars">The number of characters in the string.</param>
-    /// <returns>The FNVa hash for <paramref name="string" />.</returns>
+    /// @brief Computes the FNVa hash for @p string.
+    ///
+    /// @param string The string to hash.
+    /// @param chars The number of characters in the string.
+    /// @return The FNVa hash for @p string.
     consteval std::uint64_t operator ""_hash(const char* string, size_t chars) noexcept 
     {
         return hash(StringView(string, chars));
     }
 
-    /// <summary>
-    /// Computes the FNVa hash for <paramref name="string" />.
-    /// </summary>
-    /// <param name="string">The string to hash.</param>
-    /// <param name="chars">The number of characters in the string.</param>
-    /// <returns>The FNVa hash for <paramref name="string" />.</returns>
+    /// @brief Computes the FNVa hash for @p string.
+    ///
+    /// @param string The string to hash.
+    /// @param chars The number of characters in the string.
+    /// @return The FNVa hash for @p string.
     consteval std::uint64_t operator ""_hash(const wchar_t* string, size_t chars) noexcept 
     {
         return hash(WStringView(string, chars));
     }
 
-    /// <summary>
-    /// Converts an UTF-8 single-byte encoded string into an UTF-16 representation.
-    /// </summary>
-    /// <param name="utf8"></param>
-    /// <returns></returns>
+    /// @brief Converts an UTF-8 single-byte encoded string into an UTF-16 representation.
+    ///
+    /// @param utf8
+    /// @return
     inline WString Widen(StringView utf8)
     {
 #if defined LITEFX_CODECVT_USE_WIN32
@@ -118,11 +113,10 @@ namespace LiteFX {
 #endif
     }
 
-    /// <summary>
-    /// Converts an UTF-16 multi-byte encoded string into an UTF-8 representation.
-    /// </summary>
-    /// <param name="utf16"></param>
-    /// <returns></returns>
+    /// @brief Converts an UTF-16 multi-byte encoded string into an UTF-8 representation.
+    ///
+    /// @param utf16
+    /// @return
     inline String Narrow(WStringView utf16)
     {
 #if defined LITEFX_CODECVT_USE_WIN32

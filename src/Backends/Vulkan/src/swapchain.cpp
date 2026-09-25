@@ -363,12 +363,11 @@ public:
 
 namespace D3D 
 {
-	/// <summary>
-	/// Raises a <see cref="DirectX12PlatformException" />, if <paramref name="hr" /> does not equal `S_OK`.
-	/// </summary>
-	/// <param name="hr">The error code returned by the operation.</param>
-	/// <param name="message">The format string for the error message.</param>
-	/// <param name="args">The arguments passed to the error message format string.</param>
+	/// @brief Raises a @ref DirectX12PlatformException, if @p hr does not equal `S_OK`.
+	///
+	/// @param hr The error code returned by the operation.
+	/// @param message The format string for the error message.
+	/// @param args The arguments passed to the error message format string.
 	template <typename ...TArgs>
 	static inline void raiseIfFailed(HRESULT hr, std::format_string<TArgs...> message, TArgs&&... args) {
 		if (SUCCEEDED(hr)) [[likely]]

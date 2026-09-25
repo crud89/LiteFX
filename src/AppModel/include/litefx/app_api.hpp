@@ -31,20 +31,17 @@ namespace LiteFX {
 		Active = 0x02
 	};
 
-	/// <summary>
-	/// Contains the version of an <see cref="App" />.
-	/// </summary>
+	/// @brief Contains the version of an @ref App.
 	class LITEFX_APPMODEL_API AppVersion {
 		LITEFX_IMPLEMENTATION(AppVersionImpl);
 
 	public:
-		/// <summary>
-		/// Creates a new app version instance.
-		/// </summary>
-		/// <param name="major">The major version of the app.</param>
-		/// <param name="minor">The minor version of the app.</param>
-		/// <param name="patch">The patch number of the app.</param>
-		/// <param name="revision">The revision of the app.</param>
+		/// @brief Creates a new app version instance.
+		///
+		/// @param major The major version of the app.
+		/// @param minor The minor version of the app.
+		/// @param patch The patch number of the app.
+		/// @param revision The revision of the app.
 		explicit AppVersion(int major = 1, int minor = 0, int patch = 0, int revision = 0) noexcept;
 		virtual ~AppVersion() noexcept;
 
@@ -54,64 +51,54 @@ namespace LiteFX {
 		AppVersion& operator=(AppVersion&&) noexcept = delete;
 
 	public:
-		/// <summary>
-		/// Gets the major version of the app.
-		/// </summary>
-		/// <returns>The major version of the app.</returns>
+		/// @brief Gets the major version of the app.
+		///
+		/// @return The major version of the app.
 		int major() const noexcept;
 
-		/// <summary>
-		/// Gets the minor version of the app.
-		/// </summary>
-		/// <returns>The minor version of the app.</returns>
+		/// @brief Gets the minor version of the app.
+		///
+		/// @return The minor version of the app.
 		int minor() const noexcept;
 
-		/// <summary>
-		/// Gets the patch number of the app.
-		/// </summary>
-		/// <returns>The patch number of the app.</returns>
+		/// @brief Gets the patch number of the app.
+		///
+		/// @return The patch number of the app.
 		int patch() const noexcept;
 
-		/// <summary>
-		/// Gets the revision of the app.
-		/// </summary>
-		/// <returns>The revision of the app.</returns>
+		/// @brief Gets the revision of the app.
+		///
+		/// @return The revision of the app.
 		int revision() const noexcept;
 
-		/// <summary>
-		/// Gets the major version of the engine build.
-		/// </summary>
-		/// <returns>The major version of the engine build.</returns>
+		/// @brief Gets the major version of the engine build.
+		///
+		/// @return The major version of the engine build.
 		int engineMajor() const noexcept;
 
-		/// <summary>
-		/// Gets the minor version of the engine build.
-		/// </summary>
-		/// <returns>The minor version of the engine build.</returns>
+		/// @brief Gets the minor version of the engine build.
+		///
+		/// @return The minor version of the engine build.
 		int engineMinor() const noexcept;
 
-		/// <summary>
-		/// Gets the revision of the engine build.
-		/// </summary>
-		/// <returns>The revision of the engine build.</returns>
+		/// @brief Gets the revision of the engine build.
+		///
+		/// @return The revision of the engine build.
 		int engineRevision() const noexcept;
 
-		/// <summary>
-		/// Gets the status of the engine build.
-		/// </summary>
-		/// <returns>The status of the engine build.</returns>
+		/// @brief Gets the status of the engine build.
+		///
+		/// @return The status of the engine build.
 		int engineStatus() const noexcept;
 
-		/// <summary>
-		/// Gets the identifier of the engine build.
-		/// </summary>
-		/// <returns>The identifier of the engine build.</returns>
+		/// @brief Gets the identifier of the engine build.
+		///
+		/// @return The identifier of the engine build.
 		StringView engineIdentifier() const noexcept;
 
-		/// <summary>
-		/// Gets the version string of the engine build.
-		/// </summary>
-		/// <returns>The version string of the engine build.</returns>
+		/// @brief Gets the version string of the engine build.
+		///
+		/// @return The version string of the engine build.
 		StringView engineVersion() const noexcept;
 	};
 
