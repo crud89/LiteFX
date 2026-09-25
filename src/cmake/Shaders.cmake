@@ -23,8 +23,23 @@
 #   INSTALL_DESTINATION "${CMAKE_INSTALL_BINDIR}/${SHADER_DEFAULT_SUBDIR}"
 # )
 #
-# Each stage keyword (VERTEX, GEOMETRY, HULL/TESSELLATION_CONTROL, DOMAIN/TESSELLATION_EVALUATION, FRAGMENT/PIXEL, COMPUTE, TASK/AMPLIFICATION, MESH and
-# RAYTRACING) accepts one or more source files. Each source file becomes one shader module per backend. Shader modules with identical settings are shared, so
+# Shader programs can also be authored in a single file. In this case, SOURCE provides the file and each stage keyword optionally names the entry point of
+# the stage (default: main). The binaries are named `<source name>_<stage>`, e.g. `basic_vs` and `basic_fs`:
+#
+# TARGET_ADD_SHADER_PROGRAM(${PROJECT_NAME}
+#   SOURCE "shaders/basic.hlsl"
+#   VERTEX VS_Main
+#   PIXEL PS_Main
+#   SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL}
+# )
+#
+# The stage suffixes are: vs (VERTEX), gs (GEOMETRY), hs (HULL/TESSELLATION_CONTROL), ds (DOMAIN/TESSELLATION_EVALUATION), fs (FRAGMENT/PIXEL), cs (COMPUTE),
+# ts (TASK/AMPLIFICATION), ms (MESH) and rt (RAYTRACING). GLSL does not support entry points other than main. Instead, each module is compiled with a define
+# that identifies its stage (e.g. SHADER_STAGE_VERTEX, see ADD_SHADER_MODULE), so that the stages can be separated using the preprocessor. In this case, the
+# stage keywords are specified without values, e.g. `SOURCE "shaders/basic.glsl" VERTEX FRAGMENT`. Only one entry point per stage is supported with SOURCE.
+#
+# Without SOURCE, each stage keyword (VERTEX, GEOMETRY, HULL/TESSELLATION_CONTROL, DOMAIN/TESSELLATION_EVALUATION, FRAGMENT/PIXEL, COMPUTE, TASK/AMPLIFICATION,
+# MESH and RAYTRACING) accepts one or more source files. Each source file becomes one shader module per backend. Shader modules with identical settings are shared, so
 # multiple programs (also of different targets) can use the same source file, e.g. a common vertex shader. A source file can, however, only be compiled with
 # one set of settings (stage, compile options, includes, ...) per backend, since the binary is named after the source file.
 #
@@ -33,10 +48,10 @@
 # module (see ADD_SHADER_MODULE). COMPILE_OPTIONS are passed for all backends, while SPIRV_COMPILE_OPTIONS and DXIL_COMPILE_OPTIONS are only passed for
 # the respective backend.
 #
-# The shader module targets are named `<target>.<Vk|Dx>.Shaders.<source file name>`. If FOLDER is provided, they are placed in the IDE folders
+# The shader module targets are named `<target>.<Vk|Dx>.Shaders.<binary name>`. If FOLDER is provided, they are placed in the IDE folders
 # `<folder>/Vulkan` and `<folder>/DirectX 12`. If INSTALL_DESTINATION is provided, the shader binaries are installed to it.
 #
-# For shader modules that need individual settings (e.g. a custom entry point), use ADD_SHADER_MODULE and TARGET_LINK_SHADERS directly.
+# For shader modules that need individual settings (e.g. multiple entry points of the same stage), use ADD_SHADER_MODULE and TARGET_LINK_SHADERS directly.
 #
 # Shader modules are built from one source file and (optionally) multiple includes. Those includes may be used by multiple shader module targets simultaneously.
 # The output of a shader module target is a single binary file. You have to call ADD_SHADER_MODULE for each shader you want to compile and then link all shaders
@@ -76,7 +91,13 @@
 # other hand, DXC can target both, DXIL and SPIRV, whilst GLSLC can only target SPIRV.
 #
 # The ENTRY_POINT parameter specifies the shader entry point, i.e., the name of the function at which the shader executes. If it is not set, the entry point will
-# default to "main". Note that setting an entry point is only supported when using the DXC compiler.
+# default to "main". Entry points are supported for HLSL (with DXC and GLSLC). GLSL shaders always use "main".
+#
+# Each shader module is compiled with a define that identifies its stage: SHADER_STAGE_VERTEX, SHADER_STAGE_GEOMETRY, SHADER_STAGE_TESSELLATION_CONTROL,
+# SHADER_STAGE_TESSELLATION_EVALUATION, SHADER_STAGE_FRAGMENT, SHADER_STAGE_COMPUTE, SHADER_STAGE_TASK, SHADER_STAGE_MESH or SHADER_STAGE_RAYTRACING. This allows
+# putting multiple stages into one source file, which is the only way to do so for GLSL.
+#
+# The OUTPUT_NAME parameter optionally sets the name of the binary (without extension). By default, the binary is named after the source file.
 #
 # The COMPILE_OPTIONS parameter provides additional compiler options as a single (space-separated) string.
 #
@@ -92,7 +113,7 @@
 # module target and can be read after calling ADD_SHADER_MODULE (changing them does not affect the output):
 #
 # - RUNTIME_OUTPUT_DIRECTORY: The directory the shader module binary is built into (may contain generator expressions).
-# - OUTPUT_NAME: The shader module name (without the file extension), which equals the input file name without its extension.
+# - OUTPUT_NAME: The shader module name (without the file extension), which defaults to the input file name without its extension.
 # - SUFFIX: The file extension (including the dot) of the shader module binary.
 #
 # The suffix is configured by the DXIL_DEFAULT_SUFFIX and SPIRV_DEFAULT_SUFFIX variables, which can be overwritten before calling ADD_SHADER_MODULE. The Vulkan
@@ -153,8 +174,29 @@ FUNCTION(_LITEFX_SHADER_STAGE compiler type out_var)
 ENDFUNCTION()
 
 
+# _LITEFX_SHADER_STAGE_INFO(<type> <suffix-var> <define-var>)
+#
+# Returns the file name suffix (e.g. "vs") and the stage define (e.g. "SHADER_STAGE_VERTEX") for a shader type. Synonymous types share both values.
+FUNCTION(_LITEFX_SHADER_STAGE_INFO type suffix_var define_var)
+  SET(types    VERTEX GEOMETRY HULL TESSELLATION_CONTROL TESSELATION_CONTROL DOMAIN TESSELLATION_EVALUATION TESSELATION_EVALUATION FRAGMENT PIXEL COMPUTE TASK AMPLIFICATION MESH RAYTRACING)
+  SET(suffixes vs     gs       hs   hs                   hs                  ds     ds                      ds                     fs       fs    cs      ts   ts            ms   rt)
+  SET(stages   VERTEX GEOMETRY TESSELLATION_CONTROL TESSELLATION_CONTROL TESSELLATION_CONTROL TESSELLATION_EVALUATION TESSELLATION_EVALUATION TESSELLATION_EVALUATION FRAGMENT FRAGMENT COMPUTE TASK TASK MESH RAYTRACING)
+
+  LIST(FIND types "${type}" index)
+
+  IF(index EQUAL -1)
+    MESSAGE(FATAL_ERROR "Unsupported shader type: '${type}'.")
+  ENDIF()
+
+  LIST(GET suffixes ${index} suffix)
+  LIST(GET stages ${index} stage)
+  SET(${suffix_var} ${suffix} PARENT_SCOPE)
+  SET(${define_var} SHADER_STAGE_${stage} PARENT_SCOPE)
+ENDFUNCTION()
+
+
 FUNCTION(ADD_SHADER_MODULE module_name)
-  CMAKE_PARSE_ARGUMENTS(PARSE_ARGV 1 SHADER "" "SOURCE;LANGUAGE;COMPILE_AS;SHADER_MODEL;TYPE;COMPILER;LIBRARY;ENTRY_POINT;COMPILE_OPTIONS;FOLDER" "INCLUDES")
+  CMAKE_PARSE_ARGUMENTS(PARSE_ARGV 1 SHADER "" "SOURCE;LANGUAGE;COMPILE_AS;SHADER_MODEL;TYPE;COMPILER;LIBRARY;ENTRY_POINT;COMPILE_OPTIONS;FOLDER;OUTPUT_NAME" "INCLUDES")
 
   # Validate arguments.
   IF(SHADER_UNPARSED_ARGUMENTS)
@@ -185,14 +227,20 @@ FUNCTION(ADD_SHADER_MODULE module_name)
     MESSAGE(FATAL_ERROR "ADD_SHADER_MODULE(${module_name}): SHADER_MODEL is required when compiling with DXC.")
   ENDIF()
 
-  IF(SHADER_COMPILER STREQUAL "GLSLC" AND NOT SHADER_ENTRY_POINT STREQUAL "main")
-    MESSAGE(WARNING "ADD_SHADER_MODULE(${module_name}): Setting the entry point is only supported when compiling using DXC. The entry point will default to 'main'.")
+  IF(SHADER_LANGUAGE STREQUAL "GLSL" AND NOT SHADER_ENTRY_POINT STREQUAL "main")
+    MESSAGE(FATAL_ERROR "ADD_SHADER_MODULE(${module_name}): GLSL shaders always use 'main' as entry point. To put multiple stages into one GLSL file, use the SHADER_STAGE_* defines instead.")
   ENDIF()
 
   _LITEFX_SHADER_STAGE(${SHADER_COMPILER} ${SHADER_TYPE} stage)
+  _LITEFX_SHADER_STAGE_INFO(${SHADER_TYPE} stage_suffix stage_define)
 
   # Resolve input and output files.
-  GET_FILENAME_COMPONENT(out_name "${SHADER_SOURCE}" NAME_WE)
+  IF(SHADER_OUTPUT_NAME)
+    SET(out_name "${SHADER_OUTPUT_NAME}")
+  ELSE()
+    GET_FILENAME_COMPONENT(out_name "${SHADER_SOURCE}" NAME_WE)
+  ENDIF()
+
   CMAKE_PATH(ABSOLUTE_PATH SHADER_SOURCE BASE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" NORMALIZE OUTPUT_VARIABLE source_file)
 
   SET(include_files "")
@@ -212,12 +260,12 @@ FUNCTION(ADD_SHADER_MODULE module_name)
   SET(output_dir "${output_dir}/${SHADER_DEFAULT_SUBDIR}")
   SET(output_file "${output_dir}/${out_name}${suffix}")
 
-  # Shader binaries are named after their source file. Two modules building the same binary would overwrite each other, so this is reported as an error.
+  # Two modules building the same binary would overwrite each other, so this is reported as an error.
   STRING(MD5 output_key "${output_file}")
   GET_PROPERTY(output_owner GLOBAL PROPERTY _LITEFX_SHADER_OUTPUT_${output_key})
 
   IF(output_owner)
-    MESSAGE(FATAL_ERROR "ADD_SHADER_MODULE(${module_name}): The shader binary '${out_name}${suffix}' is already built by the shader module '${output_owner}'. Shader binaries are named after their source file, so each source file can only be compiled once per intermediate language.")
+    MESSAGE(FATAL_ERROR "ADD_SHADER_MODULE(${module_name}): The shader binary '${out_name}${suffix}' is already built by the shader module '${output_owner}'. Use OUTPUT_NAME to build the modules into different binaries.")
   ENDIF()
 
   SET_PROPERTY(GLOBAL PROPERTY _LITEFX_SHADER_OUTPUT_${output_key} ${module_name})
@@ -236,7 +284,12 @@ FUNCTION(ADD_SHADER_MODULE module_name)
 
   IF(SHADER_COMPILER STREQUAL "GLSLC")
     STRING(TOLOWER "${SHADER_LANGUAGE}" language)
-    SET(command "${LITEFX_BUILD_GLSLC_COMPILER}" --target-env=${SPIRV_DEFAULT_TARGET_ENV} -mfmt=bin -fshader-stage=${stage} -DSPIRV -x ${language})
+    SET(command "${LITEFX_BUILD_GLSLC_COMPILER}" --target-env=${SPIRV_DEFAULT_TARGET_ENV} -mfmt=bin -fshader-stage=${stage} -DSPIRV -D${stage_define} -x ${language})
+
+    # GLSLC only supports selecting the entry point for HLSL sources. The option applies to all subsequent source files, so it must precede the source.
+    IF(SHADER_LANGUAGE STREQUAL "HLSL" AND NOT SHADER_ENTRY_POINT STREQUAL "main")
+      LIST(APPEND command -fentry-point=${SHADER_ENTRY_POINT})
+    ENDIF()
 
     IF(invert_y)
       LIST(APPEND command -finvert-y)
@@ -248,7 +301,7 @@ FUNCTION(ADD_SHADER_MODULE module_name)
     SET(depfile_args DEPFILE "${output_file}.d")
     SET(comment "glslc: compiling ${language} shader '${SHADER_SOURCE}'...")
   ELSE()
-    SET(command "${LITEFX_BUILD_DXC_COMPILER}" -T ${stage}_${SHADER_SHADER_MODEL} -E ${SHADER_ENTRY_POINT} -Fo "${output_file}" "$<$<CONFIG:Debug,RelWithDebInfo>:-Zi>")
+    SET(command "${LITEFX_BUILD_DXC_COMPILER}" -T ${stage}_${SHADER_SHADER_MODEL} -E ${SHADER_ENTRY_POINT} -D ${stage_define} -Fo "${output_file}" "$<$<CONFIG:Debug,RelWithDebInfo>:-Zi>")
 
     IF(SHADER_COMPILE_AS STREQUAL "SPIRV")
       LIST(APPEND command -spirv -fspv-target-env=${SPIRV_DEFAULT_TARGET_ENV} -D SPIRV)
@@ -326,7 +379,7 @@ FUNCTION(TARGET_ADD_SHADER_PROGRAM target_name)
   SET(stage_keywords VERTEX GEOMETRY HULL TESSELLATION_CONTROL DOMAIN TESSELLATION_EVALUATION FRAGMENT PIXEL COMPUTE TASK AMPLIFICATION MESH RAYTRACING)
   CMAKE_PARSE_ARGUMENTS(PARSE_ARGV 1 PROGRAM
     "SPIRV;DXIL"
-    "LANGUAGE;COMPILER;SHADER_MODEL;FOLDER;INSTALL_DESTINATION;LIBRARY;COMPILE_OPTIONS;SPIRV_COMPILE_OPTIONS;DXIL_COMPILE_OPTIONS"
+    "SOURCE;LANGUAGE;COMPILER;SHADER_MODEL;FOLDER;INSTALL_DESTINATION;LIBRARY;COMPILE_OPTIONS;SPIRV_COMPILE_OPTIONS;DXIL_COMPILE_OPTIONS"
     "INCLUDES;${stage_keywords}")
 
   IF(PROGRAM_UNPARSED_ARGUMENTS)
@@ -379,6 +432,60 @@ FUNCTION(TARGET_ADD_SHADER_PROGRAM target_name)
     LIST(APPEND include_paths "${include_path}")
   ENDFOREACH()
 
+  # Collect the shader modules to build as parallel lists of source file, stage, entry point and output name.
+  SET(item_sources "")
+  SET(item_stages "")
+  SET(item_entries "")
+  SET(item_outputs "")
+
+  IF(PROGRAM_SOURCE)
+    # Single-file program: each stage keyword optionally names its entry point (default: main), and binaries are named "<source name>_<stage>".
+    GET_FILENAME_COMPONENT(source_name "${PROGRAM_SOURCE}" NAME_WE)
+
+    FOREACH(stage IN LISTS stage_keywords)
+      IF(NOT DEFINED PROGRAM_${stage} AND NOT stage IN_LIST PROGRAM_KEYWORDS_MISSING_VALUES)
+        CONTINUE()
+      ENDIF()
+
+      SET(entry_points ${PROGRAM_${stage}})
+      LIST(LENGTH entry_points entry_point_count)
+
+      IF(entry_point_count GREATER 1)
+        MESSAGE(FATAL_ERROR "TARGET_ADD_SHADER_PROGRAM(${target_name}): Only one entry point per stage is supported with SOURCE (${stage}: ${entry_points}). Use ADD_SHADER_MODULE with OUTPUT_NAME for additional entry points.")
+      ELSEIF(entry_point_count EQUAL 0)
+        SET(entry_points "main")
+      ENDIF()
+
+      _LITEFX_SHADER_STAGE_INFO(${stage} stage_suffix stage_define)
+      LIST(APPEND item_sources "${PROGRAM_SOURCE}")
+      LIST(APPEND item_stages ${stage})
+      LIST(APPEND item_entries ${entry_points})
+      LIST(APPEND item_outputs "${source_name}_${stage_suffix}")
+    ENDFOREACH()
+  ELSE()
+    # One source file per module: stage keywords name the source files, and binaries are named after them.
+    FOREACH(stage IN LISTS stage_keywords)
+      IF(stage IN_LIST PROGRAM_KEYWORDS_MISSING_VALUES)
+        MESSAGE(FATAL_ERROR "TARGET_ADD_SHADER_PROGRAM(${target_name}): ${stage} requires source files, unless SOURCE is set.")
+      ENDIF()
+
+      FOREACH(source IN LISTS PROGRAM_${stage})
+        GET_FILENAME_COMPONENT(source_name "${source}" NAME_WE)
+        LIST(APPEND item_sources "${source}")
+        LIST(APPEND item_stages ${stage})
+        LIST(APPEND item_entries "main")
+        LIST(APPEND item_outputs "${source_name}")
+      ENDFOREACH()
+    ENDFOREACH()
+  ENDIF()
+
+  LIST(LENGTH item_sources item_count)
+
+  IF(item_count EQUAL 0)
+    MESSAGE(FATAL_ERROR "TARGET_ADD_SHADER_PROGRAM(${target_name}): No shader stages provided.")
+  ENDIF()
+
+  MATH(EXPR last_item "${item_count} - 1")
   SET(modules "")
 
   FOREACH(backend IN LISTS backends)
@@ -410,42 +517,41 @@ FUNCTION(TARGET_ADD_SHADER_PROGRAM target_name)
       LIST(APPEND module_args INCLUDES ${include_paths})
     ENDIF()
 
-    FOREACH(stage IN LISTS stage_keywords)
-      FOREACH(source IN LISTS PROGRAM_${stage})
-        # Shader modules with identical settings are shared between programs and targets (e.g. a common vertex shader). The IDE folder is not part of
-        # the settings, and synonymous stages (e.g. FRAGMENT and PIXEL) are treated as equal.
-        CMAKE_PATH(ABSOLUTE_PATH source BASE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" NORMALIZE OUTPUT_VARIABLE source_path)
-        _LITEFX_SHADER_STAGE(${PROGRAM_COMPILER} ${stage} stage_name)
-        STRING(MD5 module_key "${source_path}|${stage_name}|${module_args}")
-        GET_PROPERTY(shared_module GLOBAL PROPERTY _LITEFX_SHADER_MODULE_${module_key})
+    FOREACH(index RANGE ${last_item})
+      LIST(GET item_sources ${index} source)
+      LIST(GET item_stages ${index} stage)
+      LIST(GET item_entries ${index} entry_point)
+      LIST(GET item_outputs ${index} output_name)
 
-        IF(shared_module)
-          LIST(APPEND modules ${shared_module})
-          CONTINUE()
-        ENDIF()
+      # Shader modules with identical settings are shared between programs and targets (e.g. a common vertex shader). The IDE folder is not part of the
+      # settings, and synonymous stages (e.g. FRAGMENT and PIXEL) are treated as equal.
+      CMAKE_PATH(ABSOLUTE_PATH source BASE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" NORMALIZE OUTPUT_VARIABLE source_path)
+      _LITEFX_SHADER_STAGE(${PROGRAM_COMPILER} ${stage} stage_name)
+      STRING(MD5 module_key "${source_path}|${stage_name}|${entry_point}|${output_name}|${module_args}")
+      GET_PROPERTY(shared_module GLOBAL PROPERTY _LITEFX_SHADER_MODULE_${module_key})
 
-        GET_FILENAME_COMPONENT(source_name "${source}" NAME_WE)
-        SET(module_name "${target_name}.${prefix}.Shaders.${source_name}")
+      IF(shared_module)
+        LIST(APPEND modules ${shared_module})
+        CONTINUE()
+      ENDIF()
 
-        IF(TARGET ${module_name})
-          MESSAGE(FATAL_ERROR "TARGET_ADD_SHADER_PROGRAM(${target_name}): The shader module '${module_name}' already exists with different settings (e.g. another stage or other compile options). Each source file can only be compiled with one set of settings per intermediate language.")
-        ENDIF()
+      SET(module_name "${target_name}.${prefix}.Shaders.${output_name}")
 
-        IF(PROGRAM_FOLDER)
-          ADD_SHADER_MODULE(${module_name} SOURCE "${source}" TYPE ${stage} ${module_args} FOLDER "${PROGRAM_FOLDER}/${folder_suffix}")
-        ELSE()
-          ADD_SHADER_MODULE(${module_name} SOURCE "${source}" TYPE ${stage} ${module_args})
-        ENDIF()
+      IF(TARGET ${module_name})
+        MESSAGE(FATAL_ERROR "TARGET_ADD_SHADER_PROGRAM(${target_name}): The shader module '${module_name}' already exists with different settings (e.g. another stage, entry point or other compile options). Each binary can only be built with one set of settings per intermediate language.")
+      ENDIF()
 
-        SET_PROPERTY(GLOBAL PROPERTY _LITEFX_SHADER_MODULE_${module_key} ${module_name})
-        LIST(APPEND modules ${module_name})
-      ENDFOREACH()
+      SET(module_folder_args "")
+
+      IF(PROGRAM_FOLDER)
+        SET(module_folder_args FOLDER "${PROGRAM_FOLDER}/${folder_suffix}")
+      ENDIF()
+
+      ADD_SHADER_MODULE(${module_name} SOURCE "${source}" TYPE ${stage} ENTRY_POINT ${entry_point} OUTPUT_NAME ${output_name} ${module_args} ${module_folder_args})
+      SET_PROPERTY(GLOBAL PROPERTY _LITEFX_SHADER_MODULE_${module_key} ${module_name})
+      LIST(APPEND modules ${module_name})
     ENDFOREACH()
   ENDFOREACH()
-
-  IF(NOT modules)
-    MESSAGE(FATAL_ERROR "TARGET_ADD_SHADER_PROGRAM(${target_name}): No shader sources provided.")
-  ENDIF()
 
   LIST(REMOVE_DUPLICATES modules)
 
@@ -527,14 +633,27 @@ FILE(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/Auxiliary/pcksl.cxx" CONTENT [==[
 #include <vector>
 #include <cstdint>
 #include <cctype>
+#include <cstddef>
 
 // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 // NOLINTBEGIN(performance-avoid-endl)
 
+namespace {
+
+    constexpr int INIT_ARGUMENT_COUNT = 3;
+    constexpr int PACK_ARGUMENT_COUNT = 6;
+    constexpr std::size_t BYTES_PER_LINE = 32;
+    constexpr int PACK_HEADER = 2;
+    constexpr int PACK_BINARY = 3;
+    constexpr int PACK_NAMESPACE = 4;
+    constexpr int PACK_NAME = 5;
+
+}
+
 int main(int argc, char* argv[]) {
-    if (argc < 2)
+    if (argc < 2) {
         return -1;
+    }
 
     try
     {
@@ -542,12 +661,13 @@ int main(int argc, char* argv[]) {
 
         if (command == "init")
         { 
-            if (argc != 3)
+            if (argc != INIT_ARGUMENT_COUNT) {
                 return -1;
+            }
 
             std::string sourceFile(argv[2]);
             std::ofstream file(sourceFile);
-            file << "#pragma once" << std::endl <<
+            file << "#pragma once // NOLINT(portability-avoid-pragma-once,llvm-header-guard)" << std::endl <<
                 "#include <array>" << std::endl <<
                 "#include <cstddef>" << std::endl <<
                 "#include <istream>" << std::endl <<
@@ -555,97 +675,99 @@ int main(int argc, char* argv[]) {
                 "#include <streambuf>" << std::endl <<
                 "#include <string>" << std::endl << std::endl;
             
-            file << "// NOLINTBEGIN" << std::endl;
-            file << "#ifndef _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
-            file << "#define _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl << std::endl;
-            file << "struct _pcksl_mem_buf : public std::streambuf {" << std::endl;
+            file << "#ifndef LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
+            file << "#define LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl << std::endl;
+            file << "// Read-only stream buffer over constant data." << std::endl;
+            file << "struct _pcksl_mem_buf : public std::streambuf { // NOLINT(bugprone-reserved-identifier,cert-dcl37-c,cert-dcl51-cpp)" << std::endl;
             file << "    explicit _pcksl_mem_buf(std::span<const char> data) {" << std::endl;
-            file << "        auto begin = const_cast<char*>(data.data());" << std::endl;
-            file << "        this->setg(begin, begin, begin + data.size());" << std::endl;
+            file << "        auto* begin = const_cast<char*>(data.data()); // NOLINT(cppcoreguidelines-pro-type-const-cast)" << std::endl;
+            file << "        this->setg(begin, begin, begin + data.size()); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)" << std::endl;
             file << "    }" << std::endl;
             file << "};" << std::endl << std::endl;
-            file << "struct _pcksl_mem_istream : private virtual _pcksl_mem_buf, public std::istream {" << std::endl;
+            file << "struct _pcksl_mem_istream : private virtual _pcksl_mem_buf, public std::istream { // NOLINT(bugprone-reserved-identifier,cert-dcl37-c,cert-dcl51-cpp,misc-multiple-inheritance)" << std::endl;
             file << "    explicit _pcksl_mem_istream(std::span<const char> data) :" << std::endl;
             file << "        _pcksl_mem_buf(data), std::istream(static_cast<std::streambuf*>(this)) { }" << std::endl;
             file << "};" << std::endl << std::endl;
-            file << "#endif // !_LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
-            file << "// NOLINTEND" << std::endl << std::endl;
+            file << "#endif // !LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl << std::endl;
 
             file.close();
         }
         else if (command == "pack")
         {
-            if (argc != 6)
+            if (argc != PACK_ARGUMENT_COUNT) {
                 return -1;
+            }
 
-            std::string sourceFile(argv[2]);
-            std::string resourceFile(argv[3]);
-            std::string ns(argv[4]);
-            std::string resourceName(argv[5]);
-            std::string name(argv[5]);
-            std::replace_if(resourceName.begin(), resourceName.end(), [](unsigned char c) { return !std::isalnum(c); }, '_');
-
+            std::string sourceFile(argv[PACK_HEADER]);
+            std::string resourceFile(argv[PACK_BINARY]);
+            std::string ns(argv[PACK_NAMESPACE]);
+            std::string name(argv[PACK_NAME]);
+            std::string resourceName(name);
+            std::ranges::replace_if(resourceName, [](unsigned char c) { return std::isalnum(c) == 0; }, '_');
+            
             // Replace backslashes to prevent uninteded escape sequences.
             std::string embedPath(resourceFile);
-            std::replace(embedPath.begin(), embedPath.end(), '\\', '/');
+            std::ranges::replace(embedPath, '\\', '/');
 
             std::ifstream resource(resourceFile, std::ios::binary);
 
-            if (!resource)
+            if (!resource) {
                 return -3;
+            }
 
             std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(resource), { });
 
             std::ofstream file(sourceFile, std::ios::app);
             file << "namespace " << ns << " {" << std::endl;
             file << "    // Shader source: " << resourceFile << "." << std::endl;
-            file << "    // NOLINTBEGIN" << std::endl;
-            file << "    class " << resourceName << " {" << std::endl;
+            file << "    class " << resourceName << " { // NOLINT(cppcoreguidelines-special-member-functions,hicpp-special-member-functions)" << std::endl;
             file << "    public:" << std::endl;
             file << "        " << resourceName << "() = delete;" << std::endl;
             file << "        ~" << resourceName << "() = delete;" << std::endl << std::endl;
-            file << "        static std::string name() { return \"" << name << "\"; }" << std::endl << std::endl;
-            file << "        static constexpr std::span<const unsigned char> data() noexcept { return _data; }" << std::endl << std::endl;
-            file << "        static _pcksl_mem_istream open() {" << std::endl;
-            file << "            return _pcksl_mem_istream({ reinterpret_cast<const char*>(_data), sizeof(_data) });" << std::endl;
+            file << "        static std::string name() { return \"" << name << "\"; } // NOLINT(modernize-use-trailing-return-type)" << std::endl << std::endl;
+            file << "        static constexpr std::span<const unsigned char> data() noexcept { return _data; } // NOLINT(modernize-use-trailing-return-type)" << std::endl << std::endl;
+            file << "        static _pcksl_mem_istream open() { // NOLINT(modernize-use-trailing-return-type)" << std::endl;
+            file << "            return _pcksl_mem_istream({ reinterpret_cast<const char*>(_data), sizeof(_data) }); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)" << std::endl;
             file << "        }" << std::endl << std::endl;
             file << "    private:" << std::endl;
-
+            
             // Prefer #embed if available (requires C++26).
-            file << "#if defined(__has_embed)" << std::endl;
+            file << "#ifdef __has_embed" << std::endl;
             file << "#  if __has_embed(\"" << embedPath << "\")" << std::endl;
-            file << "#    define _LITEFX_PCKSL_USE_EMBED" << std::endl;
+            file << "#    define LITEFX_PCKSL_USE_EMBED" << std::endl;
             file << "#  endif" << std::endl;
             file << "#endif" << std::endl << std::endl;
-            file << "#if defined(_LITEFX_PCKSL_USE_EMBED)" << std::endl;
-            file << "#  if defined(__clang__)" << std::endl;
+            file << "#ifdef LITEFX_PCKSL_USE_EMBED" << std::endl;
+            file << "#  ifdef __clang__" << std::endl;
             file << "#    pragma clang diagnostic push" << std::endl;
             file << "#    pragma clang diagnostic ignored \"-Wc23-extensions\"" << std::endl;
             file << "#  endif" << std::endl;
-            file << "        static constexpr unsigned char _data[] = {" << std::endl;
+            file << "        static constexpr unsigned char _data[] = { // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)" << std::endl;
             file << "#  embed \"" << embedPath << "\"" << std::endl;
             file << "        };" << std::endl;
-            file << "#  if defined(__clang__)" << std::endl;
+            file << "#  ifdef __clang__" << std::endl;
             file << "#    pragma clang diagnostic pop" << std::endl;
             file << "#  endif" << std::endl;
-            file << "#  undef _LITEFX_PCKSL_USE_EMBED" << std::endl;
+            file << "#  undef LITEFX_PCKSL_USE_EMBED" << std::endl;
             file << "#else" << std::endl;
-            file << "        static constexpr unsigned char _data[" << buffer.size() << "] = {";
+            file << "        static constexpr unsigned char _data[" << buffer.size() << "] = { // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)";
 
-            for (std::size_t i = 0; i < buffer.size(); ++i)
+            std::size_t column = 0;
+
+            for (const auto byte : buffer)
             {
-                if (i % 32 == 0)
+                if (column++ % BYTES_PER_LINE == 0) {
                     file << std::endl << "            ";
+                }
 
-                file << "0x" << std::setfill('0') << std::setw(2) << std::hex << +buffer[i] << ", ";
+                file << "0x" << std::setfill('0') << std::setw(2) << std::hex << +byte << ", ";
             }
 
             file << std::dec << std::endl;
             file << "        };" << std::endl;
             file << "#endif" << std::endl;
             file << "    };" << std::endl;
-            file << "    // NOLINTEND" << std::endl;
-            file << "}" << std::endl << std::endl;
+            file << "} // namespace " << ns << std::endl << std::endl;
 
             file.close();
         }
@@ -663,11 +785,13 @@ int main(int argc, char* argv[]) {
 }
 
 // NOLINTEND(performance-avoid-endl)
-// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 ]==])
 
 IF(NOT TARGET pcksl)
   ADD_EXECUTABLE(pcksl "${CMAKE_BINARY_DIR}/Auxiliary/pcksl.cxx")
   SET_PROPERTY(TARGET pcksl PROPERTY FOLDER "Auxiliary")
+
+  # The tool is compiled with the settings of the project including this script, so it requests the standard it needs itself.
+  TARGET_COMPILE_FEATURES(pcksl PRIVATE cxx_std_20)
 ENDIF(NOT TARGET pcksl)
