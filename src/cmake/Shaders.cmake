@@ -547,26 +547,29 @@ int main(int argc, char* argv[]) {
 
             std::string sourceFile(argv[2]);
             std::ofstream file(sourceFile);
-            file << "#pragma once" << std::endl << 
-                "#include <iostream>" << std::endl <<
+            file << "#pragma once" << std::endl <<
                 "#include <array>" << std::endl <<
-                "#include <cstdint>" << std::endl <<
+                "#include <cstddef>" << std::endl <<
                 "#include <istream>" << std::endl <<
-                "#include <string>" << std::endl <<
-                "#include <streambuf>" << std::endl << std::endl;
+                "#include <span>" << std::endl <<
+                "#include <streambuf>" << std::endl <<
+                "#include <string>" << std::endl << std::endl;
             
             file << "// NOLINTBEGIN" << std::endl;
             file << "#ifndef _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
+            file << "#define _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl << std::endl;
             file << "struct _pcksl_mem_buf : public std::streambuf {" << std::endl;
-            file << "    _pcksl_mem_buf(char* begin, size_t size) { this->setg(begin, begin, begin + size); }" << std::endl;
+            file << "    explicit _pcksl_mem_buf(std::span<const char> data) {" << std::endl;
+            file << "        auto begin = const_cast<char*>(data.data());" << std::endl;
+            file << "        this->setg(begin, begin, begin + data.size());" << std::endl;
+            file << "    }" << std::endl;
             file << "};" << std::endl << std::endl;
             file << "struct _pcksl_mem_istream : private virtual _pcksl_mem_buf, public std::istream {" << std::endl;
-            file << "    explicit _pcksl_mem_istream(char* begin, size_t size) :" << std::endl;
-            file << "        _pcksl_mem_buf(begin, size), std::istream(static_cast<std::streambuf*>(this)) { }" << std::endl;
-            file << "};" << std::endl;
-            file << "#define _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
-            file << "#endif // !_LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl << std::endl;
-            file << "// NOLINTEND" << std::endl;
+            file << "    explicit _pcksl_mem_istream(std::span<const char> data) :" << std::endl;
+            file << "        _pcksl_mem_buf(data), std::istream(static_cast<std::streambuf*>(this)) { }" << std::endl;
+            file << "};" << std::endl << std::endl;
+            file << "#endif // !_LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
+            file << "// NOLINTEND" << std::endl << std::endl;
 
             file.close();
         }
@@ -582,11 +585,16 @@ int main(int argc, char* argv[]) {
             std::string name(argv[5]);
             std::replace_if(resourceName.begin(), resourceName.end(), [](unsigned char c) { return !std::isalnum(c); }, '_');
 
+            // Replace backslashes to prevent uninteded escape sequences.
+            std::string embedPath(resourceFile);
+            std::replace(embedPath.begin(), embedPath.end(), '\\', '/');
+
             std::ifstream resource(resourceFile, std::ios::binary);
 
             if (!resource)
                 return -3;
-            std::vector<uint8_t> buffer(std::istreambuf_iterator<char>(resource), { });
+
+            std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(resource), { });
 
             std::ofstream file(sourceFile, std::ios::app);
             file << "namespace " << ns << " {" << std::endl;
@@ -595,21 +603,46 @@ int main(int argc, char* argv[]) {
             file << "    class " << resourceName << " {" << std::endl;
             file << "    public:" << std::endl;
             file << "        " << resourceName << "() = delete;" << std::endl;
-            file << "        ~" << resourceName << "() = delete;" << std::endl;
-            file << "" << std::endl;
+            file << "        ~" << resourceName << "() = delete;" << std::endl << std::endl;
             file << "        static std::string name() { return \"" << name << "\"; }" << std::endl << std::endl;
+            file << "        static constexpr std::span<const unsigned char> data() noexcept { return _data; }" << std::endl << std::endl;
             file << "        static _pcksl_mem_istream open() {" << std::endl;
-            file << "            static std::array<std::uint8_t, " << buffer.size() << "> _data = {" << std::endl;
-            file << "                ";
+            file << "            return _pcksl_mem_istream({ reinterpret_cast<const char*>(_data), sizeof(_data) });" << std::endl;
+            file << "        }" << std::endl << std::endl;
+            file << "    private:" << std::endl;
 
-            for (const auto& v : buffer) 
-                file << "0x" << std::setfill('0') << std::setw(sizeof(v) * 2) << std::hex << +v << ", ";
+            // Prefer #embed if available (requires C++26).
+            file << "#if defined(__has_embed)" << std::endl;
+            file << "#  if __has_embed(\"" << embedPath << "\")" << std::endl;
+            file << "#    define _LITEFX_PCKSL_USE_EMBED" << std::endl;
+            file << "#  endif" << std::endl;
+            file << "#endif" << std::endl << std::endl;
+            file << "#if defined(_LITEFX_PCKSL_USE_EMBED)" << std::endl;
+            file << "#  if defined(__clang__)" << std::endl;
+            file << "#    pragma clang diagnostic push" << std::endl;
+            file << "#    pragma clang diagnostic ignored \"-Wc23-extensions\"" << std::endl;
+            file << "#  endif" << std::endl;
+            file << "        static constexpr unsigned char _data[] = {" << std::endl;
+            file << "#  embed \"" << embedPath << "\"" << std::endl;
+            file << "        };" << std::endl;
+            file << "#  if defined(__clang__)" << std::endl;
+            file << "#    pragma clang diagnostic pop" << std::endl;
+            file << "#  endif" << std::endl;
+            file << "#  undef _LITEFX_PCKSL_USE_EMBED" << std::endl;
+            file << "#else" << std::endl;
+            file << "        static constexpr unsigned char _data[" << buffer.size() << "] = {";
 
-            file << std::endl;
-            file << "            };" << std::endl << std::endl;
-            file << "            // NOTE: reinterpret_cast should be safe here: https://eel.is/c++draft/basic.lval#11.3." << std::endl;
-            file << "            return ::_pcksl_mem_istream(reinterpret_cast<char*>(_data.data()), _data.size());" << std::endl; // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-            file << "        }" << std::endl;
+            for (std::size_t i = 0; i < buffer.size(); ++i)
+            {
+                if (i % 32 == 0)
+                    file << std::endl << "            ";
+
+                file << "0x" << std::setfill('0') << std::setw(2) << std::hex << +buffer[i] << ", ";
+            }
+
+            file << std::dec << std::endl;
+            file << "        };" << std::endl;
+            file << "#endif" << std::endl;
             file << "    };" << std::endl;
             file << "    // NOLINTEND" << std::endl;
             file << "}" << std::endl << std::endl;
