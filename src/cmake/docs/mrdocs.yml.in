@@ -1,0 +1,36 @@
+## MrDocs configuration for the LiteFX API reference.
+
+compilation-database: "@LITEFX_DOCUMENTATION_COMPILATION_DATABASE@"
+source-root: "@LITEFX_DOCUMENTATION_SOURCE_ROOT@"
+input:
+  - "@LITEFX_DOCUMENTATION_SOURCE_ROOT@/Core/include"
+  - "@LITEFX_DOCUMENTATION_SOURCE_ROOT@/Logging/include"
+  - "@LITEFX_DOCUMENTATION_SOURCE_ROOT@/AppModel/include"
+  - "@LITEFX_DOCUMENTATION_SOURCE_ROOT@/Math/include"
+  - "@LITEFX_DOCUMENTATION_SOURCE_ROOT@/Rendering/include"
+  - "@LITEFX_DOCUMENTATION_SOURCE_ROOT@/Graphics/include"
+  - "@LITEFX_DOCUMENTATION_SOURCE_ROOT@/Backends/DirectX12/include"
+  - "@LITEFX_DOCUMENTATION_SOURCE_ROOT@/Backends/Vulkan/include"
+file-patterns:
+  - "*.hpp"
+  - "*.h"
+include-symbols:
+  - "LiteFX::**"
+
+## Set the base URL for the symbols to point to the repository.
+base-url: "https://github.com/crud89/LiteFX/blob/@LITEFX_DOCUMENTATION_SOURCE_REF@/src/"
+
+## Create one markdown page per symbol.
+addons-supplemental:
+  - "@LITEFX_DOCUMENTATION_ADDONS@"
+generator: md
+multipage: true
+legible-names: true
+output: "@LITEFX_DOCUMENTATION_OUTPUT@"
+
+## Toggle warnings.
+warn-if-undocumented: false
+warn-no-paramdoc: false
+warn-if-undoc-enum-val: false
+warn-broken-ref: true
+warn-if-doc-error: true

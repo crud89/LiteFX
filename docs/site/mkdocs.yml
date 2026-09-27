@@ -107,5 +107,6 @@ nav:
           - 4. Shaders: tutorials/first-triangle/shaders.md
           - 5. The Render Pipeline: tutorials/first-triangle/pipeline.md
           - 6. Drawing: tutorials/first-triangle/drawing.md
+  # NOTE: The API reference must be generated first using the respective CMake target.
   - API Reference: api/index.md
   - Wiki: https://github.com/crud89/LiteFX/wiki

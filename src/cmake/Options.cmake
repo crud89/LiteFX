@@ -61,3 +61,11 @@ IF("imgui" IN_LIST VCPKG_MANIFEST_FEATURES)
 ELSEIF(NOT LITEFX_BUILD_WITH_IMGUI_SAMPLE)
   SET(LITEFX_BUILD_WITH_IMGUI_SAMPLE OFF CACHE BOOL "Enables building the ImGui sample.")
 ENDIF("imgui" IN_LIST VCPKG_MANIFEST_FEATURES)
+
+# Documentation settings
+OPTION(LITEFX_BUILD_DOCUMENTATION "Adds the LiteFX.Documentation target, which generates the API reference for the website using MrDocs." OFF)
+
+IF(LITEFX_BUILD_DOCUMENTATION)
+    # Compile commands are read by MrDocs.
+    SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+ENDIF(LITEFX_BUILD_DOCUMENTATION)
