@@ -298,6 +298,15 @@
         "VCPKG_TARGET_TRIPLET": "x64-windows-static-md-release",
         "VCPKG_MANIFEST_FEATURES": "imgui"
       }
+    },
+    {
+      "name": "windows-clang-x64-documentation",
+      "inherits": "windows-clang-x64-release",
+      "cacheVariables": {
+        "LITEFX_BUILD_DOCUMENTATION": "ON",
+        "LITEFX_BUILD_EXAMPLES": "OFF",
+        "LITEFX_BUILD_TESTS": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -385,6 +394,12 @@
       "name": "windows-clangcl-x64-release",
       "displayName": "Release x64 [clang-cl]",
       "configurePreset": "windows-clangcl-x64-release"
+    },
+    {
+      "name": "windows-clang-x64-documentation",
+      "displayName": "Documentation x64 [clang]",
+      "configurePreset": "windows-clang-x64-documentation",
+      "targets": [ "LiteFX.Documentation" ]
     }
   ],
   "testPresets": [

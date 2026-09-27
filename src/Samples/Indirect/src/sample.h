@@ -44,39 +44,25 @@ public:
 	AppVersion version() const noexcept override { return Version(); }
 
 private:
-	/// <summary>
-	/// Stores the GLFW window pointer.
-	/// </summary>
+	/// @brief Stores the GLFW window pointer.
 	GlfwWindowPtr m_window;
 
-	/// <summary>
-	/// Stores the preferred adapter ID (<c>std::nullopt</c>, if the default adapter is used).
-	/// </summary>
+	/// @brief Stores the preferred adapter ID (`std::nullopt`, if the default adapter is used).
 	Optional<UInt32> m_adapterId;
 
-	/// <summary>
-	/// Stores a reference of the input assembler state.
-	/// </summary>
+	/// @brief Stores a reference of the input assembler state.
 	SharedPtr<IInputAssembler> m_inputAssembler;
 
-	/// <summary>
-	/// Stores the viewport.
-	/// </summary>
+	/// @brief Stores the viewport.
 	SharedPtr<IViewport> m_viewport;
 
-	/// <summary>
-	/// Stores the scissor.
-	/// </summary>
+	/// @brief Stores the scissor.
 	SharedPtr<IScissor> m_scissor;
 
-	/// <summary>
-	/// Stores a pointer to the currently active device.
-	/// </summary>
+	/// @brief Stores a pointer to the currently active device.
 	IGraphicsDevice* m_device{};
 
-	/// <summary>
-	/// Stores the fence created at application load time.
-	/// </summary>
+	/// @brief Stores the fence created at application load time.
 	UInt64 m_transferFence = 0;
 
 public:
@@ -90,15 +76,12 @@ public:
 	}
 
 private:
-	/// <summary>
-	/// Initializes the buffers.
-	/// </summary>
-	/// <param name="backend">The render backend to use.</param>
+	/// @brief Initializes the buffers.
+	///
+	/// @param backend The render backend to use.
 	void initBuffers(IRenderBackend* backend);
 
-	/// <summary>
-	/// Updates the camera buffer. This needs to be done whenever the frame buffer changes, since we need to pass changes in the aspect ratio to the view/projection matrix.
-	/// </summary>
+	/// @brief Updates the camera buffer. This needs to be done whenever the frame buffer changes, since we need to pass changes in the aspect ratio to the view/projection matrix.
 	void updateCamera(IBuffer& buffer, UInt32 backBuffer) const;
 
 private:

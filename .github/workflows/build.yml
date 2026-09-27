@@ -1,4 +1,3 @@
-# Copyright (c) 2026 Carsten Rudolph
 name: Build (reusable)
 
 # Reusable workflow that builds, tests or analyzes all enabled entries of `.github/build-matrix.json` for a given purpose.
@@ -6,7 +5,7 @@ on:
   workflow_call:
     inputs:
       purpose:
-        description: 'Matrix purpose to run: build, test, tidy or release.'
+        description: 'Matrix purpose to run: build, test, tidy, release or docs.'
         type: string
         required: true
       ref:
@@ -37,6 +36,14 @@ on:
         description: 'Sign the installed binaries (Windows only): `none` or `certificate`'
         type: string
         default: 'none'
+      configure-options:
+        description: 'Additional options passed to CMake when configuring, separated by spaces (e.g. `-DNAME=VALUE`).'
+        type: string
+        default: ''
+      upload-docs:
+        description: 'Whether to upload the generated API reference as artifact.'
+        type: boolean
+        default: false
     secrets:
       SIGN_CERTIFICATE_BASE64:
         description: 'Base64-encoded PFX code signing certificate (signing method `certificate`).'
@@ -116,12 +123,9 @@ jobs:
 
       - name: Update version
         if: ${{ inputs.version != '' }}
-        shell: pwsh
-        env:
-          VERSION: ${{ inputs.version }}
-        run: |
-          $major, $minor, $build, $year = $env:VERSION.Split('.')
-          ./write-version.ps1 -major $major -minor $minor -build $build -year $year
+        uses: ./.github/actions/write-version
+        with:
+          version: ${{ inputs.version }}
 
       - name: Setup toolchain
         uses: ./.github/actions/setup-toolchain
@@ -141,11 +145,26 @@ jobs:
           vulkan-sdk-version: ${{ vars.VULKAN_SDK_VERSION }}
           mesa-version: ${{ vars.MESA_3D_VERSION }}
 
-      # PowerShell is used for all platforms, as Git Bash on Windows shadows MSVC tools (e.g. link.exe) on the PATH.
+      - name: Setup MrDocs
+        id: mrdocs
+        if: ${{ inputs.purpose == 'docs' }}
+        uses: ./.github/actions/setup-mrdocs
+
       - name: Configure
         working-directory: src
         shell: pwsh
-        run: cmake --preset "${{ matrix.preset }}"
+        env:
+          CONFIGURE_OPTIONS: ${{ inputs.configure-options }}
+          MRDOCS_EXECUTABLE: ${{ steps.mrdocs.outputs.executable }}
+        run: |
+          $options = @($env:CONFIGURE_OPTIONS -split '\s+' | Where-Object { $_ })
+
+          if ($env:MRDOCS_EXECUTABLE) {
+            $options += "-DLITEFX_MRDOCS_EXECUTABLE=$env:MRDOCS_EXECUTABLE"
+          }
+
+          cmake --preset "${{ matrix.preset }}" @options
+          exit $LASTEXITCODE
 
       - name: Build
         id: build
@@ -154,6 +173,31 @@ jobs:
         run: |
           cmake --build --preset "${{ matrix.preset }}" 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP/build.log"
           exit $LASTEXITCODE
+
+      # ------------------------------------- Documentation -------------------------------------
+      - name: Setup Python
+        if: ${{ inputs.purpose == 'docs' }}
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: docs/site/requirements.txt
+
+      - name: Build website
+        if: ${{ inputs.purpose == 'docs' }}
+        shell: pwsh
+        run: |
+          python -m pip install --quiet -r docs/site/requirements.txt
+          mkdocs build --strict --config-file docs/site/mkdocs.yml --site-dir "$env:RUNNER_TEMP/site" 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP/build.log" -Append
+          exit $LASTEXITCODE
+
+      - name: Upload API reference
+        if: ${{ inputs.purpose == 'docs' && inputs.upload-docs }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: LiteFX-api-reference
+          path: docs/site/content/api
+          if-no-files-found: error
 
       - name: Run tests
         if: ${{ inputs.purpose == 'test' }}
@@ -250,7 +294,7 @@ jobs:
         with:
           subject-name: LiteFX-${{ matrix.package }}-install.zip
           subject-digest: sha256:${{ steps.upload-install.outputs.artifact-digest }}
-          
+
       - name: Collect summary
         id: summary
         if: ${{ always() && inputs.check-sha != '' }}

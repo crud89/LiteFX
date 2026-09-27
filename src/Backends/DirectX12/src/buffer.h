@@ -19,9 +19,7 @@ namespace LiteFX::Rendering::Backends {
 	typedef SharedPtr<D3D12MA::Allocator> AllocatorPtr;
 	typedef SharedPtr<D3D12MA::Allocation> AllocationPtr;
 
-	/// <summary>
-	/// Implements a DirectX 12 <see cref="IBuffer" />.
-	/// </summary>
+	/// @brief Implements a DirectX 12 @ref IBuffer.
 	class DirectX12Buffer : public virtual IDirectX12Buffer, public ComResource<ID3D12Resource>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(DirectX12BufferImpl);
 		friend struct SharedObject::Allocator<DirectX12Buffer>;
@@ -40,55 +38,62 @@ namespace LiteFX::Rendering::Backends {
 
 		// IBuffer interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc IBuffer::type()
 		BufferType type() const noexcept override;
 
 		// IDeviceMemory interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::elements()
 		UInt32 elements() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::size()
 		size_t size() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::elementSize()
 		size_t elementSize() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::elementAlignment()
 		size_t elementAlignment() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::alignedElementSize()
 		size_t alignedElementSize() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::usage()
 		ResourceUsage usage() const noexcept override;
 
-		/// <inheritdoc />
+		/// @copydoc IDeviceMemory::virtualAddress()
 		UInt64 virtualAddress() const noexcept override;
 
 		// IMappable interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc IMappable::map(const void* const, size_t, UInt32)
 		void map(const void* const data, size_t size, UInt32 element = 0) override;
 
-		/// <inheritdoc />
+		/// @copydoc IMappable::map(Span<const void* const>, size_t, UInt32)
 		void map(Span<const void* const> data, size_t elementSize, UInt32 firstElement = 0) override;
 
-		/// <inheritdoc />
+		/// @copydoc IMappable::map(void*, size_t, UInt32, bool)
 		void map(void* data, size_t size, UInt32 element = 0, bool write = true) override;
 
-		/// <inheritdoc />
+		/// @copydoc IMappable::map(Span<void*>, size_t, UInt32, bool)
 		void map(Span<void*> data, size_t elementSize, UInt32 firstElement = 0, bool write = true) override;
 
-		/// <inheritdoc />
+		/// @copydoc IMappable::write
 		void write(const void* const data, size_t size, size_t offset = 0) override;
 
-		/// <inheritdoc />
+		/// @copydoc IMappable::read
 		void read(void* data, size_t size, size_t offset = 0) override;
 
 		// DirectX 12 buffer.
 	protected:
+		/// @brief Returns the pointer to the underlying allocator.
+		/// 
+		/// @return The pointer to the underlying allocator.
 		AllocatorPtr allocator() const noexcept;
+
+		/// @brief Returns the allocation info.
+		/// 
+		/// @return A pointer to the allocation info.
 		const D3D12MA::Allocation* allocationInfo() const noexcept;
 
 	private:
@@ -103,9 +108,7 @@ namespace LiteFX::Rendering::Backends {
 		static bool move(SharedPtr<IDirectX12Buffer> image, D3D12MA::Allocation* to, const DirectX12CommandBuffer& commandBuffer);
 	};
 
-	/// <summary>
-	/// Implements a DirectX 12 <see cref="IVertexBuffer" />.
-	/// </summary>
+	/// @brief Implements a DirectX 12 @ref IVertexBuffer.
 	class DirectX12VertexBuffer : public DirectX12Buffer, public virtual IDirectX12VertexBuffer {
 		LITEFX_IMPLEMENTATION(DirectX12VertexBufferImpl);
 		friend struct SharedObject::Allocator<DirectX12VertexBuffer>;
@@ -124,11 +127,12 @@ namespace LiteFX::Rendering::Backends {
 
 		// VertexBuffer interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc VertexBuffer::layout
 		const DirectX12VertexBufferLayout& layout() const noexcept override;
 
 		// IDirectX12VertexBuffer interface.
 	public:
+		/// @copydoc IDirectX12VertexBuffer::view
 		const D3D12_VERTEX_BUFFER_VIEW& view() const noexcept override;
 
 	private:
@@ -142,9 +146,7 @@ namespace LiteFX::Rendering::Backends {
 		static bool tryAllocate(SharedPtr<IDirectX12VertexBuffer>& buffer, const String& name, AllocatorPtr allocator, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
 	};
 
-	/// <summary>
-	/// Implements a DirectX 12 <see cref="IIndexBuffer" />.
-	/// </summary>
+	/// @brief Implements a DirectX 12 @ref IIndexBuffer.
 	class DirectX12IndexBuffer : public DirectX12Buffer, public virtual IDirectX12IndexBuffer {
 		LITEFX_IMPLEMENTATION(DirectX12IndexBufferImpl);
 		friend struct SharedObject::Allocator<DirectX12IndexBuffer>;
@@ -163,11 +165,12 @@ namespace LiteFX::Rendering::Backends {
 
 		// IndexBuffer interface.
 	public:
-		/// <inheritdoc />
+		/// @copydoc IndexBuffer::layout
 		const DirectX12IndexBufferLayout& layout() const noexcept override;
 
 		// IDirectX12IndexBuffer interface.
 	public:
+		/// @copydoc IDirectX12IndexBuffer::layout
 		const D3D12_INDEX_BUFFER_VIEW& view() const noexcept override;
 
 	private:

@@ -1,0 +1,64 @@
+{#-
+  Landing page template. Used by pages that set `template: home.html` in their front matter (see content/index.md).
+
+  The hero shows a short looping video behind a gradient overlay. Place the video at:
+    - content/assets/videos/hero.webm (preferred, smaller)
+    - content/assets/videos/hero.mp4  (fallback, H.264 for broad support)
+  Until a video exists, the hero shows the background gradient. Once you add the video, consider adding a still frame of it as poster
+  (e.g. `poster="{{ 'assets/videos/hero.jpg' | url }}"`), which is shown while the video loads and when motion is reduced.
+-#}
+{% extends "main.html" %}
+
+{% block tabs %}
+  {{ super() }}
+  <section class="lfx-hero" aria-label="LiteFX">
+    <video class="lfx-hero__video" autoplay muted loop playsinline preload="metadata" aria-hidden="true">
+      <source src="{{ 'assets/videos/hero.webm' | url }}" type="video/webm">
+      <source src="{{ 'assets/videos/hero.mp4' | url }}" type="video/mp4">
+    </video>
+    <div class="lfx-hero__overlay"></div>
+
+    <div class="md-grid md-typeset lfx-hero__content">
+      <img class="lfx-hero__logo" src="{{ 'assets/images/logo.svg' | url }}" alt="" width="160" height="160">
+      <h1 class="lfx-hero__title title-gradient">LiteFX</h1>
+      <p class="lfx-hero__subtitle title-gradient">Modern Computer Graphics Engine</p>
+      <p class="lfx-hero__tags">C++23 &middot; Vulkan &middot; DirectX 12</p>
+
+      <div class="lfx-hero__actions">
+        <a href="{{ 'getting-started/' | url }}" class="md-button md-button--primary">
+          Get started
+        </a>
+        <a href="https://github.com/crud89/LiteFX/releases" class="md-button">
+          {% include ".icons/material/download.svg" %} Latest release
+        </a>
+        <a href="https://github.com/crud89/LiteFX" class="md-button">
+          {% include ".icons/fontawesome/brands/github.svg" %} GitHub
+        </a>
+      </div>
+    </div>
+
+    <a class="lfx-hero__scroll" href="#introduction" aria-label="Scroll to content">
+      {% include ".icons/material/chevron-down.svg" %}
+    </a>
+  </section>
+{% endblock %}
+
+{# The page content follows the hero. Title and edit button are not shown on the landing page. #}
+{% block content %}
+  {{ page.content }}
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+    // Respect the user's motion preference: do not play the hero video.
+    (function () {
+      var video = document.querySelector(".lfx-hero__video");
+
+      if (video && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        video.removeAttribute("autoplay");
+        video.pause();
+      }
+    })();
+  </script>
+{% endblock %}

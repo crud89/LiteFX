@@ -1,0 +1,40 @@
+name: Documentation
+
+# Updates the `latest` version of the website from the main branch.
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**/include/**'
+      - 'src/cmake/docs/**'
+      - 'src/CMakePresets.json'
+      - 'src/vcpkg.json'
+      - 'docs/site/**'
+      - '.github/workflows/docs.yml'
+      - '.github/workflows/deploy-docs.yml'
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reference:
+    permissions:
+      contents: read
+      checks: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/build.yml
+    with:
+      purpose: docs
+      configure-options: -DLITEFX_DOCUMENTATION_SOURCE_REF=${{ github.sha }}
+      upload-docs: true
+
+  deploy:
+    needs: reference
+    permissions:
+      contents: write
+    uses: ./.github/workflows/deploy-docs.yml
+    with:
+      version: latest

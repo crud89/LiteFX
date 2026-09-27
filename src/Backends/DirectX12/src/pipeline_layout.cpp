@@ -17,24 +17,16 @@ private:
     Array<SharedPtr<const DirectX12DescriptorSetLayout>> m_descriptorSetLayouts{};
     SharedPtr<const DirectX12Device> m_device;
 
-    /// <summary>
-    /// The flags for a root parameter entry.
-    /// </summary>
+    /// @brief The flags for a root parameter entry.
     enum class RootParameterFlags : UInt32 // NOLINT(performance-enum-size)
     {
-        /// <summary>
-        /// Indicates that the root parameter is a root/push constant. Must not be combined with <see cref="IsResourceTable" /> or <see cref="IsSamplerTable" />.
-        /// </summary>
+        /// @brief Indicates that the root parameter is a root/push constant. Must not be combined with @ref IsResourceTable or @ref IsSamplerTable.
         IsRootConstant = 0x00000001,
 
-        /// <summary>
-        /// Indicates that the root parameter is a resource table. Must not be combined with <see cref="IsRootConstant" /> or <see cref="IsSamplerTable" />.
-        /// </summary>
+        /// @brief Indicates that the root parameter is a resource table. Must not be combined with @ref IsRootConstant or @ref IsSamplerTable.
         IsResourceTable = 0x00000010,
 
-        /// <summary>
-        /// Indicates that the root parameter is a sampler table. Must not be combined with <see cref="IsRootConstant" /> or <see cref="IsResourceTable" />.
-        /// </summary>
+        /// @brief Indicates that the root parameter is a sampler table. Must not be combined with @ref IsRootConstant or @ref IsResourceTable.
         IsSamplerTable = 0x00000020,
 
         // TODO: We could use those to support directly binding descriptors to the root signature instead of using tables.
@@ -43,19 +35,16 @@ private:
         //UAV = 0x00000400,
     };
 
-    /// <summary>
-    /// Generates a root parameter identifier from a set of flags and the descriptor space.
-    /// </summary>
-    /// <param name="flags">The flags that store metadata about the root parameter.</param>
-    /// <param name="descriptorSpace">The target space to bind the root descriptor to.</param>
-    /// <returns>The root parameter identifier.</returns>
+    /// @brief Generates a root parameter identifier from a set of flags and the descriptor space.
+    ///
+    /// @param flags The flags that store metadata about the root parameter.
+    /// @param descriptorSpace The target space to bind the root descriptor to.
+    /// @return The root parameter identifier.
     constexpr static UInt64 makeRootParameterId(RootParameterFlags flags, UInt32 descriptorSpace) noexcept {
         return (static_cast<UInt64>(std::to_underlying(flags)) << 32) | static_cast<UInt64>(descriptorSpace); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     }
     
-    /// <summary>
-    /// Maps the indices of the root parameters for a descriptor set or a push constant range.
-    /// </summary>
+    /// @brief Maps the indices of the root parameters for a descriptor set or a push constant range.
     Dictionary<UInt64, UInt32> m_rootParameterIndices{};
 
 public:

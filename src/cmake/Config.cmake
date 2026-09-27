@@ -8,6 +8,9 @@
 SET(CMAKE_CXX_STANDARD 23)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Disable module scanning (for now, until we support modules).
+SET(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
 # Define C++ compile flags.
 IF(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # Enable "just-my-code" for debug builds.
