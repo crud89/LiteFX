@@ -242,7 +242,16 @@ namespace LiteFX::Rendering::Backends {
 
 		// PushConstantsLayoutBuilder interface.
 	protected:
-		/// @copydoc PushConstantsLayoutBuilder::makeRange
+		// TODO: Check why copydoc doesn't like this.
+
+		/// @brief Creates a new push constants range.
+		///
+		/// @param shaderStages The shader stage, for which the range is defined.
+		/// @param offset The offset of the range.
+		/// @param size The size of the range.
+		/// @param space The descriptor space, the range is bound to.
+		/// @param binding The binding point for the range.
+		/// @return The instance of the push constant range.
 		UniquePtr<DirectX12PushConstantsRange> makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) override;
 	};
 

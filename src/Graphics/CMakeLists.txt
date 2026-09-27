@@ -19,6 +19,7 @@ SET(GRAPHICS_HEADERS
 SET(GRAPHICS_SOURCES
     "src/blitter_vk.cpp"
     "src/blitter_d3d12.cpp"
+    "src/vertex.cpp"
 )
 
 # Add library project
