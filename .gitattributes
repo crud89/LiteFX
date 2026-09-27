@@ -1,6 +1,6 @@
 # Line ending configuration.
-*.sh text eof=lf
-* text eof=crlf
+*.sh text eol=lf
+* text eol=crlf
 
 # Map binary files
 *.png binary
