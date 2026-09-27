@@ -1,0 +1,1813 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A modern, flexible computer graphics and rendering engine, written in C++23 with support for Vulkan and DirectX 12.">
+      
+      
+        <meta name="author" content="Carsten Rudolph">
+      
+      
+        <link rel="canonical" href="https://litefx.crudolph.io/latest/api/">
+      
+      
+        <link rel="prev" href="../tutorials/first-triangle/drawing/">
+      
+      
+        <link rel="next" href="LiteFX/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Global Namespace - LiteFX</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/fonts.css">
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#global-namespace" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="LiteFX" class="md-header__button md-logo" aria-label="LiteFX" data-md-component="logo">
+      
+  <img src="../assets/images/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            LiteFX
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Global Namespace
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/crud89/LiteFX" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    crud89/LiteFX
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../getting-started/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tutorials/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+    
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://github.com/crud89/LiteFX/wiki" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Wiki
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="LiteFX" class="md-nav__button md-logo" aria-label="LiteFX" data-md-component="logo">
+      
+  <img src="../assets/images/logo.svg" alt="logo">
+
+    </a>
+    LiteFX
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/crud89/LiteFX" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    crud89/LiteFX
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../getting-started/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../tutorials/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="./" class="md-nav__link md-nav__link--active">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link md-nav__link--active" for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="LiteFX/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LiteFX
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="LITEFX_IMPLEMENTATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LITEFX_IMPLEMENTATION
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/crud89/LiteFX/wiki" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wiki
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href=".." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="./" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    API Reference
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="global-namespace"><code>Global Namespace</code><a class="headerlink" href="#global-namespace" title="Permanent link">&para;</a></h1>
+<h2 id="namespaces">Namespaces<a class="headerlink" href="#namespaces" title="Permanent link">&para;</a></h2>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/"><code>LiteFX</code></a> </td></tr>
+</tbody>
+</table></div>
+
+<h2 id="macros">Macros<a class="headerlink" href="#macros" title="Permanent link">&para;</a></h2>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LITEFX_IMPLEMENTATION/"><code>LITEFX_IMPLEMENTATION</code></a> </td><td>Declares the implementation for the public interface of a class.</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="using-namespace-directives">Using Namespace Directives<a class="headerlink" href="#using-namespace-directives" title="Permanent link">&para;</a></h2>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/"><code>LiteFX</code></a> </td></tr>
+<tr><td><a href="LiteFX/Logging/"><code>Logging</code></a> </td></tr>
+<tr><td><a href="LiteFX/Math/"><code>Math</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/"><code>Rendering</code></a> </td></tr>
+<tr><td><a href="LiteFX/Graphics/"><code>Graphics</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/"><code>Backends</code></a> </td></tr>
+</tbody>
+</table></div>
+
+<h2 id="litefx-namespace"><a href="LiteFX/">LiteFX</a> namespace<a class="headerlink" href="#litefx-namespace" title="Permanent link">&para;</a></h2>
+<h3 id="namespaces_1">Namespaces<a class="headerlink" href="#namespaces_1" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Graphics/"><code>Graphics</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Logging/"><code>Logging</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Math/"><code>Math</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Rendering/"><code>Rendering</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/meta/"><code>meta</code></a> </td><td>Contains type traits and meta-programming features for compile-time evaluation.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="types">Types<a class="headerlink" href="#types" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/App/"><code>App</code></a> </td><td>The base class for an application.</td></tr>
+<tr><td><a href="LiteFX/AppBuilder/"><code>AppBuilder</code></a> </td><td>Creates a new builder for an <a href="LiteFX/App/"><code>App</code></a>.</td></tr>
+<tr><td><a href="LiteFX/AppVersion/"><code>AppVersion</code></a> </td><td>Contains the version of an <a href="LiteFX/App/"><code>App</code></a>.</td></tr>
+<tr><td><a href="LiteFX/ArgumentNotInitializedException/"><code>ArgumentNotInitializedException</code></a> </td><td>An exception that is thrown, if a provided non-optional argument was not initialized.</td></tr>
+<tr><td><a href="LiteFX/ArgumentOutOfRangeException/"><code>ArgumentOutOfRangeException</code></a> </td><td>An exception that is thrown, if a provided argument is not within the expected range.</td></tr>
+<tr><td><a href="LiteFX/Builder-0e7/"><code>Builder</code></a> </td><td>Describes an generic builder type.</td></tr>
+<tr><td><a href="LiteFX/CovariantIterator/"><code>CovariantIterator</code></a> </td><td>Wraps an iterator and returns covariants of type <code>T</code> of the iterated value.</td></tr>
+<tr><td><a href="LiteFX/Delegate/"><code>Delegate</code></a> </td><td>Represents a handler for an <a href="LiteFX/Event/"><code>Event</code></a>, that is assigned a unique token when created, so that it can be identified later.</td></tr>
+<tr><td><a href="LiteFX/Enumerable/"><code>Enumerable</code></a> </td><td>An input range over another range, where the returned values of type <code>T</code> are covariants of the values stored by the underlying range.</td></tr>
+<tr><td><a href="LiteFX/Event/"><code>Event</code></a> </td><td>A class that is used to declare an event, which a number of listeners can subscribe to.</td></tr>
+<tr><td><a href="LiteFX/EventArgs/"><code>EventArgs</code></a> </td><td>Base class for additional event arguments.</td></tr>
+<tr><td><a href="LiteFX/Exception/"><code>Exception</code></a> </td><td>The base class for exceptions thrown by the SDK.</td></tr>
+<tr><td><a href="LiteFX/IBackend/"><code>IBackend</code></a> </td><td>The base class for an app backend.</td></tr>
+<tr><td><a href="LiteFX/IResource-0af/"><code>IResource</code></a> </td><td>Provides access to a resource managed by the class.</td></tr>
+<tr><td><a href="LiteFX/InvalidArgumentException/"><code>InvalidArgumentException</code></a> </td><td>An exception that is thrown, if a provided argument is not valid.</td></tr>
+<tr><td><a href="LiteFX/PimplPtr/"><code>PimplPtr</code></a> </td><td>A smart pointer that manages an implementation instance for a public interface class.</td></tr>
+<tr><td><a href="LiteFX/ResizeEventArgs/"><code>ResizeEventArgs</code></a> </td><td>Stores event arguments of a window resize event.</td></tr>
+<tr><td><a href="LiteFX/Resource-0f/"><code>Resource</code></a> </td><td>Implements the <a href="LiteFX/IResource-0af/"><code>IResource</code></a> interface.</td></tr>
+<tr><td><a href="LiteFX/RuntimeException/"><code>RuntimeException</code></a> </td><td>An exception that is thrown, if a requested operation could not be executed.</td></tr>
+<tr><td><a href="LiteFX/SharedObject/"><code>SharedObject</code></a> </td><td>Base class for an object that can be shared.</td></tr>
+<tr><td><a href="LiteFX/type_switch/"><code>type_switch</code></a> </td><td>A switch that can be used to select a callable from a parameter type.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="type-aliases">Type Aliases<a class="headerlink" href="#type-aliases" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Array/"><code>Array</code></a> </td><td>Represents a dynamic array.</td></tr>
+<tr><td><a href="LiteFX/Dictionary/"><code>Dictionary</code></a> </td><td>Represents a dictionary that maps a key to a certain value.</td></tr>
+<tr><td><a href="LiteFX/Generator/"><code>Generator</code></a> </td><td>Describes an intermediate container for elements of type <code>T.</code></td></tr>
+<tr><td><a href="LiteFX/Handle/"><code>Handle</code></a> </td><td>Represents a handle type.</td></tr>
+<tr><td><a href="LiteFX/Optional/"><code>Optional</code></a> </td><td>Represents an optional value.</td></tr>
+<tr><td><a href="LiteFX/Queue/"><code>Queue</code></a> </td><td>Represents a queue.</td></tr>
+<tr><td><a href="LiteFX/Ref/"><code>Ref</code></a> </td><td>Represents a copyable and assignable reference wrapper.</td></tr>
+<tr><td><a href="LiteFX/SharedPtr/"><code>SharedPtr</code></a> </td><td>Represents a shared pointer, that expresses non-exclusive ownership.</td></tr>
+<tr><td><a href="LiteFX/Span/"><code>Span</code></a> </td><td>Represents a view of an array.</td></tr>
+<tr><td><a href="LiteFX/String/"><code>String</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/StringView/"><code>StringView</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Tuple/"><code>Tuple</code></a> </td><td>Represents a tuple of multiple objects.</td></tr>
+<tr><td><a href="LiteFX/UniquePtr/"><code>UniquePtr</code></a> </td><td>Represents a unique pointer, that expresses exclusive ownership.</td></tr>
+<tr><td><a href="LiteFX/Variant/"><code>Variant</code></a> </td><td>Represents a variant of objects.</td></tr>
+<tr><td><a href="LiteFX/WString/"><code>WString</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/WStringView/"><code>WStringView</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/WeakPtr/"><code>WeakPtr</code></a> </td><td>Represents a weak pointer, that expresses a reference to a shared pointer instance.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="enums">Enums<a class="headerlink" href="#enums" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/BackendState/"><code>BackendState</code></a> </td></tr>
+<tr><td><a href="LiteFX/BackendType/"><code>BackendType</code></a> </td></tr>
+<tr><td><a href="LiteFX/Platform/"><code>Platform</code></a> </td></tr>
+</tbody>
+</table></div>
+
+<h3 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Join/"><code>Join</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Narrow/"><code>Narrow</code></a> </td><td>Converts an UTF-16 multi-byte encoded string into an UTF-8 representation.</td></tr>
+<tr><td><a href="LiteFX/WJoin/"><code>WJoin</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Widen/"><code>Widen</code></a> </td><td>Converts an UTF-8 single-byte encoded string into an UTF-16 representation.</td></tr>
+<tr><td><a href="LiteFX/asShared/"><code>asShared</code></a> </td><td>Transfers a unique pointer to a shared pointer. The unique pointer will be released during this process.</td></tr>
+<tr><td><a href="LiteFX/makeShared-02/"><code>makeShared</code></a> </td><td>Creates a new shared pointer.</td></tr>
+<tr><td><a href="LiteFX/makeUnique-07/"><code>makeUnique</code></a> </td><td>Creates a new unique pointer.</td></tr>
+<tr><td><a href="LiteFX/operator_hash-02/"><code>operator""_hash</code></a> </td><td>Computes the FNVa hash for <code>string.</code></td></tr>
+</tbody>
+</table></div>
+
+<h3 id="variables">Variables<a class="headerlink" href="#variables" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/VALID_BACKEND_TYPES/"><code>VALID_BACKEND_TYPES</code></a> </td></tr>
+</tbody>
+</table></div>
+
+<h3 id="concepts">Concepts<a class="headerlink" href="#concepts" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/backend/"><code>backend</code></a> </td><td>Concept that can be used to refer to backend implementations.</td></tr>
+<tr><td><a href="LiteFX/covariant_forward_iterator/"><code>covariant_forward_iterator</code></a> </td><td>Evaluates, if an iterator of type <code>TIterator</code> iterates values that are covariant to <code>TValue.</code></td></tr>
+<tr><td><a href="LiteFX/is_covariant/"><code>is_covariant</code></a> </td><td>Evaluates if a type <code>TCovariant</code> behaves covariant to a value type <code>TValue.</code> In this context, covariance is expressed as the type <code>TCovariant</code> can be assigned a value of type <code>TValue</code> or can be constructed from a value of <code>TValue.</code></td></tr>
+</tbody>
+</table></div>
+
+<h3 id="using-namespace-directives_1">Using Namespace Directives<a class="headerlink" href="#using-namespace-directives_1" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Logging/"><code>Logging</code></a> </td></tr>
+</tbody>
+</table></div>
+
+<h2 id="litefxgraphics-namespace"><a href="LiteFX/Graphics/">LiteFX::Graphics</a> namespace<a class="headerlink" href="#litefxgraphics-namespace" title="Permanent link">&para;</a></h2>
+<h3 id="types_1">Types<a class="headerlink" href="#types_1" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Graphics/Blitter/"><code>Blitter</code></a> </td><td>Utility class that can be used to issue blit commands and generate mip maps.</td></tr>
+<tr><td><a href="LiteFX/Graphics/Vertex/"><code>Vertex</code></a> </td><td>Default definition for a simple vertex.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="using-namespace-directives_2">Using Namespace Directives<a class="headerlink" href="#using-namespace-directives_2" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/"><code>LiteFX</code></a> </td></tr>
+<tr><td><a href="LiteFX/Math/"><code>Math</code></a> </td></tr>
+</tbody>
+</table></div>
+
+<h2 id="litefxlogging-namespace"><a href="LiteFX/Logging/">LiteFX::Logging</a> namespace<a class="headerlink" href="#litefxlogging-namespace" title="Permanent link">&para;</a></h2>
+<h3 id="types_2">Types<a class="headerlink" href="#types_2" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Logging/ConsoleSink/"><code>ConsoleSink</code></a> </td><td>Writes log messages to the console.</td></tr>
+<tr><td><a href="LiteFX/Logging/ISink/"><code>ISink</code></a> </td><td>Interface for a class that receives log messages.</td></tr>
+<tr><td><a href="LiteFX/Logging/Log/"><code>Log</code></a> </td><td>A log to which messages are written to.</td></tr>
+<tr><td><a href="LiteFX/Logging/Logger/"><code>Logger</code></a> </td><td>A provider for <a href="LiteFX/Logging/Log/"><code>Log</code></a> instances.</td></tr>
+<tr><td><a href="LiteFX/Logging/RollingFileSink/"><code>RollingFileSink</code></a> </td><td>Writes log messages to a rolling file.</td></tr>
+<tr><td><a href="LiteFX/Logging/TerminationSink/"><code>TerminationSink</code></a> </td><td>Forcefully terminates the application, if a log message of a certain level or higher is output.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="enums_1">Enums<a class="headerlink" href="#enums_1" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Logging/LogLevel/"><code>LogLevel</code></a> </td><td>Defines the various log levels.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="using-namespace-directives_3">Using Namespace Directives<a class="headerlink" href="#using-namespace-directives_3" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/"><code>LiteFX</code></a> </td></tr>
+</tbody>
+</table></div>
+
+<h2 id="litefxmath-namespace"><a href="LiteFX/Math/">LiteFX::Math</a> namespace<a class="headerlink" href="#litefxmath-namespace" title="Permanent link">&para;</a></h2>
+<h3 id="namespaces_2">Namespaces<a class="headerlink" href="#namespaces_2" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Math/Vectors/"><code>Vectors</code></a> </td><td>Contains additional exported vector types.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="types_3">Types<a class="headerlink" href="#types_3" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Math/Matrix-09/"><code>Matrix</code></a> </td><td>An algebraic matrix type.</td></tr>
+<tr><td><a href="LiteFX/Math/Rect/"><code>Rect</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Math/RectF/"><code>RectF</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Math/RectI/"><code>RectI</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Math/Size2d/"><code>Size2d</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Math/Size3d/"><code>Size3d</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Math/Size4d/"><code>Size4d</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Math/Vector-06e/"><code>Vector</code></a> </td><td>An algebraic vector type. The value type of a vector must be in standard layout (i.e., <code>std::is_standard_layout_v&lt;T&gt;</code> must evaluate to <code>true</code>). This constraint is enforced at compile time and ensures that vector types can be binary marshaled. For example, the <a href="LiteFX/Graphics/Vertex/"><code>LiteFX::Graphics::Vertex</code></a> type stores nothing more than a series of vectors. The standard layout constraint ensures that a set of vertices can be converted into a plain byte array and back.</td></tr>
+<tr><td><a href="LiteFX/Math/Vector1f/"><code>Vector1f</code></a> </td><td>A vector that contains a single float.</td></tr>
+<tr><td><a href="LiteFX/Math/Vector1u/"><code>Vector1u</code></a> </td><td>A vector that contains a single unsigned integer.</td></tr>
+<tr><td><a href="LiteFX/Math/Vector2f/"><code>Vector2f</code></a> </td><td>A vector that contains two floats.</td></tr>
+<tr><td><a href="LiteFX/Math/Vector2i/"><code>Vector2i</code></a> </td><td>A vector that contains two signed integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vector2u/"><code>Vector2u</code></a> </td><td>A vector that contains two unsigned integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vector3f/"><code>Vector3f</code></a> </td><td>A vector that stores three floats.</td></tr>
+<tr><td><a href="LiteFX/Math/Vector3i/"><code>Vector3i</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Math/Vector3u/"><code>Vector3u</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Math/Vector4f/"><code>Vector4f</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Math/Vector4i/"><code>Vector4i</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Math/Vector4u/"><code>Vector4u</code></a> </td><td></td></tr>
+</tbody>
+</table></div>
+
+<h3 id="type-aliases_1">Type Aliases<a class="headerlink" href="#type-aliases_1" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Math/Byte/"><code>Byte</code></a> </td><td>A type for a single byte of raw memory.</td></tr>
+<tr><td><a href="LiteFX/Math/Double/"><code>Double</code></a> </td><td>A type for a floating point value with double precision.</td></tr>
+<tr><td><a href="LiteFX/Math/Float/"><code>Float</code></a> </td><td>A type for a floating point value with single precision.</td></tr>
+<tr><td><a href="LiteFX/Math/Int16/"><code>Int16</code></a> </td><td>A type for a signed 16 bit integer.</td></tr>
+<tr><td><a href="LiteFX/Math/Int32/"><code>Int32</code></a> </td><td>A type for a signed 32 bit integer.</td></tr>
+<tr><td><a href="LiteFX/Math/Int64/"><code>Int64</code></a> </td><td>A type for a signed 64 bit integer.</td></tr>
+<tr><td><a href="LiteFX/Math/TMatrix2/"><code>TMatrix2</code></a> </td><td>A generic matrix with 2 rows and 2 columns.</td></tr>
+<tr><td><a href="LiteFX/Math/TMatrix3/"><code>TMatrix3</code></a> </td><td>A generic matrix with 3 rows and 3 columns.</td></tr>
+<tr><td><a href="LiteFX/Math/TMatrix3x4/"><code>TMatrix3x4</code></a> </td><td>A generic matrix with 3 rows and 4 columns.</td></tr>
+<tr><td><a href="LiteFX/Math/TMatrix4/"><code>TMatrix4</code></a> </td><td>A generic matrix with 4 rows and 4 columns.</td></tr>
+<tr><td><a href="LiteFX/Math/TVector1/"><code>TVector1</code></a> </td><td>A generic vector with one component.</td></tr>
+<tr><td><a href="LiteFX/Math/TVector2/"><code>TVector2</code></a> </td><td>A generic vector with two components.</td></tr>
+<tr><td><a href="LiteFX/Math/TVector3/"><code>TVector3</code></a> </td><td>A generic vector with three components.</td></tr>
+<tr><td><a href="LiteFX/Math/TVector4/"><code>TVector4</code></a> </td><td>A generic vector with four components.</td></tr>
+<tr><td><a href="LiteFX/Math/UInt16/"><code>UInt16</code></a> </td><td>A type for an unsigned 16 bit integer.</td></tr>
+<tr><td><a href="LiteFX/Math/UInt32/"><code>UInt32</code></a> </td><td>A type for an unsigned 32 bit integer.</td></tr>
+<tr><td><a href="LiteFX/Math/UInt64/"><code>UInt64</code></a> </td><td>A type for an unsigned 64 bit integer.</td></tr>
+<tr><td><a href="LiteFX/Math/UInt8/"><code>UInt8</code></a> </td><td>A type for an unsigned 8 bit integer.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="functions_1">Functions<a class="headerlink" href="#functions_1" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Math/align/"><code>align</code></a> </td><td>Aligns a value <code>size</code> to an alignment <code>alignment.</code></td></tr>
+<tr><td><a href="LiteFX/Math/operator_b/"><code>operator""_b</code></a> </td><td>A literal to define a byte.</td></tr>
+<tr><td><a href="LiteFX/Math/operator_f32/"><code>operator""_f32</code></a> </td><td>A literal to define a floating point value with single precision.</td></tr>
+<tr><td><a href="LiteFX/Math/operator_f64/"><code>operator""_f64</code></a> </td><td>A literal to define a floating point value with double precision.</td></tr>
+<tr><td><a href="LiteFX/Math/operator_i16/"><code>operator""_i16</code></a> </td><td>A literal to define a 16 bit integer.</td></tr>
+<tr><td><a href="LiteFX/Math/operator_i32/"><code>operator""_i32</code></a> </td><td>A literal to define a 32 bit integer.</td></tr>
+<tr><td><a href="LiteFX/Math/operator_i64/"><code>operator""_i64</code></a> </td><td>A literal to define a 64 bit integer.</td></tr>
+<tr><td><a href="LiteFX/Math/operator_ui16/"><code>operator""_ui16</code></a> </td><td>A literal to define a 16 bit unsigned integer.</td></tr>
+<tr><td><a href="LiteFX/Math/operator_ui32/"><code>operator""_ui32</code></a> </td><td>A literal to define a 32 bit unsigned integer.</td></tr>
+<tr><td><a href="LiteFX/Math/operator_ui64/"><code>operator""_ui64</code></a> </td><td>A literal to define a 64 bit unsigned integer.</td></tr>
+<tr><td><a href="LiteFX/Math/operator_ui8/"><code>operator""_ui8</code></a> </td><td>A literal to define a 8 bit unsigned integer.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="using-namespace-directives_4">Using Namespace Directives<a class="headerlink" href="#using-namespace-directives_4" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/"><code>LiteFX</code></a> </td></tr>
+</tbody>
+</table></div>
+
+<h2 id="litefxmathvectors-namespace"><a href="LiteFX/Math/Vectors/">LiteFX::Math::Vectors</a> namespace<a class="headerlink" href="#litefxmathvectors-namespace" title="Permanent link">&para;</a></h2>
+<p>Contains additional exported vector types.</p>
+<h3 id="type-aliases_2">Type Aliases<a class="headerlink" href="#type-aliases_2" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Math/Vectors/ByteVector1/"><code>ByteVector1</code></a> </td><td>A vector that contains a single byte.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/ByteVector2/"><code>ByteVector2</code></a> </td><td>A vector that contains two bytes.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/ByteVector3/"><code>ByteVector3</code></a> </td><td>A vector that contains three bytes.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/ByteVector4/"><code>ByteVector4</code></a> </td><td>A vector that contains four bytes.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/DoubleVector1/"><code>DoubleVector1</code></a> </td><td>A vector that contains a single floating point value with double precision.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/DoubleVector2/"><code>DoubleVector2</code></a> </td><td>A vector that contains two floating point values with double precision.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/DoubleVector3/"><code>DoubleVector3</code></a> </td><td>A vector that contains three floating point values with double precision.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/DoubleVector4/"><code>DoubleVector4</code></a> </td><td>A vector that contains four floating point values with double precision.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/FloatVector1/"><code>FloatVector1</code></a> </td><td>A vector that contains a single floating point value with single precision.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/FloatVector2/"><code>FloatVector2</code></a> </td><td>A vector that contains two floating point values with single precision.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/FloatVector3/"><code>FloatVector3</code></a> </td><td>A vector that contains three floating point values with single precision.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/FloatVector4/"><code>FloatVector4</code></a> </td><td>A vector that contains four floating point values with single precision.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/Int16Vector1/"><code>Int16Vector1</code></a> </td><td>A vector that contains a single 16 bit signed integer.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/Int16Vector2/"><code>Int16Vector2</code></a> </td><td>A vector that contains two 16 bit signed integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/Int16Vector3/"><code>Int16Vector3</code></a> </td><td>A vector that contains three 16 bit signed integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/Int16Vector4/"><code>Int16Vector4</code></a> </td><td>A vector that contains four 16 bit signed integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/Int32Vector1/"><code>Int32Vector1</code></a> </td><td>A vector that contains a single 32 bit signed integer.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/Int32Vector2/"><code>Int32Vector2</code></a> </td><td>A vector that contains two 32 bit signed integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/Int32Vector3/"><code>Int32Vector3</code></a> </td><td>A vector that contains three 32 bit signed integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/Int32Vector4/"><code>Int32Vector4</code></a> </td><td>A vector that contains four 32 bit signed integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/Int64Vector1/"><code>Int64Vector1</code></a> </td><td>A vector that contains a single 64 bit signed integer.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/Int64Vector2/"><code>Int64Vector2</code></a> </td><td>A vector that contains two 64 bit signed integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/Int64Vector3/"><code>Int64Vector3</code></a> </td><td>A vector that contains three 64 bit signed integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/Int64Vector4/"><code>Int64Vector4</code></a> </td><td>A vector that contains four 64 bit signed integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/UInt16Vector1/"><code>UInt16Vector1</code></a> </td><td>A vector that contains a single 16 bit unsigned integer.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/UInt16Vector2/"><code>UInt16Vector2</code></a> </td><td>A vector that contains two 16 bit unsigned integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/UInt16Vector3/"><code>UInt16Vector3</code></a> </td><td>A vector that contains three 16 bit unsigned integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/UInt16Vector4/"><code>UInt16Vector4</code></a> </td><td>A vector that contains four 16 bit unsigned integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/UInt32Vector1/"><code>UInt32Vector1</code></a> </td><td>A vector that contains a single 32 bit unsigned integer.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/UInt32Vector2/"><code>UInt32Vector2</code></a> </td><td>A vector that contains two 32 bit unsigned integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/UInt32Vector3/"><code>UInt32Vector3</code></a> </td><td>A vector that contains three 32 bit unsigned integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/UInt32Vector4/"><code>UInt32Vector4</code></a> </td><td>A vector that contains four 32 bit unsigned integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/UInt64Vector1/"><code>UInt64Vector1</code></a> </td><td>A vector that contains a single 64 bit unsigned integer.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/UInt64Vector2/"><code>UInt64Vector2</code></a> </td><td>A vector that contains two 64 bit unsigned integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/UInt64Vector3/"><code>UInt64Vector3</code></a> </td><td>A vector that contains three 64 bit unsigned integers.</td></tr>
+<tr><td><a href="LiteFX/Math/Vectors/UInt64Vector4/"><code>UInt64Vector4</code></a> </td><td>A vector that contains four 64 bit unsigned integers.</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="litefxrendering-namespace"><a href="LiteFX/Rendering/">LiteFX::Rendering</a> namespace<a class="headerlink" href="#litefxrendering-namespace" title="Permanent link">&para;</a></h2>
+<h3 id="namespaces_3">Namespaces<a class="headerlink" href="#namespaces_3" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Rendering/Backends/"><code>Backends</code></a> </td></tr>
+</tbody>
+</table></div>
+
+<h3 id="types_4">Types<a class="headerlink" href="#types_4" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Rendering/Barrier-00/"><code>Barrier</code></a> </td><td>A barrier used for GPU resource synchronization.</td></tr>
+<tr><td><a href="LiteFX/Rendering/BarrierBuilder-00/"><code>BarrierBuilder</code></a> </td><td>Base class for a builder that builds a <a href="LiteFX/Rendering/Barrier-00/"><code>Barrier</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/BufferAttribute/"><code>BufferAttribute</code></a> </td><td>Stores meta data about a buffer attribute, i.e. a member or field of a descriptor or buffer.</td></tr>
+<tr><td><a href="LiteFX/Rendering/CommandBuffer-0d/"><code>CommandBuffer</code></a> </td><td>Represents a command buffer, that buffers commands that should be submitted to a <a href="LiteFX/Rendering/CommandQueue-0b/"><code>CommandQueue</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/CommandQueue-0b/"><code>CommandQueue</code></a> </td><td>Represents a command queue.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ComputePipeline-01/"><code>ComputePipeline</code></a> </td><td>Represents a compute <a href="LiteFX/Rendering/Pipeline-046/"><code>Pipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ComputePipelineBuilder-05/"><code>ComputePipelineBuilder</code></a> </td><td>Describes the interface of a compute pipeline builder.</td></tr>
+<tr><td><a href="LiteFX/Rendering/DepthStencilState/"><code>DepthStencilState</code></a> </td><td>Stores the depth/stencil state of a see <a href="LiteFX/Rendering/IRasterizer/"><code>IRasterizer</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/DescriptorBinding/"><code>DescriptorBinding</code></a> </td><td>Describes a resource binding to a descriptor or descriptor set.</td></tr>
+<tr><td><a href="LiteFX/Rendering/DescriptorBindingPoint/"><code>DescriptorBindingPoint</code></a> </td><td>Describes a single descriptor binding point within a <a href="LiteFX/Rendering/IShaderModule/"><code>IShaderModule</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/DescriptorSet-09/"><code>DescriptorSet</code></a> </td><td>Defines a set of descriptors.</td></tr>
+<tr><td><a href="LiteFX/Rendering/DescriptorSetLayout-03d/"><code>DescriptorSetLayout</code></a> </td><td>Describes the layout of a descriptor set.</td></tr>
+<tr><td><a href="LiteFX/Rendering/DescriptorSetLayoutBuilder-0d6/"><code>DescriptorSetLayoutBuilder</code></a> </td><td>Builds a <a href="LiteFX/Rendering/DescriptorSetLayout-03d/"><code>DescriptorSetLayout</code></a> for a <a href="LiteFX/Rendering/PipelineLayout-06/"><code>PipelineLayout</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/DetailedMemoryStatistics/"><code>DetailedMemoryStatistics</code></a> </td><td>Stores extended memory statistics, that can be queried by calling <a href="LiteFX/Rendering/IGraphicsFactory/detailedMemoryStatistics/"><code>IGraphicsFactory::detailedMemoryStatistics</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/DeviceState/"><code>DeviceState</code></a> </td><td>A class that can be used to manage the state of a <a href="LiteFX/Rendering/IGraphicsDevice/"><code>IGraphicsDevice</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/FrameBuffer-0b4/"><code>FrameBuffer</code></a> </td><td>Stores the images used by a <a href="LiteFX/Rendering/RenderPass-0d/"><code>RenderPass</code></a> to either read from using input attachments or write to using render targets.</td></tr>
+<tr><td><a href="LiteFX/Rendering/FrameBuffer-0bc/"><code>FrameBuffer</code></a> </td><td>Stores the images used by a <a href="LiteFX/Rendering/RenderPass-0d/"><code>RenderPass</code></a> to either read from using input attachments or write to using render targets.</td></tr>
+<tr><td><a href="LiteFX/Rendering/GraphicsDevice-0b/"><code>GraphicsDevice</code></a> </td><td>Represents the graphics device that a rendering back-end is doing work on.</td></tr>
+<tr><td><a href="LiteFX/Rendering/GraphicsDeviceFeatures/"><code>GraphicsDeviceFeatures</code></a> </td><td>Describes optional features that can be supported by a device.</td></tr>
+<tr><td><a href="LiteFX/Rendering/GraphicsFactory-06/"><code>GraphicsFactory</code></a> </td><td>Describes a factory that creates objects for a <a href="LiteFX/Rendering/GraphicsDevice-0b/"><code>GraphicsDevice</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IAccelerationStructure/"><code>IAccelerationStructure</code></a> </td><td>Base interface for a ray tracing acceleration structure.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IBarrier/"><code>IBarrier</code></a> </td><td>The interface for a barrier.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IBottomLevelAccelerationStructure/"><code>IBottomLevelAccelerationStructure</code></a> </td><td>A structure that holds a singular entity of geometry for hardware ray-tracing.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IBuffer/"><code>IBuffer</code></a> </td><td>Base interface for buffer objects.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IBufferLayout/"><code>IBufferLayout</code></a> </td><td>Describes a buffer layout.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ICommandBuffer/"><code>ICommandBuffer</code></a> </td><td>The interface for a command buffer.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ICommandQueue/"><code>ICommandQueue</code></a> </td><td>The interface for a command queue.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IComputePipeline/"><code>IComputePipeline</code></a> </td><td>The interface for a compute pipeline.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IDescriptorLayout/"><code>IDescriptorLayout</code></a> </td><td>Describes a the layout of a single descriptor within a <a href="LiteFX/Rendering/DescriptorSet-09/"><code>DescriptorSet</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IDescriptorSet/"><code>IDescriptorSet</code></a> </td><td>The interface for a descriptor set.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IDescriptorSetLayout/"><code>IDescriptorSetLayout</code></a> </td><td>The interface for a descriptor set layout.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IDeviceMemory/"><code>IDeviceMemory</code></a> </td><td>Describes a chunk of device memory.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IFrameBuffer/"><code>IFrameBuffer</code></a> </td><td>The interface for a frame buffer.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IGraphicsAdapter/"><code>IGraphicsAdapter</code></a> </td><td>Represents a physical graphics adapter.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IGraphicsDevice/"><code>IGraphicsDevice</code></a> </td><td>The interface for a graphics device that.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IGraphicsFactory/"><code>IGraphicsFactory</code></a> </td><td>The interface for a graphics factory.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IImage/"><code>IImage</code></a> </td><td>Describes a generic image.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IIndexBuffer/"><code>IIndexBuffer</code></a> </td><td>The interface for an index buffer.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IIndexBufferLayout/"><code>IIndexBufferLayout</code></a> </td><td>Describes a index buffer layout.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IInputAssembler/"><code>IInputAssembler</code></a> </td><td>The interface for an input assembler state.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IMappable/"><code>IMappable</code></a> </td><td>Allows for data to be mapped into the object.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IPipeline/"><code>IPipeline</code></a> </td><td>The interface for a pipeline.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IPipelineLayout/"><code>IPipelineLayout</code></a> </td><td>The interface for a pipeline layout.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IPushConstantsLayout/"><code>IPushConstantsLayout</code></a> </td><td>The interface for a push constants layout.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IPushConstantsRange/"><code>IPushConstantsRange</code></a> </td><td>Describes a range within a <a href="LiteFX/Rendering/IPushConstantsLayout/"><code>IPushConstantsLayout</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IRasterizer/"><code>IRasterizer</code></a> </td><td>Represents the rasterizer state of a <a href="LiteFX/Rendering/RenderPipeline-0e/"><code>RenderPipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IRayTracingPipeline/"><code>IRayTracingPipeline</code></a> </td><td>The interface for a ray tracing pipeline.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IRenderBackend/"><code>IRenderBackend</code></a> </td><td>The interface to access a render backend.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IRenderPass/"><code>IRenderPass</code></a> </td><td>The interface for a render pass.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IRenderPipeline/"><code>IRenderPipeline</code></a> </td><td>The interface for a render pipeline.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IRenderTarget/"><code>IRenderTarget</code></a> </td><td>Represents a render target, i.e. an abstract view of the output of an <a href="LiteFX/Rendering/RenderPass-0d/"><code>RenderPass</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ISampler/"><code>ISampler</code></a> </td><td>Describes a texture sampler.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IScissor/"><code>IScissor</code></a> </td><td>The interface of a scissor.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IShaderModule/"><code>IShaderModule</code></a> </td><td>Represents a single shader module, i.e. a part of a <a href="LiteFX/Rendering/IShaderProgram/"><code>IShaderProgram</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IShaderProgram/"><code>IShaderProgram</code></a> </td><td>The interface for a shader program.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IShaderRecord/"><code>IShaderRecord</code></a> </td><td>Describes a record within a shader binding table.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IStateResource/"><code>IStateResource</code></a> </td><td>The interface for a state resource.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ISurface/"><code>ISurface</code></a> </td><td>Represents a surface to render to.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ISwapChain/"><code>ISwapChain</code></a> </td><td>Interface for a swap chain.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ITopLevelAccelerationStructure/"><code>ITopLevelAccelerationStructure</code></a> </td><td>A structure that stores the instance data for a <a href="LiteFX/Rendering/IBottomLevelAccelerationStructure/"><code>IBottomLevelAccelerationStructure</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IVertexBuffer/"><code>IVertexBuffer</code></a> </td><td>The interface for a vertex buffer.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IVertexBufferLayout/"><code>IVertexBufferLayout</code></a> </td><td>Describes a vertex buffer layout.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IViewport/"><code>IViewport</code></a> </td><td>Interface for a viewport.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IndexBuffer-0a/"><code>IndexBuffer</code></a> </td><td>Describes an index buffer.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IndirectBatch/"><code>IndirectBatch</code></a> </td><td>An indirect batch used to execute an standard draw call.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IndirectDispatchBatch/"><code>IndirectDispatchBatch</code></a> </td><td>An indirect batch used to dispatch a compute shader kernel.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IndirectIndexedBatch/"><code>IndirectIndexedBatch</code></a> </td><td>An indirect batch used to execute an indexed draw call.</td></tr>
+<tr><td><a href="LiteFX/Rendering/InputAssembler-0d/"><code>InputAssembler</code></a> </td><td>Represents a the input assembler state of a <a href="LiteFX/Rendering/RenderPipeline-0e/"><code>RenderPipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/InputAssemblerBuilder-0b9/"><code>InputAssemblerBuilder</code></a> </td><td>Builds a <a href="LiteFX/Rendering/InputAssembler-0d/"><code>InputAssembler</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/MemoryHeapStatistics/"><code>MemoryHeapStatistics</code></a> </td><td>Stores simple memory heap statistics, that can be quickly queried by calling <a href="LiteFX/Rendering/IGraphicsFactory/memoryStatistics/"><code>IGraphicsFactory::memoryStatistics</code></a></td></tr>
+<tr><td><a href="LiteFX/Rendering/Pipeline-041/"><code>Pipeline</code></a> </td><td>Represents a pipeline state.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Pipeline-046/"><code>Pipeline</code></a> </td><td>Represents a pipeline state.</td></tr>
+<tr><td><a href="LiteFX/Rendering/PipelineBindingHint/"><code>PipelineBindingHint</code></a> </td><td>A hint used during shader reflection to control the pipeline layout.</td></tr>
+<tr><td><a href="LiteFX/Rendering/PipelineLayout-06/"><code>PipelineLayout</code></a> </td><td>Represents a the layout of a <a href="LiteFX/Rendering/RenderPipeline-0e/"><code>RenderPipeline</code></a>, <a href="LiteFX/Rendering/ComputePipeline-01/"><code>ComputePipeline</code></a> or <a href="LiteFX/Rendering/RayTracingPipeline-09/"><code>RayTracingPipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/PipelineLayoutBuilder-030b/"><code>PipelineLayoutBuilder</code></a> </td><td>Base class for a builder of a <a href="LiteFX/Rendering/PipelineLayout-06/"><code>PipelineLayout</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/PushConstantsLayout-06/"><code>PushConstantsLayout</code></a> </td><td>Describes the layout of the pipelines push constant ranges.</td></tr>
+<tr><td><a href="LiteFX/Rendering/PushConstantsLayoutBuilder-03/"><code>PushConstantsLayoutBuilder</code></a> </td><td>Builds a <a href="LiteFX/Rendering/PushConstantsLayout-06/"><code>PushConstantsLayout</code></a> for a <a href="LiteFX/Rendering/PipelineLayout-06/"><code>PipelineLayout</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Rasterizer/"><code>Rasterizer</code></a> </td><td>Implements a <a href="LiteFX/Rendering/IRasterizer/"><code>IRasterizer</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/RasterizerBuilder-05/"><code>RasterizerBuilder</code></a> </td><td>Builds a <a href="LiteFX/Rendering/Rasterizer/"><code>Rasterizer</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/RayTracingPipeline-09/"><code>RayTracingPipeline</code></a> </td><td>Represents a ray-tracing <a href="LiteFX/Rendering/Pipeline-046/"><code>Pipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/RayTracingPipelineBuilder-0a/"><code>RayTracingPipelineBuilder</code></a> </td><td>Describes the interface of a ray-tracing pipeline builder.</td></tr>
+<tr><td><a href="LiteFX/Rendering/RenderBackend-0d/"><code>RenderBackend</code></a> </td><td>Defines a back-end, that provides a device instance for a certain surface and graphics adapter.</td></tr>
+<tr><td><a href="LiteFX/Rendering/RenderPass-08/"><code>RenderPass</code></a> </td><td>Represents a render pass.</td></tr>
+<tr><td><a href="LiteFX/Rendering/RenderPass-0d/"><code>RenderPass</code></a> </td><td>Represents a render pass.</td></tr>
+<tr><td><a href="LiteFX/Rendering/RenderPassBuilder-01/"><code>RenderPassBuilder</code></a> </td><td>Describes the interface of a render pass builder.</td></tr>
+<tr><td><a href="LiteFX/Rendering/RenderPassDependency/"><code>RenderPassDependency</code></a> </td><td>Represents a mapping between a set of <a href="LiteFX/Rendering/RenderTarget/"><code>RenderTarget</code></a> instances and the input attachments of a <a href="LiteFX/Rendering/IRenderPass/"><code>IRenderPass</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/RenderPipeline-0ca/"><code>RenderPipeline</code></a> </td><td>Represents a graphics <a href="LiteFX/Rendering/Pipeline-046/"><code>Pipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/RenderPipeline-0e/"><code>RenderPipeline</code></a> </td><td>Represents a graphics <a href="LiteFX/Rendering/Pipeline-046/"><code>Pipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/RenderPipelineBuilder-00/"><code>RenderPipelineBuilder</code></a> </td><td>Describes the interface of a render pipeline builder.</td></tr>
+<tr><td><a href="LiteFX/Rendering/RenderTarget/"><code>RenderTarget</code></a> </td><td>Implements a render target.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ResourceAllocationInfo/"><code>ResourceAllocationInfo</code></a> </td><td>Contains the parameters for a resource allocation.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ResourceAllocationResult/"><code>ResourceAllocationResult</code></a> </td><td>Stores the result of a resource allocation.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Scissor/"><code>Scissor</code></a> </td><td>Implements a scissor.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ShaderBindingTableOffsets/"><code>ShaderBindingTableOffsets</code></a> </td><td>Describes the offsets and sizes of a shader group within a shader binding table buffer.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ShaderProgram-05/"><code>ShaderProgram</code></a> </td><td>Represents a shader program, consisting of multiple <a href="LiteFX/Rendering/IShaderModule/"><code>IShaderModule</code></a> "IShaderModules".</td></tr>
+<tr><td><a href="LiteFX/Rendering/ShaderProgramBuilder-0e/"><code>ShaderProgramBuilder</code></a> </td><td>Base class for a builder that builds a <a href="LiteFX/Rendering/ShaderProgram-05/"><code>ShaderProgram</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ShaderRecord-0d/"><code>ShaderRecord</code></a> </td><td>Defines a generic shader record.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ShaderRecordCollection/"><code>ShaderRecordCollection</code></a> </td><td>Stores a set of <a href="LiteFX/Rendering/IShaderRecord/"><code>IShaderRecord</code></a> "IShaderRecords" in that later form a shader binding table used for ray-tracing.</td></tr>
+<tr><td><a href="LiteFX/Rendering/StateResource/"><code>StateResource</code></a> </td><td>Base class for a resource that can be identified by a name string within a <a href="LiteFX/Rendering/DeviceState/"><code>DeviceState</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/SwapChain-05/"><code>SwapChain</code></a> </td><td>Represents a swap chain, i.e. a chain of multiple <a href="LiteFX/Rendering/IImage/"><code>IImage</code></a> instances, that can be presented to a <a href="LiteFX/Rendering/ISurface/"><code>ISurface</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/TimingEvent/"><code>TimingEvent</code></a> </td><td>An event that is used to measure timestamps in a command queue.</td></tr>
+<tr><td><a href="LiteFX/Rendering/VertexBuffer-09/"><code>VertexBuffer</code></a> </td><td>Describes a vertex buffer.</td></tr>
+<tr><td><a href="LiteFX/Rendering/VertexBufferLayoutBuilder-04/"><code>VertexBufferLayoutBuilder</code></a> </td><td>Builds a <a href="LiteFX/Rendering/IVertexBufferLayout/"><code>IVertexBufferLayout</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Viewport/"><code>Viewport</code></a> </td><td>Implements a viewport.</td></tr>
+<tr><td><a href="LiteFX/Rendering/VirtualAllocator/"><code>VirtualAllocator</code></a> </td><td>Represents a virtual allocator that manages memory distribution from a piece of raw memory.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="enums_2">Enums<a class="headerlink" href="#enums_2" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Rendering/AccelerationStructureFlags/"><code>AccelerationStructureFlags</code></a> </td><td>Controls how an acceleration structure should be built.</td></tr>
+<tr><td><a href="LiteFX/Rendering/AllocationAlgorithm/"><code>AllocationAlgorithm</code></a> </td><td>The allocation algorithm used by <a href="LiteFX/Rendering/VirtualAllocator/"><code>VirtualAllocator</code></a> "VirtualAllocators".</td></tr>
+<tr><td><a href="LiteFX/Rendering/AllocationBehavior/"><code>AllocationBehavior</code></a> </td><td>Controls the allocation behavior of <a href="LiteFX/Rendering/IGraphicsFactory/"><code>IGraphicsFactory</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/AllocationStrategy/"><code>AllocationStrategy</code></a> </td><td>The allocation strategy used by allocators (<a href="LiteFX/Rendering/IGraphicsFactory/"><code>IGraphicsFactory</code></a> and <a href="LiteFX/Rendering/VirtualAllocator/"><code>VirtualAllocator</code></a>) when allocating new chunks of memory.</td></tr>
+<tr><td><a href="LiteFX/Rendering/AttributeSemantic/"><code>AttributeSemantic</code></a> </td><td>Describes the semantic of a buffer attribute.</td></tr>
+<tr><td><a href="LiteFX/Rendering/BlendFactor/"><code>BlendFactor</code></a> </td><td>Specifies a blend factor.</td></tr>
+<tr><td><a href="LiteFX/Rendering/BlendOperation/"><code>BlendOperation</code></a> </td><td>Specifies a blend operation.</td></tr>
+<tr><td><a href="LiteFX/Rendering/BorderMode/"><code>BorderMode</code></a> </td><td>Describes how to treat texture coordinates that are outside the domain <code>[0..1]</code>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/BufferFormat/"><code>BufferFormat</code></a> </td><td>Describes a buffer attribute format.</td></tr>
+<tr><td><a href="LiteFX/Rendering/BufferType/"><code>BufferType</code></a> </td><td>Describes the type of a <a href="LiteFX/Rendering/IBuffer/"><code>IBuffer</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/CompareOperation/"><code>CompareOperation</code></a> </td><td>Describes the operation used to compare depth or stencil values during depth/stencil tests.</td></tr>
+<tr><td><a href="LiteFX/Rendering/CullMode/"><code>CullMode</code></a> </td><td>Describes which faces are culled by the <a href="LiteFX/Rendering/Rasterizer/"><code>Rasterizer</code></a> stage.</td></tr>
+<tr><td><a href="LiteFX/Rendering/CullOrder/"><code>CullOrder</code></a> </td><td>Describes the order or vertex winding, that is used to determine, whether a polygon is facing towards or away from the camera.</td></tr>
+<tr><td><a href="LiteFX/Rendering/DefragmentationStrategy/"><code>DefragmentationStrategy</code></a> </td><td>The strategy to apply to a defragmentation pass.</td></tr>
+<tr><td><a href="LiteFX/Rendering/DescriptorHeapType/"><code>DescriptorHeapType</code></a> </td><td>The target heap type for a descriptor.</td></tr>
+<tr><td><a href="LiteFX/Rendering/DescriptorType/"><code>DescriptorType</code></a> </td><td>Describes the type of a <a href="LiteFX/Rendering/IDescriptorLayout/"><code>IDescriptorLayout</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/FilterMode/"><code>FilterMode</code></a> </td><td>Describes the filter operation when accessing a pixel from a texture coordinate.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Format/"><code>Format</code></a> </td><td>Describes a texel format.</td></tr>
+<tr><td><a href="LiteFX/Rendering/GeometryFlags/"><code>GeometryFlags</code></a> </td><td>Controls how a geometry that is part of a bottom-level acceleration structure (BLAS) behaves during ray-tracing.</td></tr>
+<tr><td><a href="LiteFX/Rendering/GpuPreference/"><code>GpuPreference</code></a> </td><td>Provides a preference setting when selecting an adapter.</td></tr>
+<tr><td><a href="LiteFX/Rendering/GraphicsAdapterType/"><code>GraphicsAdapterType</code></a> </td><td>Defines different types of graphics adapters.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ImageDimensions/"><code>ImageDimensions</code></a> </td><td>Describes the dimensions of a image resource, i.e. the dimensions that are required to access a texel or describe the image extent.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ImageLayout/"><code>ImageLayout</code></a> </td><td>Specifies the layout of an <a href="LiteFX/Rendering/IImage/"><code>IImage</code></a> resource.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IndexType/"><code>IndexType</code></a> </td><td>Describes the element type of an index buffer.</td></tr>
+<tr><td><a href="LiteFX/Rendering/InstanceFlags/"><code>InstanceFlags</code></a> </td><td>Controls how an instance within a <a href="LiteFX/Rendering/ITopLevelAccelerationStructure/"><code>ITopLevelAccelerationStructure</code></a> behaves during ray-tracing.</td></tr>
+<tr><td><a href="LiteFX/Rendering/MipMapMode/"><code>MipMapMode</code></a> </td><td>Describes the filter operation between two mip-map levels.</td></tr>
+<tr><td><a href="LiteFX/Rendering/MultiSamplingLevel/"><code>MultiSamplingLevel</code></a> </td><td>Describes the number of samples with which a <a href="LiteFX/Rendering/IImage/"><code>IImage</code></a> is sampled.</td></tr>
+<tr><td><a href="LiteFX/Rendering/PipelineStage/"><code>PipelineStage</code></a> </td><td>Defines pipeline stages as points where synchronization may occur.</td></tr>
+<tr><td><a href="LiteFX/Rendering/PolygonMode/"><code>PolygonMode</code></a> </td><td>Describes the draw mode for polygons.</td></tr>
+<tr><td><a href="LiteFX/Rendering/PrimitiveTopology/"><code>PrimitiveTopology</code></a> </td><td>Describes the topology of a mesh primitive.</td></tr>
+<tr><td><a href="LiteFX/Rendering/QueuePriority/"><code>QueuePriority</code></a> </td><td>Specifies the priority with which a queue is scheduled on the GPU.</td></tr>
+<tr><td><a href="LiteFX/Rendering/QueueType/"><code>QueueType</code></a> </td><td>Represents the type of a <a href="LiteFX/Rendering/CommandQueue-0b/"><code>CommandQueue</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/RenderTargetFlags/"><code>RenderTargetFlags</code></a> </td><td>Describes the behavior of render targets.</td></tr>
+<tr><td><a href="LiteFX/Rendering/RenderTargetType/"><code>RenderTargetType</code></a> </td><td>Describes the type of a render target.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ResourceAccess/"><code>ResourceAccess</code></a> </td><td>Defines how a <a href="LiteFX/Rendering/IBuffer/"><code>IBuffer</code></a> or <a href="LiteFX/Rendering/IImage/"><code>IImage</code></a> resource is accessed.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ResourceHeap/"><code>ResourceHeap</code></a> </td><td>Defines where a resource (buffer or image) memory is located and from where it can be accessed.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ResourceUsage/"><code>ResourceUsage</code></a> </td><td>Describes the intended usage for a resource.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ShaderBindingGroup/"><code>ShaderBindingGroup</code></a> </td><td>Describes a group or combination of groups of a shader binding table.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ShaderRecordType/"><code>ShaderRecordType</code></a> </td><td>Describes the type of a shader module record within a shader collection or shader binting table.</td></tr>
+<tr><td><a href="LiteFX/Rendering/ShaderStage/"><code>ShaderStage</code></a> </td><td>Describes the valid shader stages of a graphics pipeline.</td></tr>
+<tr><td><a href="LiteFX/Rendering/StencilOperation/"><code>StencilOperation</code></a> </td><td>An operation that is applied to the stencil buffer.</td></tr>
+<tr><td><a href="LiteFX/Rendering/VertexBufferInputRate/"><code>VertexBufferInputRate</code></a> </td><td>The rate at which a vertex buffer of a certain <a href="LiteFX/Rendering/IVertexBufferLayout/"><code>IVertexBufferLayout</code></a> is made available for vertex shaders.</td></tr>
+<tr><td><a href="LiteFX/Rendering/WriteMask/"><code>WriteMask</code></a> </td><td>Specifies a write mask for a color buffer.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="functions_2">Functions<a class="headerlink" href="#functions_2" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Rendering/getBufferFormatChannelSize/"><code>getBufferFormatChannelSize</code></a> </td><td>Returns the number of bytes used by a channel of a buffer format.</td></tr>
+<tr><td><a href="LiteFX/Rendering/getBufferFormatChannels/"><code>getBufferFormatChannels</code></a> </td><td>Returns the number of channels for a buffer format.</td></tr>
+<tr><td><a href="LiteFX/Rendering/getBufferFormatType/"><code>getBufferFormatType</code></a> </td><td>Returns the underlying data type of a buffer format.</td></tr>
+<tr><td><a href="LiteFX/Rendering/getSize/"><code>getSize</code></a> </td><td>Returns the size of an element of a specified format.</td></tr>
+<tr><td><a href="LiteFX/Rendering/hasDepth/"><code>hasDepth</code></a> </td><td>Returns <code>true</code>, if the format contains a depth channel.</td></tr>
+<tr><td><a href="LiteFX/Rendering/hasStencil/"><code>hasStencil</code></a> </td><td>Returns <code>true</code>, if the format contains a stencil channel.</td></tr>
+<tr><td><a href="LiteFX/Rendering/operator_bitand-0d/"><code>operator&amp;</code></a> </td><td>Bitwise conjunction operators</td></tr>
+<tr><td><a href="LiteFX/Rendering/operator_and_eq-01/"><code>operator&amp;=</code></a> </td><td>Bitwise conjunction assignment operators</td></tr>
+<tr><td><a href="LiteFX/Rendering/operator_bitor-0e/"><code>operator|</code></a> </td><td>Bitwise disjunction operators</td></tr>
+<tr><td><a href="LiteFX/Rendering/operator_or_eq-07e/"><code>operator|=</code></a> </td><td>Bitwise disjunction assignment operators</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="variables_1">Variables<a class="headerlink" href="#variables_1" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Rendering/SHADER_RECORD_LOCAL_DATA_ALIGNMENT/"><code>SHADER_RECORD_LOCAL_DATA_ALIGNMENT</code></a> </td><td>The size (in bytes) to which shader record local data must be aligned.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="concepts_1">Concepts<a class="headerlink" href="#concepts_1" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Rendering/render_backend/"><code>render_backend</code></a> </td><td>Concept that can be used to refer to render backend implementations.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="using-namespace-directives_5">Using Namespace Directives<a class="headerlink" href="#using-namespace-directives_5" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/"><code>LiteFX</code></a> </td></tr>
+<tr><td><a href="LiteFX/Math/"><code>Math</code></a> </td></tr>
+</tbody>
+</table></div>
+
+<h2 id="litefxrenderingbackends-namespace"><a href="LiteFX/Rendering/Backends/">LiteFX::Rendering::Backends</a> namespace<a class="headerlink" href="#litefxrenderingbackends-namespace" title="Permanent link">&para;</a></h2>
+<h3 id="namespaces_4">Namespaces<a class="headerlink" href="#namespaces_4" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/"><code>DX12</code></a> </td><td>Contains conversion helpers for DirectX 12.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/"><code>Vk</code></a> </td><td>Contains conversion helpers for Vulkan.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="types_5">Types<a class="headerlink" href="#types_5" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12PlatformException/"><code>DX12PlatformException</code></a> </td><td>An exception that is thrown, if a requested D3D12 operation could not be executed.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12Backend/"><code>DirectX12Backend</code></a> </td><td>Implements the DirectX 12 <a href="LiteFX/Rendering/RenderBackend-0d/"><code>RenderBackend</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12Barrier/"><code>DirectX12Barrier</code></a> </td><td>Implements a DirectX 12 resource barrier.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12BarrierBuilder/"><code>DirectX12BarrierBuilder</code></a> </td><td>Builds a DirectX 12 <a href="LiteFX/Rendering/Barrier-00/"><code>Barrier</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12BottomLevelAccelerationStructure/"><code>DirectX12BottomLevelAccelerationStructure</code></a> </td><td>Implements a DirectX 12 bottom-level acceleration structure (BLAS).</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12CommandBuffer/"><code>DirectX12CommandBuffer</code></a> </td><td>Records commands for a <a href="LiteFX/Rendering/Backends/DirectX12Queue/"><code>DirectX12Queue</code></a></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12ComputePipeline/"><code>DirectX12ComputePipeline</code></a> </td><td>Implements a DirectX 12 <a href="LiteFX/Rendering/ComputePipeline-01/"><code>ComputePipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12ComputePipelineBuilder/"><code>DirectX12ComputePipelineBuilder</code></a> </td><td>Builds a DirectX 12 <a href="LiteFX/Rendering/ComputePipeline-01/"><code>ComputePipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12DescriptorLayout/"><code>DirectX12DescriptorLayout</code></a> </td><td>Implements a DirectX 12 <a href="LiteFX/Rendering/IDescriptorLayout/"><code>IDescriptorLayout</code></a></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12DescriptorSet/"><code>DirectX12DescriptorSet</code></a> </td><td>Implements a DirectX 12 <a href="LiteFX/Rendering/DescriptorSet-09/"><code>DescriptorSet</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12DescriptorSetLayout/"><code>DirectX12DescriptorSetLayout</code></a> </td><td>Implements a DirectX 12 <a href="LiteFX/Rendering/DescriptorSetLayout-03d/"><code>DescriptorSetLayout</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12DescriptorSetLayoutBuilder/"><code>DirectX12DescriptorSetLayoutBuilder</code></a> </td><td>Builds a <a href="LiteFX/Rendering/Backends/DirectX12DescriptorSetLayout/"><code>DirectX12DescriptorSetLayout</code></a> for a pipeline layout.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12Device/"><code>DirectX12Device</code></a> </td><td>Implements a DirectX 12 graphics device.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12FrameBuffer/"><code>DirectX12FrameBuffer</code></a> </td><td>Implements a DirectX 12 frame buffer.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12GraphicsAdapter/"><code>DirectX12GraphicsAdapter</code></a> </td><td>Implements a DirectX12 <a href="LiteFX/Rendering/IGraphicsAdapter/"><code>IGraphicsAdapter</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12GraphicsFactory/"><code>DirectX12GraphicsFactory</code></a> </td><td>A graphics factory that produces objects for a <a href="LiteFX/Rendering/Backends/DirectX12Device/"><code>DirectX12Device</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12Image/"><code>DirectX12Image</code></a> </td><td>Implements a DirectX12 <a href="LiteFX/Rendering/IImage/"><code>IImage</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12IndexBufferLayout/"><code>DirectX12IndexBufferLayout</code></a> </td><td>Implements a DirectX 12 index buffer layout.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12InputAssembler/"><code>DirectX12InputAssembler</code></a> </td><td>Implements the DirectX 12 input assembler state.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12InputAssemblerBuilder/"><code>DirectX12InputAssemblerBuilder</code></a> </td><td>Builds a <a href="LiteFX/Rendering/Backends/DirectX12InputAssembler/"><code>DirectX12InputAssembler</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12PipelineLayout/"><code>DirectX12PipelineLayout</code></a> </td><td>Implements a DirectX 12 <a href="LiteFX/Rendering/PipelineLayout-06/"><code>PipelineLayout</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12PipelineLayoutBuilder/"><code>DirectX12PipelineLayoutBuilder</code></a> </td><td>Builds a DirectX 12 <a href="LiteFX/Rendering/PipelineLayout-06/"><code>PipelineLayout</code></a> for a pipeline.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12PipelineState/"><code>DirectX12PipelineState</code></a> </td><td>Defines the base class for DirectX 12 pipeline state objects.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12PushConstantsLayout/"><code>DirectX12PushConstantsLayout</code></a> </td><td>Implements the DirectX 12 <a href="LiteFX/Rendering/PushConstantsLayout-06/"><code>PushConstantsLayout</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12PushConstantsLayoutBuilder/"><code>DirectX12PushConstantsLayoutBuilder</code></a> </td><td>Builds a DirectX 12 <a href="LiteFX/Rendering/PushConstantsLayout-06/"><code>PushConstantsLayout</code></a> for a pipeline layout.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12PushConstantsRange/"><code>DirectX12PushConstantsRange</code></a> </td><td>Implements the DirectX 12 <a href="LiteFX/Rendering/IPushConstantsRange/"><code>IPushConstantsRange</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12Queue/"><code>DirectX12Queue</code></a> </td><td>Implements a DirectX 12 command queue.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12Rasterizer/"><code>DirectX12Rasterizer</code></a> </td><td>Implements a DirectX 12 <a href="LiteFX/Rendering/IRasterizer/"><code>IRasterizer</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12RasterizerBuilder/"><code>DirectX12RasterizerBuilder</code></a> </td><td>Builds a DirectX 12 <a href="LiteFX/Rendering/IRasterizer/"><code>IRasterizer</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12RayTracingPipeline/"><code>DirectX12RayTracingPipeline</code></a> </td><td>Implements a DirectX 12 <a href="LiteFX/Rendering/RayTracingPipeline-09/"><code>RayTracingPipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12RayTracingPipelineBuilder/"><code>DirectX12RayTracingPipelineBuilder</code></a> </td><td>Builds a DirectX 12 <a href="LiteFX/Rendering/RayTracingPipeline-09/"><code>RayTracingPipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12RenderPass/"><code>DirectX12RenderPass</code></a> </td><td>Implements a DirectX 12 render pass.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12RenderPassBuilder/"><code>DirectX12RenderPassBuilder</code></a> </td><td>Implements the DirectX 12 <a href="LiteFX/Rendering/Backends/DirectX12RenderPassBuilder/RenderPassBuilder/"><code>RenderPassBuilder</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12RenderPipeline/"><code>DirectX12RenderPipeline</code></a> </td><td>Implements a DirectX 12 <a href="LiteFX/Rendering/RenderPipeline-0e/"><code>RenderPipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12RenderPipelineBuilder/"><code>DirectX12RenderPipelineBuilder</code></a> </td><td>Builds a DirectX 12 <a href="LiteFX/Rendering/RenderPipeline-0e/"><code>RenderPipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12ShaderModule/"><code>DirectX12ShaderModule</code></a> </td><td>Implements a DirectX 12 <a href="LiteFX/Rendering/IShaderModule/"><code>IShaderModule</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12ShaderProgram/"><code>DirectX12ShaderProgram</code></a> </td><td>Implements a DirectX 12 <a href="LiteFX/Rendering/ShaderProgram-05/"><code>ShaderProgram</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12ShaderProgramBuilder/"><code>DirectX12ShaderProgramBuilder</code></a> </td><td>Builds a DirectX 12 <a href="LiteFX/Rendering/ShaderProgram-05/"><code>ShaderProgram</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12Surface/"><code>DirectX12Surface</code></a> </td><td>Implements a DirectX12 <a href="LiteFX/Rendering/ISurface/"><code>ISurface</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12SwapChain/"><code>DirectX12SwapChain</code></a> </td><td>Implements a DirectX 12 swap chain.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12TopLevelAccelerationStructure/"><code>DirectX12TopLevelAccelerationStructure</code></a> </td><td>Implements a DirectX 12 top-level acceleration structure (TLAS).</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12VertexBufferLayout/"><code>DirectX12VertexBufferLayout</code></a> </td><td>Implements a DirectX 12 vertex buffer layout.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12VertexBufferLayoutBuilder/"><code>DirectX12VertexBufferLayoutBuilder</code></a> </td><td>Builds a see <a href="LiteFX/Rendering/Backends/DirectX12VertexBufferLayout/"><code>DirectX12VertexBufferLayout</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/IDirectX12AccelerationStructure/"><code>IDirectX12AccelerationStructure</code></a> </td><td>Represents the base interface for a DirectX 12 acceleration structure implementation.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/IDirectX12Buffer/"><code>IDirectX12Buffer</code></a> </td><td>Represents the base interface for a DirectX 12 buffer implementation.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/IDirectX12Image/"><code>IDirectX12Image</code></a> </td><td>Represents a DirectX 12 sampled image or the base interface for a texture.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/IDirectX12IndexBuffer/"><code>IDirectX12IndexBuffer</code></a> </td><td>Represents a DirectX 12 index buffer.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/IDirectX12Sampler/"><code>IDirectX12Sampler</code></a> </td><td>Represents a DirectX 12 sampler.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/IDirectX12VertexBuffer/"><code>IDirectX12VertexBuffer</code></a> </td><td>Represents a DirectX 12 vertex buffer.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/IVulkanAccelerationStructure/"><code>IVulkanAccelerationStructure</code></a> </td><td>Represents the base interface for a Vulkan acceleration structure implementation.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/IVulkanBuffer/"><code>IVulkanBuffer</code></a> </td><td>Represents the base interface for a Vulkan buffer implementation.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/IVulkanImage/"><code>IVulkanImage</code></a> </td><td>Represents a Vulkan sampled image or the base interface for a texture.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/IVulkanIndexBuffer/"><code>IVulkanIndexBuffer</code></a> </td><td>Represents a Vulkan index buffer.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/IVulkanSampler/"><code>IVulkanSampler</code></a> </td><td>Represents a Vulkan sampler.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/IVulkanVertexBuffer/"><code>IVulkanVertexBuffer</code></a> </td><td>Represents a Vulkan vertex buffer.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanBackend/"><code>VulkanBackend</code></a> </td><td>Defines a rendering backend that creates a Vulkan device.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanBarrier/"><code>VulkanBarrier</code></a> </td><td>Implements a Vulkan resource barrier.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanBarrierBuilder/"><code>VulkanBarrierBuilder</code></a> </td><td>Builds a Vulkan <a href="LiteFX/Rendering/Barrier-00/"><code>Barrier</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanBottomLevelAccelerationStructure/"><code>VulkanBottomLevelAccelerationStructure</code></a> </td><td>Implements a Vulkan bottom-level acceleration structure (BLAS).</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanCommandBuffer/"><code>VulkanCommandBuffer</code></a> </td><td>Records commands for a <a href="LiteFX/Rendering/Backends/VulkanQueue/"><code>VulkanQueue</code></a></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanComputePipeline/"><code>VulkanComputePipeline</code></a> </td><td>Implements a Vulkan <a href="LiteFX/Rendering/ComputePipeline-01/"><code>ComputePipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanComputePipelineBuilder/"><code>VulkanComputePipelineBuilder</code></a> </td><td>Builds a Vulkan <a href="LiteFX/Rendering/ComputePipeline-01/"><code>ComputePipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanDescriptorLayout/"><code>VulkanDescriptorLayout</code></a> </td><td>Implements a Vulkan <a href="LiteFX/Rendering/IDescriptorLayout/"><code>IDescriptorLayout</code></a></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanDescriptorSet/"><code>VulkanDescriptorSet</code></a> </td><td>Implements a Vulkan <a href="LiteFX/Rendering/DescriptorSet-09/"><code>DescriptorSet</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanDescriptorSetLayout/"><code>VulkanDescriptorSetLayout</code></a> </td><td>Implements a Vulkan <a href="LiteFX/Rendering/DescriptorSetLayout-03d/"><code>DescriptorSetLayout</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanDescriptorSetLayoutBuilder/"><code>VulkanDescriptorSetLayoutBuilder</code></a> </td><td>Builds a <a href="LiteFX/Rendering/Backends/VulkanDescriptorSetLayout/"><code>VulkanDescriptorSetLayout</code></a> for a <a href="LiteFX/Rendering/Backends/VulkanPipelineLayout/"><code>VulkanPipelineLayout</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanDevice/"><code>VulkanDevice</code></a> </td><td>Implements a Vulkan graphics device.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanFrameBuffer/"><code>VulkanFrameBuffer</code></a> </td><td>Implements a Vulkan frame buffer.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanGraphicsAdapter/"><code>VulkanGraphicsAdapter</code></a> </td><td>Represents a Vulkan <a href="LiteFX/Rendering/IGraphicsAdapter/"><code>IGraphicsAdapter</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanGraphicsFactory/"><code>VulkanGraphicsFactory</code></a> </td><td>A graphics factory that produces objects for a <a href="LiteFX/Rendering/Backends/VulkanDevice/"><code>VulkanDevice</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanImage/"><code>VulkanImage</code></a> </td><td>Implements a Vulkan <a href="LiteFX/Rendering/IImage/"><code>IImage</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanIndexBufferLayout/"><code>VulkanIndexBufferLayout</code></a> </td><td>Implements a Vulkan index buffer layout.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanInputAssembler/"><code>VulkanInputAssembler</code></a> </td><td>Implements the Vulkan input assembler state.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanInputAssemblerBuilder/"><code>VulkanInputAssemblerBuilder</code></a> </td><td>Builds a <a href="LiteFX/Rendering/Backends/VulkanInputAssembler/"><code>VulkanInputAssembler</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanPipelineLayout/"><code>VulkanPipelineLayout</code></a> </td><td>Implements a Vulkan <a href="LiteFX/Rendering/PipelineLayout-06/"><code>PipelineLayout</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanPipelineLayoutBuilder/"><code>VulkanPipelineLayoutBuilder</code></a> </td><td>Builds a Vulkan <a href="LiteFX/Rendering/PipelineLayout-06/"><code>PipelineLayout</code></a> for a pipeline.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanPipelineState/"><code>VulkanPipelineState</code></a> </td><td>Defines the base class for Vulkan pipeline state objects.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanPlatformException/"><code>VulkanPlatformException</code></a> </td><td>An exception that is thrown, if a requested Vulkan operation could not be executed.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanPushConstantsLayout/"><code>VulkanPushConstantsLayout</code></a> </td><td>Implements the Vulkan <a href="LiteFX/Rendering/PushConstantsLayout-06/"><code>PushConstantsLayout</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanPushConstantsLayoutBuilder/"><code>VulkanPushConstantsLayoutBuilder</code></a> </td><td>Builds a Vulkan <a href="LiteFX/Rendering/PushConstantsLayout-06/"><code>PushConstantsLayout</code></a> for a <a href="LiteFX/Rendering/Backends/VulkanPipelineLayout/"><code>VulkanPipelineLayout</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanPushConstantsRange/"><code>VulkanPushConstantsRange</code></a> </td><td>Implements the Vulkan <a href="LiteFX/Rendering/IPushConstantsRange/"><code>IPushConstantsRange</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanQueue/"><code>VulkanQueue</code></a> </td><td>Implements a Vulkan command queue.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanRasterizer/"><code>VulkanRasterizer</code></a> </td><td>Implements a Vulkan <a href="LiteFX/Rendering/IRasterizer/"><code>IRasterizer</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanRasterizerBuilder/"><code>VulkanRasterizerBuilder</code></a> </td><td>Builds a Vulkan <a href="LiteFX/Rendering/IRasterizer/"><code>IRasterizer</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanRayTracingPipeline/"><code>VulkanRayTracingPipeline</code></a> </td><td>Implements a Vulkan <a href="LiteFX/Rendering/RayTracingPipeline-09/"><code>RayTracingPipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanRayTracingPipelineBuilder/"><code>VulkanRayTracingPipelineBuilder</code></a> </td><td>Builds a Vulkan <a href="LiteFX/Rendering/RayTracingPipeline-09/"><code>RayTracingPipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanRenderPass/"><code>VulkanRenderPass</code></a> </td><td>Implements a Vulkan render pass.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanRenderPassBuilder/"><code>VulkanRenderPassBuilder</code></a> </td><td>Implements the Vulkan <a href="LiteFX/Rendering/Backends/VulkanRenderPassBuilder/RenderPassBuilder/"><code>RenderPassBuilder</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanRenderPipeline/"><code>VulkanRenderPipeline</code></a> </td><td>Implements a Vulkan <a href="LiteFX/Rendering/RenderPipeline-0e/"><code>RenderPipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanRenderPipelineBuilder/"><code>VulkanRenderPipelineBuilder</code></a> </td><td>Builds a Vulkan <a href="LiteFX/Rendering/RenderPipeline-0e/"><code>RenderPipeline</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanShaderModule/"><code>VulkanShaderModule</code></a> </td><td>Implements a Vulkan <a href="LiteFX/Rendering/IShaderModule/"><code>IShaderModule</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanShaderProgram/"><code>VulkanShaderProgram</code></a> </td><td>Implements a Vulkan <a href="LiteFX/Rendering/ShaderProgram-05/"><code>ShaderProgram</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanShaderProgramBuilder/"><code>VulkanShaderProgramBuilder</code></a> </td><td>Builds a Vulkan <a href="LiteFX/Rendering/ShaderProgram-05/"><code>ShaderProgram</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanSurface/"><code>VulkanSurface</code></a> </td><td>Represents a Vulkan <a href="LiteFX/Rendering/ISurface/"><code>ISurface</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanSwapChain/"><code>VulkanSwapChain</code></a> </td><td>Implements a Vulkan swap chain.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanTopLevelAccelerationStructure/"><code>VulkanTopLevelAccelerationStructure</code></a> </td><td>Implements a Vulkan top-level acceleration structure (TLAS).</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanVertexBufferLayout/"><code>VulkanVertexBufferLayout</code></a> </td><td>Implements a Vulkan vertex buffer layout.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanVertexBufferLayoutBuilder/"><code>VulkanVertexBufferLayoutBuilder</code></a> </td><td>Builds a see <a href="LiteFX/Rendering/Backends/VulkanVertexBufferLayout/"><code>VulkanVertexBufferLayout</code></a>.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="type-aliases_3">Type Aliases<a class="headerlink" href="#type-aliases_3" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Rendering/Backends/ComResource/"><code>ComResource</code></a> </td><td>A resource that is hold by a <code>ComPtr</code>.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="functions_3">Functions<a class="headerlink" href="#functions_3" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Rendering/Backends/raiseIfFailed-01/"><code>raiseIfFailed</code></a> </td><td><code>raiseIfFailed</code> overloads</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="variables_2">Variables<a class="headerlink" href="#variables_2" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Rendering/Backends/DIRECTX12_LOG/"><code>DIRECTX12_LOG</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VULKAN_LOG/"><code>VULKAN_LOG</code></a> </td></tr>
+</tbody>
+</table></div>
+
+<h3 id="using-namespace-directives_6">Using Namespace Directives<a class="headerlink" href="#using-namespace-directives_6" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Math/"><code>Math</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/"><code>Rendering</code></a> </td></tr>
+</tbody>
+</table></div>
+
+<h2 id="litefxrenderingbackendsdx12-namespace"><a href="LiteFX/Rendering/Backends/DX12/">LiteFX::Rendering::Backends::DX12</a> namespace<a class="headerlink" href="#litefxrenderingbackendsdx12-namespace" title="Permanent link">&para;</a></h2>
+<p>Contains conversion helpers for DirectX 12.</p>
+<h3 id="functions_4">Functions<a class="headerlink" href="#functions_4" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/getBlendFactor/"><code>getBlendFactor</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/getBlendOperation/"><code>getBlendOperation</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/getCompareOp/"><code>getCompareOp</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/getCullMode-0e/"><code>getCullMode</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/getFormat-057/"><code>getFormat</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/getImageLayout/"><code>getImageLayout</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/getImageType/"><code>getImageType</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/getPatchListControlPoints/"><code>getPatchListControlPoints</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/getPipelineStage/"><code>getPipelineStage</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/getPolygonMode-04/"><code>getPolygonMode</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/getPrimitiveTopology-05/"><code>getPrimitiveTopology</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/getPrimitiveTopologyType/"><code>getPrimitiveTopologyType</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/getResourceAccess/"><code>getResourceAccess</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/getSemanticName/"><code>getSemanticName</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/getStencilOp/"><code>getStencilOp</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/getVendorName/"><code>getVendorName</code></a> </td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DX12/isSRGB/"><code>isSRGB</code></a> </td></tr>
+</tbody>
+</table></div>
+
+<h2 id="litefxrenderingbackendsvk-namespace"><a href="LiteFX/Rendering/Backends/Vk/">LiteFX::Rendering::Backends::Vk</a> namespace<a class="headerlink" href="#litefxrenderingbackendsvk-namespace" title="Permanent link">&para;</a></h2>
+<p>Contains conversion helpers for Vulkan.</p>
+<h3 id="functions_5">Functions<a class="headerlink" href="#functions_5" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/getBlendFactor/"><code>getBlendFactor</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/getBlendOperation/"><code>getBlendOperation</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/getCompareOp/"><code>getCompareOp</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/getCullMode-0c/"><code>getCullMode</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/getFormat-0a/"><code>getFormat</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/getImageLayout/"><code>getImageLayout</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/getImageType/"><code>getImageType</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/getImageViewType/"><code>getImageViewType</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/getPipelineStage/"><code>getPipelineStage</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/getPolygonMode-04/"><code>getPolygonMode</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/getPrimitiveTopology-06/"><code>getPrimitiveTopology</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/getResourceAccess/"><code>getResourceAccess</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/getSamples-02/"><code>getSamples</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/getShaderStage-0e/"><code>getShaderStage</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/getStencilOp/"><code>getStencilOp</code></a> </td><td></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/Vk/handleAddress-01/"><code>handleAddress</code></a> </td><td><code>handleAddress</code> overloads</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="litefxmeta-namespace"><a href="LiteFX/meta/">LiteFX::meta</a> namespace<a class="headerlink" href="#litefxmeta-namespace" title="Permanent link">&para;</a></h2>
+<p>Contains type traits and meta-programming features for compile-time evaluation.</p>
+<h3 id="types_6">Types<a class="headerlink" href="#types_6" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/meta/has_builder_t-07/"><code>has_builder_t</code></a> </td><td>Trait that is evaluated, if a class does not have an builder member type defined.</td></tr>
+<tr><td><a href="LiteFX/meta/is_explicitly_constructible_t/"><code>is_explicitly_constructible_t</code></a> </td><td>Evaluates to either <code>true</code> or <code>false</code>, if <code>T</code> can be constructed using the provided arguments, whilst not being able to be converted from <code>TArg.</code></td></tr>
+<tr><td><a href="LiteFX/meta/is_implicitly_constructible_t/"><code>is_implicitly_constructible_t</code></a> </td><td>Evaluates to either <code>true</code> or <code>false</code>, if <code>T</code> can be constructed using the provided arguments and at the same time can also be converted from <code>TArg.</code></td></tr>
+</tbody>
+</table></div>
+
+<h3 id="variables_3">Variables<a class="headerlink" href="#variables_3" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/meta/has_builder_v/"><code>has_builder_v</code></a> </td><td>Evaluates to either <code>true</code> or <code>false</code>, if <code>T</code> contains an builder member definition.</td></tr>
+<tr><td><a href="LiteFX/meta/is_explicitly_constructible_v/"><code>is_explicitly_constructible_v</code></a> </td><td>Evalues to <code>true</code> or <code>false</code>, depending if <code>T</code> contains an explicit constructor that takes <code>TArg</code> and <code>TArgs</code> as arguments.</td></tr>
+<tr><td><a href="LiteFX/meta/is_implicitly_constructible_v/"><code>is_implicitly_constructible_v</code></a> </td><td>Evalues to <code>true</code> or <code>false</code>, depending if <code>T</code> contains an implicit constructor that takes <code>TArg</code> and <code>TArgs</code> as arguments.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="concepts_2">Concepts<a class="headerlink" href="#concepts_2" title="Permanent link">&para;</a></h3>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="LiteFX/meta/are_same/"><code>are_same</code></a> </td><td>Checks if a set of types are all equal to the type <code>T.</code></td></tr>
+<tr><td><a href="LiteFX/meta/has_builder/"><code>has_builder</code></a> </td><td>Checks if a type contains a builder.</td></tr>
+<tr><td><a href="LiteFX/meta/implements/"><code>implements</code></a> </td><td>Checks if a type <code>TDerived</code> is derived from another type <code>TBase</code> and is non-abstract.</td></tr>
+<tr><td><a href="LiteFX/meta/is_explicitly_constructible/"><code>is_explicitly_constructible</code></a> </td><td>Checks if a type can be constructed using the provided arguments, whilst not being able to be converted from <code>TArg.</code></td></tr>
+<tr><td><a href="LiteFX/meta/is_implicitly_constructible/"><code>is_implicitly_constructible</code></a> </td><td>Checks if a type can be constructed using the provided arguments and at the same time can also be converted from <code>TArg.</code></td></tr>
+</tbody>
+</table></div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../tutorials/first-triangle/drawing/" class="md-footer__link md-footer__link--prev" aria-label="Previous: 6. Drawing">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                6. Drawing
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="LiteFX/" class="md-footer__link md-footer__link--next" aria-label="Next: LiteFX">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                LiteFX
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; Carsten Rudolph
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/crud89/LiteFX" target="_blank" rel="noopener" title="Source code on GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:me@crudolph.io" target="_blank" rel="noopener" title="Reach out to the author" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l208 156a48 48 0 0 0 57.6 0l208-156c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 196v188c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V196L313.6 344.8c-34.1 25.6-81.1 25.6-115.2 0z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://www.crudolph.io" target="_blank" rel="noopener" title="Visit the author&#39;s website" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M351.9 280H161c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zm-191-48h190.9c-2.8-64.5-17.1-123.9-37.4-167.4-11.4-24.4-23.7-41.8-35.1-52.4C268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4m-48 0c3.5-85.6 25.6-165.1 57.9-217.3C78.7 47.3 10.9 131.2 1.5 232zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3zm111.4-48C501.9 131.2 434.1 47.3 342 14.7c32.3 52.2 54.4 131.7 57.9 217.3z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.path", "navigation.prune", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow", "toc.integrate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

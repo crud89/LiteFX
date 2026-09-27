@@ -1,0 +1,52 @@
+/* ==================================================================================================================================================
+   Self-hosted fonts (no requests to Google Fonts). Both fonts are licensed under the SIL Open Font License 1.1, see the LICENSE.txt files next to
+   the font files in assets/fonts/.
+   ================================================================================================================================================ */
+
+/* Inter 4.1 (https://github.com/rsms/inter): variable fonts, covering all weights. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../assets/fonts/inter/InterVariable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../assets/fonts/inter/InterVariable-Italic.woff2") format("woff2");
+}
+
+/* JetBrains Mono 2.304 (https://github.com/JetBrains/JetBrainsMono): the styles used for code. */
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../assets/fonts/jetbrains-mono/JetBrainsMono-Bold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/jetbrains-mono/JetBrainsMono-Italic.woff2") format("woff2");
+}
+
+/* Material uses these variables when `theme.font` is disabled in mkdocs.yml. The system fonts are used as fallbacks. */
+:root {
+  --md-text-font: "Inter";
+  --md-code-font: "JetBrains Mono";
+}
