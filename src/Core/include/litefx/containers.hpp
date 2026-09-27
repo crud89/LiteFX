@@ -945,7 +945,7 @@ namespace LiteFX {
 
 	private:
 		template <typename Self>
-		static constexpr bool supports_static_cast = requires (SharedObject * p) { static_cast<Self*>(p); };
+		static constexpr bool supports_static_cast = requires (SharedObject * p) { static_cast<Self*>(p); }; // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
 
 	public:
 		/// @brief Returns a shared pointer to the current object instance.
