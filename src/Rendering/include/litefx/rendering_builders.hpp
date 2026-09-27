@@ -422,6 +422,13 @@ namespace LiteFX::Rendering {
         [[nodiscard]] constexpr auto withTaskShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
             return std::forward<TSelf>(self).withShaderModule(ShaderStage::Task, fileName, entryPoint);
         }
+
+        /// @copydoc withTaskShaderModule(this TSelf&&, const String&, const String&)
+        template<typename TSelf>
+        [[nodiscard]] constexpr auto withAmplificationShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self).withShaderModule(ShaderStage::Amplification, fileName, entryPoint);
+        }
+
         /// @brief Adds a task shader module to the program.
         ///
         /// This method is only supported if the @ref GraphicsDeviceFeature::MeshShaders feature is enabled.
@@ -432,6 +439,12 @@ namespace LiteFX::Rendering {
         template<typename TSelf>
         [[nodiscard]] constexpr auto withTaskShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
             return std::forward<TSelf>(self).withShaderModule(ShaderStage::Task, stream, name, entryPoint);
+        }
+
+        /// @copydoc withTaskShaderModule(this TSelf&&, std::istream& stream, const String&, const String&)
+        template<typename TSelf>
+        [[nodiscard]] constexpr auto withAmplificationShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self).withShaderModule(ShaderStage::Amplification, stream, name, entryPoint);
         }
 
         /// @brief Adds a mesh shader module to the program.
@@ -466,6 +479,12 @@ namespace LiteFX::Rendering {
             return std::forward<TSelf>(self).withShaderModule(ShaderStage::TessellationControl, fileName, entryPoint);
         }
 
+        /// @copydoc withTessellationControlShaderModule(this TSelf&&, const String&, const String&)
+        template<typename TSelf>
+        [[nodiscard]] constexpr auto withDomainShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self).withShaderModule(ShaderStage::Domain, fileName, entryPoint);
+        }
+
         /// @brief Adds a tessellation control shader module to the program.
         ///
         /// @param stream The file stream of the module.
@@ -474,6 +493,12 @@ namespace LiteFX::Rendering {
         template<typename TSelf>
         [[nodiscard]] constexpr auto withTessellationControlShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
             return std::forward<TSelf>(self).withShaderModule(ShaderStage::TessellationControl, stream, name, entryPoint);
+        }
+
+        /// @copydoc withTessellationControlShaderModule(this TSelf&&, std::istream&, const String&, const String&)
+        template<typename TSelf>
+        [[nodiscard]] constexpr auto withDomainShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self).withShaderModule(ShaderStage::Domain, stream, name, entryPoint);
         }
 
         /// @brief Adds a tessellation evaluation shader module to the program.
@@ -485,6 +510,12 @@ namespace LiteFX::Rendering {
             return std::forward<TSelf>(self).withShaderModule(ShaderStage::TessellationEvaluation, fileName, entryPoint);
         }
 
+        /// @copydoc withTessellationEvaluationShaderModule(this TSelf&&, const String&, const String&)
+        template<typename TSelf>
+        [[nodiscard]] constexpr auto withHullShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self).withShaderModule(ShaderStage::Hull, fileName, entryPoint);
+        }
+
         /// @brief Adds a tessellation evaluation shader module to the program.
         ///
         /// @param stream The file stream of the module.
@@ -493,6 +524,12 @@ namespace LiteFX::Rendering {
         template<typename TSelf>
         [[nodiscard]] constexpr auto withTessellationEvaluationShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
             return std::forward<TSelf>(self).withShaderModule(ShaderStage::TessellationEvaluation, stream, name, entryPoint);
+        }
+
+        /// @copydoc withTessellationEvaluationShaderModule(this TSelf&&, std::istream&, const String&, const String&)
+        template<typename TSelf>
+        [[nodiscard]] constexpr auto withHullShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self).withShaderModule(ShaderStage::Hull, stream, name, entryPoint);
         }
 
         /// @brief Adds a geometry shader module to the program.
@@ -523,6 +560,12 @@ namespace LiteFX::Rendering {
             return std::forward<TSelf>(self).withShaderModule(ShaderStage::Fragment, fileName, entryPoint);
         }
 
+        /// @copyDoc withFragmentShaderModule(this TSelf&&, const String&, const String&)
+        template<typename TSelf>
+        [[nodiscard]] constexpr auto withPixelShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self).withShaderModule(ShaderStage::Pixel, fileName, entryPoint);
+        }
+
         /// @brief Adds a fragment shader module to the program.
         ///
         /// @param stream The file stream of the module.
@@ -531,6 +574,12 @@ namespace LiteFX::Rendering {
         template<typename TSelf>
         [[nodiscard]] constexpr auto withFragmentShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
             return std::forward<TSelf>(self).withShaderModule(ShaderStage::Fragment, stream, name, entryPoint);
+        }
+
+        /// @copyDoc withFragmentShaderModule(this TSelf&&, std::istream&, const String&, const String&)
+        template<typename TSelf>
+        [[nodiscard]] constexpr auto withPixelShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self).withShaderModule(ShaderStage::Pixel, stream, name, entryPoint);
         }
 
         /// @brief Adds a compute shader module to the program.

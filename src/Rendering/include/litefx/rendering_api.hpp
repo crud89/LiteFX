@@ -755,8 +755,14 @@ namespace LiteFX::Rendering {
         /// @brief Represents the tessellation control or hull shader stage.
         TessellationControl = 0x00000002,
 
+        /// @copydoc TessellationControl
+        Hull = 0x00000002,
+
         /// @brief Represents the tessellation evaluation or domain shader stage.
         TessellationEvaluation = 0x00000004,
+
+        /// @copydoc TessellationEvaluation
+        Domain = 0x00000004,
 
         /// @brief Represents the geometry shader stage.
         ///
@@ -766,11 +772,17 @@ namespace LiteFX::Rendering {
         /// @brief Represents the fragment or pixel shader stage.
         Fragment = 0x00000010,
 
+        /// @copydoc Fragment
+        Pixel = 0x00000010,
+
         /// @brief Represents the compute shader stage.
         Compute = 0x00000020,
 
         /// @brief Represents the task or amplification shader stage.
         Task = 0x00000040,
+
+        /// @copydoc Task
+        Amplification = 0x00000040,
 
         /// @brief Represents the mesh shader stage.
         Mesh = 0x00000080,
@@ -1162,10 +1174,16 @@ namespace LiteFX::Rendering {
         /// Translates to `VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
         TessellationControl = 0x00000008,
 
+        /// @copydoc TessellationControl
+        Hull = 0x00000008,
+
         /// @brief Waits for previous commands to finish the tessellation evaluation/domain shader stage, or blocks following commands until the tessellation evaluation/domain shader stage has finished.
         ///
         /// Translates to `VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
         TessellationEvaluation = 0x00000010,
+       
+        /// @copydoc TessellationEvaluation
+        Domain = 0x00000010,
 
         /// @brief Waits for previous commands to finish the geometry shader stage, or blocks following commands until the geometry shader stage has finished.
         ///
@@ -1176,6 +1194,9 @@ namespace LiteFX::Rendering {
         ///
         /// Translates to `VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_PIXEL_SHADING` in DirectX 12 ❎.
         Fragment = 0x00000040,
+
+        /// @copydoc Fragment
+        Pixel = 0x00000040,
 
         /// @brief Waits for previous commands to finish the depth/stencil stage, or blocks following commands until the depth/stencil stage has finished.
         ///
