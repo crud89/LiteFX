@@ -363,7 +363,7 @@ public:
 
 namespace D3D 
 {
-	/// @brief Raises a @ref DirectX12PlatformException, if @p hr does not equal `S_OK`.
+	/// @brief Raises a @ref DX12PlatformException, if @p hr does not equal `S_OK`.
 	///
 	/// @param hr The error code returned by the operation.
 	/// @param message The format string for the error message.

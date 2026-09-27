@@ -364,7 +364,7 @@ namespace LiteFX::Rendering {
         Unknown = 0x7FFFFFFF
     };
 
-    /// @brief Describes the type of a @ref IDescriptor.
+    /// @brief Describes the type of a @ref IDescriptorLayout.
     ///
     /// Note that, while in theory you can declare a writable descriptor in any format, the rendering back-end might not necessarily support writing in a specific format.
     ///
@@ -378,11 +378,11 @@ namespace LiteFX::Rendering {
 
         /// @brief A shader storage buffer object in Vulkan. Maps to a structured buffer in DirectX.
         ///
-        /// A storage buffer is read-only by default. If you want to create a writable storage buffer, use @ref WritableStorage instead.
+        /// A storage buffer is read-only by default. If you want to create a writable storage buffer, use @ref RWStructuredBuffer instead.
         ///
         /// In GLSL, use the `buffer` keyword to access storage buffers. In HLSL, use the `StructuredBuffer` keyword.
         ///
-        /// The difference between @ref Uniform and storage buffers is, that storage buffers can have variable length. However, they are typically less efficient.
+        /// The difference between @ref ConstantBuffer and storage buffers is, that storage buffers can have variable length. However, they are typically less efficient.
         StructuredBuffer = 0x00000002,
 
         /// @brief A writable shader storage object in Vulkan. Maps to a read/write structured buffer in DirectX.
@@ -395,7 +395,7 @@ namespace LiteFX::Rendering {
 
         /// @brief A read-only sampled image.
         ///
-        /// Textures are read-only by default. If you want to create a writable texture, use the @ref WritableTexture instead.
+        /// Textures are read-only by default. If you want to create a writable texture, use the @ref RWTexture instead.
         ///
         /// In GLSL, use the `uniform texture` keywords to access the texture. In HLSL, use the `Texture` keywords.
         ///
@@ -439,10 +439,10 @@ namespace LiteFX::Rendering {
         /// @brief Special descriptor type, that can bind all resources besides constant buffers, acceleration structures and samplers, which then can be directly indexed from the global resource heap.
         ///
         /// This descriptor type does not directly map to an underlying resource type and instead denotes a descriptor binding, that accepts any resource descriptor besides constant buffers and acceleration
-        /// structures. Samplers are also disallowed, as they need to be bound to a descriptor of the @ref GlobalSamplerHeap type. The existence of such a descriptor as a part of a descriptor set, indicates that
-        /// the pipeline layout uses direct descriptor indexing (see @ref IPipelineLayout::directlyIndexResources). A descriptor set containing a descriptor of this type does not allocate any space on the
-        /// respective global descriptor heap. Instead, it acts as a proxy set, that binds any of the aforementioned buffers. When binding to this descriptor, a single uncached descriptor address will be
-        /// allocated for the resource on the global descriptor heap. On the shader side, this descriptor can be retrieved by calling the @ref IDescriptorSet::bindToHeap method.
+        /// structures. Samplers are also disallowed, as they need to be bound to a descriptor of the @ref SamplerDescriptorHeap type. The existence of such a descriptor as a part of a descriptor set, indicates 
+        /// that the pipeline layout uses direct descriptor indexing. A descriptor set containing a descriptor of this type does not allocate any space on the respective global descriptor heap. Instead, it acts 
+        /// as a proxy set, that binds any of the aforementioned buffers. When binding to this descriptor, a single uncached descriptor address will be allocated for the resource on the global descriptor heap. 
+        /// On the shader side, this descriptor can be retrieved by calling the @ref IDescriptorSet::bindToHeap method.
         ///
         /// As there's no underlying descriptor set or binding when using this descriptor type, you should only ever have on descriptor of this type in a @ref IPipelineLayout. In the DirectX 12 backend, it is
         /// sufficient to have a descriptor of this type in a pipeline to access any descriptor on the global resource heap. In Vulkan, this descriptor type creates a descriptor set containing an unbounded
@@ -452,17 +452,17 @@ namespace LiteFX::Rendering {
         /// alternative approaches, like multiple unbounded descriptor arrays first. Directly indexing into the global descriptor heap this way can be beneficial, if it allows you to re-use the same pipeline
         /// state where you would otherwise have to switch between multiple states, however, especially in combination with indirect drawing.
         ///
-        /// @see DescriptorType::GlobalSamplerHeap
-        /// @see GraphicsDeviceFeature::DynamicDescriptors
+        /// @see DescriptorType::SamplerDescriptorHeap
+        /// @see GraphicsDeviceFeatures::DynamicDescriptors
         ResourceDescriptorHeap = 0x00000009,
 
         /// @brief A special descriptor type that allows indexed access to the a portion of the global sampler heap.
         ///
-        /// This descriptor type is equivalent to @ref DescriptorType::GlobalResourceHeap, except that it enables access to the global sampler heap instead. The same conceptual design as for the resource heap
-        /// applies here, with the same limitations, listed in the remarks for the `GlobalResourceHeap` descriptor type.
+        /// This descriptor type is equivalent to @ref DescriptorType::ResourceDescriptorHeap, except that it enables access to the global sampler heap instead. The same conceptual design as for the resource heap
+        /// applies here, with the same limitations, listed in the remarks for the `ResourceDescriptorHeap` descriptor type.
         ///
-        /// @see DescriptorType::GlobalResourceHeap
-        /// @see GraphicsDeviceFeature::DynamicDescriptors
+        /// @see DescriptorType::ResourceDescriptorHeap
+        /// @see GraphicsDeviceFeatures::DynamicDescriptors
         SamplerDescriptorHeap = 0x0000000A
     };
 
@@ -642,7 +642,7 @@ namespace LiteFX::Rendering {
         DontExpandCache = 0x02
     };
 
-    /// @brief The allocation algorithm used by @ref VirtualAllocators.
+    /// @brief The allocation algorithm used by @ref VirtualAllocator "VirtualAllocators".
     enum class AllocationAlgorithm : UInt32 {
         /// @brief The default algorithm without any constraints on the memory layout.
         Default = 0x01,
@@ -1404,7 +1404,7 @@ namespace LiteFX::Rendering {
         ///
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_PRESENT` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR` in the Vulkan 🌋 backend.
         ///
-        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by @ref RenderPasses.
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by @ref RenderPass "RenderPasses".
         Present = 0x00000023,
 
         /// @brief Indicates that the image is resolved from a multi-sampled image.
@@ -2091,7 +2091,7 @@ namespace LiteFX::Rendering {
         /// @brief Adds a new frame buffer to the device state.
         ///
         /// @param id The identifier for the frame buffer.
-        /// @param renderPass The frame buffer to add to the device state.
+        /// @param frameBuffer The frame buffer to add to the device state.
         /// @throws InvalidArgumentException Thrown, if another frame buffer with the same @p id has already been added.
         void add(const String& id, SharedPtr<IFrameBuffer>&& frameBuffer);
 
@@ -2189,7 +2189,7 @@ namespace LiteFX::Rendering {
         /// @brief Adds a new descriptor set to the device state.
         ///
         /// @param id The identifier for the descriptor set.
-        /// @param sampler The descriptor set to add to the device state.
+        /// @param descriptorSet The descriptor set to add to the device state.
         /// @throws InvalidArgumentException Thrown, if another descriptor set with the same @p id has already been added.
         void add(const String& id, UniquePtr<IDescriptorSet>&& descriptorSet);
 
@@ -2197,70 +2197,70 @@ namespace LiteFX::Rendering {
         ///
         /// @param id The identifier associated with the render pass.
         /// @return A reference of the render pass.
-        /// @throws InvalidArgumentExceptoin Thrown, if no render pass has been added for the provided @p id.
+        /// @throws InvalidArgumentException Thrown, if no render pass has been added for the provided @p id.
         IRenderPass& renderPass(const String& id) const;
 
         /// @brief Returns a frame buffer from the device state.
         ///
         /// @param id The identifier associated with the frame buffer.
         /// @return A reference of the frame buffer.
-        /// @throws InvalidArgumentExceptoin Thrown, if no frame buffer has been added for the provided @p id.
+        /// @throws InvalidArgumentException Thrown, if no frame buffer has been added for the provided @p id.
         IFrameBuffer& frameBuffer(const String& id) const;
 
         /// @brief Returns a pipeline from the device state.
         ///
         /// @param id The identifier associated with the pipeline.
         /// @return A reference of the pipeline.
-        /// @throws InvalidArgumentExceptoin Thrown, if no pipeline has been added for the provided @p id.
+        /// @throws InvalidArgumentException Thrown, if no pipeline has been added for the provided @p id.
         IPipeline& pipeline(const String& id) const;
 
         /// @brief Returns a buffer from the device state.
         ///
         /// @param id The identifier associated with the buffer.
         /// @return A reference of the buffer.
-        /// @throws InvalidArgumentExceptoin Thrown, if no buffer has been added for the provided @p id.
+        /// @throws InvalidArgumentException Thrown, if no buffer has been added for the provided @p id.
         IBuffer& buffer(const String& id) const;
 
         /// @brief Returns a vertex buffer from the device state.
         ///
         /// @param id The identifier associated with the vertex buffer.
         /// @return A reference of the vertex buffer.
-        /// @throws InvalidArgumentExceptoin Thrown, if no vertex buffer has been added for the provided @p id.
+        /// @throws InvalidArgumentException Thrown, if no vertex buffer has been added for the provided @p id.
         IVertexBuffer& vertexBuffer(const String& id) const;
 
         /// @brief Returns an index buffer from the device state.
         ///
         /// @param id The identifier associated with the index buffer.
         /// @return A reference of the index buffer.
-        /// @throws InvalidArgumentExceptoin Thrown, if no index buffer has been added for the provided @p id.
+        /// @throws InvalidArgumentException Thrown, if no index buffer has been added for the provided @p id.
         IIndexBuffer& indexBuffer(const String& id) const;
 
         /// @brief Returns an image from the device state.
         ///
         /// @param id The identifier associated with the image.
         /// @return A reference of the image.
-        /// @throws InvalidArgumentExceptoin Thrown, if no image has been added for the provided @p id.
+        /// @throws InvalidArgumentException Thrown, if no image has been added for the provided @p id.
         IImage& image(const String& id) const;
 
         /// @brief Returns a sampler from the device state.
         ///
         /// @param id The identifier associated with the sampler.
         /// @return A reference of the sampler.
-        /// @throws InvalidArgumentExceptoin Thrown, if no sampler has been added for the provided @p id.
+        /// @throws InvalidArgumentException Thrown, if no sampler has been added for the provided @p id.
         ISampler& sampler(const String& id) const;
 
         /// @brief Returns an acceleration structure from the device state.
         ///
         /// @param id The identifier associated with the acceleration structure.
         /// @return A reference of the acceleration structure.
-        /// @throws InvalidArgumentExceptoin Thrown, if no acceleration structure has been added for the provided @p id.
+        /// @throws InvalidArgumentException Thrown, if no acceleration structure has been added for the provided @p id.
         IAccelerationStructure& accelerationStructure(const String& id) const;
 
         /// @brief Returns a descriptor set from the device state.
         ///
         /// @param id The identifier associated with the descriptor set.
         /// @return A reference of the descriptor set.
-        /// @throws InvalidArgumentExceptoin Thrown, if no descriptor set has been added for the provided @p id.
+        /// @throws InvalidArgumentException Thrown, if no descriptor set has been added for the provided @p id.
         IDescriptorSet& descriptorSet(const String& id) const;
 
         /// @brief Releases a render pass.
@@ -2274,7 +2274,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Releases a frame buffer.
         ///
-        /// @param renderPass The frame buffer to release.
+        /// @param frameBuffer The frame buffer to release.
         /// @return `true`, if the frame buffer was properly released, `false` otherwise.
         bool release(const IFrameBuffer& frameBuffer);
 
@@ -2971,8 +2971,8 @@ namespace LiteFX::Rendering {
         /// @brief Describes the rasterizer depth bias.
         ///
         /// The depth bias can be used to alter the depth value function, i.e. how the values within the depth buffer are distributed. By default, the depth buffer uses an exponential function scale to increase
-        /// precision for closer objects. The values provided with @ref depthBiasClamp, @ref depthBiasConstantFactor and @ref depthBiasSlopeFactor are used to change the domain clamping, offset and steepness of
-        /// the depth value distribution.
+        /// precision for closer objects. The values provided with @ref DepthBias::Clamp, @ref DepthBias::ConstantFactor and @ref DepthBias::SlopeFactor are used to change the domain clamping, offset and steepness 
+        /// of the depth value distribution.
         struct DepthBias {
         public:
             /// @brief Specifies, if depth bias should be used (default: `false`).
@@ -3419,7 +3419,7 @@ namespace LiteFX::Rendering {
     /// executed). The earliest point where this is guaranteed is, if the swap chain swaps to the back buffer again. This means that the time stamps issued in one frame can only be read the next time the
     /// frame's back buffer is used again.
     ///
-    /// Note that timing events are only supported on graphics and compute @ref ICommandQueues.
+    /// Note that timing events are only supported on graphics and compute @ref ICommandQueue "ICommandQueues".
     ///
     /// @see ISwapChain
     class LITEFX_RENDERING_API TimingEvent final : public SharedObject {
@@ -3713,7 +3713,7 @@ namespace LiteFX::Rendering {
         /// @brief Maps the memory blocks within @p data to the internal memory of an array.
         ///
         /// @param data The data blocks to map.
-        /// @param size The size of each data block within @p data.
+        /// @param elementSize The size of each data block within @p data.
         /// @param firstElement The first element of the array to map.
         virtual void map(Span<const void* const> data, size_t elementSize, UInt32 firstElement = 0) = 0;
 
@@ -3728,7 +3728,7 @@ namespace LiteFX::Rendering {
         /// @brief Maps the memory blocks within @p data to the internal memory of an array.
         ///
         /// @param data The data blocks to map.
-        /// @param size The size of each data block within @p data.
+        /// @param elementSize The size of each data block within @p data.
         /// @param firstElement The first element of the array to map.
         /// @param write If `true`, @p data is copied into the internal memory. If `false` the internal memory is copied into @p data.
         virtual void map(Span<void*> data, size_t elementSize, UInt32 firstElement = 0, bool write = true) = 0;
@@ -3870,11 +3870,9 @@ namespace LiteFX::Rendering {
     public:
         /// @brief Gets the number of sub-resources inside the memory chunk.
         ///
-        /// For buffers, this equals the number of array elements. For images, this equals the product of layers, levels and planes. This number represents the number of states, that can be obtained by calling
-        /// the @ref state method.
+        /// For buffers, this equals the number of array elements. For images, this equals the product of layers, levels and planes.
         ///
         /// @return The number of array elements inside the memory chunk.
-        /// @see state
         virtual UInt32 elements() const noexcept = 0;
 
         /// @brief Gets the size (in bytes) of the aligned memory chunk.
@@ -4201,8 +4199,8 @@ namespace LiteFX::Rendering {
         /// and @p maxSize parameters to address a range within the buffer itself, the acceleration structure may be written into. Note that the pointer passed to the @ref buffer parameter must have been
         /// initialized with the @ref BufferType::AccelerationStructure buffer type and must be writable (@ref ResourceUsage::AllowWrite).
         ///
-        /// By providing a @ref scratchBuffer, it is possible to re-use temporary memory while building. This can lower memory consumption when building multiple acceleration structures. However, this also
-        /// requires proper barriers to be executed between two build commands, as they are not allowed to access the same scratch memory simultaneously. Note that the pointer passed to the @ref scratchBuffer
+        /// By providing a @p scratchBuffer, it is possible to re-use temporary memory while building. This can lower memory consumption when building multiple acceleration structures. However, this also
+        /// requires proper barriers to be executed between two build commands, as they are not allowed to access the same scratch memory simultaneously. Note that the pointer passed to the @p scratchBuffer
         /// parameter must have been initialized on the @ref ResourceHeap::Resource heap and must be writable (@ref ResourceUsage::AllowWrite).
         ///
         /// After a successful build, the buffer pointer is stored by the acceleration structure and can be accessed by calling @ref buffer on it.
@@ -4233,9 +4231,9 @@ namespace LiteFX::Rendering {
         /// to address a range within the buffer itself, the acceleration structure may be written into. Note that the pointer passed to the @ref buffer parameter must have been initialized with the @ref
         /// BufferType::AccelerationStructure buffer type and must be writable (@ref ResourceUsage::AllowWrite).
         ///
-        /// By providing a @ref scratchBuffer, it is possible to re-use temporary memory while building. This can lower memory consumption when building multiple acceleration structures. However, this also
-        /// requires proper barriers to be executed between two build commands, as they are not allowed to access the same scratch memory simultaneously. Note that the pointer passed to the @ref scratchBuffer
-        /// parameter must have been initialized on the @ref ResourceHeap::Resource heap and must be writable (@ref ResourceUsage::AllowWrite).
+        /// By providing a @p scratchBuffer, it is possible to re-use temporary memory while building. This can lower memory consumption when building multiple acceleration structures. However, this also requires 
+        /// proper barriers to be executed between two build commands, as they are not allowed to access the same scratch memory simultaneously. Note that the pointer passed to the @p scratchBuffer parameter must 
+        /// have been initialized on the @ref ResourceHeap::Resource heap and must be writable (@ref ResourceUsage::AllowWrite).
         ///
         /// After a successful update, the buffer pointer is stored by the acceleration structure and can be accessed by calling @ref buffer on it.
         ///
@@ -4291,9 +4289,9 @@ namespace LiteFX::Rendering {
     /// @brief A structure that holds a singular entity of geometry for hardware ray-tracing.
     ///
     /// Bottom-level acceleration structures describe actual pieces of geometry (sets of triangular meshes or axis-aligned bounding boxes for procedural geometry). They can best be thought of entities in
-    /// terms of a scene graph, whilst @ref ITopLevelAccelerationStructures represent their respective *instances*. For example, a top-level acceleration structure (TLAS) would store the world transform of
-    /// the object itself, which can be placed multiple times in the scene with different transforms each time. Each TLAS points to a bottom-level acceleration structure (BLAS), that contains the actual
-    /// geometry, consisting of multiple meshes that are all transformed relative to the TLAS transform.
+    /// terms of a scene graph, whilst @ref ITopLevelAccelerationStructure "ITopLevelAccelerationStructures" represent their respective *instances*. For example, a top-level acceleration structure (TLAS) 
+    /// would store the world transform of the object itself, which can be placed multiple times in the scene with different transforms each time. Each TLAS points to a bottom-level acceleration structure 
+    /// (BLAS), that contains the actual geometry, consisting of multiple meshes that are all transformed relative to the TLAS transform.
     ///
     /// Note that a bottom-level acceleration structure can only contain either triangle meshes or bounding boxes, but never both in the same structure.
     ///
@@ -4735,10 +4733,10 @@ namespace LiteFX::Rendering {
     ///
     /// Image and buffer barriers additionally describe which (sub-)resources to apply the barrier to. For buffers this only applies to individual elements in a buffer array. However, due to [driver
     /// restrictions](https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#buffer-barriers), buffers are always transitioned as a whole. This is different from image resources, which have
-    /// addressable sub-resources (mip levels, planes and array elements). For images, it is possible to transition individual sub-resources into different @ref ImageLayouts to indicate when and how a texture
-    /// is used. An image in a certain layout poses restrictions on how it can be accessed. For example, a `ReadWrite` image written by a compute shader must be transitioned into a proper layout to be read by
-    /// a graphics shader. To facilitate such a transition, a barrier is required. Image barriers can be inserted by calling one of the overloads of @ref IBarrier::transition that accepts an @ref IImage
-    /// parameter.
+    /// addressable sub-resources (mip levels, planes and array elements). For images, it is possible to transition individual sub-resources into different @ref ImageLayout "ImageLayouts" to indicate when and 
+    /// how a texture is used. An image in a certain layout poses restrictions on how it can be accessed. For example, a `ReadWrite` image written by a compute shader must be transitioned into a proper layout 
+    /// to be read by a graphics shader. To facilitate such a transition, a barrier is required. Image barriers can be inserted by calling one of the overloads of @ref IBarrier::transition that accepts an @ref 
+    /// IImage parameter.
     ///
     /// @see PipelineStage
     /// @see IBuffer
@@ -4890,7 +4888,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Binds a resource directly to a descriptor heap and returns the index that can be used to access it.
         ///
-        /// This method is used with the @ref GraphicsDeviceFeature::DynamicDescriptors feature and allows to bind a descriptor to the underlying descriptor heap directly by providing the corresponding resource
+        /// This method is used with the @ref GraphicsDeviceFeatures::DynamicDescriptors feature and allows to bind a descriptor to the underlying descriptor heap directly by providing the corresponding resource
         /// type (indicated by @p bindingType) at bind time. The method directly returns the global heap index of the resource, that can be used by the shader to access it using the `ResourceDescriptorHeap`
         /// syntax (in HLSL).
         ///
@@ -4910,7 +4908,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Binds a resource directly to a descriptor heap and returns the index that can be used to access it.
         ///
-        /// This method is used with the @ref GraphicsDeviceFeature::DynamicDescriptors feature and allows to bind a descriptor to the underlying descriptor heap directly by providing the corresponding resource
+        /// This method is used with the @ref GraphicsDeviceFeatures::DynamicDescriptors feature and allows to bind a descriptor to the underlying descriptor heap directly by providing the corresponding resource
         /// type (indicated by @p bindingType) at bind time. The method directly returns the global heap index of the resource, that can be used by the shader to access it using the `ResourceDescriptorHeap`
         /// syntax (in HLSL).
         ///
@@ -4931,7 +4929,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Binds a sampler directly to a descriptor heap and returns the index that can be used to access it.
         ///
-        /// This method is used with the @ref GraphicsDeviceFeature::DynamicDescriptors feature and allows to bind a descriptor to the underlying descriptor heap directly. The method returns the global heap index
+        /// This method is used with the @ref GraphicsDeviceFeatures::DynamicDescriptors feature and allows to bind a descriptor to the underlying descriptor heap directly. The method returns the global heap index
         /// of the sampler, that can be used by the shader to access it using the `SamplerDescriptorHeap` syntax (in HLSL).
         ///
         /// If the descriptor set does not contain a descriptor of type @ref DescriptorType::SamplerDescriptorHeap, this method will throw an exception.
@@ -5215,7 +5213,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Allocates an array of descriptor sets.
         ///
-        /// @param descriptorSets The number of descriptor sets to allocate.
+        /// @param descriptors The number of descriptor sets to allocate.
         /// @param bindings A generator that generates the optional default bindings for descriptors in each descriptor set.
         /// @return The instance of the descriptor set.
         /// @see allocate(std::initializer_list)
@@ -5504,8 +5502,6 @@ namespace LiteFX::Rendering {
 
     public:
         ShaderRecord() = delete;
-
-        /// @copydoc IShaderRecord::~IShaderRecord()
         constexpr ~ShaderRecord() noexcept override = default;
 
         /// @brief Initializes a shader record.
@@ -5566,8 +5562,6 @@ namespace LiteFX::Rendering {
 
     public:
         ShaderRecord() = delete;
-
-        /// @copydoc IShaderRecord::~IShaderRecord()
         constexpr ~ShaderRecord() noexcept override = default;
 
         /// @brief Initializes a shader record.
@@ -5599,7 +5593,7 @@ namespace LiteFX::Rendering {
         constexpr ShaderRecord& operator=(ShaderRecord&& _other) noexcept = default;
     };
 
-    /// @brief Stores a set of @ref IShaderRecords in that later form a shader binding table used for ray-tracing.
+    /// @brief Stores a set of @ref IShaderRecord "IShaderRecords" in that later form a shader binding table used for ray-tracing.
     class LITEFX_RENDERING_API ShaderRecordCollection final {
         friend class IShaderProgram;
 
@@ -5750,7 +5744,7 @@ namespace LiteFX::Rendering {
         /// @brief Adds a new shader record based on the name of a shader module in the parent shader program.
         ///
         /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an any and closest hit shader, use @ref
-        /// withMeshGeometryShaderHitGroupRecord instead.
+        /// withMeshGeometryHitGroupRecord instead.
         ///
         /// @param shaderName The name of the shader module.
         /// @return A reference to the current shader record collection.
@@ -5762,7 +5756,7 @@ namespace LiteFX::Rendering {
         /// @brief Adds a new shader record based on the name of a shader module in the parent shader program.
         ///
         /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an any and closest hit shader, use @ref
-        /// withMeshGeometryShaderHitGroupRecord instead.
+        /// withMeshGeometryHitGroupRecord instead.
         ///
         /// @tparam TLocalData The type of the shader record local data.
         /// @param shaderName
@@ -5856,7 +5850,7 @@ namespace LiteFX::Rendering {
         /// later be directly indexed by the shader. In the DirectX 12 backend, this hint will cause a new descriptor set to be created, that is not part of the pipeline state. In Vulkan, this functionality is
         /// emulated using the `VK_EXT_mutable_descriptor_type` extension and binds to an existing descriptor set. DXC emits this descriptor set automatically, if direct heap indexing is used from a shader.
         ///
-        /// @see GraphicsDeviceFeature::DynamicDescriptors
+        /// @see GraphicsDeviceFeatures::DynamicDescriptors
         /// @see DescriptorType::ResourceDescriptorHeap
         /// @see DescriptorType::SamplerDescriptorHeap
         struct DescriptorHeapHint {
@@ -5951,7 +5945,7 @@ namespace LiteFX::Rendering {
         /// @param at The binding point the hint applies to.
         /// @param heapSize The number of descriptors allocated for the heap when creating the descriptor set.
         /// @return The initialized pipeline binding hint.
-        /// @see GraphicsDeviceFeature::DynamicDescriptors
+        /// @see GraphicsDeviceFeatures::DynamicDescriptors
         static inline auto resourceHeap(DescriptorBindingPoint at, UInt32 heapSize) noexcept -> PipelineBindingHint {
             return { .Binding = at, .Hint = DescriptorHeapHint { DescriptorHeapType::Resource, heapSize } };
         }
@@ -5962,7 +5956,7 @@ namespace LiteFX::Rendering {
         /// @param binding The register of the descriptor binding point.
         /// @param heapSize The number of descriptors allocated for the heap when creating the descriptor set.
         /// @return The initialized pipeline binding hint.
-        /// @see GraphicsDeviceFeature::DynamicDescriptors
+        /// @see GraphicsDeviceFeatures::DynamicDescriptors
         static inline auto resourceHeap(UInt32 space, UInt32 binding, UInt32 heapSize) noexcept -> PipelineBindingHint {
             return { .Binding = { .Register = binding, .Space = space }, .Hint = DescriptorHeapHint { DescriptorHeapType::Resource, heapSize } };
         }
@@ -5972,7 +5966,7 @@ namespace LiteFX::Rendering {
         /// @param at The binding point the hint applies to.
         /// @param heapSize The number of descriptors allocated for the heap when creating the descriptor set.
         /// @return The initialized pipeline binding hint.
-        /// @see GraphicsDeviceFeature::DynamicDescriptors
+        /// @see GraphicsDeviceFeatures::DynamicDescriptors
         static inline auto samplerHeap(DescriptorBindingPoint at, UInt32 heapSize) noexcept -> PipelineBindingHint {
             return { .Binding = at, .Hint = DescriptorHeapHint { DescriptorHeapType::Sampler, heapSize } };
         }
@@ -5983,7 +5977,7 @@ namespace LiteFX::Rendering {
         /// @param binding The register of the descriptor binding point.
         /// @param heapSize The number of descriptors allocated for the heap when creating the descriptor set.
         /// @return The initialized pipeline binding hint.
-        /// @see GraphicsDeviceFeature::DynamicDescriptors
+        /// @see GraphicsDeviceFeatures::DynamicDescriptors
         static inline auto samplerHeap(UInt32 space, UInt32 binding, UInt32 heapSize) noexcept -> PipelineBindingHint {
             return { .Binding = { .Register = binding, .Space = space }, .Hint = DescriptorHeapHint { DescriptorHeapType::Sampler, heapSize } };
         }
@@ -5993,7 +5987,7 @@ namespace LiteFX::Rendering {
         /// @param at The binding point the hint applies to.
         /// @param shaderStages The number of descriptors allocated for the heap when creating the descriptor set.
         /// @return The initialized pipeline binding hint.
-        /// @see GraphicsDeviceFeature::DynamicDescriptors
+        /// @see GraphicsDeviceFeatures::DynamicDescriptors
         static inline auto shaderStage(DescriptorBindingPoint at, ShaderStage shaderStages) noexcept -> PipelineBindingHint {
             return { .Binding = at, .Hint = ShaderStageHint { shaderStages } };
         }
@@ -6004,7 +5998,7 @@ namespace LiteFX::Rendering {
         /// @param binding The register of the descriptor binding point.
         /// @param shaderStages The number of descriptors allocated for the heap when creating the descriptor set.
         /// @return The initialized pipeline binding hint.
-        /// @see GraphicsDeviceFeature::DynamicDescriptors
+        /// @see GraphicsDeviceFeatures::DynamicDescriptors
         static inline auto shaderStage(UInt32 space, UInt32 binding, ShaderStage shaderStages) noexcept -> PipelineBindingHint {
             return { .Binding = {.Register = binding, .Space = space }, .Hint = ShaderStageHint { shaderStages } };
         }
@@ -6462,8 +6456,7 @@ namespace LiteFX::Rendering {
         /// @param data The address that marks the beginning of the data to map.
         /// @param size The number of bytes to map.
         /// @param target The target buffer to transfer data to.
-        /// @param firstSubresource The index of the first sub-resource of the target image to receive data.
-        /// @param elements The number of elements to copy from the source buffer into the target image sub-resources.
+        /// @param subresource The index of the sub-resource of the target image to receive data.
         inline void transfer(const void* const data, size_t size, const IImage& target, UInt32 subresource = 0) const {
             this->cmdTransfer(data, size, target, subresource);
         }
@@ -6701,7 +6694,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Executes a compute shader.
         ///
-        /// @param threadCount The number of thread groups per dimension.
+        /// @param threadGroupCount The number of thread groups per dimension.
         /// @see dispatchIndirect
         virtual void dispatch(const Vector3u& threadGroupCount) const noexcept = 0;
 
@@ -6726,14 +6719,14 @@ namespace LiteFX::Rendering {
         
         /// @brief Executes a mesh shader pipeline.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::MeshShaders feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::MeshShaders feature is enabled.
         ///
-        /// @param threadCount The number of thread groups per dimension.
+        /// @param threadGroupCount The number of thread groups per dimension.
         virtual void dispatchMesh(const Vector3u& threadGroupCount) const noexcept = 0;
 
         /// @brief Executes a mesh shader pipeline.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::MeshShaders feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::MeshShaders feature is enabled.
         ///
         /// @param x The number of thread groups along the x dimension.
         /// @param y The number of thread groups along the y dimension.
@@ -6766,7 +6759,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Executes a query on a ray-tracing pipeline.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param width The width of the ray-tracing query.
         /// @param height The height of the ray-tracing query.
@@ -6782,7 +6775,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Executes a query on a ray-tracing pipeline.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param dimensions The dimensions of the ray-tracing query.
         /// @param offsets The offsets, sizes and strides for each shader binding table.
@@ -6921,7 +6914,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Sets the scissor rectangle used for the subsequent draw calls.
         ///
-        /// @param scissors The scissor rectangle used for the subsequent draw calls.
+        /// @param scissor The scissor rectangle used for the subsequent draw calls.
         virtual void setScissors(const IScissor* scissor) const = 0;
 
         /// @brief Sets the blend factors for the subsequent draw calls.
@@ -6974,7 +6967,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Builds a bottom-level acceleration structure.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param blas The bottom-level acceleration structure to build.
         /// @param scratchBuffer The scratch buffer to use for building the acceleration structure.
@@ -6988,7 +6981,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Builds a top-level acceleration structure.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param tlas The top-level acceleration structure to build.
         /// @param scratchBuffer The scratch buffer to use for building the acceleration structure.
@@ -7002,7 +6995,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Updates a bottom-level acceleration structure.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param blas The bottom-level acceleration structure to build.
         /// @param scratchBuffer The scratch buffer to use for building the acceleration structure.
@@ -7016,7 +7009,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Updates a top-level acceleration structure.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param tlas The top-level acceleration structure to build.
         /// @param scratchBuffer The scratch buffer to use for building the acceleration structure.
@@ -7034,7 +7027,7 @@ namespace LiteFX::Rendering {
         /// contains enough memory to store the copy. Only issue copies on the command buffer directly, if you want to retain the destination buffer and know for certain, that it contains a sufficient amount of
         /// memory.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param from The source acceleration structure to copy from.
         /// @param to The destination acceleration structure to copy to.
@@ -7049,7 +7042,7 @@ namespace LiteFX::Rendering {
         /// contains enough memory to store the copy. Only issue copies on the command buffer directly, if you want to retain the destination buffer and know for certain, that it contains a sufficient amount of
         /// memory.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param from The source acceleration structure to copy from.
         /// @param to The destination acceleration structure to copy to.
@@ -7658,7 +7651,6 @@ namespace LiteFX::Rendering {
         ///
         /// The frame buffer can only be obtained, if the render pass has been started by calling @ref begin. If the render pass has ended or not yet started, the method will instead raise an exception.
         ///
-        /// @param buffer The index of the frame buffer.
         /// @return A pointer to the currently active frame buffer or `nullptr`, if the render pass has not been started.
         /// @see begin
         inline SharedPtr<const IFrameBuffer> activeFrameBuffer() const noexcept {
@@ -7699,7 +7691,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Returns the list of render targets, the render pass renders into.
         ///
-        /// Note that the actual render target image resources are stored within the individual @ref FrameBuffers of the render pass.
+        /// Note that the actual render target image resources are stored within the individual @ref FrameBuffer "FrameBuffers" of the render pass.
         ///
         /// @return A list of render targets, the render pass renders into.
         /// @see IFrameBuffer
@@ -7861,6 +7853,14 @@ namespace LiteFX::Rendering {
             return timingEvent;
         }
 
+        /// @brief Adds a new timing event.
+        /// 
+        /// @copydetails registerTimingEvent
+        /// 
+        /// @param timingEvent A pointer to the timing event instance.
+        /// @see registerTimingEvent
+        virtual void addTimingEvent(SharedPtr<const TimingEvent> timingEvent) = 0;
+
         /// @brief Returns all registered timing events.
         ///
         /// @return An array, containing all registered timing events.
@@ -7956,8 +7956,6 @@ namespace LiteFX::Rendering {
 
         /// @brief Returns an array of supported formats, that can be drawn to the surface.
         ///
-        /// @ref surface
-        ///
         /// @return An array of supported formats, that can be drawn to the surface.
         /// @see ISurface
         virtual Enumerable<Format> getSurfaceFormats() const = 0;
@@ -7984,7 +7982,6 @@ namespace LiteFX::Rendering {
 
     private:
         virtual Enumerable<IImage&> getImages() const = 0;
-        virtual void addTimingEvent(SharedPtr<const TimingEvent> timingEvent) = 0;
     };
 
     /// @brief The interface for a command queue.
@@ -8211,7 +8208,7 @@ namespace LiteFX::Rendering {
         /// @brief Returns the total size of allocated memory across all blocks in the heap.
         UInt64 blockSize{};
 
-        /// @brief Returns the total size of memory for all allocations in the heap. Always less or equal to @ref totalBlockSize.
+        /// @brief Returns the total size of memory for all allocations in the heap.
         UInt64 allocationSize{};
 
         /// @brief Estimated memory used by the program in the heap.
@@ -8248,7 +8245,7 @@ namespace LiteFX::Rendering {
             /// @brief Returns the total size of allocated memory across all blocks in the heap.
             UInt64 blockSize{};
 
-            /// @brief Returns the total size of memory for all allocations in the heap. Always less or equal to @ref totalBlockSize.
+            /// @brief Returns the total size of memory for all allocations in the heap.
             UInt64 allocationSize{};
 
             /// @brief The number of unoccupied memory ranges between allocations.
@@ -8706,7 +8703,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Creates a vertex buffer, based on the @p layout.
         ///
-        /// A vertex buffer can be used by different @ref RenderPipelines, as long as they share a common input assembler state.
+        /// A vertex buffer can be used by different @ref RenderPipeline "RenderPipelines", as long as they share a common input assembler state.
         ///
         /// The size of the buffer is computed from the element size vertex buffer layout, times the number of elements given by the @p elements parameter.
         ///
@@ -8735,7 +8732,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Creates a vertex buffer, based on the @p layout.
         ///
-        /// A vertex buffer can be used by different @ref RenderPipelines, as long as they share a common input assembler state.
+        /// A vertex buffer can be used by different @ref RenderPipeline "RenderPipelines", as long as they share a common input assembler state.
         ///
         /// The size of the buffer is computed from the element size vertex buffer layout, times the number of elements given by the @p elements parameter.
         ///
@@ -8766,7 +8763,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Creates an index buffer, based on the @p layout.
         ///
-        /// An index buffer can be used by different @ref RenderPipelines, as long as they share a common input assembler state.
+        /// An index buffer can be used by different @ref RenderPipeline "RenderPipelines", as long as they share a common input assembler state.
         ///
         /// The size of the buffer is computed from the element size index buffer layout, times the number of elements given by the @p elements parameter.
         ///
@@ -8795,7 +8792,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Creates an index buffer, based on the @p layout.
         ///
-        /// An index buffer can be used by different @ref RenderPipelines, as long as they share a common input assembler state.
+        /// An index buffer can be used by different @ref RenderPipeline "RenderPipelines", as long as they share a common input assembler state.
         ///
         /// The size of the buffer is computed from the element size index buffer layout, times the number of elements given by the @p elements parameter.
         ///
@@ -8968,7 +8965,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Creates a bottom-level acceleration structure.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param flags The flags that define how the acceleration structure is built.
         /// @return The bottom-level acceleration structure instance.
@@ -8979,7 +8976,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Creates a bottom-level acceleration structure.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param name The name of the acceleration structure resource.
         /// @param flags The flags that define how the acceleration structure is built.
@@ -8991,7 +8988,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Creates a top-level acceleration structure.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param flags The flags that define how the acceleration structure is built.
         /// @return The top-level acceleration structure instance.
@@ -9002,7 +8999,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Creates a top-level acceleration structure.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param name The name of the acceleration structure resource.
         /// @param flags The flags that define how the acceleration structure is built.
@@ -9082,8 +9079,8 @@ namespace LiteFX::Rendering {
         /// @brief Enables or disables support for dynamic descriptor types ([SM 6.6 dynamic resources](https://microsoft.github.io/DirectX-Specs/d3d/HLSL_SM_6_6_DynamicResources.html) and
         /// [VK_EXT_mutable_descriptor_type](https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_mutable_descriptor_type.html)).
         ///
-        /// Note that support for this feature is limited in the engine. It's purpose is to bind resources of different @ref DescriptorTypes within a single descriptor array. However, you still have to allocate a
-        /// @ref IDescriptorSet to be able to bind resources and retrieve resource indices by calling @ref IDescriptorSet::bindToHeap.
+        /// Note that support for this feature is limited in the engine. It's purpose is to bind resources of different @ref DescriptorType "DescriptorTypes" within a single descriptor array. However, you still
+        /// have to allocate a @ref IDescriptorSet to be able to bind resources and retrieve resource indices by calling @ref IDescriptorSet::bindToHeap.
         ///
         /// If you are only using the DirectX 12 backend, you can generally index any bound resource this way. However, in the Vulkan backend, only resources within the descriptor set can be indexed. Descriptor
         /// sets that contain descriptors of @ref DescriptorType::ResourceDescriptorHeap or @ref DescriptorType::SamplerDescriptorHeap can be used to bind those descriptors. Such descriptor sets are called proxy

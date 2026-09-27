@@ -27,6 +27,7 @@ generator: md
 multipage: true
 legible-names: true
 output: "@LITEFX_DOCUMENTATION_OUTPUT@"
+overloads: true
 
 ## Toggle warnings.
 warn-if-undocumented: false

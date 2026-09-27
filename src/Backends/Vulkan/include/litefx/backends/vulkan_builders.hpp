@@ -327,13 +327,11 @@ namespace LiteFX::Rendering::Backends {
 		/// @param name A debug name for the render pass.
 		explicit VulkanRenderPassBuilder(const VulkanDevice& device, UInt32 commandBuffers, const String& name = "");
 
-		/// @copydoc Builder::~Builder
-		~VulkanRenderPassBuilder() noexcept override;
-
 		VulkanRenderPassBuilder(VulkanRenderPassBuilder&&) noexcept = delete;
 		VulkanRenderPassBuilder(const VulkanRenderPassBuilder&) = delete;
 		VulkanRenderPassBuilder& operator=(VulkanRenderPassBuilder&&) noexcept = delete;
 		VulkanRenderPassBuilder& operator=(const VulkanRenderPassBuilder&) = delete;
+		~VulkanRenderPassBuilder() noexcept override;
 
 		// Builder interface.
 	protected:

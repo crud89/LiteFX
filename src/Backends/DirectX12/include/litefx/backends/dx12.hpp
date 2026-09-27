@@ -41,20 +41,12 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12VertexBufferLayout(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding = 0, VertexBufferInputRate inputRate = VertexBufferInputRate::Vertex);
 
     private:
-        /// @copydoc IVertexBufferLayout::IVertexBufferLayout(IVertexBufferLayout&&)
         DirectX12VertexBufferLayout(DirectX12VertexBufferLayout&&) noexcept = delete;
-
-        /// @copydoc IVertexBufferLayout::IVertexBufferLayout(const IVertexBufferLayout&)
         DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&);
-
-        /// @copydoc IVertexBufferLayout::operator=(IVertexBufferLayout&&)
         DirectX12VertexBufferLayout& operator=(DirectX12VertexBufferLayout&&) noexcept = delete;
-
-        /// @copydoc IVertexBufferLayout::operator=(const IVertexBufferLayout&)
         DirectX12VertexBufferLayout& operator=(const DirectX12VertexBufferLayout&) = delete;
 
     public:
-        /// @copydoc IVertexBufferLayout::~IVertexBufferLayout
         ~DirectX12VertexBufferLayout() noexcept override;
 
     public:
@@ -122,20 +114,12 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12IndexBufferLayout(IndexType type);
 
     private:
-        /// @copydoc IIndexBufferLayout::IIndexBufferLayout(IIndexBufferLayout&&)
         DirectX12IndexBufferLayout(DirectX12IndexBufferLayout&&) noexcept = delete;
-
-        /// @copydoc IIndexBufferLayout::IIndexBufferLayout(const IIndexBufferLayout&)
         DirectX12IndexBufferLayout(const DirectX12IndexBufferLayout&);
-
-        /// @copydoc IIndexBufferLayout::operator=(IIndexBufferLayout&&)
         DirectX12IndexBufferLayout& operator=(DirectX12IndexBufferLayout&&) noexcept = delete;
-
-        /// @copydoc IIndexBufferLayout::operator=(const IIndexBufferLayout&)
         DirectX12IndexBufferLayout& operator=(const DirectX12IndexBufferLayout&) = delete;
 
     public:
-        /// @copydoc IIndexBufferLayout::~IIndexBufferLayout
         ~DirectX12IndexBufferLayout() noexcept override;
 
     public:
@@ -302,19 +286,10 @@ namespace LiteFX::Rendering::Backends {
         /// @see AccelerationStructureFlags
         explicit DirectX12BottomLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None, StringView name = "");
         
-        /// @copydoc IBottomLevelAccelerationStructure::IBottomLevelAccelerationStructure(IBottomLevelAccelerationStructure&&)
         DirectX12BottomLevelAccelerationStructure(DirectX12BottomLevelAccelerationStructure&&) noexcept;
-
-        /// @copydoc IBottomLevelAccelerationStructure::IBottomLevelAccelerationStructure(const IBottomLevelAccelerationStructure&)
         DirectX12BottomLevelAccelerationStructure(const DirectX12BottomLevelAccelerationStructure&) = delete;
-
-        /// @copydoc IBottomLevelAccelerationStructure::operator=(IBottomLevelAccelerationStructure&&)
         DirectX12BottomLevelAccelerationStructure& operator=(DirectX12BottomLevelAccelerationStructure&&) noexcept;
-
-        /// @copydoc IBottomLevelAccelerationStructure::operator=(const IBottomLevelAccelerationStructure&)
         DirectX12BottomLevelAccelerationStructure& operator=(const DirectX12BottomLevelAccelerationStructure&) = delete;
-
-        /// @copydoc IBottomLevelAccelerationStructure::~IBottomLevelAccelerationStructure
         ~DirectX12BottomLevelAccelerationStructure() noexcept override;
 
         // IAccelerationStructure interface.
@@ -394,19 +369,10 @@ namespace LiteFX::Rendering::Backends {
         /// @see AccelerationStructureFlags
         explicit DirectX12TopLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None, StringView name = "");
 
-        /// @copydoc ITopLevelAccelerationStructure::ITopLevelAccelerationStructure(ITopLevelAccelerationStructure&&)
         DirectX12TopLevelAccelerationStructure(DirectX12TopLevelAccelerationStructure&&) noexcept;
-
-        /// @copydoc ITopLevelAccelerationStructure::ITopLevelAccelerationStructure(const ITopLevelAccelerationStructure&)
         DirectX12TopLevelAccelerationStructure(const DirectX12TopLevelAccelerationStructure&) = delete;
-
-        /// @copydoc ITopLevelAccelerationStructure::operator=(ITopLevelAccelerationStructure&&)
         DirectX12TopLevelAccelerationStructure& operator=(DirectX12TopLevelAccelerationStructure&&) noexcept;
-
-        /// @copydoc ITopLevelAccelerationStructure::operator=(const ITopLevelAccelerationStructure&)
         DirectX12TopLevelAccelerationStructure& operator=(const DirectX12TopLevelAccelerationStructure&) = delete;
-
-        /// @copydoc ITopLevelAccelerationStructure::~ITopLevelAccelerationStructure
         ~DirectX12TopLevelAccelerationStructure() noexcept override;
 
         // IAccelerationStructure interface.
@@ -477,19 +443,10 @@ namespace LiteFX::Rendering::Backends {
         /// @param syncAfter The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.
         explicit DirectX12Barrier(PipelineStage syncBefore, PipelineStage syncAfter) noexcept;
 
-        /// @copydoc Barrier::Barrier(Barrier&&)
         DirectX12Barrier(DirectX12Barrier&&) noexcept;
-
-        /// @copydoc Barrier::Barrier(const Barrier&)
         DirectX12Barrier(const DirectX12Barrier&);
-
-        /// @copydoc Barrier::operator=(Barrier&&)
         DirectX12Barrier& operator=(DirectX12Barrier&&) noexcept;
-
-        /// @copydoc Barrier::operator=(const Barrier&)
         DirectX12Barrier& operator=(const DirectX12Barrier&);
-
-        /// @copydoc Barrier::~Barrier
         ~DirectX12Barrier() noexcept override;
 
     private:
@@ -561,19 +518,10 @@ namespace LiteFX::Rendering::Backends {
         /// @param shaderLocalDescriptor The descriptor that binds shader-local data for ray-tracing shaders.
         explicit DirectX12ShaderModule(const DirectX12Device& device, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint = "main", const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt);
 
-        /// @copydoc IShaderModule::IShaderModule(IShaderModule&&)
         DirectX12ShaderModule(DirectX12ShaderModule&&) noexcept;
-
-        /// @copydoc IShaderModule::IShaderModule(const IShaderModule&)
         DirectX12ShaderModule(const DirectX12ShaderModule&) = delete;
-
-        /// @copydoc IShaderModule::operator=(IShaderModule&&)
         DirectX12ShaderModule& operator=(DirectX12ShaderModule&&) noexcept;
-
-        /// @copydoc IShaderModule::operator=(const IShaderModule&)
         DirectX12ShaderModule& operator=(const DirectX12ShaderModule&) = delete;
-
-        /// @copydoc IShaderModule::~IShaderModule
         ~DirectX12ShaderModule() noexcept override;
 
         // IShaderModule interface.
@@ -613,20 +561,12 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12ShaderProgram(const DirectX12Device& device) noexcept;
 
     private:
-        /// @copydoc ShaderProgram::ShaderProgram(ShaderProgram&&)
         DirectX12ShaderProgram(DirectX12ShaderProgram&&) noexcept = delete;
-
-        /// @copydoc ShaderProgram::ShaderProgram(const ShaderProgram&)
         DirectX12ShaderProgram(const DirectX12ShaderProgram&) = delete;
-
-        /// @copydoc ShaderProgram::operator=(ShaderProgram&&)
         DirectX12ShaderProgram& operator=(DirectX12ShaderProgram&&) noexcept = delete;
-
-        /// @copydoc ShaderProgram::operator=(const ShaderProgram&)
         DirectX12ShaderProgram& operator=(const DirectX12ShaderProgram&) = delete;
 
     public:
-        /// @copydoc ShaderProgram::~ShaderProgram
         ~DirectX12ShaderProgram() noexcept override;
 
         // Factory method.
@@ -679,19 +619,10 @@ namespace LiteFX::Rendering::Backends {
         /// @param samplerHeap A CPU-visible descriptor heap that contains the descriptors for the samplers of the descriptor set.
         explicit DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& resourceHeap = nullptr, ComPtr<ID3D12DescriptorHeap>&& samplerHeap = nullptr);
 
-        /// @copydoc DescriptorSet::DescriptorSet(DescriptorSet&&)
         DirectX12DescriptorSet(DirectX12DescriptorSet&&) noexcept = delete;
-        
-        /// @copydoc DescriptorSet::DescriptorSet(const DescriptorSet&)
         DirectX12DescriptorSet(const DirectX12DescriptorSet&) = delete;
-        
-        /// @copydoc DescriptorSet::operator=(DescriptorSet&&)
         DirectX12DescriptorSet& operator=(DirectX12DescriptorSet&&) noexcept = delete;
-        
-        /// @copydoc DescriptorSet::operator=(const DescriptorSet&)
         DirectX12DescriptorSet& operator=(const DirectX12DescriptorSet&) = delete;
-        
-        /// @copydoc DescriptorSet::~DescriptorSet
         ~DirectX12DescriptorSet() noexcept override;
 
     public:
@@ -761,19 +692,10 @@ namespace LiteFX::Rendering::Backends {
         /// @param local Determines if the descriptor is part of the local or global root signature for ray-tracing shaders.
         DirectX12DescriptorLayout(const IDirectX12Sampler& staticSampler, UInt32 binding, bool local = false);
         
-        /// @copydoc IDescriptorLayout::IDescriptorLayout(IDescriptorLayout&&)
         DirectX12DescriptorLayout(DirectX12DescriptorLayout&&) noexcept;
-
-        /// @copydoc IDescriptorLayout::IDescriptorLayout(const IDescriptorLayout&)
         DirectX12DescriptorLayout(const DirectX12DescriptorLayout&);
-
-        /// @copydoc IDescriptorLayout::operator=(IDescriptorLayout&&)
         DirectX12DescriptorLayout& operator=(DirectX12DescriptorLayout&&) noexcept;
-
-        /// @copydoc IDescriptorLayout::operator=(const IDescriptorLayout&)
         DirectX12DescriptorLayout& operator=(const DirectX12DescriptorLayout&);
-
-        /// @copydoc IDescriptorLayout::~IDescriptorLayout
         ~DirectX12DescriptorLayout() noexcept override;
 
         // DirectX 12 descriptor layout.
@@ -841,20 +763,12 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12DescriptorSetLayout(const DirectX12Device& device);
 
     private:
-        /// @copydoc DescriptorSetLayout::DescriptorSetLayout(DescriptorSetLayout&&)
         DirectX12DescriptorSetLayout(DirectX12DescriptorSetLayout&&) noexcept = delete;
-
-        /// @copydoc DescriptorSetLayout::DescriptorSetLayout(const DescriptorSetLayout&)
         DirectX12DescriptorSetLayout(const DirectX12DescriptorSetLayout& other);
-
-        /// @copydoc DescriptorSetLayout::operator=(DescriptorSetLayout&&)
         DirectX12DescriptorSetLayout& operator=(DirectX12DescriptorSetLayout&&) noexcept = delete;
-
-        /// @copydoc DescriptorSetLayout::operator=(const DescriptorSetLayout&)
         DirectX12DescriptorSetLayout& operator=(const DirectX12DescriptorSetLayout&) = delete;
 
     public:
-        /// @copydoc DescriptorSetLayout::~DescriptorSetLayout
         ~DirectX12DescriptorSetLayout() noexcept override;
 
     public:
@@ -980,19 +894,10 @@ namespace LiteFX::Rendering::Backends {
         /// @param binding The register from which the push constants of the range will be accessible in the shader.
         explicit DirectX12PushConstantsRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding);
 
-        /// @copydoc IPushConstantsRange::IPushConstantsRange(IPushConstantsRange&&)
         DirectX12PushConstantsRange(DirectX12PushConstantsRange&&) noexcept;
-
-        /// @copydoc IPushConstantsRange::IPushConstantsRange(const IPushConstantsRange&)
         DirectX12PushConstantsRange(const DirectX12PushConstantsRange&);
-
-        /// @copydoc IPushConstantsRange::operator=(IPushConstantsRange&&)
         DirectX12PushConstantsRange& operator=(DirectX12PushConstantsRange&&) noexcept;
-
-        /// @copydoc IPushConstantsRange::operator=(const IPushConstantsRange&)
         DirectX12PushConstantsRange& operator=(const DirectX12PushConstantsRange&);
-
-        /// @copydoc IPushConstantsRange::~IPushConstantsRange
         ~DirectX12PushConstantsRange() noexcept override;
 
     public:
@@ -1032,19 +937,10 @@ namespace LiteFX::Rendering::Backends {
         /// @param size The overall size (in bytes) of the push constants backing memory.
         explicit DirectX12PushConstantsLayout(Enumerable<UniquePtr<DirectX12PushConstantsRange>>&& ranges, UInt32 size);
 
-        /// @copydoc PushConstantsLayout::PushConstantsLayout(PushConstantsLayout&&)
         DirectX12PushConstantsLayout(DirectX12PushConstantsLayout&&) noexcept;
-
-        /// @copydoc PushConstantsLayout::PushConstantsLayout(const PushConstantsLayout&)
         DirectX12PushConstantsLayout(const DirectX12PushConstantsLayout&) = delete;
-
-        /// @copydoc PushConstantsLayout::operator=(PushConstantsLayout&&)
         DirectX12PushConstantsLayout& operator=(DirectX12PushConstantsLayout&&) noexcept;
-
-        /// @copydoc PushConstantsLayout::operator=(const PushConstantsLayout&)
         DirectX12PushConstantsLayout& operator=(const DirectX12PushConstantsLayout&) = delete;
-
-        /// @copydoc PushConstantsLayout::~PushConstantsLayout
         ~DirectX12PushConstantsLayout() noexcept override;
 
     private:
@@ -1089,20 +985,12 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12PipelineLayout(const DirectX12Device& device);
 
     private:
-        /// @copydoc PipelineLayout::PipelineLayout(PipelineLayout&&)
         DirectX12PipelineLayout(DirectX12PipelineLayout&&) noexcept = delete;
-
-        /// @copydoc PipelineLayout::PipelineLayout(const PipelineLayout&)
         DirectX12PipelineLayout(const DirectX12PipelineLayout&) = delete;
-
-        /// @copydoc PipelineLayout::operator=(PipelineLayout&&)
         DirectX12PipelineLayout& operator=(DirectX12PipelineLayout&&) noexcept = delete;
-
-        /// @copydoc PipelineLayout::operator=(const PipelineLayout&)
         DirectX12PipelineLayout& operator=(const DirectX12PipelineLayout&) = delete;
 
     public:
-        /// @copydoc PipelineLayout::~PipelineLayout
         ~DirectX12PipelineLayout() noexcept override;
 
     public:
@@ -1201,20 +1089,12 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12InputAssembler();
 
     private:
-        /// @copydoc InputAssembler::InputAssembler(InputAssembler&&)
         DirectX12InputAssembler(DirectX12InputAssembler&&) noexcept;
-
-        /// @copydoc InputAssembler::InputAssembler(const InputAssembler&)
         DirectX12InputAssembler(const DirectX12InputAssembler&);
-
-        /// @copydoc InputAssembler::operator=(InputAssembler&&)
         DirectX12InputAssembler& operator=(DirectX12InputAssembler&&) noexcept;
-
-        /// @copydoc InputAssembler::operator=(const InputAssembler&)
         DirectX12InputAssembler& operator=(const DirectX12InputAssembler&);
 
     public:
-        /// @copydoc InputAssembler::~InputAssembler
         ~DirectX12InputAssembler() noexcept override;
 
     public:
@@ -1294,20 +1174,12 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12Rasterizer() noexcept;
 
     private:        
-        /// @copydoc Rasterizer::Rasterizer(Rasterizer&&)
         DirectX12Rasterizer(DirectX12Rasterizer&&) noexcept = delete;
-        
-        /// @copydoc Rasterizer::Rasterizer(const Rasterizer&)
         DirectX12Rasterizer(const DirectX12Rasterizer&) = default;
-
-        /// @copydoc Rasterizer::operator=(Rasterizer&&)
         DirectX12Rasterizer& operator=(DirectX12Rasterizer&&) noexcept = delete;
-
-        /// @copydoc Rasterizer::operator=(const Rasterizer&)
         DirectX12Rasterizer& operator=(const DirectX12Rasterizer&) = delete;
 
     public:
-        /// @copydoc Rasterizer::~Rasterizer
         ~DirectX12Rasterizer() noexcept override = default;
 
     public:
@@ -1399,20 +1271,12 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12CommandBuffer(const DirectX12Queue& queue, bool begin = false, bool primary = true);
 
     private:
-        /// @copydoc CommandBuffer::CommandBuffer(CommandBuffer&&)
         DirectX12CommandBuffer(DirectX12CommandBuffer&&) noexcept = delete;
-
-        /// @copydoc CommandBuffer::CommandBuffer(const CommandBuffer&)
         DirectX12CommandBuffer(const DirectX12CommandBuffer&) = delete;
-
-        /// @copydoc CommandBuffer::operator=(CommandBuffer&&)
         DirectX12CommandBuffer& operator=(DirectX12CommandBuffer&&) noexcept = delete;
-
-        /// @copydoc CommandBuffer::operator=(const CommandBuffer&)
         DirectX12CommandBuffer& operator=(const DirectX12CommandBuffer&) = delete;
 
     public:
-        /// @copydoc CommandBuffer::~CommandBuffer
         ~DirectX12CommandBuffer() noexcept override;
 
     public:
@@ -1635,20 +1499,12 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12Queue(const DirectX12Device& device, QueueType type, QueuePriority priority);
 
     private:
-        /// @copydoc CommandQueue::CommandQueue(CommandQueue&&)
         DirectX12Queue(DirectX12Queue&&) noexcept = delete;
-
-        /// @copydoc CommandQueue::CommandQueue(const CommandQueue&)
         DirectX12Queue(const DirectX12Queue&) = delete;
-
-        /// @copydoc CommandQueue::operator=(CommandQueue&&)
         DirectX12Queue& operator=(DirectX12Queue&&) noexcept = delete;
-
-        /// @copydoc CommandQueue::operator=(const CommandQueue&)
         DirectX12Queue& operator=(const DirectX12Queue&) = delete;
 
     public:
-        /// @copydoc CommandQueue::~CommandQueue
         ~DirectX12Queue() noexcept override;
 
     public:
@@ -1743,19 +1599,10 @@ namespace LiteFX::Rendering::Backends {
         /// @param name The optional name of the render pipeline.
         explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram, const SharedPtr<DirectX12InputAssembler>& inputAssembler, const SharedPtr<DirectX12Rasterizer>& rasterizer, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool enableAlphaToCoverage = false, const String& name = "");
 
-        /// @copydoc DirectX12PipelineState::DirectX12PipelineState(DirectX12PipelineState&&)
         DirectX12RenderPipeline(DirectX12RenderPipeline&&) noexcept = delete;
-        
-        /// @copydoc DirectX12PipelineState::DirectX12PipelineState(const DirectX12PipelineState&)
         DirectX12RenderPipeline(const DirectX12RenderPipeline&) = delete;
-
-        /// @copydoc DirectX12PipelineState::operator=(DirectX12PipelineState&&)
         DirectX12RenderPipeline& operator=(DirectX12RenderPipeline&&) noexcept = delete;
-
-        /// @copydoc DirectX12PipelineState::operator=(const DirectX12PipelineState&)
         DirectX12RenderPipeline& operator=(const DirectX12RenderPipeline&) = delete;
-
-        /// @copydoc DirectX12PipelineState::~DirectX12PipelineState
         ~DirectX12RenderPipeline() noexcept override;
 
     private:
@@ -1813,19 +1660,10 @@ namespace LiteFX::Rendering::Backends {
         /// @param name The optional debug name of the compute pipeline.
         explicit DirectX12ComputePipeline(const DirectX12Device& device, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram, const String& name = "");
 
-        /// @copydoc DirectX12PipelineState::DirectX12PipelineState(DirectX12PipelineState&&)
         DirectX12ComputePipeline(DirectX12ComputePipeline&&) noexcept;
-
-        /// @copydoc DirectX12PipelineState::DirectX12PipelineState(const DirectX12PipelineState&)
         DirectX12ComputePipeline(const DirectX12ComputePipeline&) = delete;
-
-        /// @copydoc DirectX12PipelineState::operator=(DirectX12PipelineState&&)
         DirectX12ComputePipeline& operator=(DirectX12ComputePipeline&&) noexcept;
-
-        /// @copydoc DirectX12PipelineState::operator=(const DirectX12PipelineState&)
         DirectX12ComputePipeline& operator=(const DirectX12ComputePipeline&) = delete;
-
-        /// @copydoc DirectX12PipelineState::~DirectX12PipelineState
         ~DirectX12ComputePipeline() noexcept override;
 
     private:
@@ -1874,19 +1712,10 @@ namespace LiteFX::Rendering::Backends {
         /// @param name The optional debug name of the ray-tracing pipeline.
         explicit DirectX12RayTracingPipeline(const DirectX12Device& device, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth = 10, UInt32 maxPayloadSize = 0, UInt32 maxAttributeSize = 32, const String& name = ""); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
-        /// @copydoc DirectX12PipelineState::DirectX12PipelineState(DirectX12PipelineState&&)
         DirectX12RayTracingPipeline(DirectX12RayTracingPipeline&&) noexcept;
-
-        /// @copydoc DirectX12PipelineState::DirectX12PipelineState(const DirectX12PipelineState&)
         DirectX12RayTracingPipeline(const DirectX12RayTracingPipeline&) = delete;
-
-        /// @copydoc DirectX12PipelineState::operator=(DirectX12PipelineState&&)
         DirectX12RayTracingPipeline& operator=(DirectX12RayTracingPipeline&&) noexcept;
-
-        /// @copydoc DirectX12PipelineState::operator=(const DirectX12PipelineState&)
         DirectX12RayTracingPipeline& operator=(const DirectX12RayTracingPipeline&) = delete;
-
-        /// @copydoc DirectX12PipelineState::~DirectX12PipelineState
         ~DirectX12RayTracingPipeline() noexcept override;
 
     private:
@@ -1963,20 +1792,12 @@ namespace LiteFX::Rendering::Backends {
         DirectX12FrameBuffer(const DirectX12Device& device, const Size2d& renderArea, allocation_callback_type allocationCallback, StringView name = "");
 
     private:
-        /// @copydoc FrameBuffer::FrameBuffer(FrameBuffer&&)
         DirectX12FrameBuffer(DirectX12FrameBuffer&&) noexcept = delete;
-
-        /// @copydoc FrameBuffer::FrameBuffer(const FrameBuffer&)
         DirectX12FrameBuffer(const DirectX12FrameBuffer&) = delete;
-
-        /// @copydoc FrameBuffer::operator=(FrameBuffer&&)
         DirectX12FrameBuffer& operator=(DirectX12FrameBuffer&&) noexcept = delete;
-
-        /// @copydoc FrameBuffer::operator=(const FrameBuffer&)
         DirectX12FrameBuffer& operator=(const DirectX12FrameBuffer&) = delete;
 
     public:
-        /// @copydoc FrameBuffer::~FrameBuffer
         ~DirectX12FrameBuffer() noexcept override;
 
     public:
@@ -2147,27 +1968,18 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000);
 
     private:
-        /// @copydoc RenderPass::RenderPass(RenderPass&&)
         DirectX12RenderPass(DirectX12RenderPass&&) noexcept = delete;
-
-        /// @copydoc RenderPass::RenderPass(const RenderPass&)
         DirectX12RenderPass(const DirectX12RenderPass&) = delete;
-
-        /// @copydoc RenderPass::operator=(RenderPass&&)
         DirectX12RenderPass& operator=(DirectX12RenderPass&&) noexcept = delete;
-
-        /// @copydoc RenderPass::operator=(const RenderPass&)
         DirectX12RenderPass& operator=(const DirectX12RenderPass&) = delete;
 
     public:
-        /// @copydoc RenderPass::~RenderPass
         ~DirectX12RenderPass() noexcept override;
 
     public:
         /// @brief Creates and initializes a new DirectX 12 render pass instance that executes on the default graphics queue.
         ///
         /// @param device The parent device instance.
-        /// @param commandBuffers The number of command buffers in each frame buffer.
         /// @param renderTargets The render targets that are output by the render pass.
         /// @param inputAttachments The input attachments that are read by the render pass.
         /// @param inputAttachmentSamplerBinding The binding point for the input attachment sampler.
@@ -2183,7 +1995,6 @@ namespace LiteFX::Rendering::Backends {
         /// @param device The parent device instance.
         /// @param name The name of the render pass state resource.
         /// @param renderTargets The render targets that are output by the render pass.
-        /// @param commandBuffers The number of command buffers in each frame buffer.
         /// @param inputAttachments The input attachments that are read by the render pass.
         /// @param inputAttachmentSamplerBinding The binding point for the input attachment sampler.
         /// @param secondaryCommandBuffers The number of command buffers that can be used for recording multi-threaded commands during the render pass.
@@ -2198,7 +2009,6 @@ namespace LiteFX::Rendering::Backends {
         /// @param device The parent device instance.
         /// @param queue The command queue to execute the render pass on.
         /// @param renderTargets The render targets that are output by the render pass.
-        /// @param commandBuffers The number of command buffers in each frame buffer.
         /// @param inputAttachments The input attachments that are read by the render pass.
         /// @param inputAttachmentSamplerBinding The binding point for the input attachment sampler.
         /// @param secondaryCommandBuffers The number of command buffers that can be used for recording multi-threaded commands during the render pass.
@@ -2214,7 +2024,6 @@ namespace LiteFX::Rendering::Backends {
         /// @param name The name of the render pass state resource.
         /// @param queue The command queue to execute the render pass on.
         /// @param renderTargets The render targets that are output by the render pass.
-        /// @param commandBuffers The number of command buffers in each frame buffer.
         /// @param inputAttachments The input attachments that are read by the render pass.
         /// @param inputAttachmentSamplerBinding The binding point for the input attachment sampler.
         /// @param secondaryCommandBuffers The number of command buffers that can be used for recording multi-threaded commands during the render pass.
@@ -2315,19 +2124,10 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12SwapChain(const DirectX12Device& device, const DirectX12Backend& backend, Format surfaceFormat = Format::B8G8R8A8_SRGB, const Size2d& renderArea = { 800, 600 }, UInt32 buffers = 3, bool enableVsync = false); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
     public:
-        /// @copydoc SwapChain::SwapChain(SwapChain&&)
         DirectX12SwapChain(DirectX12SwapChain&&) noexcept = delete;
-
-        /// @copydoc SwapChain::SwapChain(const SwapChain&)
         DirectX12SwapChain(const DirectX12SwapChain&) = delete;
-
-        /// @copydoc SwapChain::operator=(SwapChain&&)
         DirectX12SwapChain& operator=(DirectX12SwapChain&&) noexcept = delete;
-
-        /// @copydoc SwapChain::operator=(const SwapChain&)
         DirectX12SwapChain& operator=(const DirectX12SwapChain&) = delete;
-
-        /// @copydoc SwapChain::~SwapChain
         ~DirectX12SwapChain() noexcept override;
 
         // DirectX 12 swap chain.
@@ -2430,20 +2230,12 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12GraphicsFactory(const DirectX12Device& device);
 
     private:
-        /// @copydoc GraphicsFactory::GraphicsFactory(GraphicsFactory&&)
         DirectX12GraphicsFactory(DirectX12GraphicsFactory&&) noexcept = delete;
-        
-        /// @copydoc GraphicsFactory::GraphicsFactory(const GraphicsFactory&)
         DirectX12GraphicsFactory(const DirectX12GraphicsFactory&) = delete;
-
-        /// @copydoc GraphicsFactory::operator=(GraphicsFactory&&)
         DirectX12GraphicsFactory& operator=(DirectX12GraphicsFactory&&) noexcept = delete;
-
-        /// @copydoc GraphicsFactory::operator=(const GraphicsFactory&)
         DirectX12GraphicsFactory& operator=(const DirectX12GraphicsFactory&) = delete;
 
     public:
-        /// @copydoc GraphicsFactory::~GraphicsFactory
         ~DirectX12GraphicsFactory() noexcept override;
 
     private:
@@ -2565,20 +2357,12 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12Device(const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, UInt32 globalBufferHeapSize = D3D12_MAX_SHADER_VISIBLE_DESCRIPTOR_HEAP_SIZE_TIER_1, UInt32 globalSamplerHeapSize = D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE);
 
     private:
-        /// @copydoc GraphicsDevice::GraphicsDevice(GraphicsDevice&&)
         DirectX12Device(DirectX12Device&&) noexcept = delete;
-
-        /// @copydoc GraphicsDevice::GraphicsDevice(const GraphicsDevice&)
         DirectX12Device(const DirectX12Device&) = delete;
-
-        /// @copydoc GraphicsDevice::operator=(GraphicsDevice&&)
         DirectX12Device& operator=(DirectX12Device&&) noexcept = delete;
-
-        /// @copydoc GraphicsDevice::operator=(const GraphicsDevice&)
         DirectX12Device& operator=(const DirectX12Device&) = delete;
         
     public:
-        /// @copydoc GraphicsDevice::~GraphicsDevice
         ~DirectX12Device() noexcept override;
 
         // Factory methods.
@@ -2785,21 +2569,16 @@ namespace LiteFX::Rendering::Backends {
         LITEFX_IMPLEMENTATION(DirectX12BackendImpl);
 
     public:
+        /// @brief Creates a new DirectX 12 graphics backend instance.
+        /// 
+        /// @param app A reference to the underlying app instance.
+        /// @param advancedSoftwareRasterizer If set to `true`, the backend uses the WARP software rasterizer.
         explicit DirectX12Backend(const App& app, bool advancedSoftwareRasterizer = false);
 
-        /// @copydoc RenderBackend::RenderBackend(RenderBackend&&)
         DirectX12Backend(DirectX12Backend&&) noexcept;
-
-        /// @copydoc RenderBackend::RenderBackend(const RenderBackend&)
         DirectX12Backend(const DirectX12Backend&) = delete;
-
-        /// @copydoc RenderBackend::operator=(RenderBackend&&)
         DirectX12Backend& operator=(DirectX12Backend&&) noexcept;
-
-        /// @copydoc RenderBackend::operator=(const RenderBackend&)
         DirectX12Backend& operator=(const DirectX12Backend&) = delete;
-
-        /// @copydoc RenderBackend::~RenderBackend
         ~DirectX12Backend() noexcept override;
 
         // IBackend interface.
@@ -2849,7 +2628,7 @@ namespace LiteFX::Rendering::Backends {
 
         /// @brief Enables [Windows Advanced Software Rasterization (WARP)](https://docs.microsoft.com/en-us/windows/win32/direct3darticles/directx-warp).
         ///
-        /// Enabling software rasterization disables hardware rasterization. Requesting adapters using @ref findAdapter or @ref listAdapters will only return WARP-compatible adapters.
+        /// Enabling software rasterization disables hardware rasterization. Requesting adapters using @ref findAdapter or @ref adapters will only return WARP-compatible adapters.
         ///
         /// @param enable `true`, if advanced software rasterization should be used.
         void enableAdvancedSoftwareRasterizer(bool enable = false);

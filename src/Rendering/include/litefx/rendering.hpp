@@ -101,10 +101,6 @@ namespace LiteFX::Rendering {
     ///
     /// Note that samplers, textures and input attachments currently do not support array binding, since they are typically only updated once or require pipeline synchronization anyway.
     ///
-    /// Also note, that another buffer management strategy is currently not available: the *Monolithic Buffer*. In this strategy, there is only one large buffer for *all* buffers. Differently from the ring
-    /// buffer strategy, where there is one buffer per descriptor type, a monolithic buffer combines multiple constant buffers, containing different data into one giant buffer block. Calling @ref
-    /// RenderPipeline::bind for a descriptor set would then receive an additional dynamic offset for each descriptor within the descriptor set.
-    ///
     /// @tparam TBuffer The type of the buffer interface. Must inherit from @ref IBuffer.
     /// @tparam TImage The type of the image interface. Must inherit from @ref IImage.
     /// @tparam TSampler The type of the sampler interface. Must inherit from @ref ISampler.
@@ -328,7 +324,7 @@ namespace LiteFX::Rendering {
     /// - Accordingly, the size of a push constant layout must align to 4 bytes.
     /// - Only one @ref IPushConstantsRange per shader stage is permitted. Shader stages can be combined together, however in this case, no other ranges must be defined for the stages.
     ///
-    /// Push constants can be updated by calling @ref CommandBuffer::PushConstants and are visible to subsequent draw calls immediately, until another update is performed or the command buffer is ended.
+    /// Push constants can be updated by calling @ref CommandBuffer::pushConstants and are visible to subsequent draw calls immediately, until another update is performed or the command buffer is ended.
     ///
     /// @tparam TPushConstantsRange The type of the push constant range. Must implement @ref IPushConstantsRange.
     /// @see IPushConstantsRange
@@ -359,7 +355,7 @@ namespace LiteFX::Rendering {
         }
     };
 
-    /// @brief Represents a shader program, consisting of multiple @ref IShaderModules.
+    /// @brief Represents a shader program, consisting of multiple @ref IShaderModule "IShaderModules".
     ///
     /// @tparam TShaderModule The type of the shader module. Must implement @ref IShaderModule.
     /// @see https://github.com/crud89/LiteFX/wiki/Shader-Development
@@ -1109,7 +1105,7 @@ namespace LiteFX::Rendering {
     /// @brief Represents a render pass.
     ///
     /// A render pass is a conceptual layer, that may not have any logical representation within the actual implementation. It is a high-level view on a specific workload on the GPU, that processes data using
-    /// different @ref RenderPipelines and stores the outputs in the @ref IRenderTargets of a @ref FrameBuffer.
+    /// different @ref RenderPipeline "RenderPipelines" and stores the outputs in the @ref IRenderTarget "IRenderTargets" of a @ref FrameBuffer.
     ///
     /// @tparam TRenderPipeline The type of the render pipeline. Must implement @ref RenderPipeline.
     /// @tparam TCommandQueue The type of the command queue. Must implement @ref CommandQueue.
@@ -1651,7 +1647,6 @@ namespace LiteFX::Rendering {
         /// @brief Returns a builder for a @ref RenderPass.
         ///
         /// @param name The name of the render pass.
-        /// @param samples The number of samples, the render targets of the render pass should be sampled with.
         /// @return An instance of a builder that is used to create a new render pass.
         [[nodiscard]] virtual render_pass_builder_type buildRenderPass(const String& name, UInt32 commandBuffers = 1) const = 0;
 
@@ -1676,7 +1671,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Returns a builder for a @ref RayTracingPipeline.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param shaderRecords The shader record collection that is used to build the shader binding table for the pipeline.
         /// @return An instance of a builder that is used to create a new ray-tracing pipeline.
@@ -1684,7 +1679,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Returns a builder for a @ref RayTracingPipeline.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param name The name of the ray-tracing pipeline.
         /// @param shaderRecords The shader record collection that is used to build the shader binding table for the pipeline.

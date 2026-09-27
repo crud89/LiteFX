@@ -51,7 +51,7 @@ namespace LiteFX::meta {
     ///
     /// @tparam T The type to check.
     /// @tparam TArg The parameter to check for conversion support.
-    /// @tparam ...TArgs The remaining constructor parameters.
+    /// @tparam TArgs The remaining constructor parameters.
     template <typename T, typename TArg, typename ...TArgs>
     struct is_explicitly_constructible_t : std::bool_constant<std::is_constructible_v<T, TArg, TArgs...> && !std::is_convertible_v<TArg, T>> { };
 
@@ -59,7 +59,7 @@ namespace LiteFX::meta {
     ///
     /// @tparam T The type to check.
     /// @tparam TArg The parameter to check for conversion support.
-    /// @tparam ...TArgs The remaining constructor parameters.
+    /// @tparam TArgs The remaining constructor parameters.
     template <typename T, typename TArg, typename ...TArgs>
     constexpr bool is_explicitly_constructible_v = is_explicitly_constructible_t<T, TArg, TArgs...>::value;
 
@@ -67,7 +67,7 @@ namespace LiteFX::meta {
     ///
     /// @tparam T The type to check.
     /// @tparam TArg The parameter to check for conversion support.
-    /// @tparam ...TArgs The remaining constructor parameters.
+    /// @tparam TArgs The remaining constructor parameters.
     template <typename T, typename TArg, typename ...TArgs>
     concept is_explicitly_constructible = is_explicitly_constructible_v<T, TArg, TArgs...>;
 
@@ -75,7 +75,7 @@ namespace LiteFX::meta {
     ///
     /// @tparam T The type to check.
     /// @tparam TArg The parameter to check for conversion support.
-    /// @tparam ...TArgs The remaining constructor parameters.
+    /// @tparam TArgs The remaining constructor parameters.
     template <typename T, typename TArg, typename ...TArgs>
     struct is_implicitly_constructible_t : std::bool_constant<std::is_constructible_v<T, TArg, TArgs...> && std::is_convertible_v<TArg, T>> { };
 
@@ -83,7 +83,7 @@ namespace LiteFX::meta {
     ///
     /// @tparam T The type to check.
     /// @tparam TArg The parameter to check for conversion support.
-    /// @tparam ...TArgs The remaining constructor parameters.
+    /// @tparam TArgs The remaining constructor parameters.
     template <typename T, typename TArg, typename ...TArgs>
     constexpr bool is_implicitly_constructible_v = is_explicitly_constructible_t<T, TArg, TArgs...>::value;
 
@@ -91,7 +91,7 @@ namespace LiteFX::meta {
     ///
     /// @tparam T The type to check.
     /// @tparam TArg The parameter to check for conversion support.
-    /// @tparam ...TArgs The remaining constructor parameters.
+    /// @tparam TArgs The remaining constructor parameters.
     template <typename T, typename TArg, typename ...TArgs>
     concept is_implicitly_constructible = is_explicitly_constructible_v<T, TArg, TArgs...>;
 

@@ -334,12 +334,11 @@ namespace LiteFX::Rendering::Backends {
 		/// @param name A debug name for the render pass.
 		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name = "");
 
-		~DirectX12RenderPassBuilder() noexcept override;
-
 		DirectX12RenderPassBuilder(const DirectX12RenderPassBuilder&) = delete;
 		DirectX12RenderPassBuilder(DirectX12RenderPassBuilder&&) noexcept = delete;
 		auto operator=(const DirectX12RenderPassBuilder&) = delete;
 		auto operator=(DirectX12RenderPassBuilder&&) noexcept = delete;
+		~DirectX12RenderPassBuilder() noexcept override;
 
 		// Builder interface.
 	protected:

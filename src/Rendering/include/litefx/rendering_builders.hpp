@@ -414,7 +414,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Adds a task shader module to the program.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::MeshShaders feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::MeshShaders feature is enabled.
         ///
         /// @param fileName The file name of the module.
         /// @param entryPoint The name of the entry point for the module.
@@ -431,7 +431,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Adds a task shader module to the program.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::MeshShaders feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::MeshShaders feature is enabled.
         ///
         /// @param stream The file stream of the module.
         /// @param name The file name of the module.
@@ -449,7 +449,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Adds a mesh shader module to the program.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::MeshShaders feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::MeshShaders feature is enabled.
         ///
         /// @param fileName The file name of the module.
         /// @param entryPoint The name of the entry point for the module.
@@ -460,7 +460,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Adds a mesh shader module to the program.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::MeshShaders feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::MeshShaders feature is enabled.
         ///
         /// @param stream The file stream of the module.
         /// @param name The file name of the module.
@@ -603,7 +603,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Adds a ray generation shader module to the program.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param fileName The file name of the module.
         /// @param shaderLocalDescriptor The descriptor that binds shader-local data.
@@ -615,7 +615,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Adds a ray generation shader module to the program.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param stream The file stream of the module.
         /// @param name The file name of the module.
@@ -628,7 +628,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Adds a miss shader module to the program.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param fileName The file name of the module.
         /// @param shaderLocalDescriptor The descriptor that binds shader-local data.
@@ -640,7 +640,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Adds a miss shader module to the program.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param stream The file stream of the module.
         /// @param name The file name of the module.
@@ -653,7 +653,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Adds a callable shader module to the program.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param fileName The file name of the module.
         /// @param shaderLocalDescriptor The descriptor that binds shader-local data.
@@ -665,7 +665,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Adds a callable shader module to the program.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param stream The file stream of the module.
         /// @param name The file name of the module.
@@ -678,7 +678,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Adds an intersection hit shader module to the program.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param fileName The file name of the module.
         /// @param entryPoint The name of the entry point for the module.
@@ -689,7 +689,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Adds an intersection hit shader module to the program.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param stream The file stream of the module.
         /// @param name The file name of the module.
@@ -702,7 +702,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Adds an any hit shader module to the program.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param fileName The file name of the module.
         /// @param shaderLocalDescriptor The descriptor that binds shader-local data.
@@ -714,7 +714,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Adds an any hit shader module to the program.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param stream The file stream of the module.
         /// @param name The file name of the module.
@@ -727,7 +727,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Adds a closest hit shader module to the program.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param fileName The file name of the module.
         /// @param shaderLocalDescriptor The descriptor that binds shader-local data.
@@ -739,7 +739,7 @@ namespace LiteFX::Rendering {
 
         /// @brief Adds a closest hit shader module to the program.
         ///
-        /// This method is only supported if the @ref GraphicsDeviceFeature::RayTracing feature is enabled.
+        /// This method is only supported if the @ref GraphicsDeviceFeatures::RayTracing feature is enabled.
         ///
         /// @param stream The file stream of the module.
         /// @param name The file name of the module.
@@ -884,7 +884,7 @@ namespace LiteFX::Rendering {
         }
     };
 
-    /// @brief Builds a @ref VertexBufferLayout.
+    /// @brief Builds a @ref IVertexBufferLayout.
     ///
     /// @tparam TVertexBufferLayout The type of the vertex buffer layout. Must implement @ref IVertexBufferLayout.
     /// @see IVertexBufferLayout
@@ -1003,7 +1003,7 @@ namespace LiteFX::Rendering {
         /// @return The descriptor layout instance.
         constexpr virtual descriptor_layout_type makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors, bool unbounded) = 0;
 
-        /// @brief Creates a static sampler for the descriptor bound to @ref binding.
+        /// @brief Creates a static sampler for the descriptor bound to @p binding.
         ///
         /// @param binding The binding point for the descriptor.
         /// @param magFilter The magnifying filter operation.
@@ -1042,7 +1042,7 @@ namespace LiteFX::Rendering {
             return std::forward<TSelf>(self);
         }
 
-        /// @brief Defines a static sampler at the descriptor bound to @ref binding.
+        /// @brief Defines a static sampler at the descriptor bound to @p binding.
         ///
         /// @param binding The binding point for the descriptor.
         /// @param magFilter The magnifying filter operation.
@@ -1228,7 +1228,7 @@ namespace LiteFX::Rendering {
         ///
         /// @param binding The binding point or register index at which to create the proxy descriptor.
         /// @param heapSize The number of descriptors to reserve for the proxy descriptor.
-        /// @see GraphicsDeviceFeature::DynamicDescriptors
+        /// @see GraphicsDeviceFeatures::DynamicDescriptors
         template <typename TSelf>
         [[nodiscard]] constexpr auto withResourceHeapAccess(this TSelf&& self, UInt32 binding, UInt32 heapSize) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::ResourceDescriptorHeap, binding, 0u, heapSize, false)));
@@ -1239,7 +1239,7 @@ namespace LiteFX::Rendering {
         ///
         /// @param binding The binding point or register index at which to create the proxy descriptor.
         /// @param heapSize The number of descriptors to reserve for the proxy descriptor.
-        /// @see GraphicsDeviceFeature::DynamicDescriptors
+        /// @see GraphicsDeviceFeatures::DynamicDescriptors
         template <typename TSelf>
         [[nodiscard]] constexpr auto withSamplerHeapAccess(this TSelf&& self, UInt32 binding, UInt32 heapSize) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::SamplerDescriptorHeap, binding, 0u, heapSize, false)));

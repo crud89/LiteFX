@@ -154,20 +154,12 @@ namespace LiteFX::Rendering::Backends {
         /// @param adapter The DXGI adapter interface pointer.
         explicit DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter);
 
-        /// @copydoc IGraphicsAdapter::IGraphicsAdapter(IGraphicsAdapter&&)
         DirectX12GraphicsAdapter(DirectX12GraphicsAdapter&&) noexcept = delete;
-
-        /// @copydoc IGraphicsAdapter::IGraphicsAdapter(const IGraphicsAdapter&)
         DirectX12GraphicsAdapter(const DirectX12GraphicsAdapter&) = delete;
-
-        /// @copydoc IGraphicsAdapter::operator=(IGraphicsAdapter&&)
         DirectX12GraphicsAdapter& operator=(DirectX12GraphicsAdapter&&) noexcept = delete;
-
-        /// @copydoc IGraphicsAdapter::operator=(const IGraphicsAdapter&)
         DirectX12GraphicsAdapter& operator=(const DirectX12GraphicsAdapter&) = delete;
 
     public:
-        /// @copydoc IGraphicsAdapter::~IGraphicsAdapter
         ~DirectX12GraphicsAdapter() noexcept override;
 
     public:
@@ -213,19 +205,10 @@ namespace LiteFX::Rendering::Backends {
         /// @param hwnd The window handle.
         explicit DirectX12Surface(const HWND& hwnd) noexcept;
 
-        /// @copydoc ISurface::ISurface(const ISurface&)
         DirectX12Surface(const DirectX12Surface&) = delete;
-        
-        /// @copydoc ISurface::ISurface(ISurface&&)
         DirectX12Surface(DirectX12Surface&&) noexcept = default;
-        
-        /// @copydoc ISurface::operator=(const ISurface&)
         DirectX12Surface& operator=(const DirectX12Surface&) = delete;
-        
-        /// @copydoc ISurface::operator=(ISurface&&)
         DirectX12Surface& operator=(DirectX12Surface&&) noexcept = default;
-
-        /// @copydoc ISurface::~ISurface
         ~DirectX12Surface() noexcept override;
     };
 
@@ -258,19 +241,10 @@ namespace LiteFX::Rendering::Backends {
         explicit DX12PlatformException(HRESULT result, std::format_string<TArgs...> format, TArgs&&... args) :
             DX12PlatformException(result, std::format(format, std::forward<TArgs>(args)...)) { }
 
-        /// @copydoc RuntimeException::RuntimeException(RuntimeException&&)
         DX12PlatformException(DX12PlatformException&&) noexcept = default;
-
-        /// @copydoc RuntimeException::RuntimeException(const RuntimeException&)
         DX12PlatformException(const DX12PlatformException&) = default;
-
-        /// @copydoc RuntimeException::operator=(RuntimeException&&)
         DX12PlatformException& operator=(DX12PlatformException&&) noexcept = default;
-        
-        /// @copydoc RuntimeException::operator=(const RuntimeException&)
         DX12PlatformException& operator=(const DX12PlatformException&) = default;
-        
-        /// @copydoc RuntimeException::~RuntimeException
         ~DX12PlatformException() noexcept override = default;
 
     public:
@@ -289,7 +263,7 @@ namespace LiteFX::Rendering::Backends {
         }
     };
 
-    /// @brief Raises a @ref DirectX12PlatformException, if @p hr does not equal `S_OK`.
+    /// @brief Raises a @ref DX12PlatformException, if @p hr does not equal `S_OK`.
     ///
     /// @param hr The error code returned by the operation.
     /// @param message The format string for the error message.

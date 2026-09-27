@@ -152,20 +152,12 @@ namespace LiteFX::Rendering::Backends {
         explicit VulkanGraphicsAdapter(VkPhysicalDevice adapter);
 
     private:
-        /// @copydoc IGraphicsAdapter::IGraphicsAdapter(IGraphicsAdapter&&)
         VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) noexcept = delete;
-
-        /// @copydoc IGraphicsAdapter::IGraphicsAdapter(const IGraphicsAdapter&)
         VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
-
-        /// @copydoc IGraphicsAdapter::operator=(IGraphicsAdapter&&)
         VulkanGraphicsAdapter& operator=(VulkanGraphicsAdapter&&) noexcept = delete;
-
-        /// @copydoc IGraphicsAdapter::operator=(const IGraphicsAdapter&)
         VulkanGraphicsAdapter& operator=(const VulkanGraphicsAdapter&) = delete;
 
     public:
-        /// @copydoc IGraphicsAdapter::~IGraphicsAdapter
         ~VulkanGraphicsAdapter() noexcept override;
 
     public:
@@ -253,20 +245,10 @@ namespace LiteFX::Rendering::Backends {
         VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& instance);
 #endif // VK_USE_PLATFORM_WIN32_KHR
 
-
-        /// @copydoc ISurface::ISurface(ISurface&&)
         VulkanSurface(VulkanSurface&&) noexcept;
-
-        /// @copydoc ISurface::ISurface(const ISurface&)
         VulkanSurface(const VulkanSurface&) = delete;
-
-        /// @copydoc ISurface::operator=(ISurface&&)
         VulkanSurface& operator=(VulkanSurface&&) noexcept;
-
-        /// @copydoc ISurface::operator=(const ISurface&)
         VulkanSurface& operator=(const VulkanSurface&) = delete;
-
-        /// @copydoc ISurface::~ISurface
         ~VulkanSurface() noexcept override;
 
     public:
@@ -312,19 +294,10 @@ namespace LiteFX::Rendering::Backends {
         explicit VulkanPlatformException(VkResult result, StringView format, TArgs&&... args) :
             VulkanPlatformException(result, std::format(format, std::forward<TArgs>(args)...)) { }
 
-        /// @copydoc RuntimeException::RuntimeException(RuntimeException&&)
         VulkanPlatformException(VulkanPlatformException&&) noexcept = default;
-
-        /// @copydoc RuntimeException::RuntimeException(const RuntimeException&)
         VulkanPlatformException(const VulkanPlatformException&) = default;
-
-        /// @copydoc RuntimeException::operator=(RuntimeException&&)
         VulkanPlatformException& operator=(VulkanPlatformException&&) noexcept = default;
-
-        /// @copydoc RuntimeException::operator=(const RuntimeException&)
         VulkanPlatformException& operator=(const VulkanPlatformException&) = default;
-
-        /// @copydoc RuntimeException::~RuntimeException
         ~VulkanPlatformException() noexcept override = default;
 
     public:
@@ -338,7 +311,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Raises a @ref VulkanPlatformException, if @p result does not equal `VK_SUCCESS`.
     ///
-    /// @param hr The error code returned by the operation.
+    /// @param result The error code returned by the operation.
     /// @param message The format string for the error message.
     /// @param args The arguments passed to the error message format string.
     template <typename ...TArgs>

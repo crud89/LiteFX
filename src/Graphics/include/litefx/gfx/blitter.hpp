@@ -22,7 +22,7 @@ namespace LiteFX::Graphics {
     /// @brief Utility class that can be used to issue blit commands and generate mip maps.
     ///
     /// This utility class can be used to generate mip maps for images. Note however, that it is more efficient to pre-compute mip maps if possible. Also note that if you need a direct copy of a image, use a
-    /// @ref ICommandBuffer::transfer command instead.
+    /// @ref ICommandBuffer::transfer() command instead.
     ///
     /// @tparam TBackend The type of render backend that implements the blitter.
     template <render_backend TBackend>

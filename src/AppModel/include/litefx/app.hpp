@@ -87,7 +87,7 @@ namespace LiteFX {
 	/// will be encapsulated in a delegate, which gets assigned with a token. This token is unique for the event, the delegate has been registered to.
 	///
 	/// @tparam TResult The result of the delegate function.
-	/// @tparam ...TArgs The arguments of the delegate function.
+	/// @tparam TArgs The arguments of the delegate function.
 	template <typename TResult, typename... TArgs>
 	class Delegate final {
 	public:
@@ -109,7 +109,7 @@ namespace LiteFX {
 	public:
 		/// @brief Invokes the delegate function.
 		///
-		/// @param ...args The arguments passed to the function.
+		/// @param args The arguments passed to the function.
 		/// @return The result of the delegate function call.
 		inline TResult invoke(TArgs... args) const {
 			return m_target(std::move(args)...);
@@ -125,7 +125,7 @@ namespace LiteFX {
 	public:
 		/// @brief Invokes the delegate function.
 		///
-		/// @param ...args The arguments passed to the function.
+		/// @param args The arguments passed to the function.
 		/// @return The result of the delegate function call.
 		inline TResult operator()(TArgs... args) const {
 			return this->invoke(std::move(args)...);
@@ -210,7 +210,7 @@ namespace LiteFX {
 
 		/// @brief Unsubscribes an event handler from the event.
 		///
-		/// @param toke The unique token of the event handler.
+		/// @param token The unique token of the event handler.
 		/// @return `true`, if the event handler has been removed, `false` otherwise.
 		bool remove(event_token_type token) noexcept {
 			const auto last = std::remove_if(m_subscribers.begin(), m_subscribers.end(), [&token](const auto& s) { return s.token() == token; });
@@ -282,7 +282,7 @@ namespace LiteFX {
 
 		/// @brief Unsubscribes an event handler from the event.
 		///
-		/// @param toke The unique token of the event handler.
+		/// @param token The unique token of the event handler.
 		/// @return `true`, if the event handler has been removed, `false` otherwise.
 		bool operator -=(event_token_type token) noexcept {
 			return this->remove(token);

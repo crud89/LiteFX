@@ -107,13 +107,13 @@ namespace LiteFX {
 
 	/// @brief Represents a tuple of multiple objects.
 	///
-	/// @tparam ...T The types of the objects, contained by the tuple.
+	/// @tparam T The types of the objects, contained by the tuple.
 	template <class... T>
 	using Tuple = std::tuple<T...>;
 
 	/// @brief Represents a variant of objects.
 	///
-	/// @tparam ...T The types of the objects, that can be contained by the tuple.
+	/// @tparam T The types of the objects, that can be contained by the tuple.
 	template <class... T>
 	using Variant = std::variant<T...>;
 
@@ -577,8 +577,8 @@ namespace LiteFX {
 
 		/// @brief Initializes a new pointer of an implementation.
 		///
-		/// @tparam ...TArgs The types of the arguments passed to the implementation constructor.
-		/// @param ...args The arguments passed to the implementation constructor.
+		/// @tparam TArgs The types of the arguments passed to the implementation constructor.
+		/// @param args The arguments passed to the implementation constructor.
 		template <typename... TArgs>
 		constexpr PimplPtr(TArgs&&... args) /*requires std::constructible_from<pImpl, TArgs...>*/ :
 			m_ptr(makeShared<pImpl>(std::forward<TArgs>(args)...)) { } // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
@@ -595,8 +595,6 @@ namespace LiteFX {
 		constexpr PimplPtr(PimplPtr&& src) noexcept = default;
 
 		/// @brief Initializes a new pointer to a copy of the implementation instance managed by @p src.
-		///
-		/// Note that this will share ownership between this instance and @p src. Only use this method, if you @ref release either of both implementation pointers manually!
 		///
 		/// @param src The source pointer to copy the implementation instance from.
 		/// @return A new pointer to the provided implementation instance.
@@ -882,19 +880,19 @@ namespace LiteFX {
 	/// Note that the above rule does not apply for objects that are stored within a @ref PimplPtr, as those are handled correctly by the pointer implementation.
 	///
 	/// You may want to create objects by creating a static factory method that calls the protected @ref SharedObject::create method. This has the advantage of allocating a single memory block for both, the
-	/// object and the shared pointers control block. To do this, make sure to declare friendship to @ref SharedAllocator in your class, as shown in the example below.
+	/// object and the shared pointers control block. To do this, make sure to declare friendship to @ref SharedObject::Allocator in your class, as shown in the example below.
 	///
 	/// @par Example
 	/// @code
 	/// class Foo : public SharedObject {
-	///     friend struct SharedObject::Allocator>Foo<;
+	///     friend struct SharedObject::Allocator<Foo>;
 	///
 	/// private:
 	///     explicit Foo(int a, std::string b) { }
 	///
 	/// public:
 	///     static inline auto create(int a, std::string b) {
-	///         return SharedObject::create>Foo<(a, b);
+	///         return SharedObject::create<Foo>(a, b);
 	///     }
 	/// }
 	/// @endcode
@@ -919,6 +917,13 @@ namespace LiteFX {
 		/// @tparam T The type of the class that inherits from @ref SharedObject.
 		template <typename T>
 		struct Allocator : public std::allocator<T> {
+			using value_type = T;
+
+			constexpr Allocator() noexcept = default;
+
+			template <typename TParent>
+			constexpr Allocator(const Allocator<TParent>&) noexcept {}
+
 			template<typename TParent, typename... TArgs>
 			void construct(TParent* parent, TArgs&&... args) {
 				::new(static_cast<void*>(parent)) TParent(std::forward<TArgs>(args)...);
@@ -932,30 +937,46 @@ namespace LiteFX {
 		/// @param args The arguments that are forwarded to the shared object's constructor.
 		/// @return A shared pointer of the shared object.
 		/// @see Allocator
-		template <typename T, typename... TArgs>
+		template <typename T, typename... TArgs> requires 
+			std::derived_from<T, SharedObject>
 		[[nodiscard]] static inline auto create(TArgs&&... args) -> SharedPtr<T> {
 			return std::allocate_shared<T>(Allocator<T>{}, std::forward<TArgs>(args)...);
 		}
 
+	private:
+		template <typename Self>
+		static constexpr bool supports_static_cast = requires (SharedObject * p) { static_cast<Self*>(p); };
+
 	public:
 		/// @brief Returns a shared pointer to the current object instance.
 		template <typename TSelf>
-		[[nodiscard]] auto inline shared_from_this(this TSelf&& self)
-		{
-			// TODO: In C++26 we should be able to use `std::is_virtual_base_of<SharedObject, TSelf>` here to prefer a `static_pointer_cast`, if possible.
+		[[nodiscard]] auto shared_from_this(this TSelf&& self) {
+			using Self = std::remove_reference_t<TSelf>;
 
-			return std::dynamic_pointer_cast<std::remove_reference_t<TSelf>>(
-				std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::shared_from_this());
+			if constexpr (supports_static_cast<Self>)
+				return std::static_pointer_cast<Self>(
+					std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::shared_from_this());
+			else
+				return std::dynamic_pointer_cast<Self>(
+					std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::shared_from_this());
 		}
 		
 		/// @brief Returns a weak pointer to the current object instance.
+		/// 
+		/// Note that there's a subtle difference between the standard version and this implementation. Since there are no typed casts for weak pointers, internally this function acquires a temporary 
+		/// reference for the object, which only works if the object is not fully released. In practice, this is almost never an issue, except for an additional atomic increment/decrement. If the
+		/// parent pointer is already released, this returns an empty pointer too. The edge case exists where the pointer is released, but the object is still alive. For example, when calling this
+		/// function from a destructor of a derived class, different to the standard version, this hands out an empty pointer, while the standard would return an *expired, but non-empty* pointer.
 		template <typename TSelf>
-		[[nodiscard]] auto inline weak_from_this(this TSelf&& self) noexcept -> WeakPtr<std::remove_reference_t<TSelf>>
-		{
-			// TODO: In C++26 we should be able to use `std::is_virtual_base_of<SharedObject, TSelf>` here to prefer a `static_pointer_cast`, if possible.
+		[[nodiscard]] auto weak_from_this(this TSelf&& self) noexcept -> WeakPtr<std::remove_reference_t<TSelf>> {
+			using Self = std::remove_reference_t<TSelf>;
 
-			return std::dynamic_pointer_cast<std::remove_reference_t<TSelf>>(
-				std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::weak_from_this().lock());
+			if constexpr (supports_static_cast<Self>)
+				return std::static_pointer_cast<Self>(
+					std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::weak_from_this().lock());
+			else
+				return std::dynamic_pointer_cast<Self>(
+					std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::weak_from_this().lock());
 		}
 	};
 }
