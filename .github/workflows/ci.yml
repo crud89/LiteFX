@@ -1,4 +1,3 @@
-# Copyright (c) 2024 Carsten Rudolph
 name: Pull Request Checks
 
 # Triggered manually or by commenting on a pull request with `Run: <commands>`, where commands contains one or more of:
@@ -6,6 +5,7 @@ name: Pull Request Checks
 # - `tests`: runs tests
 # - `tidy`: runs static code analysis
 # - `builds`: builds all targets
+# - `docs`: builds the API reference (MrDocs) and the website (MkDocs)
 # - `checks`: runs everything of the above
 #
 # Commands can only be issued by the repository owner, members, collaborators or previous contributors.
@@ -19,7 +19,7 @@ on:
         description: 'Pull Request ID'
         required: true
       command:
-        description: 'Command (one or more of: checks, tests, tidy, builds)'
+        description: 'Command (one or more of: checks, tests, tidy, builds, docs)'
         required: true
         default: 'checks'
 
@@ -61,6 +61,7 @@ jobs:
           [[ "$COMMAND" == *checks* || "$COMMAND" == *tests*  ]] && commands+=(test)
           [[ "$COMMAND" == *checks* || "$COMMAND" == *tidy*   ]] && commands+=(tidy)
           [[ "$COMMAND" == *checks* || "$COMMAND" == *builds* ]] && commands+=(build)
+          [[ "$COMMAND" == *checks* || "$COMMAND" == *docs*   ]] && commands+=(docs)
           echo "commands=$(IFS=,; echo "${commands[*]}")" >> "$GITHUB_OUTPUT"
 
       - name: Resolve pull request
@@ -129,3 +130,18 @@ jobs:
       ref: ${{ needs.verify.outputs.sha }}
       check-sha: ${{ needs.verify.outputs.sha }}
       upload-build: true
+
+  docs:
+    needs: verify
+    if: ${{ contains(needs.verify.outputs.commands, 'docs') }}
+    permissions:
+      contents: read
+      checks: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/build.yml
+    with:
+      purpose: docs
+      ref: ${{ needs.verify.outputs.sha }}
+      check-sha: ${{ needs.verify.outputs.sha }}
+      configure-options: -DLITEFX_DOCUMENTATION_SOURCE_REF=${{ needs.verify.outputs.sha }}

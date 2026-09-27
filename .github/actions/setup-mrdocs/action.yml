@@ -1,0 +1,116 @@
+name: Setup MrDocs
+description: >
+  Provides the MrDocs release pinned in src/cmake/docs/Documentation.cmake from the dependency cache. The archive is verified against the
+  pinned checksum on every use. If it is not cached, the `executable` output is empty and CMake downloads MrDocs itself.
+
+inputs:
+  save:
+    description: 'Download the archive and save it to the cache, if it is not cached yet (see update_dependencies.yml).'
+    required: false
+    default: 'false'
+
+outputs:
+  executable:
+    description: 'Path of the MrDocs executable, or empty if MrDocs is not available from the cache.'
+    value: ${{ steps.extract.outputs.executable }}
+
+runs:
+  using: composite
+  steps:
+    - name: Read pinned MrDocs release
+      id: pin
+      shell: python
+      run: |
+        import os, re, pathlib
+
+        cmake = pathlib.Path("src/cmake/docs/Documentation.cmake").read_text(encoding="utf-8-sig")
+        version = re.search(r'SET\(LITEFX_MRDOCS_VERSION\s+"([^"]+)"\)', cmake).group(1)
+        suffix = { "Windows": "win64.zip", "Linux": "Linux.tar.xz", "macOS": "Darwin.tar.xz" }[os.environ["RUNNER_OS"]]
+        pin = re.search(r'SET\(_mrdocs_archive\s+"MrDocs-\$\{LITEFX_MRDOCS_VERSION\}-' + re.escape(suffix) + r'"\)\s*'
+                        r'SET\(_mrdocs_sha256\s+"([0-9a-f]{64})"\)', cmake)
+
+        if pin is None:
+            raise SystemExit(f"::error::No pinned MrDocs archive for {suffix} found in Documentation.cmake.")
+
+        archive = f"MrDocs-{version}-{suffix}"
+
+        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+            output.write(f"archive={archive}\n")
+            output.write(f"sha256={pin.group(1)}\n")
+            output.write(f"url=https://github.com/cppalliance/mrdocs/releases/download/{version}/{archive}\n")
+            output.write(f"key=mrdocs-{archive}\n")
+
+    - name: Restore MrDocs from cache
+      id: cache
+      uses: actions/cache/restore@v6
+      with:
+        path: ${{ runner.temp }}/mrdocs-archive
+        key: ${{ steps.pin.outputs.key }}
+
+    - name: Download MrDocs
+      if: ${{ inputs.save == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+      shell: python
+      env:
+        ARCHIVE: ${{ runner.temp }}/mrdocs-archive/${{ steps.pin.outputs.archive }}
+        URL: ${{ steps.pin.outputs.url }}
+        SHA256: ${{ steps.pin.outputs.sha256 }}
+      run: |
+        import hashlib, os, pathlib, urllib.request
+
+        archive = pathlib.Path(os.environ["ARCHIVE"])
+        archive.parent.mkdir(parents=True, exist_ok=True)
+        urllib.request.urlretrieve(os.environ["URL"], archive)
+
+        digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+
+        if digest != os.environ["SHA256"]:
+            archive.unlink()
+            raise SystemExit(f"::error::Checksum mismatch for {archive.name}: expected {os.environ['SHA256']}, got {digest}.")
+
+    - name: Save MrDocs to cache
+      if: ${{ inputs.save == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@v6
+      with:
+        path: ${{ runner.temp }}/mrdocs-archive
+        key: ${{ steps.pin.outputs.key }}
+
+    - name: Extract MrDocs
+      id: extract
+      shell: python
+      env:
+        ARCHIVE: ${{ runner.temp }}/mrdocs-archive/${{ steps.pin.outputs.archive }}
+        TARGET: ${{ runner.temp }}/mrdocs
+        SHA256: ${{ steps.pin.outputs.sha256 }}
+      run: |
+        import hashlib, os, pathlib, shutil, tarfile, zipfile
+
+        archive = pathlib.Path(os.environ["ARCHIVE"])
+        target = pathlib.Path(os.environ["TARGET"])
+        executable = ""
+
+        if not archive.is_file():
+            print(f"::warning::MrDocs ({archive.name}) is not in the dependency cache, so CMake downloads it. Run the "
+                  "'update_dependencies.yml' workflow to add it.")
+        elif hashlib.sha256(archive.read_bytes()).hexdigest() != os.environ["SHA256"]:
+            print(f"::warning::The cached MrDocs archive ({archive.name}) does not match the pinned checksum and is ignored.")
+        else:
+            shutil.rmtree(target, ignore_errors=True)
+
+            if archive.suffix == ".zip":
+                with zipfile.ZipFile(archive) as source:
+                    source.extractall(target)
+            else:
+                with tarfile.open(archive) as source:
+                    source.extractall(target, filter="data")
+
+            name = "mrdocs.exe" if os.name == "nt" else "mrdocs"
+            found = [path for path in target.rglob(name) if path.parent.name == "bin"]
+
+            if found:
+                executable = found[0].as_posix()
+                print(f"Using MrDocs from the dependency cache: {executable}")
+            else:
+                print(f"::warning::No {name} found in {archive.name}, so CMake downloads MrDocs.")
+
+        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+            output.write(f"executable={executable}\n")

@@ -1,7 +1,10 @@
 name: Update Dependencies Cache
 
-# Downloads the Vulkan SDK and Mesa3D (lavapipe) into a cache used by test runs on Windows. Linux runners install both
-# from the package manager instead (see .github/actions/setup-test-environment).
+# Downloads dependencies of CI runs into caches:
+#
+# - The Vulkan SDK and Mesa3D (lavapipe), used by test runs on Windows. Linux runners install both from the package manager instead
+#   (see .github/actions/setup-test-environment).
+# - MrDocs, used to generate the API reference (see .github/actions/setup-mrdocs). The version is pinned in src/cmake/docs/Documentation.cmake.
 on:
   workflow_dispatch:
 
@@ -62,3 +65,20 @@ jobs:
         with:
           path: ${{ env.DEPENDENCY_DIR }}
           key: ${{ env.CACHE_KEY }}
+
+  mrdocs:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout MrDocs pin
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: |
+            .github/actions/setup-mrdocs
+            src/cmake/docs/Documentation.cmake
+          sparse-checkout-cone-mode: false
+
+      - name: Update MrDocs cache
+        uses: ./.github/actions/setup-mrdocs
+        with:
+          save: true

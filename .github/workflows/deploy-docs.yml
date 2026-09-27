@@ -1,0 +1,85 @@
+name: Deploy Documentation (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref or SHA of the website sources (docs/site). Defaults to the triggering ref.'
+        type: string
+        default: ''
+      version:
+        description: 'The version to deploy (e.g. `latest` or `0.5`). An existing version is replaced.'
+        type: string
+        required: true
+      title:
+        description: 'The title of the version in the version selector. Defaults to the version.'
+        type: string
+        default: ''
+      set-default:
+        description: 'Whether the root of the website redirects to this version.'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: deploy (${{ inputs.version }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    # Deployments push to the same branch, so they must not run at the same time. Pending deployments wait instead of being cancelled.
+    concurrency:
+      group: docs-website
+      cancel-in-progress: false
+
+    env:
+      WEBSITE_BRANCH: docs/website
+      VERSION: ${{ inputs.version }}
+      TITLE: ${{ inputs.title || inputs.version }}
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Download API reference
+        uses: actions/download-artifact@v8
+        with:
+          name: LiteFX-api-reference
+          path: docs/site/content/api
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: docs/site/requirements.txt
+
+      - name: Install MkDocs
+        shell: bash
+        run: python -m pip install --quiet -r docs/site/requirements.txt
+
+      # mike commits to the website branch, which must be available locally. It does not exist before the first deployment.
+      - name: Prepare website branch
+        shell: bash
+        run: |
+          git config user.name "Documentation Bot 📖"
+          git config user.email "18394207+github-actions[bot]@users.noreply.github.com"
+          git fetch --no-tags --depth=1 origin "$WEBSITE_BRANCH:$WEBSITE_BRANCH" || echo "The branch $WEBSITE_BRANCH does not exist yet."
+
+      - name: Deploy version
+        shell: bash
+        run: |
+          mike deploy --config-file docs/site/mkdocs.yml --branch "$WEBSITE_BRANCH" --push \
+            --message "Documentation: deploy $TITLE" --title "$TITLE" "$VERSION"
+
+      - name: Set default version
+        if: ${{ inputs.set-default }}
+        shell: bash
+        run: |
+          mike set-default --config-file docs/site/mkdocs.yml --branch "$WEBSITE_BRANCH" --push \
+            --message "Documentation: set default version to $VERSION" "$VERSION"

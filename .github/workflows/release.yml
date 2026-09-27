@@ -126,3 +126,29 @@ jobs:
           bodyFile: ${{ github.workspace }}/${{ inputs.releaseLog }}
           name: v${{ env.VERSION }}
           tag: v${{ env.VERSION }}
+
+  # ------------------------------------- Documentation       -------------------------------------
+  reference:
+    needs: publish
+    permissions:
+      contents: read
+      checks: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/build.yml
+    with:
+      purpose: docs
+      ref: v${{ inputs.major }}.${{ inputs.minor }}.${{ inputs.build }}
+      configure-options: -DLITEFX_DOCUMENTATION_SOURCE_REF=v${{ inputs.major }}.${{ inputs.minor }}.${{ inputs.build }}
+      upload-docs: true
+
+  documentation:
+    needs: reference
+    permissions:
+      contents: write
+    uses: ./.github/workflows/deploy-docs.yml
+    with:
+      ref: v${{ inputs.major }}.${{ inputs.minor }}.${{ inputs.build }}
+      version: ${{ inputs.major }}.${{ inputs.minor }}
+      title: ${{ inputs.major }}.${{ inputs.minor }}.${{ inputs.build }}
+      set-default: true
