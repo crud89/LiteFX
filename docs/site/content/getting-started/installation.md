@@ -8,6 +8,11 @@ There are three ways to use LiteFX in your project:
   with your own settings, or work with an unreleased version.
 - **Manual installation:** you build and install the engine yourself (or use a release package), and point your project to the installation.
 
+!!! Tip
+
+    The [project template](https://github.com/crud89/LiteFX-Template) provides a ready-to-go basis for new projects using the vcpkg installation
+    method.
+
 ## Using vcpkg { #vcpkg }
 
 ### Installing vcpkg

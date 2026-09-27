@@ -10,8 +10,13 @@ edit_uri: edit/main/docs/site/content/
 
 docs_dir: content
 
+# Report broken links to headings (anchors) as warnings, so that `mkdocs build --strict` fails on them.
 validation:
   anchors: warn
+
+# The API pages are added to the navigation by hooks/api_reference.py, so they are intentionally missing from `nav`.
+not_in_nav: |
+  /api/**
 
 exclude_docs: |
   api/reference.tag.xml
@@ -39,6 +44,8 @@ theme:
         name: Switch to dark mode
   features:
     - navigation.tabs
+    - navigation.path
+    - navigation.prune
     - navigation.top
     - navigation.footer
     - navigation.indexes
