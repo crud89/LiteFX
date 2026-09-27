@@ -1,0 +1,30 @@
+name: Write Version
+description: Writes the LiteFX version to src/cmake/VersionVariables.cmake, which provides it to the CMake build.
+
+inputs:
+  version:
+    description: 'The version as `<major>.<minor>.<build>.<year>`. If the year is omitted, the current year (UTC) is used.'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Write version
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+      run: |
+        if [[ ! "$VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(\.([0-9]{4}))?$ ]]; then
+          echo "::error::Invalid version '$VERSION'. Expected <major>.<minor>.<build>[.<year>] with non-negative integers."
+          exit 1
+        fi
+
+        major="${BASH_REMATCH[1]}"
+        minor="${BASH_REMATCH[2]}"
+        build="${BASH_REMATCH[3]}"
+        year="${BASH_REMATCH[5]:-$(date -u +%Y)}"
+
+        printf 'SET(LITEFX_YEAR %s)\nSET(LITEFX_RELEASE %s)\nSET(LITEFX_PATCH %s)\nSET(LITEFX_BUILD %s)\n' \
+          "$year" "$major" "$minor" "$build" > src/cmake/VersionVariables.cmake
+
+        echo "Version: $major.$minor.$build ($year)"

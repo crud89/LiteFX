@@ -102,14 +102,9 @@ jobs:
           token: ${{ secrets.RELEASE_BOT_PAT }}
 
       - name: Update version
-        shell: pwsh
-        run: ./write-version.ps1 -major ${{ inputs.major }} -minor ${{ inputs.minor }} -build ${{ inputs.build }} -year ${{ needs.version.outputs.year }}
-
-      - name: Build documentation
-        uses: mattnotmitt/doxygen-action@v1
+        uses: ./.github/actions/write-version
         with:
-          working-directory: .
-          doxyfile-path: ./.doxyfile
+          version: ${{ env.VERSION }}.${{ needs.version.outputs.year }}
 
       - name: Commit and tag release
         uses: stefanzweifel/git-auto-commit-action@v7
@@ -117,8 +112,8 @@ jobs:
           commit_user_name: Release Bot 🤖
           commit_user_email: 18394207+github-actions[bot]@users.noreply.github.com
           commit_message: Release ${{ env.VERSION }} 🚀
-          status_options: --untracked-files=all
-          add_options: --ignore-removal
+          file_pattern: src/cmake/VersionVariables.cmake
+          commit_options: --allow-empty
           skip_dirty_check: true
           disable_globbing: true
           tagging_message: v${{ env.VERSION }}

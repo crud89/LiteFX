@@ -116,12 +116,9 @@ jobs:
 
       - name: Update version
         if: ${{ inputs.version != '' }}
-        shell: pwsh
-        env:
-          VERSION: ${{ inputs.version }}
-        run: |
-          $major, $minor, $build, $year = $env:VERSION.Split('.')
-          ./write-version.ps1 -major $major -minor $minor -build $build -year $year
+        uses: ./.github/actions/write-version
+        with:
+          version: ${{ inputs.version }}
 
       - name: Setup toolchain
         uses: ./.github/actions/setup-toolchain
@@ -250,7 +247,7 @@ jobs:
         with:
           subject-name: LiteFX-${{ matrix.package }}-install.zip
           subject-digest: sha256:${{ steps.upload-install.outputs.artifact-digest }}
-          
+
       - name: Collect summary
         id: summary
         if: ${{ always() && inputs.check-sha != '' }}
