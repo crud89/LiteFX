@@ -2440,8 +2440,10 @@ namespace LiteFX::Rendering::Backends {
         /// calling the appropriate overload to @ref releaseGlobalDescriptors. The following example demonstrates how to use this function.
         ///
         /// @par Example
+        /// @code
         /// auto allocation = d3dDevice.allocateGlobalDescriptors(1000, DescriptorHeapType::Resource); // Use the descriptors. d3dDevice.releaseGlobalDescriptors(DescriptorHeapType::Resource,
         /// std::move(allocation));
+        /// @endcode
         ///
         /// @param descriptors The number of descriptors to allocate.
         /// @param heapType The heap type, indicating the descriptor heap to allocate the descriptors from.

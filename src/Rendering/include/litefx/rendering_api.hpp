@@ -4723,16 +4723,17 @@ namespace LiteFX::Rendering {
     /// desired @ref ResourceAccess, alongside the @ref ImageLayout for images (note that buffers always share a *common* layout that can not be changed). This is done using memory barriers. There are two
     /// types of memory barriers used for state transitions:
     ///
-    /// - **Global barriers** apply to all resource memory. - **Image and buffer barriers** apply to individual images or buffers or a sub-resource of those.
+    /// - **Global barriers** apply to all resource memory. 
+    /// - **Image and buffer barriers** apply to individual images or buffers or a sub-resource of those.
     ///
     /// Any `IBarrier` can contain an arbitrary mix of one or more global and/or image/buffer barriers. A global barrier is inserted by calling @ref IBarrier::wait. This method accepts two parameters: a
     /// `before` and an `after` access mode. Those parameters specify the @ref ResourceAccess for the previous and subsequent commands. This makes it possible to describe scenarios like *wait for certain
     /// writes to finish before continuing with certain reads*. Note that a resource can be accessed in different ways at the same time (for example as copy source and shader resource) and specifying an
     /// access state will only wait for the specified subset. As a rule of thumb, you should always specify as little access as possible in order to leave most room for optimization.
     ///
-    /// Image and buffer barriers additionally describe which (sub-)resources to apply the barrier to. For buffers this only applies to individual elements in a buffer array. However, due to [driver
-    /// restrictions](https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#buffer-barriers), buffers are always transitioned as a whole. This is different from image resources, which have
-    /// addressable sub-resources (mip levels, planes and array elements). For images, it is possible to transition individual sub-resources into different @ref ImageLayout "ImageLayouts" to indicate when and 
+    /// Image and buffer barriers additionally describe which (sub-)resources to apply the barrier to. For buffers this only applies to individual elements in a buffer array. However, due to 
+    /// [driver restrictions](https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#buffer-barriers), buffers are always transitioned as a whole. This is different from image resources, which 
+    /// have addressable sub-resources (mip levels, planes and array elements). For images, it is possible to transition individual sub-resources into different @ref ImageLayout "ImageLayouts" to indicate when and 
     /// how a texture is used. An image in a certain layout poses restrictions on how it can be accessed. For example, a `ReadWrite` image written by a compute shader must be transitioned into a proper layout 
     /// to be read by a graphics shader. To facilitate such a transition, a barrier is required. Image barriers can be inserted by calling one of the overloads of @ref IBarrier::transition that accepts an @ref 
     /// IImage parameter.
@@ -7261,8 +7262,10 @@ namespace LiteFX::Rendering {
         /// images from a pool of potentially aliasing image resources. Only in case this callback returns `nullptr` the default behavior gets invoked.
         ///
         /// @par Example
+        /// @code
         /// auto callback = [this](Optional<UInt64> renderTargetId, Size2d size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) { return
         /// m_device->factory().createTexture(name, format, size, ImageDimensions::DIM_2, 1u, 1u, samples, usage); // Emulates the default behavior. };
+        /// @endcode
         ///
         /// @ref resize
         template <typename TImage>

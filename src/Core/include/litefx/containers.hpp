@@ -392,10 +392,25 @@ namespace LiteFX {
 	/// In the following example, the interface `IContainer` returns an `Enumerable<IContained>` from a class `Container`, where the contained elements are of type `Contained`.
 	///
 	/// @par Example
-	/// class IContained { }; class Contained : public IContained { };
-	/// class IContainer { public: virtual Enumerable<const IContained&> elements() const noexcept = 0; };
-	/// class Container : public IContainer { private: std::vector<Contained> _elements;
-	/// public: Enumerable<const IContained&> elements() const noexcept override { return _elements; } };
+	/// @code
+	/// class IContained { }; 
+	/// class Contained : public IContained { };
+	/// 
+	/// class IContainer { 
+	/// public: 
+	///     virtual Enumerable<const IContained&> elements() const noexcept = 0; 
+	/// };
+	/// 
+	/// class Container : public IContainer { 
+	/// private: 
+	///	    std::vector<Contained> _elements;
+	/// 
+	/// public: 
+	///     Enumerable<const IContained&> elements() const noexcept override { 
+	///         return _elements; 
+	///     } 
+	/// };
+	/// @endcode
 	///
 	/// As `Contained` is derived from `IContained`, they are covariant in terms of the language. In the context of `Enumerable`, they are covariant, because a `const IContained&` can be constructed from a
 	/// `const Contained&`. This way, using `Enumeable` in `IContainer` allows to iterate the interface instances without knowing their type when declaring the interface. The covariance relation only applies
@@ -405,21 +420,55 @@ namespace LiteFX {
 	/// performance when the implementation is called directly, you can hide the interface method using private inheritance:
 	///
 	/// @par Example
-	/// class IContainer { public: inline Enumerable<const IContained&> elements() const noexcept { return this->getElements(); }
-	/// private: virtual Enumerable<const IContained&> getElements() const noexcept = 0; };
-	/// class Container : public IContainer { private: std::vector<Contained> _elements;
-	/// public: const std::vector<IContained>& elements() const noexcept { return _elements; }
-	/// private: Enumerable<const IContained&> getElements() const noexcept override { return _elements; } };
+	/// @code
+	/// class IContainer { 
+	/// public: 
+	///     inline Enumerable<const IContained&> elements() const noexcept { 
+	///         return this->getElements(); 
+	///     }
+	/// 
+	/// private: 
+	///     virtual Enumerable<const IContained&> getElements() const noexcept = 0; 
+	/// };
+	/// 
+	/// class Container : public IContainer { 
+	/// private: 
+	///     std::vector<Contained> _elements;
+	/// 
+	/// public: 
+	///     const std::vector<IContained>& elements() const noexcept { 
+	///         return _elements; 
+	///     }
+	/// 
+	/// private: 
+	///     Enumerable<const IContained&> getElements() const noexcept override { 
+	///         return _elements; 
+	///     } 
+	/// };
+	/// @endcode
 	///
 	/// `Enumerable` can be using in two ways: first, it can be initialized with a lvalue reference of the underlying range or view as shown above. In this case, only the begin and end iterators of the
 	/// underlying range are stored. However, when passed a rvalue reference, the `Enumerable` will store the underlying range until it and all copies of it are destroyed. This allows to use `Enumerable`
 	/// either for returning a temporary range or a view as shown in the example below.
 	///
 	/// @par Example
-	/// Enumerable<Foo> temporaryFoos() { std::vector<Foo> foos {}; foos.emplace_back(); foos.emplace_back(); foos.emplace_back();
-	/// return std::move(foos);
-	/// // Or better: //return std::vector<Foo>(3); }
-	/// Enumerable<Foo&> filteredFoos(const std::vector<Foo>& foos) { return foos | std::views::drop(1) | std::views::take(2); }
+	/// @code
+	/// Enumerable<Foo> temporaryFoos() { 
+	///     std::vector<Foo> foos {}; 
+	///     foos.emplace_back(); 
+	///     foos.emplace_back(); 
+	///     foos.emplace_back();
+	/// 
+	///     return std::move(foos);
+	/// 
+	///     // Or better: 
+	///     //return std::vector<Foo>(3); 
+	/// }
+	/// 
+	/// Enumerable<Foo&> filteredFoos(const std::vector<Foo>& foos) { 
+	///     return foos | std::views::drop(1) | std::views::take(2); 
+	/// }
+	/// @endcode
 	///
 	/// Keep in mind that the type parameter @p T dictates what an iterator returns from the `Enumerable`, i.e. if an lvalue or (p)rvalue should be returned and wheather or not a copy is created accordingly.
 	///
