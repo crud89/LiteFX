@@ -76,6 +76,7 @@ extra_css:
 
 hooks:
   - hooks/api_reference.py
+  - hooks/versioned_content.py
 
 markdown_extensions:
   - abbr

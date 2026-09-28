@@ -39,10 +39,14 @@ dependencies are managed with [vcpkg](https://vcpkg.io/). This section helps you
 
 </div>
 
-!!! note "Work in progress"
+<!-- only: latest -->
+
+!!! warning "Development version"
 
     This guide is developed along the engine and may reflect changes that are not yet available in the current release. For a 
     working reference, please check the [project template](https://github.com/crud89/LiteFX-Template).
+
+<!-- end-only -->
 
 ## Requirements
 
