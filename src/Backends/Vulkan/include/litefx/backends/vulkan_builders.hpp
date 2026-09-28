@@ -11,7 +11,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a Vulkan @ref Barrier.
 	///
-	/// @see VulkanBarrier
+	/// @see @ref VulkanBarrier
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanBarrierBuilder final : public BarrierBuilder<VulkanBarrier> {
 	public:
 		/// @brief Initializes a Vulkan barrier builder.
@@ -40,7 +40,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a Vulkan @ref ShaderProgram.
 	///
-	/// @see VulkanShaderProgram
+	/// @see @ref VulkanShaderProgram
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanShaderProgramBuilder final : public ShaderProgramBuilder<VulkanShaderProgram> {
 	public:
 		/// @brief Initializes a Vulkan graphics shader program builder.
@@ -70,7 +70,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a Vulkan @ref IRasterizer.
 	///
-	/// @see VulkanRasterizer
+	/// @see @ref VulkanRasterizer
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanRasterizerBuilder final : public RasterizerBuilder<VulkanRasterizer> {
 	public:
 		/// @brief Initializes a Vulkan input assembler builder.
@@ -90,7 +90,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a @ref VulkanInputAssembler.
 	///
-	/// @see VulkanInputAssembler
+	/// @see @ref VulkanInputAssembler
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanInputAssemblerBuilder final : public InputAssemblerBuilder<VulkanInputAssembler> {
 		LITEFX_IMPLEMENTATION(VulkanInputAssemblerBuilderImpl);
 
@@ -128,8 +128,8 @@ namespace LiteFX::Rendering::Backends {
 	
 	/// @brief Builds a see @ref VulkanVertexBufferLayout.
 	///
-	/// @see VulkanVertexBuffer
-	/// @see VulkanVertexBufferLayout
+	/// @see @ref IVulkanVertexBuffer
+	/// @see @ref VulkanVertexBufferLayout
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanVertexBufferLayoutBuilder final : public VertexBufferLayoutBuilder<VulkanVertexBufferLayout, VulkanInputAssemblerBuilder> {
 	public:
 		using VertexBufferLayoutBuilder<VulkanVertexBufferLayout, VulkanInputAssemblerBuilder>::VertexBufferLayoutBuilder;
@@ -142,9 +142,9 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a Vulkan @ref PipelineLayout for a pipeline.
 	///
-	/// @see VulkanPipelineLayout
-	/// @see VulkanRenderPipeline
-	/// @see VulkanComputePipeline
+	/// @see @ref VulkanPipelineLayout
+	/// @see @ref VulkanRenderPipeline
+	/// @see @ref VulkanComputePipeline
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanPipelineLayoutBuilder final : public PipelineLayoutBuilder<VulkanPipelineLayout> {
 		friend class VulkanDescriptorSetLayoutBuilder;
 
@@ -179,9 +179,9 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a @ref VulkanDescriptorSetLayout for a @ref VulkanPipelineLayout.
 	///
-	/// @see VulkanDescriptorSetLayout
-	/// @see VulkanRenderPipeline
-	/// @see VulkanComputePipeline
+	/// @see @ref VulkanDescriptorSetLayout
+	/// @see @ref VulkanRenderPipeline
+	/// @see @ref VulkanComputePipeline
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanDescriptorSetLayoutBuilder final : public DescriptorSetLayoutBuilder<VulkanDescriptorSetLayout, VulkanPipelineLayoutBuilder> {
 	public:
 		/// @brief Initializes a Vulkan descriptor set layout builder.
@@ -213,7 +213,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a Vulkan @ref PushConstantsLayout for a @ref VulkanPipelineLayout.
 	///
-	/// @see VulkanPushConstantsLayout
+	/// @see @ref VulkanPushConstantsLayout
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanPushConstantsLayoutBuilder final : public PushConstantsLayoutBuilder<VulkanPushConstantsLayout, VulkanPipelineLayoutBuilder> {
 	public:
 		/// @brief Initializes a Vulkan render pipeline push constants layout builder.
@@ -250,7 +250,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a Vulkan @ref RenderPipeline.
 	///
-	/// @see VulkanRenderPipeline
+	/// @see @ref VulkanRenderPipeline
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanRenderPipelineBuilder final : public RenderPipelineBuilder<VulkanRenderPipeline> {
 	public:
 		/// @brief Initializes a Vulkan render pipeline builder.
@@ -273,7 +273,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a Vulkan @ref ComputePipeline.
 	///
-	/// @see VulkanComputePipeline
+	/// @see @ref VulkanComputePipeline
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanComputePipelineBuilder final : public ComputePipelineBuilder<VulkanComputePipeline> {
 	public:
 		/// @brief Initializes a Vulkan compute pipeline builder.
@@ -296,7 +296,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a Vulkan @ref RayTracingPipeline.
 	///
-	/// @see VulkanRayTracingPipeline
+	/// @see @ref VulkanRayTracingPipeline
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanRayTracingPipelineBuilder final : public RayTracingPipelineBuilder<VulkanRayTracingPipeline> {
 	public:
 		/// @brief Initializes a Vulkan ray-tracing pipeline builder.
@@ -320,7 +320,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Implements the Vulkan @ref RenderPassBuilder.
 	///
-	/// @see VulkanRenderPass
+	/// @see @ref VulkanRenderPass
 	class LITEFX_VULKAN_API [[nodiscard]] VulkanRenderPassBuilder final : public RenderPassBuilder<VulkanRenderPass> {
 	public:
 		/// @brief Initializes a Vulkan render pass builder.

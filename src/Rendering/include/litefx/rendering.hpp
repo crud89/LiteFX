@@ -11,7 +11,7 @@ namespace LiteFX::Rendering {
 
     /// @brief A barrier used for GPU resource synchronization.
     ///
-    /// @see IBarrier
+    /// @see @ref IBarrier
     template <typename TBuffer, typename TImage> requires
         std::derived_from<TBuffer, IBuffer> &&
         std::derived_from<TImage, IImage>
@@ -105,7 +105,7 @@ namespace LiteFX::Rendering {
     /// @tparam TImage The type of the image interface. Must inherit from @ref IImage.
     /// @tparam TSampler The type of the sampler interface. Must inherit from @ref ISampler.
     /// @tparam TAccelerationStructure The type of the acceleration structure interface. Must inherit from @ref IAccelerationStructure.
-    /// @see DescriptorSetLayout
+    /// @see @ref DescriptorSetLayout
     template <typename TBuffer, typename TImage, typename TSampler, typename TAccelerationStructure> requires
         std::derived_from<TBuffer, IBuffer> &&
         std::derived_from<TSampler, ISampler> &&
@@ -191,8 +191,8 @@ namespace LiteFX::Rendering {
     ///
     /// @tparam TDescriptorLayout The type of the descriptor layout. Must implement @ref IDescriptorLayout.
     /// @tparam TDescriptorSet The type of the descriptor set. Must implement @ref DescriptorSet.
-    /// @see IDescriptorLayout
-    /// @see DescriptorSet
+    /// @see @ref IDescriptorLayout
+    /// @see @ref DescriptorSet
     template <typename TDescriptorLayout, typename TDescriptorSet> requires
         meta::implements<TDescriptorLayout, IDescriptorLayout> &&
         meta::implements<TDescriptorSet, DescriptorSet<typename TDescriptorSet::buffer_type, typename TDescriptorSet::image_type, typename TDescriptorSet::sampler_type, typename TDescriptorSet::acceleration_structure_type>>
@@ -327,8 +327,8 @@ namespace LiteFX::Rendering {
     /// Push constants can be updated by calling @ref CommandBuffer::pushConstants and are visible to subsequent draw calls immediately, until another update is performed or the command buffer is ended.
     ///
     /// @tparam TPushConstantsRange The type of the push constant range. Must implement @ref IPushConstantsRange.
-    /// @see IPushConstantsRange
-    /// @see DescriptorSetLayout
+    /// @see @ref IPushConstantsRange
+    /// @see @ref DescriptorSetLayout
     template <typename TPushConstantsRange> requires
         meta::implements<TPushConstantsRange, IPushConstantsRange>
     class PushConstantsLayout : public IPushConstantsLayout {
@@ -512,8 +512,8 @@ namespace LiteFX::Rendering {
     ///
     /// @tparam TPipelineLayout The type of the render pipeline layout. Must implement @ref PipelineLayout.
     /// @tparam TShaderProgram The type of the shader program. Must implement @ref ShaderProgram.
-    /// @see RenderPipeline
-    /// @see ComputePipeline
+    /// @see @ref RenderPipeline
+    /// @see @ref ComputePipeline
     template <typename TPipelineLayout, typename TShaderProgram> requires
         meta::implements<TPipelineLayout, PipelineLayout<typename TPipelineLayout::descriptor_set_layout_type, typename TPipelineLayout::push_constants_layout_type>> &&
         meta::implements<TShaderProgram, ShaderProgram<typename TShaderProgram::shader_module_type>>
@@ -926,7 +926,7 @@ namespace LiteFX::Rendering {
     /// @tparam TShaderProgram The type of the shader program. Must implement @ref ShaderProgram.
     /// @tparam TInputAssembler The type of the input assembler state. Must implement @ref InputAssembler.
     /// @tparam TRasterizer The type of the rasterizer state. Must implement @ref Rasterizer.
-    /// @see RenderPipelineBuilder
+    /// @see @ref RenderPipelineBuilder
     template <typename TPipelineLayout, typename TShaderProgram, typename TInputAssembler, typename TRasterizer> requires
         meta::implements<TInputAssembler, InputAssembler<typename TInputAssembler::vertex_buffer_layout_type, typename TInputAssembler::index_buffer_layout_type>> &&
         meta::implements<TRasterizer, Rasterizer>
@@ -966,7 +966,7 @@ namespace LiteFX::Rendering {
     ///
     /// @tparam TPipelineLayout The type of the render pipeline layout. Must implement @ref PipelineLayout.
     /// @tparam TShaderProgram The type of the shader program. Must implement @ref ShaderProgram.
-    /// @see ComputePipelineBuilder
+    /// @see @ref ComputePipelineBuilder
     template <typename TPipelineLayout, typename TShaderProgram>
     class ComputePipeline : public IComputePipeline, public virtual Pipeline<TPipelineLayout, TShaderProgram> {
     protected:
@@ -984,7 +984,7 @@ namespace LiteFX::Rendering {
     ///
     /// @tparam TPipelineLayout The type of the render pipeline layout. Must implement @ref PipelineLayout.
     /// @tparam TShaderProgram The type of the shader program. Must implement @ref ShaderProgram.
-    /// @see RayTracingPipelineBuilder
+    /// @see @ref RayTracingPipelineBuilder
     template <typename TPipelineLayout, typename TShaderProgram>
     class RayTracingPipeline : public IRayTracingPipeline, public virtual Pipeline<TPipelineLayout, TShaderProgram> {
     public:
@@ -1019,7 +1019,7 @@ namespace LiteFX::Rendering {
     /// @brief Stores the images used by a @ref RenderPass to either read from using input attachments or write to using render targets.
     ///
     /// @tparam TImage The type of the frame buffer images. Must be derived from @ref IImage.
-    /// @see RenderTarget
+    /// @see @ref RenderTarget
     template <typename TImage> requires
         std::derived_from<TImage, IImage>
     class FrameBuffer : public virtual StateResource, public IFrameBuffer {
@@ -1656,7 +1656,7 @@ namespace LiteFX::Rendering {
         /// @return An instance of a builder that is used to create a new compute pipeline.
         [[nodiscard]] virtual compute_pipeline_builder_type buildComputePipeline(const String& name) const = 0;
 
-        ///// @brief Returns a builder for a @see RenderPipeline.
+        ///// @brief Returns a builder for a @see @ref RenderPipeline.
         ///// 
         ///// @param name The name of the render pipeline.
         ///// @return An instance of a builder that is used to create a new render pipeline.

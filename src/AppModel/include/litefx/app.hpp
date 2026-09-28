@@ -12,7 +12,7 @@ namespace LiteFX {
 	/// shutdown callback. Starting a backend will automatically shutdown the active backend of the same type, if any. If the app exits, all backends are shutdown accordingly, allowing to properly cleanup any
 	/// resources.
 	///
-	/// @see App
+	/// @see @ref App
 	class LITEFX_APPMODEL_API IBackend {
 		friend class App;
 
@@ -33,13 +33,13 @@ namespace LiteFX {
 		/// @brief Gets the type of the backend.
 		///
 		/// @return The type of the backend.
-		/// @see BackendType
+		/// @see @ref BackendType
 		virtual BackendType type() const noexcept = 0;
 
 		/// @brief Returns the state of the backend.
 		///
 		/// @return The state of the backend.
-		/// @see BackendState
+		/// @see @ref BackendState
 		const BackendState& state() const noexcept { return m_state; }
 
 		/// @brief Gets the name of the backend.
@@ -69,7 +69,7 @@ namespace LiteFX {
 
 	/// @brief Base class for additional event arguments.
 	///
-	/// @see Event
+	/// @see @ref Event
 	class LITEFX_APPMODEL_API EventArgs {
 	public:
 		EventArgs() = default;
@@ -140,7 +140,7 @@ namespace LiteFX {
 	/// handlers. Note that the sender can also be `nullptr`.
 	///
 	/// @tparam TEventArgs The type of the additional event arguments.
-	/// @see EventArgs
+	/// @see @ref EventArgs
 	template <typename TEventArgs>
 	class Event final {
 	public:
@@ -308,7 +308,7 @@ namespace LiteFX {
 
 	/// @brief Stores event arguments of a window resize event.
 	///
-	/// @see App::resize
+	/// @see @ref App::resize
 	struct LITEFX_APPMODEL_API ResizeEventArgs : public EventArgs {
 	private:
 		int m_width, m_height;
@@ -345,8 +345,8 @@ namespace LiteFX {
 
 	/// @brief The base class for an application.
 	///
-	/// @see AppBuilder
-	/// @see AppVersion
+	/// @see @ref AppBuilder
+	/// @see @ref AppVersion
 	class LITEFX_APPMODEL_API App {
 		LITEFX_IMPLEMENTATION(AppImpl);
 		LITEFX_BUILDER(AppBuilder);
@@ -418,8 +418,8 @@ namespace LiteFX {
 		/// IBackend::activate before returning.
 		///
 		/// @param type The type index of the backend to start.
-		/// @see Backend
-		/// @see onBackendStart
+		/// @see @ref IBackend
+		/// @see @ref onBackendStart
 		void startBackend(std::type_index type) const;
 
 		/// @brief Stops a backend.
@@ -427,14 +427,14 @@ namespace LiteFX {
 		/// This method calls all stop callbacks for the backend, before returing. If the backend is not running, calling this method has no effect.
 		///
 		/// @param type The type index of the backend to start.
-		/// @see Backend
-		/// @see onBackendStop
+		/// @see @ref IBackend
+		/// @see @ref onBackendStop
 		void stopBackend(std::type_index type) const;
 
 		/// @brief Stops the active backend of @p type.
 		///
 		/// @param type The backend type for which the active backend should be stopped.
-		/// @see stopBackend
+		/// @see @ref stopBackend
 		void stopActiveBackends(BackendType type) const;
 
 		/// @brief Returns the active backend of the provided backend @p type.
@@ -479,8 +479,8 @@ namespace LiteFX {
 		///
 		/// @tparam TBackend The type of the backend.
 		/// @param callback The function to call during backend startup.
-		/// @see onBackendStop
-		/// @see backendStarted
+		/// @see @ref onBackendStop
+		/// @see @ref backendStarted
 		template <typename TBackend> requires
 			meta::implements<TBackend, IBackend>
 		void onBackendStart(const std::function<bool(TBackend*)>& callback) {
@@ -504,8 +504,8 @@ namespace LiteFX {
 		///
 		/// @tparam TBackend The type of the backend.
 		/// @param callback The function to call during backend shutdown.
-		/// @see onBackendStart
-		/// @see backendStopped
+		/// @see @ref onBackendStart
+		/// @see @ref backendStopped
 		template <typename TBackend> requires
 			meta::implements<TBackend, IBackend>
 		void onBackendStop(const std::function<void(TBackend*)>& callback) {

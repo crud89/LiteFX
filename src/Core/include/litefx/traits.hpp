@@ -36,14 +36,14 @@ namespace LiteFX::meta {
     /// @endcode
     ///
     /// @tparam T The type to check for an builder.
-    /// @see Builder
+    /// @see @ref Builder
     template <class T>
     constexpr bool has_builder_v = has_builder_t<T>::value;
 
     /// @brief Checks if a type contains a builder.
     ///
     /// @tparam T The type to check for an builder.
-    /// @see Builder
+    /// @see @ref Builder
     template <class T>
     concept has_builder = has_builder_v<T>;
 

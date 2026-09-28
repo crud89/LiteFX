@@ -16,9 +16,9 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 vertex buffer layout.
     ///
-    /// @see DirectX12VertexBuffer
-    /// @see DirectX12IndexBuffer
-    /// @see DirectX12VertexBufferLayoutBuilder
+    /// @see @ref IDirectX12VertexBuffer
+    /// @see @ref DirectX12IndexBufferLayout
+    /// @see @ref DirectX12VertexBufferLayoutBuilder
     class LITEFX_DIRECTX12_API DirectX12VertexBufferLayout final : public IVertexBufferLayout {
         LITEFX_IMPLEMENTATION(DirectX12VertexBufferLayoutImpl);
         LITEFX_BUILDER(DirectX12VertexBufferLayoutBuilder);
@@ -101,8 +101,8 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 index buffer layout.
     ///
-    /// @see DirectX12IndexBuffer
-    /// @see DirectX12VertexBufferLayout
+    /// @see @ref IDirectX12IndexBuffer
+    /// @see @ref DirectX12VertexBufferLayout
     class LITEFX_DIRECTX12_API DirectX12IndexBufferLayout final : public IIndexBufferLayout {
         LITEFX_IMPLEMENTATION(DirectX12IndexBufferLayoutImpl);
         friend struct SharedObject::Allocator<DirectX12IndexBufferLayout>;
@@ -158,10 +158,10 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Represents the base interface for a DirectX 12 buffer implementation.
     ///
-    /// @see DirectX12DescriptorSet
-    /// @see IDirectX12Image
-    /// @see IDirectX12VertexBuffer
-    /// @see IDirectX12IndexBuffer
+    /// @see @ref DirectX12DescriptorSet
+    /// @see @ref IDirectX12Image
+    /// @see @ref IDirectX12VertexBuffer
+    /// @see @ref IDirectX12IndexBuffer
     class LITEFX_DIRECTX12_API IDirectX12Buffer : public virtual IBuffer, public virtual IResource<ComPtr<ID3D12Resource>> {
     protected:
         IDirectX12Buffer() noexcept = default;
@@ -176,8 +176,8 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Represents a DirectX 12 vertex buffer.
     ///
-    /// @see DirectX12VertexBufferLayout
-    /// @see IDirectX12Buffer
+    /// @see @ref DirectX12VertexBufferLayout
+    /// @see @ref IDirectX12Buffer
     class LITEFX_DIRECTX12_API IDirectX12VertexBuffer : public virtual VertexBuffer<DirectX12VertexBufferLayout>, public virtual IDirectX12Buffer {
     protected:
         IDirectX12VertexBuffer() noexcept = default;
@@ -195,8 +195,8 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Represents a DirectX 12 index buffer.
     ///
-    /// @see DirectX12IndexBufferLayout
-    /// @see IDirectX12Buffer
+    /// @see @ref DirectX12IndexBufferLayout
+    /// @see @ref IDirectX12Buffer
     class LITEFX_DIRECTX12_API IDirectX12IndexBuffer : public virtual IndexBuffer<DirectX12IndexBufferLayout>, public virtual IDirectX12Buffer {
     protected:
         IDirectX12IndexBuffer() noexcept = default;
@@ -214,10 +214,10 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Represents a DirectX 12 sampled image or the base interface for a texture.
     ///
-    /// @see DirectX12DescriptorLayout
-    /// @see DirectX12DescriptorSet
-    /// @see DirectX12DescriptorSetLayout
-    /// @see IDirectX12Sampler
+    /// @see @ref DirectX12DescriptorLayout
+    /// @see @ref DirectX12DescriptorSet
+    /// @see @ref DirectX12DescriptorSetLayout
+    /// @see @ref IDirectX12Sampler
     class LITEFX_DIRECTX12_API IDirectX12Image : public virtual IImage, public virtual IResource<ComPtr<ID3D12Resource>> {
     protected:
         IDirectX12Image() noexcept = default;
@@ -232,10 +232,10 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Represents a DirectX 12 sampler.
     ///
-    /// @see DirectX12DescriptorLayout
-    /// @see DirectX12DescriptorSet
-    /// @see DirectX12DescriptorSetLayout
-    /// @see IDirectX12Image
+    /// @see @ref DirectX12DescriptorLayout
+    /// @see @ref DirectX12DescriptorSet
+    /// @see @ref DirectX12DescriptorSetLayout
+    /// @see @ref IDirectX12Image
     class LITEFX_DIRECTX12_API IDirectX12Sampler : public virtual ISampler {
     protected:
         IDirectX12Sampler() noexcept = default;
@@ -250,9 +250,9 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Represents the base interface for a DirectX 12 acceleration structure implementation.
     ///
-    /// @see DirectX12DescriptorSet
-    /// @see DirectX12BottomLevelAccelerationStructure
-    /// @see DirectX12TopevelAccelerationStructure
+    /// @see @ref DirectX12DescriptorSet
+    /// @see @ref DirectX12BottomLevelAccelerationStructure
+    /// @see @ref DirectX12TopLevelAccelerationStructure
     class LITEFX_DIRECTX12_API IDirectX12AccelerationStructure : public virtual IAccelerationStructure {
     protected:
         IDirectX12AccelerationStructure() noexcept = default;
@@ -267,7 +267,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 bottom-level acceleration structure (BLAS).
     ///
-    /// @see DirectX12TopLevelAccelerationStructure
+    /// @see @ref DirectX12TopLevelAccelerationStructure
     class LITEFX_DIRECTX12_API DirectX12BottomLevelAccelerationStructure final : public IBottomLevelAccelerationStructure, public virtual StateResource, public virtual IDirectX12AccelerationStructure {
         LITEFX_IMPLEMENTATION(DirectX12BottomLevelAccelerationStructureImpl);
         friend class DirectX12Device;
@@ -283,7 +283,7 @@ namespace LiteFX::Rendering::Backends {
         /// @param flags The flags that define how the acceleration structure is built.
         /// @param name The name of the acceleration structure resource.
         /// @throws InvalidArgumentException Thrown if the provided @p flags contain an unsupported combination of flags.
-        /// @see AccelerationStructureFlags
+        /// @see @ref AccelerationStructureFlags
         explicit DirectX12BottomLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None, StringView name = "");
         
         DirectX12BottomLevelAccelerationStructure(DirectX12BottomLevelAccelerationStructure&&) noexcept;
@@ -350,7 +350,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 top-level acceleration structure (TLAS).
     ///
-    /// @see DirectX12BottomLevelAccelerationStructure
+    /// @see @ref DirectX12BottomLevelAccelerationStructure
     class LITEFX_DIRECTX12_API DirectX12TopLevelAccelerationStructure final : public ITopLevelAccelerationStructure, public virtual StateResource, public virtual IDirectX12AccelerationStructure {
         LITEFX_IMPLEMENTATION(DirectX12TopLevelAccelerationStructureImpl);
         friend class DirectX12Device;
@@ -366,7 +366,7 @@ namespace LiteFX::Rendering::Backends {
         /// @param flags The flags that define how the acceleration structure is built.
         /// @param name The name of the acceleration structure resource.
         /// @throws InvalidArgumentException Thrown if the provided @p flags contain an unsupported combination of flags.
-        /// @see AccelerationStructureFlags
+        /// @see @ref AccelerationStructureFlags
         explicit DirectX12TopLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None, StringView name = "");
 
         DirectX12TopLevelAccelerationStructure(DirectX12TopLevelAccelerationStructure&&) noexcept;
@@ -424,10 +424,10 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 resource barrier.
     ///
-    /// @see DirectX12CommandBuffer
-    /// @see IDirectX12Buffer
-    /// @see IDirectX12Image
-    /// @see Barrier
+    /// @see @ref DirectX12CommandBuffer
+    /// @see @ref IDirectX12Buffer
+    /// @see @ref IDirectX12Image
+    /// @see @ref Barrier
     class LITEFX_DIRECTX12_API DirectX12Barrier final : public Barrier<IDirectX12Buffer, IDirectX12Image> {
         LITEFX_IMPLEMENTATION(DirectX12BarrierImpl);
         LITEFX_BUILDER(DirectX12BarrierBuilder);
@@ -493,7 +493,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 @ref IShaderModule.
     ///
-    /// @see DirectX12ShaderProgram
+    /// @see @ref DirectX12ShaderProgram
     /// @see https://github.com/crud89/LiteFX/wiki/Shader-Development
     class LITEFX_DIRECTX12_API DirectX12ShaderModule final : public IShaderModule, public ComResource<IDxcBlob> {
         LITEFX_IMPLEMENTATION(DirectX12ShaderModuleImpl);
@@ -541,7 +541,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 @ref ShaderProgram.
     ///
-    /// @see DirectX12ShaderProgramBuilder
+    /// @see @ref DirectX12ShaderProgramBuilder
     /// @see https://github.com/crud89/LiteFX/wiki/Shader-Development
     class LITEFX_DIRECTX12_API DirectX12ShaderProgram final : public ShaderProgram<DirectX12ShaderModule> {
         LITEFX_IMPLEMENTATION(DirectX12ShaderProgramImpl);
@@ -603,7 +603,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 @ref DescriptorSet.
     ///
-    /// @see DirectX12DescriptorSetLayout
+    /// @see @ref DirectX12DescriptorSetLayout
     class LITEFX_DIRECTX12_API DirectX12DescriptorSet final : public DescriptorSet<IDirectX12Buffer, IDirectX12Image, IDirectX12Sampler, IDirectX12AccelerationStructure> {
         LITEFX_IMPLEMENTATION(DirectX12DescriptorSetImpl);
 
@@ -666,11 +666,11 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 @ref IDescriptorLayout
     ///
-    /// @see IDirectX12Buffer
-    /// @see IDirectX12Image
-    /// @see IDirectX12Sampler
-    /// @see DirectX12DescriptorSet
-    /// @see DirectX12DescriptorSetLayout
+    /// @see @ref IDirectX12Buffer
+    /// @see @ref IDirectX12Image
+    /// @see @ref IDirectX12Sampler
+    /// @see @ref DirectX12DescriptorSet
+    /// @see @ref DirectX12DescriptorSetLayout
     class LITEFX_DIRECTX12_API DirectX12DescriptorLayout final : public IDescriptorLayout {
         LITEFX_IMPLEMENTATION(DirectX12DescriptorLayoutImpl);
 
@@ -735,8 +735,8 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 @ref DescriptorSetLayout.
     ///
-    /// @see DirectX12DescriptorSet
-    /// @see DirectX12PipelineDescriptorSetLayoutBuilder
+    /// @see @ref DirectX12DescriptorSet
+    /// @see @ref DirectX12DescriptorSetLayoutBuilder
     class LITEFX_DIRECTX12_API DirectX12DescriptorSetLayout final : public DescriptorSetLayout<DirectX12DescriptorLayout, DirectX12DescriptorSet> {
         LITEFX_IMPLEMENTATION(DirectX12DescriptorSetLayoutImpl);
         LITEFX_BUILDER(DirectX12DescriptorSetLayoutBuilder);
@@ -879,7 +879,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements the DirectX 12 @ref IPushConstantsRange.
     ///
-    /// @see DirectX12PushConstantsLayout
+    /// @see @ref DirectX12PushConstantsLayout
     class LITEFX_DIRECTX12_API DirectX12PushConstantsRange final : public IPushConstantsRange {
         LITEFX_IMPLEMENTATION(DirectX12PushConstantsRangeImpl);
         friend class DirectX12PipelineLayout;
@@ -923,8 +923,8 @@ namespace LiteFX::Rendering::Backends {
     /// memory is directly reserved on it. The way they are implemented is, that each range gets directly written in 4 byte chunks into the command buffer. Thus, overlapping is not directly supported (as
     /// opposed to Vulkan). If you have overlapping push constants ranges, the overlap will be duplicated in the root signature.
     ///
-    /// @see DirectX12PushConstantsRange
-    /// @see DirectX12PipelinePushConstantsLayoutBuilder
+    /// @see @ref DirectX12PushConstantsRange
+    /// @see @ref DirectX12PushConstantsLayoutBuilder
     class LITEFX_DIRECTX12_API DirectX12PushConstantsLayout final : public PushConstantsLayout<DirectX12PushConstantsRange> {
         LITEFX_IMPLEMENTATION(DirectX12PushConstantsLayoutImpl);
         LITEFX_BUILDER(DirectX12PushConstantsLayoutBuilder);
@@ -965,7 +965,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 @ref PipelineLayout.
     ///
-    /// @see DirectX12PipelineLayoutBuilder
+    /// @see @ref DirectX12PipelineLayoutBuilder
     class LITEFX_DIRECTX12_API DirectX12PipelineLayout final : public PipelineLayout<DirectX12DescriptorSetLayout, DirectX12PushConstantsLayout>, public ComResource<ID3D12RootSignature> {
         LITEFX_IMPLEMENTATION(DirectX12PipelineLayoutImpl);
         LITEFX_BUILDER(DirectX12PipelineLayoutBuilder);
@@ -1064,7 +1064,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements the DirectX 12 input assembler state.
     ///
-    /// @see DirectX12InputAssemblerBuilder
+    /// @see @ref DirectX12InputAssemblerBuilder
     class LITEFX_DIRECTX12_API DirectX12InputAssembler final : public InputAssembler<DirectX12VertexBufferLayout, DirectX12IndexBufferLayout> {
         LITEFX_IMPLEMENTATION(DirectX12InputAssemblerImpl);
         LITEFX_BUILDER(DirectX12InputAssemblerBuilder);
@@ -1153,7 +1153,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 @ref IRasterizer.
     ///
-    /// @see DirectX12RasterizerBuilder
+    /// @see @ref DirectX12RasterizerBuilder
     class LITEFX_DIRECTX12_API DirectX12Rasterizer final : public Rasterizer {
         LITEFX_BUILDER(DirectX12RasterizerBuilder);
         friend struct SharedObject::Allocator<DirectX12Rasterizer>;
@@ -1216,8 +1216,8 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Defines the base class for DirectX 12 pipeline state objects.
     ///
-    /// @see DirectX12RenderPipeline
-    /// @see DirectX12ComputePipeline
+    /// @see @ref DirectX12RenderPipeline
+    /// @see @ref DirectX12ComputePipeline
     class LITEFX_DIRECTX12_API DirectX12PipelineState : public virtual Pipeline<DirectX12PipelineLayout, DirectX12ShaderProgram>, public ComResource<ID3D12PipelineState> {
     protected:
         using ComResource<ID3D12PipelineState>::ComResource;
@@ -1239,7 +1239,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Records commands for a @ref DirectX12Queue
     ///
-    /// @see DirectX12Queue
+    /// @see @ref DirectX12Queue
     class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>, public ComResource<ID3D12GraphicsCommandList7> {
         LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
         friend struct SharedObject::Allocator<DirectX12CommandBuffer>;
@@ -1481,7 +1481,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 command queue.
     ///
-    /// @see DirectX12CommandBuffer
+    /// @see @ref DirectX12CommandBuffer
     class LITEFX_DIRECTX12_API DirectX12Queue final : public CommandQueue<DirectX12CommandBuffer>, public ComResource<ID3D12CommandQueue> {
         LITEFX_IMPLEMENTATION(DirectX12QueueImpl);
         friend struct SharedObject::Allocator<DirectX12Queue>;
@@ -1580,8 +1580,8 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 @ref RenderPipeline.
     ///
-    /// @see DirectX12ComputePipeline
-    /// @see DirectX12RenderPipelineBuilder
+    /// @see @ref DirectX12ComputePipeline
+    /// @see @ref DirectX12RenderPipelineBuilder
     class LITEFX_DIRECTX12_API DirectX12RenderPipeline final : public virtual DirectX12PipelineState, public RenderPipeline<DirectX12PipelineLayout, DirectX12ShaderProgram, DirectX12InputAssembler, DirectX12Rasterizer> {
         LITEFX_IMPLEMENTATION(DirectX12RenderPipelineImpl);
         LITEFX_BUILDER(DirectX12RenderPipelineBuilder);
@@ -1645,8 +1645,8 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 @ref ComputePipeline.
     ///
-    /// @see DirectX12RenderPipeline
-    /// @see DirectX12ComputePipelineBuilder
+    /// @see @ref DirectX12RenderPipeline
+    /// @see @ref DirectX12ComputePipelineBuilder
     class LITEFX_DIRECTX12_API DirectX12ComputePipeline final : public virtual DirectX12PipelineState, public ComputePipeline<DirectX12PipelineLayout, DirectX12ShaderProgram> {
         LITEFX_IMPLEMENTATION(DirectX12ComputePipelineImpl);
         LITEFX_BUILDER(DirectX12ComputePipelineBuilder);
@@ -1693,8 +1693,8 @@ namespace LiteFX::Rendering::Backends {
     /// At some point it is expected that D3D introduces a unified pipeline architecture based on state objects. At this point, the pipeline state base object will switch to using state objects as its handle
     /// type and the `stateObject` method above will be deprecated.
     ///
-    /// @see DirectX12RenderPipeline
-    /// @see DirectX12RayTracingPipelineBuilder
+    /// @see @ref DirectX12RenderPipeline
+    /// @see @ref DirectX12RayTracingPipelineBuilder
     class LITEFX_DIRECTX12_API DirectX12RayTracingPipeline final : public virtual DirectX12PipelineState, public RayTracingPipeline<DirectX12PipelineLayout, DirectX12ShaderProgram> {
         LITEFX_IMPLEMENTATION(DirectX12RayTracingPipelineImpl);
         LITEFX_BUILDER(DirectX12RayTracingPipelineBuilder);
@@ -1763,7 +1763,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 frame buffer.
     ///
-    /// @see DirectX12RenderPass
+    /// @see @ref DirectX12RenderPass
     class LITEFX_DIRECTX12_API DirectX12FrameBuffer final : public FrameBuffer<IDirectX12Image> {
         LITEFX_IMPLEMENTATION(DirectX12FrameBufferImpl);
         friend struct SharedObject::Allocator<DirectX12FrameBuffer>;
@@ -1788,7 +1788,7 @@ namespace LiteFX::Rendering::Backends {
         /// @param renderArea The initial size of the render area.
         /// @param allocationCallback A callback that gets invoked, when the frame buffer allocates a new image.
         /// @param name The name of the frame buffer.
-        /// @see IFrameBuffer::allocation_callback_type
+        /// @see @ref IFrameBuffer::allocation_callback_type
         DirectX12FrameBuffer(const DirectX12Device& device, const Size2d& renderArea, allocation_callback_type allocationCallback, StringView name = "");
 
     private:
@@ -1909,7 +1909,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a DirectX 12 render pass.
     ///
-    /// @see DirectX12RenderPassBuilder
+    /// @see @ref DirectX12RenderPassBuilder
     class LITEFX_DIRECTX12_API DirectX12RenderPass final : public RenderPass<DirectX12Queue, DirectX12FrameBuffer> {
         LITEFX_IMPLEMENTATION(DirectX12RenderPassImpl);
         LITEFX_BUILDER(DirectX12RenderPassBuilder);
@@ -2423,7 +2423,7 @@ namespace LiteFX::Rendering::Backends {
         /// @brief Returns the global sampler heap.
         ///
         /// @return A pointer to the global sampler heap.
-        /// @see globalBufferHeap
+        /// @see @ref globalBufferHeap
         ID3D12DescriptorHeap* globalSamplerHeap() const noexcept;
 
         /// @brief Returns the command signatures for indirect dispatch and draw calls.
@@ -2440,8 +2440,10 @@ namespace LiteFX::Rendering::Backends {
         /// calling the appropriate overload to @ref releaseGlobalDescriptors. The following example demonstrates how to use this function.
         ///
         /// @par Example
+        /// @code
         /// auto allocation = d3dDevice.allocateGlobalDescriptors(1000, DescriptorHeapType::Resource); // Use the descriptors. d3dDevice.releaseGlobalDescriptors(DescriptorHeapType::Resource,
         /// std::move(allocation));
+        /// @endcode
         ///
         /// @param descriptors The number of descriptors to allocate.
         /// @param heapType The heap type, indicating the descriptor heap to allocate the descriptors from.
@@ -2454,7 +2456,7 @@ namespace LiteFX::Rendering::Backends {
         ///
         /// @param heapType The heap type, indicating the descriptor heap to release the descriptors from.
         /// @param allocation The allocation to release.
-        /// @see allocateGlobalDescriptors(descriptors, heapType)
+        /// @see @ref allocateGlobalDescriptors(descriptors, heapType)
         void releaseGlobalDescriptors(DescriptorHeapType heapType, VirtualAllocator::Allocation&& allocation) const;
 
         // GraphicsDevice interface.

@@ -16,9 +16,9 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan vertex buffer layout.
     ///
-    /// @see VulkanVertexBuffer
-    /// @see VulkanIndexBufferLayout
-    /// @see VulkanVertexBufferLayoutBuilder
+    /// @see @ref IVulkanVertexBuffer
+    /// @see @ref VulkanIndexBufferLayout
+    /// @see @ref VulkanVertexBufferLayoutBuilder
     class LITEFX_VULKAN_API VulkanVertexBufferLayout final : public IVertexBufferLayout {
         LITEFX_IMPLEMENTATION(VulkanVertexBufferLayoutImpl);
         LITEFX_BUILDER(VulkanVertexBufferLayoutBuilder);
@@ -101,8 +101,8 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan index buffer layout.
     ///
-    /// @see VulkanIndexBuffer
-    /// @see VulkanVertexBufferLayout
+    /// @see @ref IVulkanIndexBuffer
+    /// @see @ref VulkanVertexBufferLayout
     class LITEFX_VULKAN_API VulkanIndexBufferLayout final : public IIndexBufferLayout {
         LITEFX_IMPLEMENTATION(VulkanIndexBufferLayoutImpl);
         friend struct SharedObject::Allocator<VulkanIndexBufferLayout>;
@@ -158,10 +158,10 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Represents the base interface for a Vulkan buffer implementation.
     ///
-    /// @see VulkanDescriptorSet
-    /// @see IVulkanImage
-    /// @see IVulkanVertexBuffer
-    /// @see IVulkanIndexBuffer
+    /// @see @ref VulkanDescriptorSet
+    /// @see @ref IVulkanImage
+    /// @see @ref IVulkanVertexBuffer
+    /// @see @ref IVulkanIndexBuffer
     class LITEFX_VULKAN_API IVulkanBuffer : public virtual IBuffer, public virtual IResource<VkBuffer> {
     protected:
         IVulkanBuffer() noexcept = default;
@@ -176,8 +176,8 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Represents a Vulkan vertex buffer.
     ///
-    /// @see VulkanVertexBufferLayout
-    /// @see IVulkanBuffer
+    /// @see @ref VulkanVertexBufferLayout
+    /// @see @ref IVulkanBuffer
     class LITEFX_VULKAN_API IVulkanVertexBuffer : public virtual VertexBuffer<VulkanVertexBufferLayout>, public virtual IVulkanBuffer {
     protected:
         IVulkanVertexBuffer() noexcept = default;
@@ -192,8 +192,8 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Represents a Vulkan index buffer.
     ///
-    /// @see VulkanIndexBufferLayout
-    /// @see IVulkanBuffer
+    /// @see @ref VulkanIndexBufferLayout
+    /// @see @ref IVulkanBuffer
     class LITEFX_VULKAN_API IVulkanIndexBuffer : public virtual IndexBuffer<VulkanIndexBufferLayout>, public virtual IVulkanBuffer {
     protected:
         IVulkanIndexBuffer() noexcept = default;
@@ -208,11 +208,11 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Represents a Vulkan sampled image or the base interface for a texture.
     ///
-    /// @see VulkanDescriptorLayout
-    /// @see VulkanDescriptorSet
-    /// @see VulkanDescriptorSetLayout
-    /// @see IVulkanBuffer
-    /// @see IVulkanSampler
+    /// @see @ref VulkanDescriptorLayout
+    /// @see @ref VulkanDescriptorSet
+    /// @see @ref VulkanDescriptorSetLayout
+    /// @see @ref IVulkanBuffer
+    /// @see @ref IVulkanSampler
     class LITEFX_VULKAN_API IVulkanImage : public virtual IImage, public virtual IResource<VkImage> {
     protected:
         IVulkanImage() noexcept = default;
@@ -239,10 +239,10 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Represents a Vulkan sampler.
     ///
-    /// @see VulkanDescriptorLayout
-    /// @see VulkanDescriptorSet
-    /// @see VulkanDescriptorSetLayout
-    /// @see IVulkanImage
+    /// @see @ref VulkanDescriptorLayout
+    /// @see @ref VulkanDescriptorSet
+    /// @see @ref VulkanDescriptorSetLayout
+    /// @see @ref IVulkanImage
     class LITEFX_VULKAN_API IVulkanSampler : public virtual ISampler, public virtual IResource<VkSampler> {
     protected:
         IVulkanSampler() noexcept = default;
@@ -257,9 +257,9 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Represents the base interface for a Vulkan acceleration structure implementation.
     ///
-    /// @see VulkanDescriptorSet
-    /// @see VulkanBottomLevelAccelerationStructure
-    /// @see VulkanTopevelAccelerationStructure
+    /// @see @ref VulkanDescriptorSet
+    /// @see @ref VulkanBottomLevelAccelerationStructure
+    /// @see @ref VulkanTopLevelAccelerationStructure
     class LITEFX_VULKAN_API IVulkanAccelerationStructure : public virtual IAccelerationStructure, public virtual IResource<VkAccelerationStructureKHR> {
     protected:
         IVulkanAccelerationStructure() noexcept = default;
@@ -274,7 +274,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan bottom-level acceleration structure (BLAS).
     ///
-    /// @see VulkanTopLevelAccelerationStructure
+    /// @see @ref VulkanTopLevelAccelerationStructure
     class LITEFX_VULKAN_API VulkanBottomLevelAccelerationStructure final : public IBottomLevelAccelerationStructure, public virtual IVulkanAccelerationStructure, public virtual StateResource, public virtual Resource<VkAccelerationStructureKHR> {
         LITEFX_IMPLEMENTATION(VulkanBottomLevelAccelerationStructureImpl);
         friend class VulkanDevice;
@@ -290,7 +290,7 @@ namespace LiteFX::Rendering::Backends {
         /// @param flags The flags that define how the acceleration structure is built.
         /// @param name The name of the acceleration structure resource.
         /// @throws InvalidArgumentException Thrown if the provided @p flags contain an unsupported combination of flags.
-        /// @see AccelerationStructureFlags
+        /// @see @ref AccelerationStructureFlags
         explicit VulkanBottomLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None, StringView name = "");
 
         VulkanBottomLevelAccelerationStructure(VulkanBottomLevelAccelerationStructure&&) noexcept;
@@ -358,7 +358,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan top-level acceleration structure (TLAS).
     ///
-    /// @see VulkanBottomLevelAccelerationStructure
+    /// @see @ref VulkanBottomLevelAccelerationStructure
     class LITEFX_VULKAN_API VulkanTopLevelAccelerationStructure final : public ITopLevelAccelerationStructure, public virtual IVulkanAccelerationStructure, public virtual StateResource, public virtual Resource<VkAccelerationStructureKHR> {
         LITEFX_IMPLEMENTATION(VulkanTopLevelAccelerationStructureImpl);
         friend class VulkanDevice;
@@ -374,7 +374,7 @@ namespace LiteFX::Rendering::Backends {
         /// @param flags The flags that define how the acceleration structure is built.
         /// @param name The name of the acceleration structure resource.
         /// @throws InvalidArgumentException Thrown if the provided @p flags contain an unsupported combination of flags.
-        /// @see AccelerationStructureFlags
+        /// @see @ref AccelerationStructureFlags
         explicit VulkanTopLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None, StringView name = "");
 
         VulkanTopLevelAccelerationStructure(VulkanTopLevelAccelerationStructure&&) noexcept;
@@ -433,10 +433,10 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan resource barrier.
     ///
-    /// @see VulkanCommandBuffer
-    /// @see IVulkanBuffer
-    /// @see IVulkanImage
-    /// @see Barrier
+    /// @see @ref VulkanCommandBuffer
+    /// @see @ref IVulkanBuffer
+    /// @see @ref IVulkanImage
+    /// @see @ref Barrier
     class LITEFX_VULKAN_API VulkanBarrier final : public Barrier<IVulkanBuffer, IVulkanImage> {
         LITEFX_IMPLEMENTATION(VulkanBarrierImpl);
         LITEFX_BUILDER(VulkanBarrierBuilder);
@@ -502,8 +502,8 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan @ref IShaderModule.
     ///
-    /// @see VulkanShaderProgram
-    /// @see VulkanDevice
+    /// @see @ref VulkanShaderProgram
+    /// @see @ref VulkanDevice
     /// @see https://github.com/crud89/LiteFX/wiki/Shader-Development
     class LITEFX_VULKAN_API VulkanShaderModule final : public IShaderModule, public Resource<VkShaderModule> {
         LITEFX_IMPLEMENTATION(VulkanShaderModuleImpl);
@@ -562,8 +562,8 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan @ref ShaderProgram.
     ///
-    /// @see VulkanShaderProgramBuilder
-    /// @see VulkanShaderModule
+    /// @see @ref VulkanShaderProgramBuilder
+    /// @see @ref VulkanShaderModule
     /// @see https://github.com/crud89/LiteFX/wiki/Shader-Development
     class LITEFX_VULKAN_API VulkanShaderProgram final : public ShaderProgram<VulkanShaderModule> {
         LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl);
@@ -625,7 +625,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan @ref DescriptorSet.
     ///
-    /// @see VulkanDescriptorSetLayout
+    /// @see @ref VulkanDescriptorSetLayout
     class LITEFX_VULKAN_API VulkanDescriptorSet final : public DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler, IVulkanAccelerationStructure> {
         LITEFX_IMPLEMENTATION(VulkanDescriptorSetImpl);
         friend class VulkanDescriptorSetLayout;
@@ -700,11 +700,11 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan @ref IDescriptorLayout
     ///
-    /// @see IVulkanBuffer
-    /// @see IVulkanImage
-    /// @see IVulkanSampler
-    /// @see VulkanDescriptorSet
-    /// @see VulkanDescriptorSetLayout
+    /// @see @ref IVulkanBuffer
+    /// @see @ref IVulkanImage
+    /// @see @ref IVulkanSampler
+    /// @see @ref VulkanDescriptorSet
+    /// @see @ref VulkanDescriptorSetLayout
     class LITEFX_VULKAN_API VulkanDescriptorLayout final : public IDescriptorLayout {
         LITEFX_IMPLEMENTATION(VulkanDescriptorLayoutImpl);
 
@@ -716,7 +716,7 @@ namespace LiteFX::Rendering::Backends {
         /// @param elementSize The size of the descriptor.
         /// @param descriptors The number of descriptors in the descriptor array. If @p unbounded is set, this value sets the upper limit for the array size.
         /// @param unbounded If set to `true`, the descriptor will be defined as a runtime-allocated, unbounded array.
-        /// @see descriptors
+        /// @see @ref descriptors
         VulkanDescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1, bool unbounded = false);
 
         /// @brief Initializes a new Vulkan descriptor layout for a static sampler.
@@ -775,8 +775,8 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan @ref DescriptorSetLayout.
     ///
-    /// @see VulkanDescriptorSet
-    /// @see VulkanDescriptorSetLayoutBuilder
+    /// @see @ref VulkanDescriptorSet
+    /// @see @ref VulkanDescriptorSetLayoutBuilder
     class LITEFX_VULKAN_API VulkanDescriptorSetLayout final : public DescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>, public Resource<VkDescriptorSetLayout> {
         LITEFX_IMPLEMENTATION(VulkanDescriptorSetLayoutImpl);
         LITEFX_BUILDER(VulkanDescriptorSetLayoutBuilder);
@@ -923,7 +923,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements the Vulkan @ref IPushConstantsRange.
     ///
-    /// @see VulkanPushConstantsLayout
+    /// @see @ref VulkanPushConstantsLayout
     class LITEFX_VULKAN_API VulkanPushConstantsRange final : public IPushConstantsRange {
         LITEFX_IMPLEMENTATION(VulkanPushConstantsRangeImpl);
 
@@ -962,9 +962,9 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements the Vulkan @ref PushConstantsLayout.
     ///
-    /// @see VulkanPushConstantsRange
-    /// @see VulkanPushConstantsLayoutBuilder
-    /// @see VulkanPushConstantsLayoutBuilder
+    /// @see @ref VulkanPushConstantsRange
+    /// @see @ref VulkanPushConstantsLayoutBuilder
+    /// @see @ref VulkanPushConstantsLayoutBuilder
     class LITEFX_VULKAN_API VulkanPushConstantsLayout final : public PushConstantsLayout<VulkanPushConstantsRange> {
         LITEFX_IMPLEMENTATION(VulkanPushConstantsLayoutImpl);
         LITEFX_BUILDER(VulkanPushConstantsLayoutBuilder);
@@ -999,7 +999,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan @ref PipelineLayout.
     ///
-    /// @see VulkanPipelineLayoutBuilder
+    /// @see @ref VulkanPipelineLayoutBuilder
     class LITEFX_VULKAN_API VulkanPipelineLayout final : public PipelineLayout<VulkanDescriptorSetLayout, VulkanPushConstantsLayout>, public Resource<VkPipelineLayout> {
         LITEFX_IMPLEMENTATION(VulkanPipelineLayoutImpl);
         LITEFX_BUILDER(VulkanPipelineLayoutBuilder);
@@ -1072,7 +1072,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements the Vulkan input assembler state.
     ///
-    /// @see VulkanInputAssemblerBuilder
+    /// @see @ref VulkanInputAssemblerBuilder
     class LITEFX_VULKAN_API VulkanInputAssembler final : public InputAssembler<VulkanVertexBufferLayout, VulkanIndexBufferLayout> {
         LITEFX_IMPLEMENTATION(VulkanInputAssemblerImpl);
         LITEFX_BUILDER(VulkanInputAssemblerBuilder);
@@ -1161,7 +1161,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan @ref IRasterizer.
     ///
-    /// @see VulkanRasterizerBuilder
+    /// @see @ref VulkanRasterizerBuilder
     class LITEFX_VULKAN_API VulkanRasterizer final : public Rasterizer {
         LITEFX_BUILDER(VulkanRasterizerBuilder);
         friend struct SharedObject::Allocator<VulkanRasterizer>;
@@ -1236,8 +1236,8 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Defines the base class for Vulkan pipeline state objects.
     ///
-    /// @see VulkanRenderPipeline
-    /// @see VulkanComputePipeline
+    /// @see @ref VulkanRenderPipeline
+    /// @see @ref VulkanComputePipeline
     class LITEFX_VULKAN_API VulkanPipelineState : public virtual Pipeline<VulkanPipelineLayout, VulkanShaderProgram>, public Resource<VkPipeline> {
     protected:
         using Resource<VkPipeline>::Resource;
@@ -1264,7 +1264,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Records commands for a @ref VulkanQueue
     ///
-    /// @see VulkanQueue
+    /// @see @ref VulkanQueue
     class LITEFX_VULKAN_API VulkanCommandBuffer final : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>, public Resource<VkCommandBuffer> {
         LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
         friend struct SharedObject::Allocator<VulkanCommandBuffer>;
@@ -1511,7 +1511,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan command queue.
     ///
-    /// @see VulkanCommandBuffer
+    /// @see @ref VulkanCommandBuffer
     class LITEFX_VULKAN_API VulkanQueue final : public CommandQueue<VulkanCommandBuffer>, public Resource<VkQueue> {
         LITEFX_IMPLEMENTATION(VulkanQueueImpl);
         friend struct SharedObject::Allocator<VulkanQueue>;
@@ -1629,8 +1629,8 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan @ref RenderPipeline.
     ///
-    /// @see VulkanComputePipeline
-    /// @see VulkanRenderPipelineBuilder
+    /// @see @ref VulkanComputePipeline
+    /// @see @ref VulkanRenderPipelineBuilder
     class LITEFX_VULKAN_API VulkanRenderPipeline final : public virtual VulkanPipelineState, public RenderPipeline<VulkanPipelineLayout, VulkanShaderProgram, VulkanInputAssembler, VulkanRasterizer> {
         LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl);
         LITEFX_BUILDER(VulkanRenderPipelineBuilder);
@@ -1697,8 +1697,8 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan @ref ComputePipeline.
     ///
-    /// @see VulkanRenderPipeline
-    /// @see VulkanComputePipelineBuilder
+    /// @see @ref VulkanRenderPipeline
+    /// @see @ref VulkanComputePipelineBuilder
     class LITEFX_VULKAN_API VulkanComputePipeline final : public virtual VulkanPipelineState, public ComputePipeline<VulkanPipelineLayout, VulkanShaderProgram> {
         LITEFX_IMPLEMENTATION(VulkanComputePipelineImpl);
         LITEFX_BUILDER(VulkanComputePipelineBuilder);
@@ -1743,8 +1743,8 @@ namespace LiteFX::Rendering::Backends {
     
     /// @brief Implements a Vulkan @ref RayTracingPipeline.
     ///
-    /// @see VulkanRenderPipeline
-    /// @see VulkanRayTracingPipelineBuilder
+    /// @see @ref VulkanRenderPipeline
+    /// @see @ref VulkanRayTracingPipelineBuilder
     class LITEFX_VULKAN_API VulkanRayTracingPipeline final : public virtual VulkanPipelineState, public RayTracingPipeline<VulkanPipelineLayout, VulkanShaderProgram> {
         LITEFX_IMPLEMENTATION(VulkanRayTracingPipelineImpl);
         LITEFX_BUILDER(VulkanRayTracingPipelineBuilder);
@@ -1811,7 +1811,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan frame buffer.
     ///
-    /// @see VulkanRenderPass
+    /// @see @ref VulkanRenderPass
     class LITEFX_VULKAN_API VulkanFrameBuffer final : public FrameBuffer<IVulkanImage> {
         LITEFX_IMPLEMENTATION(VulkanFrameBufferImpl);
         friend struct SharedObject::Allocator<VulkanFrameBuffer>;
@@ -1836,7 +1836,7 @@ namespace LiteFX::Rendering::Backends {
         /// @param renderArea The initial size of the render area.
         /// @param allocationCallback A callback that gets invoked, when the frame buffer allocates a new image.
         /// @param name The name of the frame buffer.
-        /// @see IFrameBuffer::allocation_callback_type
+        /// @see @ref IFrameBuffer::allocation_callback_type
         VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea, allocation_callback_type allocationCallback, StringView name = "");
 
     private:
@@ -1957,7 +1957,7 @@ namespace LiteFX::Rendering::Backends {
 
     /// @brief Implements a Vulkan render pass.
     ///
-    /// @see VulkanRenderPassBuilder
+    /// @see @ref VulkanRenderPassBuilder
     class LITEFX_VULKAN_API VulkanRenderPass final : public RenderPass<VulkanQueue, VulkanFrameBuffer> {
         LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
         LITEFX_BUILDER(VulkanRenderPassBuilder);
@@ -2664,7 +2664,7 @@ namespace LiteFX::Rendering::Backends {
         ///
         /// @param predicate A callback that gets called with the backend instance handle and creates the surface instance
         /// @return The instance of the created surface.
-        /// @see surface_callback
+        /// @see @ref surface_callback
         UniquePtr<VulkanSurface> createSurface(surface_callback predicate) const;
 #endif // VK_USE_PLATFORM_WIN32_KHR
 
@@ -2672,25 +2672,25 @@ namespace LiteFX::Rendering::Backends {
         /// @brief Returns `true`, if all elements of @p are contained by the a list of available extensions.
         ///
         /// @return `true`, if all elements of @p are contained by the a list of available extensions.
-        /// @see getAvailableInstanceExtensions
+        /// @see @ref getAvailableInstanceExtensions
         static bool validateInstanceExtensions(Span<const String> extensions);
 
         /// @brief Returns a list of available extensions.
         ///
         /// @return A list of available extensions.
-        /// @see validateInstanceExtensions
+        /// @see @ref validateInstanceExtensions
         static Enumerable<String> getAvailableInstanceExtensions();
 
         /// @brief Returns `true`, if all elements of @p are contained by the a list of available validation layers.
         ///
         /// @return `true`, if all elements of @p are contained by the a list of available validation layers.
-        /// @see getInstanceValidationLayers
+        /// @see @ref getInstanceValidationLayers
         static bool validateInstanceLayers(const Span<const String> validationLayers);
 
         /// @brief Returns a list of available validation layers.
         ///
         /// @return A list of available validation layers.
-        /// @see validateInstanceLayers
+        /// @see @ref validateInstanceLayers
         static Enumerable<String> getInstanceValidationLayers();
 
         // IBackend interface.
