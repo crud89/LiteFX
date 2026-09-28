@@ -15348,9 +15348,8 @@
 <h1 id="litefxrenderingrendertargetlocation"><code>LiteFX::Rendering::RenderTarget::location</code><a class="headerlink" href="#litefxrenderingrendertargetlocation" title="Permanent link">&para;</a></h1>
 <p>Returns the location of the render target output attachment within the fragment shader.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L2862">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] virtual <a href="../../../Math/UInt32/">UInt32</a> location() const noexcept override;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L2861">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">location</span><span class="p">(</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">override</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>The locations of all render targets of a frame buffer must be within a continuous domain, starting at <code>0</code>. A frame buffer validates the render target locations when it is initialized and will raise an exception, if a location is either not mapped or assigned multiple times.</p>

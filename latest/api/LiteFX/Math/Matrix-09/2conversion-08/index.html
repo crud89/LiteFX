@@ -8947,10 +8947,9 @@
 <h1 id="litefxmathmatrixoperator-glmmatlt3-2-scalar_typegt"><code>LiteFX::Math::Matrix::operator glm::mat&amp;lt;3, 2, scalar_type&amp;gt;</code><a class="headerlink" href="#litefxmathmatrixoperator-glmmatlt3-2-scalar_typegt" title="Permanent link">&para;</a></h1>
 <p>Converts the matrix into a 2x3 glm matrix.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Math/include/litefx/matrix.hpp#L395">litefx/matrix.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr operator glm::mat&lt;3, 2, scalar_type&gt;() const noexcept
-requires (mat_rows &gt;= 2 &amp;&amp; mat_cols &gt;= 3);
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Math/include/litefx/matrix.hpp#L395">litefx/matrix.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><span class="k">operator</span><span class="w"> </span><span class="n">glm</span><span class="o">:</span><span class="o">:</span><span class="n">mat</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">scalar_type</span><span class="o">&gt;</span><span class="p">(</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="p">(</span><span class="n">mat_rows</span><span class="w"> </span><span class="o">&gt;</span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">mat_cols</span><span class="w"> </span><span class="o">&gt;</span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p>The glm matrix instance.</p>

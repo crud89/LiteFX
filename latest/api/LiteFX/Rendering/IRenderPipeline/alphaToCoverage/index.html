@@ -15189,19 +15189,18 @@
 <h1 id="litefxrenderingirenderpipelinealphatocoverage"><code>LiteFX::Rendering::IRenderPipeline::alphaToCoverage</code><a class="headerlink" href="#litefxrenderingirenderpipelinealphatocoverage" title="Permanent link">&para;</a></h1>
 <p>Returns <code>true</code>, if the pipeline uses <em>Alpha-to-Coverage</em> multi-sampling.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L7140">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] virtual bool alphaToCoverage() const noexcept = 0;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L7139">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">alphaToCoverage</span><span class="p">(</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Alpha-to-Coverage is a multi-sampling technique used for partially transparent sprites or textures (such as foliage) to prevent visible flickering along edges. If enabled, the alpha-channel of the first (non-depth/stencil) render target is used to generate a temporary coverage mask that is combined with the fragment coverage mask using a logical <b>AND</b>.</p>
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p><code>true</code>, if the pipeline uses <em>Alpha-to-Coverage</em> multi-sampling.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>https://bgolus.medium.com/anti-aliased-alpha-test-the-esoteric-alpha-to-coverage-8b177335ae4f</p>
-<p>https://en.wikipedia.org/wiki/Alpha_to_coverage</p>
-<p>https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#fragops-covg</p>
-<p>https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-blend-state#alpha-to-coverage</p>
+<p><a href="https://bgolus.medium.com/anti-aliased-alpha-test-the-esoteric-alpha-to-coverage-8b177335ae4f">https://bgolus.medium.com/anti-aliased-alpha-test-the-esoteric-alpha-to-coverage-8b177335ae4f</a></p>
+<p><a href="https://en.wikipedia.org/wiki/Alpha_to_coverage">https://en.wikipedia.org/wiki/Alpha_to_coverage</a></p>
+<p><a href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#fragops-covg">https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#fragops-covg</a></p>
+<p><a href="https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-blend-state#alpha-to-coverage">https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-blend-state#alpha-to-coverage</a></p>
 
 
 

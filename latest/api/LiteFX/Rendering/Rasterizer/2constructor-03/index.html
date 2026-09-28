@@ -15540,16 +15540,15 @@
 <h1 id="litefxrenderingrasterizerrasterizer"><code>LiteFX::Rendering::Rasterizer::Rasterizer</code><a class="headerlink" href="#litefxrenderingrasterizerrasterizer" title="Permanent link">&para;</a></h1>
 <p>Initializes a new rasterizer instance.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L3140">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] explicit Rasterizer(
-    <a href="../../PolygonMode/">PolygonMode</a> polygonMode,
-    <a href="../../CullMode/">CullMode</a> cullMode,
-    <a href="../../CullOrder/">CullOrder</a> cullOrder,
-    <a href="../../../Math/Float/">Float</a> lineWidth = 1.f,
-    bool depthClip = true,
-    <a href="../../DepthStencilState/">DepthStencilState</a> const& depthStencilState = {},
-    bool conservativeRasterization = false) noexcept;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L3139">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">explicit</span><span class="w"> </span><span class="n">Rasterizer</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../PolygonMode/"><span class="n">PolygonMode</span></a><span class="w"> </span><span class="n">polygonMode</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../CullMode/"><span class="n">CullMode</span></a><span class="w"> </span><span class="n">cullMode</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../CullOrder/"><span class="n">CullOrder</span></a><span class="w"> </span><span class="n">cullOrder</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/Float/"><span class="n">Float</span></a><span class="w"> </span><span class="n">lineWidth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.f</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">depthClip</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../DepthStencilState/"><span class="n">DepthStencilState</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">depthStencilState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="p">}</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">conservativeRasterization</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">

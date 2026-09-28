@@ -4864,10 +4864,9 @@
 <h1 id="litefxbuilderuse"><code>LiteFX::Builder::use</code><a class="headerlink" href="#litefxbuilderuse" title="Permanent link">&para;</a></h1>
 <p>Called by child builders to pass a constructed object back to the parent builder.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Core/include/litefx/containers.hpp#L854">litefx/containers.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TInstance&gt;
-void use(<a href="../pointer_type/">pointer_type</a>&&) noexcept = delete;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Core/include/litefx/containers.hpp#L901">litefx/containers.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TInstance</span><span class="o">&gt;</span><span class="w">
+</span><span class="kt">void</span><span class="w"> </span><span class="n">use</span><span class="p">(</span><a href="../pointer_type/"><span class="n">pointer_type</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">delete</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>This method must be implemented for each child builder, a builder can create. This introduces a hard dependency between child and parent builders. It is not possible to define a child builder without implementing the counter part in the parent builder.</p>

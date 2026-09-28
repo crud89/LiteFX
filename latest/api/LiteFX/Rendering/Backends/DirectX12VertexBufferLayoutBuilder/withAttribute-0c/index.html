@@ -24593,15 +24593,14 @@
 <h1 id="litefxrenderingbackendsdirectx12vertexbufferlayoutbuilderwithattribute"><code>LiteFX::Rendering::Backends::DirectX12VertexBufferLayoutBuilder::withAttribute</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12vertexbufferlayoutbuilderwithattribute" title="Permanent link">&para;</a></h1>
 <p>Adds an attribute to the vertex buffer layout.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_builders.hpp#L934">litefx/rendering_builders.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TSelf&gt;
-[[nodiscard]] constexpr TSelf&& withAttribute(this 
-    TSelf&& self,
-    <a href="../../../BufferFormat/">BufferFormat</a> format,
-    <a href="../../../../Math/UInt32/">UInt32</a> offset,
-    <a href="../../../AttributeSemantic/">AttributeSemantic</a> semantic = AttributeSemantic::Arbitrary,
-    <a href="../../../../Math/UInt32/">UInt32</a> semanticIndex = 0);
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_builders.hpp#L934">litefx/rendering_builders.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TSelf</span><span class="o">&gt;</span><span class="w">
+</span><span class="p">[[</span><span class="na">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="n">TSelf</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">withAttribute</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../BufferFormat/"><span class="n">BufferFormat</span></a><span class="w"> </span><span class="n">format</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">offset</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../AttributeSemantic/"><span class="n">AttributeSemantic</span></a><span class="w"> </span><span class="n">semantic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AttributeSemantic</span><span class="o">:</span><span class="o">:</span><span class="n">Arbitrary</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">semanticIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>This overload implicitly determines the location based on the number of attributes already defined. It should only be used if all locations can be implicitly deducted.</p>

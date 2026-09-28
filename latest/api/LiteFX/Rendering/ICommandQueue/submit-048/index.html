@@ -15673,20 +15673,17 @@
 <h1 id="litefxrenderingicommandqueuesubmit"><code>LiteFX::Rendering::ICommandQueue::submit</code><a class="headerlink" href="#litefxrenderingicommandqueuesubmit" title="Permanent link">&para;</a></h1>
 <p><code>submit</code> overloads</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L8118">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L8117">litefx/rendering_api.hpp</a>&gt;</code></p>
 <p>Submits a set of command buffers with shared ownership and inserts a fence to wait for them.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../../../Math/UInt64/">UInt64</a> <a href="../submit-05/">submit</a>(<a href="../../../Enumerable/">Enumerable&lt;SharedPtr&lt;ICommandBuffer const&gt;&gt;</a> commandBuffers) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><a href="../submit-05/"><span class="n">submit</span></a><span class="p">(</span><a href="../../../Enumerable/"><span class="n">Enumerable</span><span class="o">&lt;</span><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">ICommandBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">commandBuffers</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../submit-05/"><em>» more...</em></a></span></p>
 <p>Submits a single command buffer with shared ownership and inserts a fence to wait for it.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../../../Math/UInt64/">UInt64</a> <a href="../submit-04a/">submit</a>(<a href="../../../SharedPtr/">SharedPtr&lt;ICommandBuffer&gt;</a> const& commandBuffer) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><a href="../submit-04a/"><span class="n">submit</span></a><span class="p">(</span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">ICommandBuffer</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">commandBuffer</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../submit-04a/"><em>» more...</em></a></span></p>
 <p>Submits a single command buffer with shared ownership and inserts a fence to wait for it.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../../../Math/UInt64/">UInt64</a> <a href="../submit-0c/">submit</a>(<a href="../../../SharedPtr/">SharedPtr&lt;ICommandBuffer const&gt;</a> const& commandBuffer) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><a href="../submit-0c/"><span class="n">submit</span></a><span class="p">(</span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">ICommandBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">commandBuffer</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../submit-0c/"><em>» more...</em></a></span></p>
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
@@ -15702,9 +15699,6 @@
 <tr><td><b>commandBuffer</b></td><td>The command buffer to submit to the command queue.</td></tr>
 </tbody>
 </table></div>
-
-<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>waitFor</p>
 
 
 

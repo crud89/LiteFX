@@ -24934,28 +24934,25 @@
 <h1 id="litefxrenderingbackendsvulkanraytracingpipelinevulkanraytracingpipeline"><code>LiteFX::Rendering::Backends::VulkanRayTracingPipeline::VulkanRayTracingPipeline</code><a class="headerlink" href="#litefxrenderingbackendsvulkanraytracingpipelinevulkanraytracingpipeline" title="Permanent link">&para;</a></h1>
 <p>Initializes a new Vulkan ray-tracing pipeline.</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L1763">litefx/backends/vulkan.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L1763">litefx/backends/vulkan.hpp</a>&gt;</code></p>
 <p>Copy constructor</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp"><a href="../2constructor-02/">VulkanRayTracingPipeline</a>(<a href="../">VulkanRayTracingPipeline</a> const& other) = delete;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><a href="../2constructor-02/"><span class="n">VulkanRayTracingPipeline</span></a><span class="p">(</span><a href="../"><span class="n">VulkanRayTracingPipeline</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">delete</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-02/"><em>» more...</em></a></span></p>
 <p>Move constructor</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../2constructor-06/">VulkanRayTracingPipeline</a>(<a href="../">VulkanRayTracingPipeline</a>&& other) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../2constructor-06/"><span class="n">VulkanRayTracingPipeline</span></a><span class="p">(</span><a href="../"><span class="n">VulkanRayTracingPipeline</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-06/"><em>» more...</em></a></span></p>
 <p>Initializes a new Vulkan ray-tracing pipeline.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] explicit <a href="../2constructor-04/">VulkanRayTracingPipeline</a>(
-    <a href="../../VulkanDevice/">VulkanDevice</a> const& device,
-    <a href="../../../../SharedPtr/">SharedPtr&lt;VulkanPipelineLayout&gt;</a> const& layout,
-    <a href="../../../../SharedPtr/">SharedPtr&lt;VulkanShaderProgram&gt;</a> const& shaderProgram,
-    <a href="../../../ShaderRecordCollection/">ShaderRecordCollection</a>&& shaderRecords,
-    <a href="../../../../Math/UInt32/">UInt32</a> maxRecursionDepth = 10,
-    <a href="../../../../Math/UInt32/">UInt32</a> maxPayloadSize = 0,
-    <a href="../../../../Math/UInt32/">UInt32</a> maxAttributeSize = 32,
-    <a href="../../../../String/">String</a> const& name = "");
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">explicit</span><span class="w"> </span><a href="../2constructor-04/"><span class="n">VulkanRayTracingPipeline</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../VulkanDevice/"><span class="n">VulkanDevice</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">device</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">VulkanPipelineLayout</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">layout</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">VulkanShaderProgram</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">shaderProgram</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../ShaderRecordCollection/"><span class="n">ShaderRecordCollection</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">shaderRecords</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">maxRecursionDepth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">maxPayloadSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">maxAttributeSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../String/"><span class="n">String</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;</span><span class="s">&quot;</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-04/"><em>» more...</em></a></span></p>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>

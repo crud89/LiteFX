@@ -15449,38 +15449,33 @@
 <h1 id="litefxrenderingshaderrecordcollectionaddshaderrecord"><code>LiteFX::Rendering::ShaderRecordCollection::addShaderRecord</code><a class="headerlink" href="#litefxrenderingshaderrecordcollectionaddshaderrecord" title="Permanent link">&para;</a></h1>
 <p><code>addShaderRecord</code> overloads</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L5648">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L5647">litefx/rendering_api.hpp</a>&gt;</code></p>
 <p>Adds a new shader record based on the name of a shader module in the parent shader program.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../addShaderRecord-04/">addShaderRecord</a>(<a href="../../../StringView/">StringView</a> shaderName);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../addShaderRecord-04/"><span class="n">addShaderRecord</span></a><span class="p">(</span><a href="../../../StringView/"><span class="n">StringView</span></a><span class="w"> </span><span class="n">shaderName</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../addShaderRecord-04/"><em>» more...</em></a></span></p>
 <p>Adds a new shader record to the shader record collection.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../addShaderRecord-0ed/">addShaderRecord</a>(<a href="../../ShaderRecord-0a/shader_group_type/">ShaderRecord&lt;&gt;::shader_group_type</a> const& shaderGroup);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../addShaderRecord-0ed/"><span class="n">addShaderRecord</span></a><span class="p">(</span><a href="../../ShaderRecord-0a/shader_group_type/"><span class="n">ShaderRecord</span><span class="o">&lt;</span><span class="o">&gt;</span><span class="o">:</span><span class="o">:</span><span class="n">shader_group_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">shaderGroup</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../addShaderRecord-0ed/"><em>» more...</em></a></span></p>
 <p>Adds a new shader record to the shader record collection.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../addShaderRecord-0ec/">addShaderRecord</a>(<a href="../../../UniquePtr/">UniquePtr&lt;IShaderRecord const&gt;</a>&& record);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../addShaderRecord-0ec/"><span class="n">addShaderRecord</span></a><span class="p">(</span><a href="../../../UniquePtr/"><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">IShaderRecord</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">record</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../addShaderRecord-0ec/"><em>» more...</em></a></span></p>
 <p>Adds a new shader record based on the name of a shader module in the parent shader program.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TLocalData&gt;
-requires (std::alignment_of_v&lt;TLocalData&gt; == SHADER_RECORD_LOCAL_DATA_ALIGNMENT)
-void <a href="../addShaderRecord-06/">addShaderRecord</a>(
-    <a href="../../../StringView/">StringView</a> shaderName,
-    TLocalData payload);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TLocalData</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">alignment_of_v</span><span class="o">&lt;</span><span class="n">TLocalData</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="o">=</span><span class="w"> </span><span class="n">SHADER_RECORD_LOCAL_DATA_ALIGNMENT</span><span class="p">)</span><span class="w">
+</span><span class="kt">void</span><span class="w"> </span><a href="../addShaderRecord-06/"><span class="n">addShaderRecord</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../StringView/"><span class="n">StringView</span></a><span class="w"> </span><span class="n">shaderName</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">TLocalData</span><span class="w"> </span><span class="n">payload</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../addShaderRecord-06/"><em>» more...</em></a></span></p>
 <p>Adds a new shader record to the shader record collection.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TLocalData&gt;
-requires (std::alignment_of_v&lt;TLocalData&gt; == SHADER_RECORD_LOCAL_DATA_ALIGNMENT)
-void <a href="../addShaderRecord-05/">addShaderRecord</a>(
-    ShaderRecord&lt;TLocalData&gt;::shader_group_type shaderGroup,
-    TLocalData payload);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TLocalData</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">alignment_of_v</span><span class="o">&lt;</span><span class="n">TLocalData</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="o">=</span><span class="w"> </span><span class="n">SHADER_RECORD_LOCAL_DATA_ALIGNMENT</span><span class="p">)</span><span class="w">
+</span><span class="kt">void</span><span class="w"> </span><a href="../addShaderRecord-05/"><span class="n">addShaderRecord</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><span class="n">ShaderRecord</span><span class="o">&lt;</span><span class="n">TLocalData</span><span class="o">&gt;</span><span class="o">:</span><span class="o">:</span><span class="n">shader_group_type</span><span class="w"> </span><span class="n">shaderGroup</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">TLocalData</span><span class="w"> </span><span class="n">payload</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../addShaderRecord-05/"><em>» more...</em></a></span></p>
 <h2 id="exceptions">Exceptions<a class="headerlink" href="#exceptions" title="Permanent link">&para;</a></h2>

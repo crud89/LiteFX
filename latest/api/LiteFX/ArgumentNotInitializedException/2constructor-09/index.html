@@ -4752,36 +4752,31 @@
 <h1 id="litefxargumentnotinitializedexceptionargumentnotinitializedexception"><code>LiteFX::ArgumentNotInitializedException::ArgumentNotInitializedException</code><a class="headerlink" href="#litefxargumentnotinitializedexceptionargumentnotinitializedexception" title="Permanent link">&para;</a></h1>
 <p>Initializes a new exception.</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Core/include/litefx/exceptions.hpp#L172">litefx/exceptions.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Core/include/litefx/exceptions.hpp#L172">litefx/exceptions.hpp</a>&gt;</code></p>
 <p>Copy constructor</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-04/">ArgumentNotInitializedException</a>(<a href="../">ArgumentNotInitializedException</a> const& other) = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-04/"><span class="n">ArgumentNotInitializedException</span></a><span class="p">(</span><a href="../"><span class="n">ArgumentNotInitializedException</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-04/"><em>» more...</em></a></span></p>
 <p>Move constructor</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-0f5/">ArgumentNotInitializedException</a>(<a href="../">ArgumentNotInitializedException</a>&& other) noexcept = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-0f5/"><span class="n">ArgumentNotInitializedException</span></a><span class="p">(</span><a href="../"><span class="n">ArgumentNotInitializedException</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-0f5/"><em>» more...</em></a></span></p>
 <p>Initializes a new exception.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">explicit <a href="../2constructor-0f7/">ArgumentNotInitializedException</a>(std::string_view argument);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">explicit</span><span class="w"> </span><a href="../2constructor-0f7/"><span class="n">ArgumentNotInitializedException</span></a><span class="p">(</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">string_view</span><span class="w"> </span><span class="n">argument</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-0f7/"><em>» more...</em></a></span></p>
 <p>Initializes a new exception.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">explicit <a href="../2constructor-08/">ArgumentNotInitializedException</a>(
-    std::string_view argument,
-    std::string_view message);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">explicit</span><span class="w"> </span><a href="../2constructor-08/"><span class="n">ArgumentNotInitializedException</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">string_view</span><span class="w"> </span><span class="n">argument</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">string_view</span><span class="w"> </span><span class="n">message</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-08/"><em>» more...</em></a></span></p>
 <p>Initializes a new exception.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename... TArgs&gt;
-explicit <a href="../2constructor-01/">ArgumentNotInitializedException</a>(
-    std::string_view argument,
-    std::format_string&lt;TArgs...&gt; format,
-    TArgs&&... args);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w"> </span><span class="n">TArgs</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">explicit</span><span class="w"> </span><a href="../2constructor-01/"><span class="n">ArgumentNotInitializedException</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">string_view</span><span class="w"> </span><span class="n">argument</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">format_string</span><span class="o">&lt;</span><span class="n">TArgs</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="o">&gt;</span><span class="w"> </span><span class="n">format</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">TArgs</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-01/"><em>» more...</em></a></span></p>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>

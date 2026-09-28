@@ -8947,13 +8947,12 @@
 <h1 id="litefxmathmatrixoperator-glmmatltcols-rows-scalar_typegt"><code>LiteFX::Math::Matrix::operator glm::mat&amp;lt;cols, rows, scalar_type&amp;gt;</code><a class="headerlink" href="#litefxmathmatrixoperator-glmmatltcols-rows-scalar_typegt" title="Permanent link">&para;</a></h1>
 <p>Converts the matrix into a glm matrix.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Math/include/litefx/matrix.hpp#L358">litefx/matrix.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    unsigned int rows,
-    unsigned int cols&gt;
-constexpr operator glm::mat&lt;cols, rows, scalar_type&gt;() const noexcept
-requires (mat_rows &gt;= rows &amp;&amp; mat_cols &gt;= cols);
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Math/include/litefx/matrix.hpp#L358">litefx/matrix.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">rows</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">cols</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">constexpr</span><span class="w"> </span><span class="k">operator</span><span class="w"> </span><span class="n">glm</span><span class="o">:</span><span class="o">:</span><span class="n">mat</span><span class="o">&lt;</span><span class="n">cols</span><span class="p">,</span><span class="w"> </span><span class="n">rows</span><span class="p">,</span><span class="w"> </span><span class="n">scalar_type</span><span class="o">&gt;</span><span class="p">(</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="p">(</span><span class="n">mat_rows</span><span class="w"> </span><span class="o">&gt;</span><span class="o">=</span><span class="w"> </span><span class="n">rows</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">mat_cols</span><span class="w"> </span><span class="o">&gt;</span><span class="o">=</span><span class="w"> </span><span class="n">cols</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p>The glm matrix instance.</p>

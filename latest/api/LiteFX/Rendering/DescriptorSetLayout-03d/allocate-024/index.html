@@ -15689,9 +15689,8 @@
 <h1 id="litefxrenderingdescriptorsetlayoutallocate"><code>LiteFX::Rendering::DescriptorSetLayout::allocate</code><a class="headerlink" href="#litefxrenderingdescriptorsetlayoutallocate" title="Permanent link">&para;</a></h1>
 <p>Allocates a new descriptor set or returns an instance of an unused descriptor set.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering.hpp#L234">litefx/rendering.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual <a href="../../../UniquePtr/">UniquePtr&lt;descriptor_set_type&gt;</a> allocate(<a href="../../../Generator/">Generator&lt;DescriptorBinding&gt;</a> bindings) const;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering.hpp#L234">litefx/rendering.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><a href="../../../UniquePtr/"><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">descriptor_set_type</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">allocate</span><span class="p">(</span><a href="../../../Generator/"><span class="n">Generator</span><span class="o">&lt;</span><span class="n">DescriptorBinding</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">bindings</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Allocating a new descriptor set may be an expensive operation. To improve performance, and prevent fragmentation, the descriptor set layout keeps track of created descriptor sets. It does this by never releasing them. Instead, when a <a href="../../DescriptorSet-09/"><code>DescriptorSet</code></a> instance gets destroyed, it should call <a href="../../IDescriptorSetLayout/free/"><code>free</code></a> in order to mark itself (i.e. its handle) as not being used any longer.</p>
@@ -15710,7 +15709,7 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>IDescriptorLayout</p>
+<p><a href="../../IDescriptorLayout/"><code>IDescriptorLayout</code></a></p>
 
 
 

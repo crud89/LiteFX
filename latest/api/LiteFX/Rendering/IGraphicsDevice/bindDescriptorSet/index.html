@@ -15644,12 +15644,11 @@
 <h1 id="litefxrenderingigraphicsdevicebinddescriptorset"><code>LiteFX::Rendering::IGraphicsDevice::bindDescriptorSet</code><a class="headerlink" href="#litefxrenderingigraphicsdevicebinddescriptorset" title="Permanent link">&para;</a></h1>
 <p>Binds the descriptors of the descriptor set to the global descriptor heaps.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L9296">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void bindDescriptorSet(
-    <a href="../../ICommandBuffer/">ICommandBuffer</a> const& commandBuffer,
-    <a href="../../IDescriptorSet/">IDescriptorSet</a> const& descriptorSet,
-    <a href="../../IPipeline/">IPipeline</a> const& pipeline) const;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L9293">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">bindDescriptorSet</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../ICommandBuffer/"><span class="n">ICommandBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">commandBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IDescriptorSet/"><span class="n">IDescriptorSet</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">descriptorSet</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IPipeline/"><span class="n">IPipeline</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">pipeline</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Note that after binding the descriptor set, the descriptors must not be updated anymore, unless they are elements on unbounded descriptor arrays, in which case you have to ensure manually to not update them, as long as they may still be in use!</p>

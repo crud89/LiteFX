@@ -15445,11 +15445,10 @@
 <h1 id="litefxrenderingshaderrecordcollectionwithmeshgeometryhitgrouprecord"><code>LiteFX::Rendering::ShaderRecordCollection::withMeshGeometryHitGroupRecord</code><a class="headerlink" href="#litefxrenderingshaderrecordcollectionwithmeshgeometryhitgrouprecord" title="Permanent link">&para;</a></h1>
 <p>Adds a new mesh geometry hit group record based on names of the shader modules.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L5776">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../">ShaderRecordCollection</a>&& withMeshGeometryHitGroupRecord(
-    std::optional&lt;StringView&gt; anyHitShaderName,
-    std::optional&lt;StringView&gt; closestHitShaderName);
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L5775">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../"><span class="n">ShaderRecordCollection</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">withMeshGeometryHitGroupRecord</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">optional</span><span class="o">&lt;</span><span class="n">StringView</span><span class="o">&gt;</span><span class="w"> </span><span class="n">anyHitShaderName</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">optional</span><span class="o">&lt;</span><span class="n">StringView</span><span class="o">&gt;</span><span class="w"> </span><span class="n">closestHitShaderName</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p>A reference to the current shader record collection.</p>

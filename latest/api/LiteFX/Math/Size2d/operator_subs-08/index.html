@@ -8814,9 +8814,8 @@
 <h1 id="litefxmathsize2doperator"><code>LiteFX::Math::Size2d::operator[]</code><a class="headerlink" href="#litefxmathsize2doperator" title="Permanent link">&para;</a></h1>
 <p>Returns a reference to a value from the vector, indexed by the parameter <code>i.</code></p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Math/include/litefx/vector.hpp#L157">litefx/vector.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllexport, dllimport]] constexpr unsigned long long& operator[](unsigned int i) noexcept;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Math/include/litefx/vector.hpp#L157">litefx/vector.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllexport</span><span class="p">,</span><span class="w"> </span><span class="na">dllimport</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="o">&amp;</span><span class="w"> </span><span class="k">operator</span><span class="p">[</span><span class="p">]</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Note that this method wraps the index if it is out of range, i.e., calling the method with index <code>4</code> on a 4D vector will return the element at index <code>0</code>.</p>

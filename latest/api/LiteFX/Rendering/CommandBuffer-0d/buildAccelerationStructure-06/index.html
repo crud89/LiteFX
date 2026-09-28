@@ -16465,41 +16465,37 @@
 <h1 id="litefxrenderingcommandbufferbuildaccelerationstructure"><code>LiteFX::Rendering::CommandBuffer::buildAccelerationStructure</code><a class="headerlink" href="#litefxrenderingcommandbufferbuildaccelerationstructure" title="Permanent link">&para;</a></h1>
 <p><code>buildAccelerationStructure</code> overloads</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering.hpp#L730">litefx/rendering.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering.hpp#L730">litefx/rendering.hpp</a>&gt;</code></p>
 <p>Builds a bottom-level acceleration structure.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/buildAccelerationStructure-047/">buildAccelerationStructure</a>(
-    <a href="../../IBottomLevelAccelerationStructure/">IBottomLevelAccelerationStructure</a>& blas,
-    <a href="../../../SharedPtr/">SharedPtr&lt;IBuffer const&gt;</a> const& scratchBuffer,
-    <a href="../../IBuffer/">IBuffer</a> const& buffer,
-    <a href="../../../Math/UInt64/">UInt64</a> offset = 0) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/buildAccelerationStructure-047/"><span class="n">buildAccelerationStructure</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../IBottomLevelAccelerationStructure/"><span class="n">IBottomLevelAccelerationStructure</span></a><span class="o">&amp;</span><span class="w"> </span><span class="n">blas</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">scratchBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IBuffer/"><span class="n">IBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/buildAccelerationStructure-047/"><em>» more...</em></a></span></p>
 <p>Builds a top-level acceleration structure.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/buildAccelerationStructure-041/">buildAccelerationStructure</a>(
-    <a href="../../ITopLevelAccelerationStructure/">ITopLevelAccelerationStructure</a>& tlas,
-    <a href="../../../SharedPtr/">SharedPtr&lt;IBuffer const&gt;</a> const& scratchBuffer,
-    <a href="../../IBuffer/">IBuffer</a> const& buffer,
-    <a href="../../../Math/UInt64/">UInt64</a> offset = 0) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/buildAccelerationStructure-041/"><span class="n">buildAccelerationStructure</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../ITopLevelAccelerationStructure/"><span class="n">ITopLevelAccelerationStructure</span></a><span class="o">&amp;</span><span class="w"> </span><span class="n">tlas</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">scratchBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IBuffer/"><span class="n">IBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/buildAccelerationStructure-041/"><em>» more...</em></a></span></p>
 <p>Builds a bottom-level acceleration structure.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../buildAccelerationStructure-09/">buildAccelerationStructure</a>(
-    <a href="../bottom_level_acceleration_structure_type/">bottom_level_acceleration_structure_type</a>& blas,
-    <a href="../../../SharedPtr/">SharedPtr&lt;buffer_type const&gt;</a> const& scratchBuffer,
-    <a href="../buffer_type/">buffer_type</a> const& buffer,
-    <a href="../../../Math/UInt64/">UInt64</a> offset = 0) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../buildAccelerationStructure-09/"><span class="nf">buildAccelerationStructure</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../bottom_level_acceleration_structure_type/"><span class="n">bottom_level_acceleration_structure_type</span></a><span class="o">&amp;</span><span class="w"> </span><span class="n">blas</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">buffer_type</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">scratchBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../buffer_type/"><span class="n">buffer_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../buildAccelerationStructure-09/"><em>» more...</em></a></span></p>
 <p>Builds a top-level acceleration structure.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../buildAccelerationStructure-0d/">buildAccelerationStructure</a>(
-    <a href="../top_level_acceleration_structure_type/">top_level_acceleration_structure_type</a>& tlas,
-    <a href="../../../SharedPtr/">SharedPtr&lt;buffer_type const&gt;</a> const& scratchBuffer,
-    <a href="../buffer_type/">buffer_type</a> const& buffer,
-    <a href="../../../Math/UInt64/">UInt64</a> offset = 0) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../buildAccelerationStructure-0d/"><span class="nf">buildAccelerationStructure</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../top_level_acceleration_structure_type/"><span class="n">top_level_acceleration_structure_type</span></a><span class="o">&amp;</span><span class="w"> </span><span class="n">tlas</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">buffer_type</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">scratchBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../buffer_type/"><span class="n">buffer_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../buildAccelerationStructure-0d/"><em>» more...</em></a></span></p>
 <h2 id="exceptions">Exceptions<a class="headerlink" href="#exceptions" title="Permanent link">&para;</a></h2>
@@ -16523,7 +16519,8 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>IAccelerationStructure::build</p>
+<p><a href="../../IAccelerationStructure/build/"><code>IAccelerationStructure::build</code></a></p>
+<p><a href="../../IAccelerationStructure/build/"><code>IAccelerationStructure::build</code></a></p>
 
 
 

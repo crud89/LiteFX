@@ -24477,9 +24477,9 @@
 <h1 id="litefxrenderingbackendsdirectx12pushconstantslayout"><code>LiteFX::Rendering::Backends::DirectX12PushConstantsLayout</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12pushconstantslayout" title="Permanent link">&para;</a></h1>
 <p>Implements the DirectX 12 <a href="../../PushConstantsLayout-06/"><code>PushConstantsLayout</code></a>.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L928">litefx/backends/dx12.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">class [[dllimport, dllexport]] DirectX12PushConstantsLayout final
-    : public <a href="../../PushConstantsLayout-06/">PushConstantsLayout&lt;DirectX12PushConstantsRange&gt;</a></code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L928">litefx/backends/dx12.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="nc">DirectX12PushConstantsLayout</span><span class="w"> </span><span class="k">final</span><span class="w">
+</span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><a href="../../PushConstantsLayout-06/"><span class="n">PushConstantsLayout</span><span class="o">&lt;</span><span class="n">DirectX12PushConstantsRange</span><span class="o">&gt;</span></a></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>In DirectX 12, push constants map to root constants. Those are 32 bit values that are directly stored on the root signature. Thus, push constants can bloat your root signature, since all the required memory is directly reserved on it. The way they are implemented is, that each range gets directly written in 4 byte chunks into the command buffer. Thus, overlapping is not directly supported (as opposed to Vulkan). If you have overlapping push constants ranges, the overlap will be duplicated in the root signature.</p>
@@ -24533,8 +24533,8 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>DirectX12PushConstantsRange</p>
-<p>DirectX12PipelinePushConstantsLayoutBuilder</p>
+<p><a href="../DirectX12PushConstantsRange/"><code>DirectX12PushConstantsRange</code></a></p>
+<p><a href="../DirectX12PushConstantsLayoutBuilder/"><code>DirectX12PushConstantsLayoutBuilder</code></a></p>
 
 
 

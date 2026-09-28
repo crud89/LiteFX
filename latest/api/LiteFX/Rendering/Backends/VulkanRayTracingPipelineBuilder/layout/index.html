@@ -24652,12 +24652,11 @@
 <h1 id="litefxrenderingbackendsvulkanraytracingpipelinebuilderlayout"><code>LiteFX::Rendering::Backends::VulkanRayTracingPipelineBuilder::layout</code><a class="headerlink" href="#litefxrenderingbackendsvulkanraytracingpipelinebuilderlayout" title="Permanent link">&para;</a></h1>
 <p>Uses the provided pipeline layout to initialize the ray-tracing pipeline. Can be invoked only once.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_builders.hpp#L1659">litefx/rendering_builders.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TSelf&gt;
-constexpr TSelf&& layout(this 
-    TSelf&& self,
-    <a href="../../../../SharedPtr/">SharedPtr&lt;pipeline_layout_type&gt;</a> layout);
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_builders.hpp#L1659">litefx/rendering_builders.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TSelf</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">constexpr</span><span class="w"> </span><span class="n">TSelf</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">layout</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">pipeline_layout_type</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">layout</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">

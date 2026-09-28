@@ -8517,58 +8517,50 @@
 <h1 id="litefxmathvectorvector"><code>LiteFX::Math::Vector::Vector</code><a class="headerlink" href="#litefxmathvectorvector" title="Permanent link">&para;</a></h1>
 <p>Constructors</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Math/include/litefx/vector.hpp#L36">litefx/vector.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Math/include/litefx/vector.hpp#L36">litefx/vector.hpp</a>&gt;</code></p>
 <p>Initializes an empty vector.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-068/">Vector</a>() noexcept = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-068/"><span class="n">Vector</span></a><span class="p">(</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-068/"><em>» more...</em></a></span></p>
 <p>Initializes a vector with the values provided by another vector.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-0ff/">Vector</a>(<a href="../">Vector</a> const& _other) = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-0ff/"><span class="n">Vector</span></a><span class="p">(</span><a href="../"><span class="n">Vector</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">_other</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-0ff/"><em>» more...</em></a></span></p>
 <p>Initializes a vector by taking over another vector.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-0f4/">Vector</a>(<a href="../">Vector</a>&& _other) noexcept = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-0f4/"><span class="n">Vector</span></a><span class="p">(</span><a href="../"><span class="n">Vector</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">_other</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-0f4/"><em>» more...</em></a></span></p>
 <p>Initializes a vector where all elements take the value provided by <code>val.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-0e/">Vector</a>(T val) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-0e/"><span class="n">Vector</span></a><span class="p">(</span><span class="n">T</span><span class="w"> </span><span class="n">val</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-0e/"><em>» more...</em></a></span></p>
 <p>Initializes the vector from an arbitrary input range.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr explicit <a href="../2constructor-06a/">Vector</a>(auto&& input) noexcept
-requires std::is_nothrow_convertible_v&lt;std::ranges::range_value_t&lt;decltype(input)&gt;, T&gt;;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><span class="k">explicit</span><span class="w"> </span><a href="../2constructor-06a/"><span class="n">Vector</span></a><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">input</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">is_nothrow_convertible_v</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">ranges</span><span class="o">:</span><span class="o">:</span><span class="n">range_value_t</span><span class="o">&lt;</span><span class="k">decltype</span><span class="p">(</span><span class="n">input</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-06a/"><em>» more...</em></a></span></p>
 <p>Initializes a 2D vector using the values provided by <code>x</code> and <code>y.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-07/">Vector</a>(
-    T x,
-    T y) noexcept
-requires (DIM == 2);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-07/"><span class="n">Vector</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><span class="n">T</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">T</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="p">(</span><span class="n">DIM</span><span class="w"> </span><span class="o">=</span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-07/"><em>» more...</em></a></span></p>
 <p>Initializes a 3D vector using the values provided by <code>x,</code> <code>y</code> and <code>z.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-042/">Vector</a>(
-    T x,
-    T y,
-    T z) noexcept
-requires (DIM == 3);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-042/"><span class="n">Vector</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><span class="n">T</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">T</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">T</span><span class="w"> </span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="p">(</span><span class="n">DIM</span><span class="w"> </span><span class="o">=</span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-042/"><em>» more...</em></a></span></p>
 <p>Initializes a 4D vector using the values provided by <code>x,</code> <code>y,</code> <code>z</code> and <code>w.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-04d/">Vector</a>(
-    T x,
-    T y,
-    T z,
-    T w) noexcept
-requires (DIM == 4);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-04d/"><span class="n">Vector</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><span class="n">T</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">T</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">T</span><span class="w"> </span><span class="n">z</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">T</span><span class="w"> </span><span class="n">w</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="p">(</span><span class="n">DIM</span><span class="w"> </span><span class="o">=</span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-04d/"><em>» more...</em></a></span></p>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>

@@ -25907,20 +25907,19 @@
 <h1 id="litefxrenderingbackendsdirectx12graphicsfactorycreatesampler"><code>LiteFX::Rendering::Backends::DirectX12GraphicsFactory::createSampler</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12graphicsfactorycreatesampler" title="Permanent link">&para;</a></h1>
 <p>Creates a texture sampler.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L2323">litefx/backends/dx12.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] virtual <a href="../../../../SharedPtr/">SharedPtr&lt;IDirectX12Sampler&gt;</a> createSampler(
-    <a href="../../../../String/">String</a> const& name,
-    <a href="../../../FilterMode/">FilterMode</a> magFilter = FilterMode::Nearest,
-    <a href="../../../FilterMode/">FilterMode</a> minFilter = FilterMode::Nearest,
-    <a href="../../../BorderMode/">BorderMode</a> borderU = BorderMode::Repeat,
-    <a href="../../../BorderMode/">BorderMode</a> borderV = BorderMode::Repeat,
-    <a href="../../../BorderMode/">BorderMode</a> borderW = BorderMode::Repeat,
-    <a href="../../../MipMapMode/">MipMapMode</a> mipMapMode = MipMapMode::Nearest,
-    <a href="../../../../Math/Float/">Float</a> mipMapBias = 0.f,
-    <a href="../../../../Math/Float/">Float</a> maxLod = std::numeric_limits&lt;Float&gt;::max(),
-    <a href="../../../../Math/Float/">Float</a> minLod = 0.f,
-    <a href="../../../../Math/Float/">Float</a> anisotropy = 0.f) const override;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L2323">litefx/backends/dx12.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IDirectX12Sampler</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">createSampler</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../../String/"><span class="n">String</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../FilterMode/"><span class="n">FilterMode</span></a><span class="w"> </span><span class="n">magFilter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FilterMode</span><span class="o">:</span><span class="o">:</span><span class="n">Nearest</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../FilterMode/"><span class="n">FilterMode</span></a><span class="w"> </span><span class="n">minFilter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FilterMode</span><span class="o">:</span><span class="o">:</span><span class="n">Nearest</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../BorderMode/"><span class="n">BorderMode</span></a><span class="w"> </span><span class="n">borderU</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BorderMode</span><span class="o">:</span><span class="o">:</span><span class="n">Repeat</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../BorderMode/"><span class="n">BorderMode</span></a><span class="w"> </span><span class="n">borderV</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BorderMode</span><span class="o">:</span><span class="o">:</span><span class="n">Repeat</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../BorderMode/"><span class="n">BorderMode</span></a><span class="w"> </span><span class="n">borderW</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BorderMode</span><span class="o">:</span><span class="o">:</span><span class="n">Repeat</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../MipMapMode/"><span class="n">MipMapMode</span></a><span class="w"> </span><span class="n">mipMapMode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MipMapMode</span><span class="o">:</span><span class="o">:</span><span class="n">Nearest</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/Float/"><span class="n">Float</span></a><span class="w"> </span><span class="n">mipMapBias</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.f</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/Float/"><span class="n">Float</span></a><span class="w"> </span><span class="n">maxLod</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">numeric_limits</span><span class="o">&lt;</span><span class="n">Float</span><span class="o">&gt;</span><span class="o">:</span><span class="o">:</span><span class="n">max</span><span class="p">(</span><span class="p">)</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/Float/"><span class="n">Float</span></a><span class="w"> </span><span class="n">minLod</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.f</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/Float/"><span class="n">Float</span></a><span class="w"> </span><span class="n">anisotropy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.f</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="p">;</span></code></pre></div>
 
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p>The instance of the sampler.</p>
@@ -25943,7 +25942,7 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>createSamplers</p>
+<p><a href="../../../GraphicsFactory-06/createSamplers-0d/"><code>createSamplers</code></a></p>
 
 
 

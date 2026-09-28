@@ -28093,12 +28093,11 @@
 <h1 id="litefxrenderingbackendsdirectx12commandbuffercopyaccelerationstructure"><code>LiteFX::Rendering::Backends::DirectX12CommandBuffer::copyAccelerationStructure</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12commandbuffercopyaccelerationstructure" title="Permanent link">&para;</a></h1>
 <p>Copies the acceleration structure <code>from</code> into the acceleration structure <code>to.</code></p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L1469">litefx/backends/dx12.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] virtual void copyAccelerationStructure(
-    <a href="../../DirectX12TopLevelAccelerationStructure/">DirectX12TopLevelAccelerationStructure</a> const& from,
-    <a href="../../DirectX12TopLevelAccelerationStructure/">DirectX12TopLevelAccelerationStructure</a> const& to,
-    bool compress = false) const noexcept override;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L1469">litefx/backends/dx12.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">copyAccelerationStructure</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../DirectX12TopLevelAccelerationStructure/"><span class="n">DirectX12TopLevelAccelerationStructure</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">from</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../DirectX12TopLevelAccelerationStructure/"><span class="n">DirectX12TopLevelAccelerationStructure</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">to</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">compress</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">override</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Prefer calling <a href="../../../ITopLevelAccelerationStructure/copy/"><code>ITopLevelAccelerationStructure::copy</code></a> over directly issuing copy commands on a command buffer, as this will make sure that the destination buffer will be properly allocated and contains enough memory to store the copy. Only issue copies on the command buffer directly, if you want to retain the destination buffer and know for certain, that it contains a sufficient amount of memory.</p>

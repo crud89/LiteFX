@@ -16871,14 +16871,13 @@
 <h1 id="litefxrenderingicommandbufferbind"><code>LiteFX::Rendering::ICommandBuffer::bind</code><a class="headerlink" href="#litefxrenderingicommandbufferbind" title="Permanent link">&para;</a></h1>
 <p>Binds an arbitrary input range of descriptor sets to the provided pipeline.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L6653">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TSelf&gt;
-void bind(this 
-    TSelf const& self,
-    auto&& descriptorSets,
-    TSelf::pipeline_type const& pipeline)
-requires std::derived_from&lt;std::remove_cv_t&lt;std::remove_pointer_t&lt;std::iter_value_t&lt;std::ranges::iterator_t&lt;std::remove_cv_t&lt;std::remove_reference_t&lt;decltype(descriptorSets)&gt;&gt;&gt;&gt;&gt;&gt;, IDescriptorSet&gt;;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L6652">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TSelf</span><span class="o">&gt;</span><span class="w">
+</span><span class="kt">void</span><span class="w"> </span><span class="n">bind</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">auto</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">descriptorSets</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="o">:</span><span class="o">:</span><span class="n">pipeline_type</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">pipeline</span><span class="p">)</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">remove_cv_t</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">remove_pointer_t</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">iter_value_t</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">ranges</span><span class="o">:</span><span class="o">:</span><span class="n">iterator_t</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">remove_cv_t</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">remove_reference_t</span><span class="o">&lt;</span><span class="k">decltype</span><span class="p">(</span><span class="n">descriptorSets</span><span class="p">)</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">IDescriptorSet</span><span class="o">&gt;</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Note that if an element of <code>descriptorSets</code> is <code>nullptr</code>, it will be ignored.</p>

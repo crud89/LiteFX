@@ -16249,24 +16249,22 @@
 <h1 id="litefxrenderingshaderprogrambuildermakeshadermodule"><code>LiteFX::Rendering::ShaderProgramBuilder::makeShaderModule</code><a class="headerlink" href="#litefxrenderingshaderprogrambuildermakeshadermodule" title="Permanent link">&para;</a></h1>
 <p><code>makeShaderModule</code> overloads</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_builders.hpp#L358">litefx/rendering_builders.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_builders.hpp#L358">litefx/rendering_builders.hpp</a>&gt;</code></p>
 <p>Called to create a new shader module in the program that is stored in a file.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr virtual <a href="../../../UniquePtr/">UniquePtr&lt;shader_module_type&gt;</a> <a href="../makeShaderModule-03/">makeShaderModule</a>(
-    <a href="../../ShaderStage/">ShaderStage</a> type,
-    <a href="../../../String/">String</a> const& fileName,
-    <a href="../../../String/">String</a> const& entryPoint,
-    <a href="../../../Optional/">Optional&lt;DescriptorBindingPoint&gt;</a> const& shaderLocalDescriptor) = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../../UniquePtr/"><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">shader_module_type</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../makeShaderModule-03/"><span class="n">makeShaderModule</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../ShaderStage/"><span class="n">ShaderStage</span></a><span class="w"> </span><span class="n">type</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../String/"><span class="n">String</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">fileName</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../String/"><span class="n">String</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">entryPoint</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Optional/"><span class="n">Optional</span><span class="o">&lt;</span><span class="n">DescriptorBindingPoint</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">shaderLocalDescriptor</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../makeShaderModule-03/"><em>» more...</em></a></span></p>
 <p>Called to create a new shader module in the program that is loaded from a stream.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr virtual <a href="../../../UniquePtr/">UniquePtr&lt;shader_module_type&gt;</a> <a href="../makeShaderModule-09/">makeShaderModule</a>(
-    <a href="../../ShaderStage/">ShaderStage</a> type,
-    std::istream& stream,
-    <a href="../../../String/">String</a> const& name,
-    <a href="../../../String/">String</a> const& entryPoint,
-    <a href="../../../Optional/">Optional&lt;DescriptorBindingPoint&gt;</a> const& shaderLocalDescriptor) = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../../UniquePtr/"><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">shader_module_type</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../makeShaderModule-09/"><span class="n">makeShaderModule</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../ShaderStage/"><span class="n">ShaderStage</span></a><span class="w"> </span><span class="n">type</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">istream</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stream</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../String/"><span class="n">String</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../String/"><span class="n">String</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">entryPoint</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Optional/"><span class="n">Optional</span><span class="o">&lt;</span><span class="n">DescriptorBindingPoint</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">shaderLocalDescriptor</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../makeShaderModule-09/"><em>» more...</em></a></span></p>
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>

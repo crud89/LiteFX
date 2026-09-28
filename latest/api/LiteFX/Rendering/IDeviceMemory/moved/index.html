@@ -15508,16 +15508,16 @@
 <h1 id="litefxrenderingidevicememorymoved"><code>LiteFX::Rendering::IDeviceMemory::moved</code><a class="headerlink" href="#litefxrenderingidevicememorymoved" title="Permanent link">&para;</a></h1>
 <p>An event that gets invoked, after the resource has been moved to a different location, but before the old resource gets destroyed.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L3868">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">mutable
-<a href="../../../Event/">Event&lt;EventArgs&gt;</a> moved;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L3867">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">mutable</span><span class="w">
+</span><a href="../../../Event/"><span class="n">Event</span><span class="o">&lt;</span><span class="n">EventArgs</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">moved</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>This event gets invoked during defragmentation to inform any subscribers about a relocation. You might want to subscribe to this event is to update any descriptor bindings, as they become invalid after the previous resource gets removed. Additionally, you may want to insert barriers to transition the resource back into the desired layout.</p>
 <p>Note that this event is invoked on the thread that executes the defragmentation process, which means you potentially might want to synchronize the handler with other resource accesses.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>moving</p>
-<p>IGraphicsFactory::defragment</p>
+<p><a href="../moving/"><code>moving</code></a></p>
+<p><a href="../../IGraphicsFactory/beginDefragmentation/"><code>IGraphicsFactory::beginDefragmentation</code></a></p>
 
 
 

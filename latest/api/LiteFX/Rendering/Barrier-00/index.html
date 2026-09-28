@@ -15086,14 +15086,14 @@
 <h1 id="litefxrenderingbarrier"><code>LiteFX::Rendering::Barrier</code><a class="headerlink" href="#litefxrenderingbarrier" title="Permanent link">&para;</a></h1>
 <p>A barrier used for GPU resource synchronization.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering.hpp#L18">litefx/rendering.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename TBuffer,
-    typename TImage&gt;
-requires std::derived_from&lt;TBuffer, IBuffer&gt; &amp;&amp;
-        std::derived_from&lt;TImage, IImage&gt;
-class Barrier
-    : public <a href="../IBarrier/">IBarrier</a></code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering.hpp#L18">litefx/rendering.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TImage</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">TBuffer</span><span class="p">,</span><span class="w"> </span><span class="n">IBuffer</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">TImage</span><span class="p">,</span><span class="w"> </span><span class="n">IImage</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">class</span><span class="w"> </span><span class="nc">Barrier</span><span class="w">
+</span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><a href="../IBarrier/"><span class="n">IBarrier</span></a></code></pre></div>
 
 <h2 id="base-classes">Base Classes<a class="headerlink" href="#base-classes" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
@@ -15151,7 +15151,7 @@ class Barrier
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>IBarrier</p>
+<p><a href="../IBarrier/"><code>IBarrier</code></a></p>
 
 
 

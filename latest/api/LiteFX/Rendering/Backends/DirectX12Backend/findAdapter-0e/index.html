@@ -25707,9 +25707,8 @@
 <h1 id="litefxrenderingbackendsdirectx12backendfindadapter"><code>LiteFX::Rendering::Backends::DirectX12Backend::findAdapter</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12backendfindadapter" title="Permanent link">&para;</a></h1>
 <p>Finds an adapter using its unique ID.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L2605">litefx/backends/dx12.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] virtual <a href="../../DirectX12GraphicsAdapter/">DirectX12GraphicsAdapter</a> const* findAdapter(<a href="../../../../Optional/">Optional&lt;UInt64&gt;</a> const& adapterId = std::nullopt) const override;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L2607">litefx/backends/dx12.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../DirectX12GraphicsAdapter/"><span class="n">DirectX12GraphicsAdapter</span></a><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="w"> </span><span class="n">findAdapter</span><span class="p">(</span><a href="../../../../Optional/"><span class="n">Optional</span><span class="o">&lt;</span><span class="n">UInt64</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">adapterId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">nullopt</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Note that the adapter ID is optional, which allows the back-end to return a default adapter instance. Which adapter is used as <em>default</em> adapter, depends on the actual back-end implementation. The interface does not make any constraints on the default adapter to choose. A naive implementation might simply return the first available adapter.</p>
@@ -25724,7 +25723,7 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>IGraphicsAdapter</p>
+<p><a href="../../../IGraphicsAdapter/"><code>IGraphicsAdapter</code></a></p>
 
 
 

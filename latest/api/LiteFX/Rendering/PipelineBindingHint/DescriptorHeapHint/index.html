@@ -15655,8 +15655,8 @@
 <h1 id="litefxrenderingpipelinebindinghintdescriptorheaphint"><code>LiteFX::Rendering::PipelineBindingHint::DescriptorHeapHint</code><a class="headerlink" href="#litefxrenderingpipelinebindinghintdescriptorheaphint" title="Permanent link">&para;</a></h1>
 <p>Defines a hint that is used to initialize a dynamic descriptor heap.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L5856">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">struct DescriptorHeapHint;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L5855">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">struct</span><span class="w"> </span><span class="nc">DescriptorHeapHint</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>This hint is special, as it must not be associated with an existing binding. Instead, dynamic descriptor heaps use a proxy descriptor set to bind resources to the global descriptor heaps, that can later be directly indexed by the shader. In the DirectX 12 backend, this hint will cause a new descriptor set to be created, that is not part of the pipeline state. In Vulkan, this functionality is emulated using the <code>VK_EXT_mutable_descriptor_type</code> extension and binds to an existing descriptor set. DXC emits this descriptor set automatically, if direct heap indexing is used from a shader.</p>
@@ -15670,9 +15670,9 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>GraphicsDeviceFeatures::DynamicDescriptors</p>
-<p>DescriptorType::ResourceDescriptorHeap</p>
-<p>DescriptorType::SamplerDescriptorHeap</p>
+<p><a href="../../GraphicsDeviceFeatures/DynamicDescriptors/"><code>GraphicsDeviceFeatures::DynamicDescriptors</code></a></p>
+<p><a href="../../DescriptorType/"><code>DescriptorType::ResourceDescriptorHeap</code></a></p>
+<p><a href="../../DescriptorType/"><code>DescriptorType::SamplerDescriptorHeap</code></a></p>
 
 
 

@@ -15204,18 +15204,18 @@
 <h1 id="litefxrenderingdescriptorset"><code>LiteFX::Rendering::DescriptorSet</code><a class="headerlink" href="#litefxrenderingdescriptorset" title="Permanent link">&para;</a></h1>
 <p>Defines a set of descriptors.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering.hpp#L114">litefx/rendering.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename TBuffer,
-    typename TImage,
-    typename TSampler,
-    typename TAccelerationStructure&gt;
-requires std::derived_from&lt;TBuffer, IBuffer&gt; &amp;&amp;
-        std::derived_from&lt;TSampler, ISampler&gt; &amp;&amp;
-        std::derived_from&lt;TImage, IImage&gt; &amp;&amp;
-        std::derived_from&lt;TAccelerationStructure, IAccelerationStructure&gt;
-class DescriptorSet
-    : public <a href="../IDescriptorSet/">IDescriptorSet</a></code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering.hpp#L114">litefx/rendering.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TImage</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TSampler</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TAccelerationStructure</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">TBuffer</span><span class="p">,</span><span class="w"> </span><span class="n">IBuffer</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">TSampler</span><span class="p">,</span><span class="w"> </span><span class="n">ISampler</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">TImage</span><span class="p">,</span><span class="w"> </span><span class="n">IImage</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">TAccelerationStructure</span><span class="p">,</span><span class="w"> </span><span class="n">IAccelerationStructure</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">class</span><span class="w"> </span><span class="nc">DescriptorSet</span><span class="w">
+</span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><a href="../IDescriptorSet/"><span class="n">IDescriptorSet</span></a></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Descriptors can be grouped into multiple descriptor sets. It is generally a good practice to group descriptors based on the frequency of the updates they receive. For example, it typically makes sense to store the camera buffer in a descriptor set, since it only needs to be updated once per frame for each camera, whilst the object or material data should be stored in separate descriptor sets, that are possibly updated before each draw call. However, other scenarios employing multiple descriptor sets are also possible.</p>
@@ -15303,7 +15303,7 @@ class DescriptorSet
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>DescriptorSetLayout</p>
+<p><a href="../DescriptorSetLayout-03d/"><code>DescriptorSetLayout</code></a></p>
 
 
 

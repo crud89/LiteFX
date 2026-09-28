@@ -4421,11 +4421,11 @@
 <h1 id="litefxcovariant_forward_iterator"><code>LiteFX::covariant_forward_iterator</code><a class="headerlink" href="#litefxcovariant_forward_iterator" title="Permanent link">&para;</a></h1>
 <p>Evaluates, if an iterator of type <code>TIterator</code> iterates values that are covariant to <code>TValue.</code></p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Core/include/litefx/containers.hpp#L198">litefx/containers.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename TIterator,
-    typename TValue&gt;
-concept covariant_forward_iterator = std::forward_iterator&lt;TIterator&gt; &amp;&amp; is_covariant&lt;decltype(*std::declval&lt;TIterator&gt;()), TValue&gt;;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Core/include/litefx/containers.hpp#L198">litefx/containers.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TIterator</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TValue</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">concept</span><span class="w"> </span><span class="nc">covariant_forward_iterator</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">forward_iterator</span><span class="o">&lt;</span><span class="n">TIterator</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">is_covariant</span><span class="o">&lt;</span><span class="k">decltype</span><span class="p">(</span><span class="o">*</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">declval</span><span class="o">&lt;</span><span class="n">TIterator</span><span class="o">&gt;</span><span class="p">(</span><span class="p">)</span><span class="p">)</span><span class="p">,</span><span class="w"> </span><span class="n">TValue</span><span class="o">&gt;</span><span class="p">;</span></code></pre></div>
 
 <h2 id="template-parameters">Template Parameters<a class="headerlink" href="#template-parameters" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">

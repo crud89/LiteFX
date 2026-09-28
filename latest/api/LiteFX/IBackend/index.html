@@ -4711,8 +4711,8 @@
 <h1 id="litefxibackend"><code>LiteFX::IBackend</code><a class="headerlink" href="#litefxibackend" title="Permanent link">&para;</a></h1>
 <p>The base class for an app backend.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/AppModel/include/litefx/app.hpp#L16">litefx/app.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">class [[dllexport, dllimport]] IBackend;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/AppModel/include/litefx/app.hpp#L16">litefx/app.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="p">[[</span><span class="na">dllexport</span><span class="p">,</span><span class="w"> </span><span class="na">dllimport</span><span class="p">]]</span><span class="w"> </span><span class="nc">IBackend</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>An <a href="../App/"><code>App</code></a> can have one or more backends configured per <a href="../BackendType/"><code>BackendType</code></a>. However, only one backend of a specific backend type can be active at a time. Backends can be configured with a startup and shutdown callback. Starting a backend will automatically shutdown the active backend of the same type, if any. If the app exits, all backends are shutdown accordingly, allowing to properly cleanup any resources.</p>
@@ -4756,7 +4756,7 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>App</p>
+<p><a href="../App/"><code>App</code></a></p>
 
 
 

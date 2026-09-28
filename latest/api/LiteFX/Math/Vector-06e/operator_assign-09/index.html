@@ -8377,21 +8377,18 @@
 <h1 id="litefxmathvectoroperator"><code>LiteFX::Math::Vector::operator=</code><a class="headerlink" href="#litefxmathvectoroperator" title="Permanent link">&para;</a></h1>
 <p>Assignment operators</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Math/include/litefx/vector.hpp#L52">litefx/vector.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Math/include/litefx/vector.hpp#L52">litefx/vector.hpp</a>&gt;</code></p>
 <p>Copys the elements of another vector into the current vector.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../">Vector</a>& <a href="../operator_assign-0c/">operator=</a>(<a href="../">Vector</a> const& _other) = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../"><span class="n">Vector</span></a><span class="o">&amp;</span><span class="w"> </span><a href="../operator_assign-0c/"><span class="k">operator</span><span class="o">=</span></a><span class="p">(</span><a href="../"><span class="n">Vector</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">_other</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../operator_assign-0c/"><em>» more...</em></a></span></p>
 <p>Moves the elements of the other vector to the current vector.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../">Vector</a>& <a href="../operator_assign-0d/">operator=</a>(<a href="../">Vector</a>&& _other) noexcept = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../"><span class="n">Vector</span></a><span class="o">&amp;</span><span class="w"> </span><a href="../operator_assign-0d/"><span class="k">operator</span><span class="o">=</span></a><span class="p">(</span><a href="../"><span class="n">Vector</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">_other</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../operator_assign-0d/"><em>» more...</em></a></span></p>
 <p>Copies the values from an arbitrary input range into the current vector instance.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr auto& <a href="../operator_assign-08/">operator=</a>(auto&& input) noexcept
-requires std::is_nothrow_convertible_v&lt;std::ranges::range_value_t&lt;decltype(input)&gt;, T&gt;;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><a href="../operator_assign-08/"><span class="k">operator</span><span class="o">=</span></a><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">input</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">is_nothrow_convertible_v</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">ranges</span><span class="o">:</span><span class="o">:</span><span class="n">range_value_t</span><span class="o">&lt;</span><span class="k">decltype</span><span class="p">(</span><span class="n">input</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../operator_assign-08/"><em>» more...</em></a></span></p>
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>

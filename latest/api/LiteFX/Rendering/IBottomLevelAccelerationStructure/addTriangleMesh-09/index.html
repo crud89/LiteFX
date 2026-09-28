@@ -15607,19 +15607,17 @@
 <h1 id="litefxrenderingibottomlevelaccelerationstructureaddtrianglemesh"><code>LiteFX::Rendering::IBottomLevelAccelerationStructure::addTriangleMesh</code><a class="headerlink" href="#litefxrenderingibottomlevelaccelerationstructureaddtrianglemesh" title="Permanent link">&para;</a></h1>
 <p>Adds a triangle mesh to the BLAS.</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L4402">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L4401">litefx/rendering_api.hpp</a>&gt;</code></p>
 <p>Adds a triangle mesh to the BLAS.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] virtual void <a href="../addTriangleMesh-0f/">addTriangleMesh</a>(<a href="../TriangleMesh/">TriangleMesh</a> const& mesh) = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../addTriangleMesh-0f/"><span class="n">addTriangleMesh</span></a><span class="p">(</span><a href="../TriangleMesh/"><span class="n">TriangleMesh</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">mesh</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../addTriangleMesh-0f/"><em>» more...</em></a></span></p>
 <p>Adds a triangle mesh to the BLAS.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../addTriangleMesh-07/">addTriangleMesh</a>(
-    <a href="../../../SharedPtr/">SharedPtr&lt;IVertexBuffer const&gt;</a> const& vertexBuffer,
-    <a href="../../../SharedPtr/">SharedPtr&lt;IIndexBuffer const&gt;</a> const& indexBuffer = nullptr,
-    <a href="../../../SharedPtr/">SharedPtr&lt;IBuffer const&gt;</a> const& transformBuffer = nullptr,
-    <a href="../../GeometryFlags/">GeometryFlags</a> flags = GeometryFlags::None);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../addTriangleMesh-07/"><span class="n">addTriangleMesh</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IVertexBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">vertexBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IIndexBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">indexBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">transformBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../GeometryFlags/"><span class="n">GeometryFlags</span></a><span class="w"> </span><span class="n">flags</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GeometryFlags</span><span class="o">:</span><span class="o">:</span><span class="n">None</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../addTriangleMesh-07/"><em>» more...</em></a></span></p>
 <h2 id="exceptions">Exceptions<a class="headerlink" href="#exceptions" title="Permanent link">&para;</a></h2>

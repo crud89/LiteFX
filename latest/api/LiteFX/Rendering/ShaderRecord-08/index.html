@@ -15072,12 +15072,12 @@
 <h1 id="litefxrenderingshaderrecordlttlocaldatagt"><code>LiteFX::Rendering::ShaderRecord&amp;lt;TLocalData&amp;gt;</code><a class="headerlink" href="#litefxrenderingshaderrecordlttlocaldatagt" title="Permanent link">&para;</a></h1>
 <p>Denotes a shader record containing shader-local data.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L5476">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TLocalData&gt;
-requires (std::alignment_of_v&lt;TLocalData&gt; == SHADER_RECORD_LOCAL_DATA_ALIGNMENT) &amp;&amp;
-        std::is_standard_layout_v&lt;TLocalData&gt;
-struct <a href="../ShaderRecord-0d/">ShaderRecord</a>&lt;TLocalData&gt; final
-    : <a href="../IShaderRecord/">IShaderRecord</a></code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L5475">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TLocalData</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">alignment_of_v</span><span class="o">&lt;</span><span class="n">TLocalData</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="o">=</span><span class="w"> </span><span class="n">SHADER_RECORD_LOCAL_DATA_ALIGNMENT</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">is_standard_layout_v</span><span class="o">&lt;</span><span class="n">TLocalData</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">struct</span><span class="w"> </span><a href="../ShaderRecord-0d/"><span class="nc">ShaderRecord</span></a><span class="o">&lt;</span><span class="n">TLocalData</span><span class="o">&gt;</span><span class="w"> </span><span class="k">final</span><span class="w">
+</span><span class="w">    </span><span class="o">:</span><span class="w"> </span><a href="../IShaderRecord/"><span class="n">IShaderRecord</span></a></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>The <code>TLocalData</code> defines the data that is passed to a shader's local resource bindings upon invocation. Two types of elements are allowed: buffer references and constants. Buffer references can be obtained by calling <a href="../IDeviceMemory/virtualAddress/"><code>IBuffer::virtualAddress</code></a> and are always 8 bytes long. Constants do not strictly need to follow 8 byte alignment rules, but rather can also be smaller, in which case they should be defined as an aligned array, aligned to 8 bytes within the shader-local data.</p>
@@ -15128,7 +15128,7 @@ struct <a href="../ShaderRecord-0d/">ShaderRecord</a>&lt;TLocalData&gt; final
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>https://github.com/crud89/LiteFX/wiki/Raytracing#local-resource-bindings</p>
+<p><a href="https://github.com/crud89/LiteFX/wiki/Raytracing#local-resource-bindings">https://github.com/crud89/LiteFX/wiki/Raytracing#local-resource-bindings</a></p>
 
 
 

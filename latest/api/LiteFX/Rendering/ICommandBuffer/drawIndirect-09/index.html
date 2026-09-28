@@ -16647,14 +16647,13 @@
 <h1 id="litefxrenderingicommandbufferdrawindirect"><code>LiteFX::Rendering::ICommandBuffer::drawIndirect</code><a class="headerlink" href="#litefxrenderingicommandbufferdrawindirect" title="Permanent link">&para;</a></h1>
 <p>Executes a set of indirect non-indexed draw calls.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L6829">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void drawIndirect(
-    <a href="../../IBuffer/">IBuffer</a> const& batchBuffer,
-    <a href="../../IBuffer/">IBuffer</a> const& countBuffer,
-    <a href="../../../Math/UInt64/">UInt64</a> offset = 0,
-    <a href="../../../Math/UInt64/">UInt64</a> countOffset = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> maxBatches = std::numeric_limits&lt;UInt32&gt;::max()) const noexcept;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L6828">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">drawIndirect</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../IBuffer/"><span class="n">IBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">batchBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IBuffer/"><span class="n">IBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">countBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">countOffset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">maxBatches</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">numeric_limits</span><span class="o">&lt;</span><span class="n">UInt32</span><span class="o">&gt;</span><span class="o">:</span><span class="o">:</span><span class="n">max</span><span class="p">(</span><span class="p">)</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
@@ -16669,7 +16668,7 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>draw</p>
+<p><a href="../draw-01/"><code>draw</code></a></p>
 
 
 

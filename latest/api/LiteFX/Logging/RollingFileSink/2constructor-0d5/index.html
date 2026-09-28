@@ -5440,14 +5440,13 @@
 <h1 id="litefxloggingrollingfilesinkrollingfilesink"><code>LiteFX::Logging::RollingFileSink::RollingFileSink</code><a class="headerlink" href="#litefxloggingrollingfilesinkrollingfilesink" title="Permanent link">&para;</a></h1>
 <p>Creates a new rolling file sink instance.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Logging/include/litefx/logging.hpp#L93">litefx/logging.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllexport, dllimport]] RollingFileSink(
-    <a href="../../../String/">String</a> const& fileName,
-    <a href="../../LogLevel/">LogLevel</a> level = LogLevel::Info,
-    <a href="../../../String/">String</a> const& pattern = "%+",
-    bool truncate = false,
-    int maxFiles = 0);
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Logging/include/litefx/logging.hpp#L93">litefx/logging.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllexport</span><span class="p">,</span><span class="w"> </span><span class="na">dllimport</span><span class="p">]]</span><span class="w"> </span><span class="n">RollingFileSink</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../String/"><span class="n">String</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">fileName</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../LogLevel/"><span class="n">LogLevel</span></a><span class="w"> </span><span class="n">level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LogLevel</span><span class="o">:</span><span class="o">:</span><span class="n">Info</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../String/"><span class="n">String</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">pattern</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;</span><span class="s">%+</span><span class="s">&quot;</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">truncate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">maxFiles</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">

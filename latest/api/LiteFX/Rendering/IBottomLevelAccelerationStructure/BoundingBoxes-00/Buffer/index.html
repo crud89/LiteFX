@@ -15676,17 +15676,15 @@
 <h1 id="litefxrenderingibottomlevelaccelerationstructureboundingboxesbuffer"><code>LiteFX::Rendering::IBottomLevelAccelerationStructure::BoundingBoxes::Buffer</code><a class="headerlink" href="#litefxrenderingibottomlevelaccelerationstructureboundingboxesbuffer" title="Permanent link">&para;</a></h1>
 <p>A buffer containing the bounding box definitions.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L4376">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp"><a href="../../../../SharedPtr/">SharedPtr&lt;IBuffer const&gt;</a> Buffer;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L4375">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">Buffer</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Each element of the buffer must contain a bounding box at the start of the buffer, where a bounding box takes up 6 single-precision floating point values, with the first triplet describing the lower corner of the bounding box and the second triplet describing the upper corner of the bounding box, as shown in the following definition:</p>
-<pre><code class="language-cpp">
-struct alignas(16) AABB {
-    Float minimum[3];
-    Float maximum[3];
-}
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">struct</span><span class="w"> </span><span class="nc">alignas</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span><span class="w"> </span><span class="n">AABB</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">    </span><span class="n">Float</span><span class="w"> </span><span class="n">minimum</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="p">;</span><span class="w">
+</span><span class="w">    </span><span class="n">Float</span><span class="w"> </span><span class="n">maximum</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="p">;</span><span class="w">
+</span><span class="p">}</span></code></pre></div>
 <p>The rest of the bounding box elements memory can be filled with arbitrary data, that can be read by shaders.</p>
 
 

@@ -16745,241 +16745,217 @@
 <h1 id="litefxrenderingcommandbuffertransfer"><code>LiteFX::Rendering::CommandBuffer::transfer</code><a class="headerlink" href="#litefxrenderingcommandbuffertransfer" title="Permanent link">&para;</a></h1>
 <p><code>transfer</code> overloads</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering.hpp#L624">litefx/rendering.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering.hpp#L624">litefx/rendering.hpp</a>&gt;</code></p>
 <p>Performs a buffer-to-buffer transfer from a temporary buffer into <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/transfer-01/">transfer</a>(
-    <a href="../../../Span/">Span&lt;void const const*&gt;</a> data,
-    size_t elementSize,
-    <a href="../../IBuffer/">IBuffer</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> targetElement = 0) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/transfer-01/"><span class="n">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Span/"><span class="n">Span</span><span class="o">&lt;</span><span class="kt">void</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">data</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">elementSize</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IBuffer/"><span class="n">IBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">targetElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/transfer-01/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-buffer transfer from a temporary buffer into <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../transfer-09a/">transfer</a>(
-    <a href="../../../Span/">Span&lt;void const const*&gt;</a> data,
-    size_t elementSize,
-    <a href="../buffer_type/">buffer_type</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> firstElement = 0) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../transfer-09a/"><span class="nf">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Span/"><span class="n">Span</span><span class="o">&lt;</span><span class="kt">void</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">data</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">elementSize</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../buffer_type/"><span class="n">buffer_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../transfer-09a/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-buffer transfer from a temporary buffer into <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/transfer-0c/">transfer</a>(
-    void const const* data,
-    size_t size,
-    <a href="../../IImage/">IImage</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> subresource = 0) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/transfer-0c/"><span class="n">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="w"> </span><span class="n">data</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IImage/"><span class="n">IImage</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">subresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/transfer-0c/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-buffer transfer from a temporary buffer into <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../transfer-0bc1/">transfer</a>(
-    void const const* data,
-    size_t size,
-    <a href="../image_type/">image_type</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> subresource = 0) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../transfer-0bc1/"><span class="nf">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="w"> </span><span class="n">data</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../image_type/"><span class="n">image_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">subresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../transfer-0bc1/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-buffer transfer from a temporary buffer into <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/transfer-06f/">transfer</a>(
-    <a href="../../../Span/">Span&lt;void const const*&gt;</a> data,
-    size_t elementSize,
-    <a href="../../IImage/">IImage</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> firstSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> elements = 1) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/transfer-06f/"><span class="n">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Span/"><span class="n">Span</span><span class="o">&lt;</span><span class="kt">void</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">data</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">elementSize</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IImage/"><span class="n">IImage</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">elements</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/transfer-06f/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-buffer transfer from a temporary buffer into <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../transfer-092/">transfer</a>(
-    <a href="../../../Span/">Span&lt;void const const*&gt;</a> data,
-    size_t elementSize,
-    <a href="../image_type/">image_type</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> firstSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> subresources = 1) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../transfer-092/"><span class="nf">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Span/"><span class="n">Span</span><span class="o">&lt;</span><span class="kt">void</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">data</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">elementSize</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../image_type/"><span class="n">image_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">subresources</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../transfer-092/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-buffer transfer from <code>source</code> to <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/transfer-0b/">transfer</a>(
-    <a href="../../IBuffer/">IBuffer</a> const& source,
-    <a href="../../IBuffer/">IBuffer</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> sourceElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> targetElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> elements = 1) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/transfer-0b/"><span class="n">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../IBuffer/"><span class="n">IBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IBuffer/"><span class="n">IBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">sourceElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">targetElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">elements</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/transfer-0b/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-image transfer from <code>source</code> to <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/transfer-06b/">transfer</a>(
-    <a href="../../IBuffer/">IBuffer</a> const& source,
-    <a href="../../IImage/">IImage</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> sourceElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> firstSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> elements = 1) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/transfer-06b/"><span class="n">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../IBuffer/"><span class="n">IBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IImage/"><span class="n">IImage</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">sourceElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">elements</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/transfer-06b/"><em>» more...</em></a></span></p>
 <p>Performs an image-to-buffer transfer from <code>source</code> to <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/transfer-00/">transfer</a>(
-    <a href="../../IImage/">IImage</a> const& source,
-    <a href="../../IBuffer/">IBuffer</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> firstSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> targetElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> subresources = 1) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/transfer-00/"><span class="n">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../IImage/"><span class="n">IImage</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IBuffer/"><span class="n">IBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">targetElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">subresources</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/transfer-00/"><em>» more...</em></a></span></p>
 <p>Performs an image-to-image transfer from <code>source</code> to <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/transfer-0d/">transfer</a>(
-    <a href="../../IImage/">IImage</a> const& source,
-    <a href="../../IImage/">IImage</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> sourceSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> targetSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> subresources = 1) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/transfer-0d/"><span class="n">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../IImage/"><span class="n">IImage</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IImage/"><span class="n">IImage</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">sourceSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">targetSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">subresources</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/transfer-0d/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-buffer transfer from <code>source</code> to <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../transfer-01/">transfer</a>(
-    <a href="../buffer_type/">buffer_type</a> const& source,
-    <a href="../buffer_type/">buffer_type</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> sourceElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> targetElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> elements = 1) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../transfer-01/"><span class="nf">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../buffer_type/"><span class="n">buffer_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../buffer_type/"><span class="n">buffer_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">sourceElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">targetElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">elements</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../transfer-01/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-image transfer from <code>source</code> to <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../transfer-0b9/">transfer</a>(
-    <a href="../buffer_type/">buffer_type</a> const& source,
-    <a href="../image_type/">image_type</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> sourceElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> firstSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> elements = 1) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../transfer-0b9/"><span class="nf">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../buffer_type/"><span class="n">buffer_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../image_type/"><span class="n">image_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">sourceElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">elements</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../transfer-0b9/"><em>» more...</em></a></span></p>
 <p>Performs an image-to-buffer transfer from <code>source</code> to <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../transfer-07c/">transfer</a>(
-    <a href="../image_type/">image_type</a> const& source,
-    <a href="../buffer_type/">buffer_type</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> firstSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> targetElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> subresources = 1) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../transfer-07c/"><span class="nf">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../image_type/"><span class="n">image_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../buffer_type/"><span class="n">buffer_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">targetElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">subresources</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../transfer-07c/"><em>» more...</em></a></span></p>
 <p>Performs an image-to-image transfer from <code>source</code> to <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../transfer-0bc4/">transfer</a>(
-    <a href="../image_type/">image_type</a> const& source,
-    <a href="../image_type/">image_type</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> sourceSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> targetSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> subresources = 1) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../transfer-0bc4/"><span class="nf">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../image_type/"><span class="n">image_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../image_type/"><span class="n">image_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">sourceSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">targetSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">subresources</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../transfer-0bc4/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-buffer transfer from <code>source</code> to <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/transfer-07/">transfer</a>(
-    <a href="../../../SharedPtr/">SharedPtr&lt;IBuffer const&gt;</a> const& source,
-    <a href="../../IBuffer/">IBuffer</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> sourceElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> targetElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> elements = 1) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/transfer-07/"><span class="n">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IBuffer/"><span class="n">IBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">sourceElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">targetElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">elements</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/transfer-07/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-image transfer from <code>source</code> to <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/transfer-08d/">transfer</a>(
-    <a href="../../../SharedPtr/">SharedPtr&lt;IBuffer const&gt;</a> const& source,
-    <a href="../../IImage/">IImage</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> sourceElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> firstSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> elements = 1) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/transfer-08d/"><span class="n">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IImage/"><span class="n">IImage</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">sourceElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">elements</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/transfer-08d/"><em>» more...</em></a></span></p>
 <p>Performs an image-to-buffer transfer from <code>source</code> to <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/transfer-09/">transfer</a>(
-    <a href="../../../SharedPtr/">SharedPtr&lt;IImage const&gt;</a> const& source,
-    <a href="../../IBuffer/">IBuffer</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> firstSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> targetElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> subresources = 1) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/transfer-09/"><span class="n">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IImage</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IBuffer/"><span class="n">IBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">targetElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">subresources</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/transfer-09/"><em>» more...</em></a></span></p>
 <p>Performs an image-to-image transfer from <code>source</code> to <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/transfer-02/">transfer</a>(
-    <a href="../../../SharedPtr/">SharedPtr&lt;IImage const&gt;</a> const& source,
-    <a href="../../IImage/">IImage</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> sourceSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> targetSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> subresources = 1) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/transfer-02/"><span class="n">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IImage</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IImage/"><span class="n">IImage</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">sourceSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">targetSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">subresources</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/transfer-02/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-buffer transfer from <code>source</code> to <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../transfer-00/">transfer</a>(
-    <a href="../../../SharedPtr/">SharedPtr&lt;buffer_type const&gt;</a> const& source,
-    <a href="../buffer_type/">buffer_type</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> sourceElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> targetElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> elements = 1) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../transfer-00/"><span class="nf">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">buffer_type</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../buffer_type/"><span class="n">buffer_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">sourceElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">targetElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">elements</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../transfer-00/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-image transfer from <code>source</code> to <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../transfer-08/">transfer</a>(
-    <a href="../../../SharedPtr/">SharedPtr&lt;buffer_type const&gt;</a> const& source,
-    <a href="../image_type/">image_type</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> sourceElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> firstSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> elements = 1) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../transfer-08/"><span class="nf">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">buffer_type</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../image_type/"><span class="n">image_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">sourceElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">elements</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../transfer-08/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-buffer transfer from <code>source</code> to <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../transfer-07f/">transfer</a>(
-    <a href="../../../SharedPtr/">SharedPtr&lt;image_type const&gt;</a> const& source,
-    <a href="../buffer_type/">buffer_type</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> firstSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> targetElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> subresources = 1) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../transfer-07f/"><span class="nf">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">image_type</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../buffer_type/"><span class="n">buffer_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">targetElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">subresources</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../transfer-07f/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-image transfer from <code>source</code> to <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../transfer-0e/">transfer</a>(
-    <a href="../../../SharedPtr/">SharedPtr&lt;image_type const&gt;</a> const& source,
-    <a href="../image_type/">image_type</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> sourceSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> targetSubresource = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> subresources = 1) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../transfer-0e/"><span class="nf">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">image_type</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../image_type/"><span class="n">image_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">sourceSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">targetSubresource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">subresources</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../transfer-0e/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-buffer transfer from a temporary buffer into <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/transfer-08e/">transfer</a>(
-    void const const* data,
-    size_t size,
-    <a href="../../IBuffer/">IBuffer</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> targetElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> elements = 1) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/transfer-08e/"><span class="n">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="w"> </span><span class="n">data</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IBuffer/"><span class="n">IBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">targetElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">elements</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/transfer-08e/"><em>» more...</em></a></span></p>
 <p>Performs a buffer-to-buffer transfer from a temporary buffer into <code>target.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../transfer-09b/">transfer</a>(
-    void const const* data,
-    size_t size,
-    <a href="../buffer_type/">buffer_type</a> const& target,
-    <a href="../../../Math/UInt32/">UInt32</a> targetElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> elements = 1) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../transfer-09b/"><span class="nf">transfer</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="w"> </span><span class="n">data</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../buffer_type/"><span class="n">buffer_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">targetElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">elements</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../transfer-09b/"><em>» more...</em></a></span></p>
 <h2 id="exceptions">Exceptions<a class="headerlink" href="#exceptions" title="Permanent link">&para;</a></h2>
@@ -17011,7 +16987,8 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>IBarrier</p>
+<p><a href="../../IBarrier/"><code>IBarrier</code></a></p>
+<p><a href="../../IBarrier/"><code>IBarrier</code></a></p>
 
 
 

@@ -15068,11 +15068,11 @@
 <h1 id="litefxrenderinginputassemblerbuilder"><code>LiteFX::Rendering::InputAssemblerBuilder</code><a class="headerlink" href="#litefxrenderinginputassemblerbuilder" title="Permanent link">&para;</a></h1>
 <p>Builds a <a href="../InputAssembler-0d/"><code>InputAssembler</code></a>.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_builders.hpp#L1390">litefx/rendering_builders.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TInputAssembler&gt;
-requires meta::implements&lt;TInputAssembler, InputAssembler&lt;typename TInputAssembler::vertex_buffer_layout_type, typename TInputAssembler::index_buffer_layout_type&gt;&gt;
-class InputAssemblerBuilder
-    : public <a href="../../Builder-0e7/">Builder&lt;TInputAssembler, std::nullptr_t, SharedPtr&lt;TInputAssembler&gt;&gt;</a></code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_builders.hpp#L1390">litefx/rendering_builders.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TInputAssembler</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">meta</span><span class="o">:</span><span class="o">:</span><span class="n">implements</span><span class="o">&lt;</span><span class="n">TInputAssembler</span><span class="p">,</span><span class="w"> </span><span class="n">InputAssembler</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TInputAssembler</span><span class="o">:</span><span class="o">:</span><span class="n">vertex_buffer_layout_type</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">TInputAssembler</span><span class="o">:</span><span class="o">:</span><span class="n">index_buffer_layout_type</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">class</span><span class="w"> </span><span class="nc">InputAssemblerBuilder</span><span class="w">
+</span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><a href="../../Builder-0e7/"><span class="n">Builder</span><span class="o">&lt;</span><span class="n">TInputAssembler</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">nullptr_t</span><span class="p">,</span><span class="w"> </span><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">TInputAssembler</span><span class="o">&gt;</span><span class="o">&gt;</span></a></code></pre></div>
 
 <h2 id="base-classes">Base Classes<a class="headerlink" href="#base-classes" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
@@ -15144,7 +15144,7 @@ class InputAssemblerBuilder
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>InputAssembler</p>
+<p><a href="../InputAssembler-0d/"><code>InputAssembler</code></a></p>
 
 
 

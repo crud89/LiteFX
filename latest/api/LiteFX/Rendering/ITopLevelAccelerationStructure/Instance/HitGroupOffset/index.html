@@ -15553,15 +15553,15 @@
 <h1 id="litefxrenderingitoplevelaccelerationstructureinstancehitgroupoffset"><code>LiteFX::Rendering::ITopLevelAccelerationStructure::Instance::HitGroupOffset</code><a class="headerlink" href="#litefxrenderingitoplevelaccelerationstructureinstancehitgroupoffset" title="Permanent link">&para;</a></h1>
 <p>An offset added to the address of the shader-local data of the shader record that is invoked for the instance, <em>after</em> the <a href="../../../IBottomLevelAccelerationStructure/"><code>IBottomLevelAccelerationStructure</code></a> indexing rules have been applied.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L4570">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp"><a href="../../../../Math/UInt32/">UInt32</a> HitGroupOffset : [object Object] = 0;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L4569">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">HitGroupOffset</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="n">object</span><span class="w"> </span><span class="n">Object</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Shader-local data is a piece of constant data that is available to the shader during invocation. During a ray hit/miss event, the shader record is selected based on geometry (<a href="../../../IBottomLevelAccelerationStructure/"><code>IBottomLevelAccelerationStructure</code></a>), instance (<a href="../../2constructor-09/"><code>ITopLevelAccelerationStructure</code></a> and an implementation-specific offset. The selected record is then used to load the shader and pass the shader local data to it.</p>
 <p>The first part of the address is determined from the geometry index within the TLAS and a user-defined multiplier and base index specified in the shader when calling <code>TraceRay</code>. After this index is calculated the value of this property is added to it. The result is an offset into the shader-local data for the selected shader record.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#addressing-calculations-within-shader-tables</p>
-<p>https://docs.vulkan.org/spec/latest/chapters/raytracing.html#shader-binding-table-indexing-rules</p>
+<p><a href="https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#addressing-calculations-within-shader-tables">https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#addressing-calculations-within-shader-tables</a></p>
+<p><a href="https://docs.vulkan.org/spec/latest/chapters/raytracing.html#shader-binding-table-indexing-rules">https://docs.vulkan.org/spec/latest/chapters/raytracing.html#shader-binding-table-indexing-rules</a></p>
 
 
 

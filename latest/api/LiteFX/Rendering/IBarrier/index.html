@@ -15112,8 +15112,8 @@
 <h1 id="litefxrenderingibarrier"><code>LiteFX::Rendering::IBarrier</code><a class="headerlink" href="#litefxrenderingibarrier" title="Permanent link">&para;</a></h1>
 <p>The interface for a barrier.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L4747">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">class [[dllimport, dllexport]] IBarrier;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L4747">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="nc">IBarrier</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Barriers are used to synchronize the GPU with itself in a command buffer. They are basically used to control the GPU command flow and ensure that resources are in he right state before using them. Generally speaking, there are two related types of barriers:</p>
@@ -15124,12 +15124,15 @@
 </ul>
 <p>An execution barrier is simply a barrier without any <em>resource transitions</em> happening. The only properties that are set for an execution barrier are two pipeline stages defined by <a href="syncBefore/"><code>IBarrier::syncBefore</code></a> and <a href="syncAfter/"><code>IBarrier::syncAfter</code></a>. The first value defines the pipeline stages, all <em>previous</em> commands in a command buffer need to finish before execution is allowed to continue. Similarly, the second value defines the stage, all <em>subsequent</em> commands need to wait for, before they are allowed to continue execution. For example, setting <code>syncBefore</code> to <code>Compute</code> and <code>syncAfter</code> to <code>Vertex</code> logically translates to: <em>All subsequent commands that want to pass the vertex stage need to wait there before all previous commands passed the compute stage</em>. To synchronize reads in previous commands with writes in subsequent commands, this is sufficient. However, in order to do the opposite, this is not enough. Instead resource memory needs to be <em>transitioned</em> by specifying the desired <a href="../ResourceAccess/"><code>ResourceAccess</code></a>, alongside the <a href="../ImageLayout/"><code>ImageLayout</code></a> for images (note that buffers always share a <em>common</em> layout that can not be changed). This is done using memory barriers. There are two types of memory barriers used for state transitions:</p>
 <ul>
-<li><b>Global barriers</b> apply to all resource memory. - <b>Image and buffer barriers</b> apply to individual images or buffers or a sub-resource of those.
+<li><b>Global barriers</b> apply to all resource memory.
+
+</li>
+<li><b>Image and buffer barriers</b> apply to individual images or buffers or a sub-resource of those.
 
 </li>
 </ul>
 <p>Any <code>IBarrier</code> can contain an arbitrary mix of one or more global and/or image/buffer barriers. A global barrier is inserted by calling <a href="wait/"><code>IBarrier::wait</code></a>. This method accepts two parameters: a <code>before</code> and an <code>after</code> access mode. Those parameters specify the <a href="../ResourceAccess/"><code>ResourceAccess</code></a> for the previous and subsequent commands. This makes it possible to describe scenarios like <em>wait for certain writes to finish before continuing with certain reads</em>. Note that a resource can be accessed in different ways at the same time (for example as copy source and shader resource) and specifying an access state will only wait for the specified subset. As a rule of thumb, you should always specify as little access as possible in order to leave most room for optimization.</p>
-<p>Image and buffer barriers additionally describe which (sub-)resources to apply the barrier to. For buffers this only applies to individual elements in a buffer array. However, due to [driver] restrictions](https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#buffer-barriers), buffers are always transitioned as a whole. This is different from image resources, which have addressable sub-resources (mip levels, planes and array elements). For images, it is possible to transition individual sub-resources into different <a href="../ImageLayout/"><code>ImageLayout</code></a> "ImageLayouts" to indicate when and how a texture is used. An image in a certain layout poses restrictions on how it can be accessed. For example, a <code>ReadWrite</code> image written by a compute shader must be transitioned into a proper layout to be read by a graphics shader. To facilitate such a transition, a barrier is required. Image barriers can be inserted by calling one of the overloads of <a href="transition-0da/"><code>IBarrier::transition</code></a> that accepts an <a href="../IImage/"><code>IImage</code></a> parameter.</p>
+<p>Image and buffer barriers additionally describe which (sub-)resources to apply the barrier to. For buffers this only applies to individual elements in a buffer array. However, due to <a href="https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#buffer-barriers">driver restrictions</a>, buffers are always transitioned as a whole. This is different from image resources, which have addressable sub-resources (mip levels, planes and array elements). For images, it is possible to transition individual sub-resources into different <a href="../ImageLayout/"><code>ImageLayout</code></a> "ImageLayouts" to indicate when and how a texture is used. An image in a certain layout poses restrictions on how it can be accessed. For example, a <code>ReadWrite</code> image written by a compute shader must be transitioned into a proper layout to be read by a graphics shader. To facilitate such a transition, a barrier is required. Image barriers can be inserted by calling one of the overloads of <a href="transition-0da/"><code>IBarrier::transition</code></a> that accepts an <a href="../IImage/"><code>IImage</code></a> parameter.</p>
 <h2 id="member-functions">Member Functions<a class="headerlink" href="#member-functions" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
 <thead><tr><th>Name</th><th>Description</th></tr></thead>
@@ -15160,12 +15163,12 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>PipelineStage</p>
-<p>IBuffer</p>
-<p>ResourceAccess</p>
-<p>IImage</p>
-<p>ImageLayout</p>
-<p>ICommandBuffer</p>
+<p><a href="../PipelineStage/"><code>PipelineStage</code></a></p>
+<p><a href="../IBuffer/"><code>IBuffer</code></a></p>
+<p><a href="../ResourceAccess/"><code>ResourceAccess</code></a></p>
+<p><a href="../IImage/"><code>IImage</code></a></p>
+<p><a href="../ImageLayout/"><code>ImageLayout</code></a></p>
+<p><a href="../ICommandBuffer/"><code>ICommandBuffer</code></a></p>
 
 
 

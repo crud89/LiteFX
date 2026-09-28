@@ -25050,22 +25050,20 @@
 <h1 id="litefxrenderingbackendsvulkanframebuffercreate"><code>LiteFX::Rendering::Backends::VulkanFrameBuffer::create</code><a class="headerlink" href="#litefxrenderingbackendsvulkanframebuffercreate" title="Permanent link">&para;</a></h1>
 <p>Initializes a Vulkan frame buffer.</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L1858">litefx/backends/vulkan.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L1858">litefx/backends/vulkan.hpp</a>&gt;</code></p>
 <p>Initializes a Vulkan frame buffer.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] static <a href="../../../../SharedPtr/">SharedPtr&lt;VulkanFrameBuffer&gt;</a> <a href="../create-06/">create</a>(
-    <a href="../../VulkanDevice/">VulkanDevice</a> const& device,
-    <a href="../../../../Math/Size2d/">Size2d</a> const& renderArea,
-    <a href="../../../../StringView/">StringView</a> name = "");
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">VulkanFrameBuffer</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../create-06/"><span class="n">create</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../VulkanDevice/"><span class="n">VulkanDevice</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">device</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/Size2d/"><span class="n">Size2d</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">renderArea</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../StringView/"><span class="n">StringView</span></a><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;</span><span class="s">&quot;</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../create-06/"><em>» more...</em></a></span></p>
 <p>Initializes a Vulkan frame buffer.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] static <a href="../../../../SharedPtr/">SharedPtr&lt;VulkanFrameBuffer&gt;</a> <a href="../create-02/">create</a>(
-    <a href="../../VulkanDevice/">VulkanDevice</a> const& device,
-    <a href="../../../../Math/Size2d/">Size2d</a> const& renderArea,
-    <a href="../../../IFrameBuffer/allocation_callback_type/">FrameBuffer&lt;IVulkanImage&gt;::allocation_callback_type</a> allocationCallback,
-    <a href="../../../../StringView/">StringView</a> name = "");
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">VulkanFrameBuffer</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../create-02/"><span class="n">create</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../VulkanDevice/"><span class="n">VulkanDevice</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">device</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/Size2d/"><span class="n">Size2d</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">renderArea</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../IFrameBuffer/allocation_callback_type/"><span class="n">FrameBuffer</span><span class="o">&lt;</span><span class="n">IVulkanImage</span><span class="o">&gt;</span><span class="o">:</span><span class="o">:</span><span class="n">allocation_callback_type</span></a><span class="w"> </span><span class="n">allocationCallback</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../StringView/"><span class="n">StringView</span></a><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;</span><span class="s">&quot;</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../create-02/"><em>» more...</em></a></span></p>
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>

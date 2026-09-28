@@ -15098,14 +15098,14 @@
 <h1 id="litefxrenderinginputassembler"><code>LiteFX::Rendering::InputAssembler</code><a class="headerlink" href="#litefxrenderinginputassembler" title="Permanent link">&para;</a></h1>
 <p>Represents a the input assembler state of a <a href="../RenderPipeline-0e/"><code>RenderPipeline</code></a>.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering.hpp#L480">litefx/rendering.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename TVertexBufferLayout,
-    typename TIndexBufferLayout&gt;
-requires meta::implements&lt;TVertexBufferLayout, IVertexBufferLayout&gt; &amp;&amp;
-        meta::implements&lt;TIndexBufferLayout, IIndexBufferLayout&gt;
-class InputAssembler
-    : public <a href="../IInputAssembler/">IInputAssembler</a></code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering.hpp#L480">litefx/rendering.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TVertexBufferLayout</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TIndexBufferLayout</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">meta</span><span class="o">:</span><span class="o">:</span><span class="n">implements</span><span class="o">&lt;</span><span class="n">TVertexBufferLayout</span><span class="p">,</span><span class="w"> </span><span class="n">IVertexBufferLayout</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="n">meta</span><span class="o">:</span><span class="o">:</span><span class="n">implements</span><span class="o">&lt;</span><span class="n">TIndexBufferLayout</span><span class="p">,</span><span class="w"> </span><span class="n">IIndexBufferLayout</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">class</span><span class="w"> </span><span class="nc">InputAssembler</span><span class="w">
+</span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><a href="../IInputAssembler/"><span class="n">IInputAssembler</span></a></code></pre></div>
 
 <h2 id="base-classes">Base Classes<a class="headerlink" href="#base-classes" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">

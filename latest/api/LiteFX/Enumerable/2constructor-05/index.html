@@ -4974,27 +4974,23 @@
 <h1 id="litefxenumerableenumerable"><code>LiteFX::Enumerable::Enumerable</code><a class="headerlink" href="#litefxenumerableenumerable" title="Permanent link">&para;</a></h1>
 <p>Constructors</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Core/include/litefx/containers.hpp#L504">litefx/containers.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Core/include/litefx/containers.hpp#L553">litefx/containers.hpp</a>&gt;</code></p>
 <p>Creates an enumerable over an empty range.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp"><a href="../2constructor-00/">Enumerable</a>();
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><a href="../2constructor-00/"><span class="n">Enumerable</span></a><span class="p">(</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-00/"><em>» more...</em></a></span></p>
 <p>Copy constructor</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp"><a href="../2constructor-094/">Enumerable</a>(<a href="../">Enumerable</a> const& range) = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><a href="../2constructor-094/"><span class="n">Enumerable</span></a><span class="p">(</span><a href="../"><span class="n">Enumerable</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">range</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-094/"><em>» more...</em></a></span></p>
 <p>Move constructor</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp"><a href="../2constructor-098/">Enumerable</a>(<a href="../">Enumerable</a>&& range) noexcept = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><a href="../2constructor-098/"><span class="n">Enumerable</span></a><span class="p">(</span><a href="../"><span class="n">Enumerable</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">range</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-098/"><em>» more...</em></a></span></p>
 <p>Creates a new <code>Enumerable</code> instance from an underlying range.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TRange&gt;
-requires !std::is_same_v&lt;TRange, Enumerable&gt;
-<a href="../2constructor-07/">Enumerable</a>(TRange&& range);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TRange</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="o">!</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">TRange</span><span class="p">,</span><span class="w"> </span><span class="n">Enumerable</span><span class="o">&gt;</span><span class="w">
+</span><a href="../2constructor-07/"><span class="n">Enumerable</span></a><span class="p">(</span><span class="n">TRange</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">range</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-07/"><em>» more...</em></a></span></p>
 <h2 id="template-parameters">Template Parameters<a class="headerlink" href="#template-parameters" title="Permanent link">&para;</a></h2>

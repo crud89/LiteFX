@@ -5021,9 +5021,8 @@
 <h1 id="litefxcovariantiteratorcovariantiterator"><code>LiteFX::CovariantIterator::CovariantIterator</code><a class="headerlink" href="#litefxcovariantiteratorcovariantiterator" title="Permanent link">&para;</a></h1>
 <p>Initializes a new iterator instance. Always throws a <a href="../../RuntimeException/"><code>RuntimeException</code></a>.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Core/include/litefx/containers.hpp#L298">litefx/containers.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">explicit CovariantIterator();
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Core/include/litefx/containers.hpp#L298">litefx/containers.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">explicit</span><span class="w"> </span><span class="n">CovariantIterator</span><span class="p">(</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>This constructor is only defined to satisfy the <code>std::ranges::range</code> constraint for ranges that return this iterator. Attempting to default-initialize a <code>CovariantInterator</code> will result in a runtime error.</p>

@@ -5446,9 +5446,8 @@
 <h1 id="litefxappstopbackend"><code>LiteFX::App::stopBackend</code><a class="headerlink" href="#litefxappstopbackend" title="Permanent link">&para;</a></h1>
 <p>Stops a backend.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/AppModel/include/litefx/app.hpp#L432">litefx/app.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllexport, dllimport]] void stopBackend(std::type_index type) const;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/AppModel/include/litefx/app.hpp#L432">litefx/app.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllexport</span><span class="p">,</span><span class="w"> </span><span class="na">dllimport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">stopBackend</span><span class="p">(</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">type_index</span><span class="w"> </span><span class="n">type</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>This method calls all stop callbacks for the backend, before returing. If the backend is not running, calling this method has no effect.</p>
@@ -5461,8 +5460,8 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>Backend</p>
-<p>onBackendStop</p>
+<p><a href="../../IBackend/"><code>IBackend</code></a></p>
+<p><a href="../onBackendStop/"><code>onBackendStop</code></a></p>
 
 
 

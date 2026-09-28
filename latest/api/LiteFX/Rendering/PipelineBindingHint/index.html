@@ -15562,8 +15562,8 @@
 <h1 id="litefxrenderingpipelinebindinghint"><code>LiteFX::Rendering::PipelineBindingHint</code><a class="headerlink" href="#litefxrenderingpipelinebindinghint" title="Permanent link">&para;</a></h1>
 <p>A hint used during shader reflection to control the pipeline layout.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L5825">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">struct [[dllimport, dllexport]] PipelineBindingHint;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L5824">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">struct</span><span class="w"> </span><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="nc">PipelineBindingHint</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Hints are generally used to express the desired layout to backends that cannot infer them implicitly. They do not imply an enforcement of the layout otherwise. For example, hinting a push constants range when performing shader reflection in Vulkan, where push constants are supported by the reflection library, will not affect the ultimate decision on whether the layout will contain a push constants range. In this case, shader reflection will always emit a push constants range.</p>
@@ -15611,7 +15611,7 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>IShaderProgram::reflectPipelineLayout</p>
+<p><a href="../IShaderProgram/reflectPipelineLayout/"><code>IShaderProgram::reflectPipelineLayout</code></a></p>
 
 
 

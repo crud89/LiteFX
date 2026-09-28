@@ -4914,19 +4914,16 @@
 <h1 id="litefxsharedobjectweak_from_this"><code>LiteFX::SharedObject::weak_from_this</code><a class="headerlink" href="#litefxsharedobjectweak_from_this" title="Permanent link">&para;</a></h1>
 <p>Returns a weak pointer to the current object instance.</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Core/include/litefx/containers.hpp#L901">litefx/containers.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[nodiscard]] weak_ptr&lt;SharedObject&gt; <a href="../weak_from_this-0b/">weak_from_this</a>() noexcept;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Core/include/litefx/containers.hpp#L948">litefx/containers.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="n">weak_ptr</span><span class="o">&lt;</span><span class="n">SharedObject</span><span class="o">&gt;</span><span class="w"> </span><a href="../weak_from_this-0b/"><span class="n">weak_from_this</span></a><span class="p">(</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../weak_from_this-0b/"><em>» more...</em></a></span></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[nodiscard]] weak_ptr&lt;SharedObject const&gt; <a href="../weak_from_this-0c/">weak_from_this</a>() const noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="n">weak_ptr</span><span class="o">&lt;</span><span class="n">SharedObject</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span><span class="w"> </span><a href="../weak_from_this-0c/"><span class="n">weak_from_this</span></a><span class="p">(</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../weak_from_this-0c/"><em>» more...</em></a></span></p>
 <p>Returns a weak pointer to the current object instance.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TSelf&gt;
-[[nodiscard]] <a href="../../WeakPtr/">WeakPtr&lt;std::remove_reference_t&lt;TSelf&gt;&gt;</a> <a href="../weak_from_this-06/">weak_from_this</a>(this TSelf&& self) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TSelf</span><span class="o">&gt;</span><span class="w">
+</span><span class="p">[[</span><span class="na">nodiscard</span><span class="p">]]</span><span class="w"> </span><a href="../../WeakPtr/"><span class="n">WeakPtr</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">remove_reference_t</span><span class="o">&lt;</span><span class="n">TSelf</span><span class="o">&gt;</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../weak_from_this-06/"><span class="n">weak_from_this</span></a><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="n">TSelf</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../weak_from_this-06/"><em>» more...</em></a></span></p>
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>

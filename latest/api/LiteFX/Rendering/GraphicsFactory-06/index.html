@@ -16050,26 +16050,26 @@
 <h1 id="litefxrenderinggraphicsfactory"><code>LiteFX::Rendering::GraphicsFactory</code><a class="headerlink" href="#litefxrenderinggraphicsfactory" title="Permanent link">&para;</a></h1>
 <p>Describes a factory that creates objects for a <a href="../GraphicsDevice-0b/"><code>GraphicsDevice</code></a>.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering.hpp#L1218">litefx/rendering.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename TDescriptorLayout,
-    typename TBuffer,
-    typename TVertexBuffer,
-    typename TIndexBuffer,
-    typename TImage,
-    typename TSampler,
-    typename TBLAS,
-    typename TTLAS&gt;
-requires meta::implements&lt;TDescriptorLayout, IDescriptorLayout&gt; &amp;&amp;
-        std::derived_from&lt;TVertexBuffer, VertexBuffer&lt;typename TVertexBuffer::vertex_buffer_layout_type&gt;&gt; &amp;&amp;
-        std::derived_from&lt;TIndexBuffer, IndexBuffer&lt;typename TIndexBuffer::index_buffer_layout_type&gt;&gt; &amp;&amp;
-        std::derived_from&lt;TImage, IImage&gt; &amp;&amp;
-        std::derived_from&lt;TBuffer, IBuffer&gt; &amp;&amp;
-        std::derived_from&lt;TSampler, ISampler&gt; &amp;&amp;
-        std::derived_from&lt;TBLAS, IBottomLevelAccelerationStructure&gt; &amp;&amp;
-        std::derived_from&lt;TTLAS, ITopLevelAccelerationStructure&gt;
-class GraphicsFactory
-    : public <a href="../IGraphicsFactory/">IGraphicsFactory</a></code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering.hpp#L1218">litefx/rendering.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TDescriptorLayout</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TVertexBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TIndexBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TImage</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TSampler</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TBLAS</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TTLAS</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">meta</span><span class="o">:</span><span class="o">:</span><span class="n">implements</span><span class="o">&lt;</span><span class="n">TDescriptorLayout</span><span class="p">,</span><span class="w"> </span><span class="n">IDescriptorLayout</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">TVertexBuffer</span><span class="p">,</span><span class="w"> </span><span class="n">VertexBuffer</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TVertexBuffer</span><span class="o">:</span><span class="o">:</span><span class="n">vertex_buffer_layout_type</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">TIndexBuffer</span><span class="p">,</span><span class="w"> </span><span class="n">IndexBuffer</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TIndexBuffer</span><span class="o">:</span><span class="o">:</span><span class="n">index_buffer_layout_type</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">TImage</span><span class="p">,</span><span class="w"> </span><span class="n">IImage</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">TBuffer</span><span class="p">,</span><span class="w"> </span><span class="n">IBuffer</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">TSampler</span><span class="p">,</span><span class="w"> </span><span class="n">ISampler</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">TBLAS</span><span class="p">,</span><span class="w"> </span><span class="n">IBottomLevelAccelerationStructure</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">TTLAS</span><span class="p">,</span><span class="w"> </span><span class="n">ITopLevelAccelerationStructure</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">class</span><span class="w"> </span><span class="nc">GraphicsFactory</span><span class="w">
+</span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><a href="../IGraphicsFactory/"><span class="n">IGraphicsFactory</span></a></code></pre></div>
 
 <h2 id="base-classes">Base Classes<a class="headerlink" href="#base-classes" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">

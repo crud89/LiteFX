@@ -24509,9 +24509,8 @@
 <h1 id="litefxrenderingbackendsdirectx12shaderprogramreflectpipelinelayout"><code>LiteFX::Rendering::Backends::DirectX12ShaderProgram::reflectPipelineLayout</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12shaderprogramreflectpipelinelayout" title="Permanent link">&para;</a></h1>
 <p>Uses shader reflection to extract the pipeline layout of a shader. May not be available in all backends.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L596">litefx/backends/dx12.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../../../../SharedPtr/">SharedPtr&lt;DirectX12PipelineLayout&gt;</a> reflectPipelineLayout(<a href="../../../../Enumerable/">Enumerable&lt;PipelineBindingHint&gt;</a> hints = {}) const;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L596">litefx/backends/dx12.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">DirectX12PipelineLayout</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">reflectPipelineLayout</span><span class="p">(</span><a href="../../../../Enumerable/"><span class="n">Enumerable</span><span class="o">&lt;</span><span class="n">PipelineBindingHint</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">hints</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Note that shader reflection may not yield different results than you would expect, especially when using DirectX 12. For more information on how to use shader reflection and how to write portable shaders, refer to the <a href="https://github.com/crud89/LiteFX/wiki/Shader-Development">shader development guide</a> in the wiki.</p>
@@ -24532,8 +24531,8 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>PipelineBindingHint</p>
-<p>https://github.com/crud89/LiteFX/wiki/Shader-Development</p>
+<p><a href="../../../PipelineBindingHint/"><code>PipelineBindingHint</code></a></p>
+<p><a href="https://github.com/crud89/LiteFX/wiki/Shader-Development">https://github.com/crud89/LiteFX/wiki/Shader-Development</a></p>
 
 
 

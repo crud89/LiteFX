@@ -15514,9 +15514,9 @@
 <h1 id="litefxrenderingibottomlevelaccelerationstructure"><code>LiteFX::Rendering::IBottomLevelAccelerationStructure</code><a class="headerlink" href="#litefxrenderingibottomlevelaccelerationstructure" title="Permanent link">&para;</a></h1>
 <p>A structure that holds a singular entity of geometry for hardware ray-tracing.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L4301">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">class [[dllimport, dllexport]] IBottomLevelAccelerationStructure
-    : public virtual <a href="../IAccelerationStructure/">IAccelerationStructure</a></code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L4300">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="nc">IBottomLevelAccelerationStructure</span><span class="w">
+</span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../IAccelerationStructure/"><span class="n">IAccelerationStructure</span></a></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Bottom-level acceleration structures describe actual pieces of geometry (sets of triangular meshes or axis-aligned bounding boxes for procedural geometry). They can best be thought of entities in terms of a scene graph, whilst <a href="../ITopLevelAccelerationStructure/"><code>ITopLevelAccelerationStructure</code></a> "ITopLevelAccelerationStructures" represent their respective <em>instances</em>. For example, a top-level acceleration structure (TLAS) would store the world transform of the object itself, which can be placed multiple times in the scene with different transforms each time. Each TLAS points to a bottom-level acceleration structure (BLAS), that contains the actual geometry, consisting of multiple meshes that are all transformed relative to the TLAS transform.</p>
@@ -15581,9 +15581,9 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>TriangleMesh</p>
-<p>AxisAlignedBoundingBox</p>
-<p>ITopLevelAccelerationStructure</p>
+<p><a href="TriangleMesh/"><code>TriangleMesh</code></a></p>
+<p><a href="BoundingBoxes-00/"><code>BoundingBoxes</code></a></p>
+<p><a href="../ITopLevelAccelerationStructure/"><code>ITopLevelAccelerationStructure</code></a></p>
 
 
 

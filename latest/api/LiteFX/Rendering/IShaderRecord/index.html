@@ -15160,8 +15160,8 @@
 <h1 id="litefxrenderingishaderrecord"><code>LiteFX::Rendering::IShaderRecord</code><a class="headerlink" href="#litefxrenderingishaderrecord" title="Permanent link">&para;</a></h1>
 <p>Describes a record within a shader binding table.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L5380">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">struct [[dllimport, dllexport]] IShaderRecord;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L5379">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">struct</span><span class="w"> </span><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="nc">IShaderRecord</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>A shader record contains a shader group, that is either a single shader of type <a href="../ShaderStage/"><code>ShaderStage::RayGeneration</code></a>, <a href="../ShaderStage/"><code>ShaderStage::Intersection</code></a>, <a href="../ShaderStage/"><code>ShaderStage::Miss</code></a> or <a href="../ShaderStage/"><code>ShaderStage::Callable</code></a>, or a pair of types <a href="../ShaderStage/"><code>ShaderStage::ClosestHit</code></a> and <a href="../ShaderStage/"><code>ShaderStage::AnyHit</code></a>, where at least one of them needs to be set.</p>
@@ -15213,8 +15213,8 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>ShaderRecord</p>
-<p>IShaderProgram::buildShaderBindingTable</p>
+<p><a href="../ShaderRecord-0a/"><code>ShaderRecord</code></a></p>
+<p><a href="../IShaderProgram/buildShaderRecordCollection/"><code>IShaderProgram::buildShaderRecordCollection</code></a></p>
 
 
 

@@ -25079,14 +25079,13 @@
 <h1 id="litefxrenderingbackendsvulkanbottomlevelaccelerationstructurebuild"><code>LiteFX::Rendering::Backends::VulkanBottomLevelAccelerationStructure::build</code><a class="headerlink" href="#litefxrenderingbackendsvulkanbottomlevelaccelerationstructurebuild" title="Permanent link">&para;</a></h1>
 <p>Performs a complete build of the acceleration structure.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L311">litefx/backends/vulkan.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void build(
-    <a href="../../VulkanCommandBuffer/">VulkanCommandBuffer</a> const& commandBuffer,
-    <a href="../../../../SharedPtr/">SharedPtr&lt;IVulkanBuffer const&gt;</a> const& scratchBuffer = nullptr,
-    <a href="../../../../SharedPtr/">SharedPtr&lt;IVulkanBuffer const&gt;</a> const& buffer = nullptr,
-    <a href="../../../../Math/UInt64/">UInt64</a> offset = 0,
-    <a href="../../../../Math/UInt64/">UInt64</a> maxSize = 0);
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L311">litefx/backends/vulkan.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">build</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../VulkanCommandBuffer/"><span class="n">VulkanCommandBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">commandBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IVulkanBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">scratchBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IVulkanBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">maxSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>This method builds or rebuilds the entire acceleration structure. If called without any further arguments beside <code>commandBuffer,</code> a new buffer and scratch buffer will be allocated from the <a href="../../../IGraphicsDevice/"><code>IGraphicsDevice</code></a> that created the command buffer. Alternatively, it is possible to provide a pre-allocated buffer in the <code>buffer</code> parameter. This allows to re-use memory from another acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling <a href="../../../IAccelerationStructure/buffer/"><code>buffer</code></a>) and destroy it afterwards, which enables re-use scenarios for example for caching. Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory consumption. This is done by also providing the <code>offset</code> and <code>maxSize</code> parameters to address a range within the buffer itself, the acceleration structure may be written into. Note that the pointer passed to the <a href="../../../IAccelerationStructure/buffer/"><code>buffer</code></a> parameter must have been initialized with the <a href="../../../BufferType/"><code>BufferType::AccelerationStructure</code></a> buffer type and must be writable (<a href="../../../ResourceUsage/"><code>ResourceUsage::AllowWrite</code></a>).</p>
@@ -25105,7 +25104,7 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>update</p>
+<p><a href="../../../IAccelerationStructure/update/"><code>update</code></a></p>
 
 
 

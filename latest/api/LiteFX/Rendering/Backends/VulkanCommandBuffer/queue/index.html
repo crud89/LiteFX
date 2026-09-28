@@ -26570,9 +26570,8 @@
 <h1 id="litefxrenderingbackendsvulkancommandbufferqueue"><code>LiteFX::Rendering::Backends::VulkanCommandBuffer::queue</code><a class="headerlink" href="#litefxrenderingbackendsvulkancommandbufferqueue" title="Permanent link">&para;</a></h1>
 <p>Gets a pointer to the command queue that this command buffer was allocated from or <code>nullptr</code>, if the queue has already been released.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L1328">litefx/backends/vulkan.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../../../../SharedPtr/">SharedPtr&lt;VulkanQueue const&gt;</a> queue() const noexcept;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L1328">litefx/backends/vulkan.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">VulkanQueue</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">queue</span><span class="p">(</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p>A reference to the command queue that this command buffer was allocated from.</p>

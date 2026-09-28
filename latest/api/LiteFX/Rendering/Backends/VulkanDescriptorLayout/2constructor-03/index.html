@@ -24736,39 +24736,34 @@
 <h1 id="litefxrenderingbackendsvulkandescriptorlayoutvulkandescriptorlayout"><code>LiteFX::Rendering::Backends::VulkanDescriptorLayout::VulkanDescriptorLayout</code><a class="headerlink" href="#litefxrenderingbackendsvulkandescriptorlayoutvulkandescriptorlayout" title="Permanent link">&para;</a></h1>
 <p>Constructors</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L720">litefx/backends/vulkan.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L720">litefx/backends/vulkan.hpp</a>&gt;</code></p>
 <p>Copy constructor</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../2constructor-09/">VulkanDescriptorLayout</a>(<a href="../">VulkanDescriptorLayout</a> const& other);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../2constructor-09/"><span class="n">VulkanDescriptorLayout</span></a><span class="p">(</span><a href="../"><span class="n">VulkanDescriptorLayout</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-09/"><em>» more...</em></a></span></p>
 <p>Move constructor</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../2constructor-01/">VulkanDescriptorLayout</a>(<a href="../">VulkanDescriptorLayout</a>&& other) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../2constructor-01/"><span class="n">VulkanDescriptorLayout</span></a><span class="p">(</span><a href="../"><span class="n">VulkanDescriptorLayout</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-01/"><em>» more...</em></a></span></p>
 <p>Initializes a new Vulkan descriptor layout for an input attachment.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../2constructor-0a/">VulkanDescriptorLayout</a>(
-    <a href="../../../../Math/UInt32/">UInt32</a> binding,
-    <a href="../../../../Math/UInt32/">UInt32</a> inputAttachmentIndex);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../2constructor-0a/"><span class="n">VulkanDescriptorLayout</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">binding</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">inputAttachmentIndex</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-0a/"><em>» more...</em></a></span></p>
 <p>Initializes a new Vulkan descriptor layout for a static sampler.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../2constructor-04/">VulkanDescriptorLayout</a>(
-    <a href="../../IVulkanSampler/">IVulkanSampler</a> const& staticSampler,
-    <a href="../../../../Math/UInt32/">UInt32</a> binding);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../2constructor-04/"><span class="n">VulkanDescriptorLayout</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../IVulkanSampler/"><span class="n">IVulkanSampler</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">staticSampler</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">binding</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-04/"><em>» more...</em></a></span></p>
 <p>Initializes a new Vulkan descriptor layout.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../2constructor-02/">VulkanDescriptorLayout</a>(
-    <a href="../../../DescriptorType/">DescriptorType</a> type,
-    <a href="../../../../Math/UInt32/">UInt32</a> binding,
-    size_t elementSize,
-    <a href="../../../../Math/UInt32/">UInt32</a> descriptors = 1,
-    bool unbounded = false);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../2constructor-02/"><span class="n">VulkanDescriptorLayout</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../DescriptorType/"><span class="n">DescriptorType</span></a><span class="w"> </span><span class="n">type</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">binding</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">elementSize</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">unbounded</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-02/"><em>» more...</em></a></span></p>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
@@ -24786,7 +24781,7 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>descriptors</p>
+<p><a href="../descriptors/"><code>descriptors</code></a></p>
 
 
 

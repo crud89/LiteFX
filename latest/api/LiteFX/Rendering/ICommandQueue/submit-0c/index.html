@@ -5665,17 +5665,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#see-also" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        See Also
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -15775,9 +15764,8 @@
 <h1 id="litefxrenderingicommandqueuesubmit"><code>LiteFX::Rendering::ICommandQueue::submit</code><a class="headerlink" href="#litefxrenderingicommandqueuesubmit" title="Permanent link">&para;</a></h1>
 <p>Submits a single command buffer with shared ownership and inserts a fence to wait for it.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L8118">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../../../Math/UInt64/">UInt64</a> submit(<a href="../../../SharedPtr/">SharedPtr&lt;ICommandBuffer const&gt;</a> const& commandBuffer) const;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L8117">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">submit</span><span class="p">(</span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">ICommandBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">commandBuffer</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>By calling this method, the queue takes shared ownership over the <code>commandBuffer</code> until the fence is passed. The reference will be released during a <a href="../waitFor-0d/"><code>waitFor</code></a>, if the awaited fence is inserted after the associated one.</p>
@@ -15791,9 +15779,6 @@
 <tr><td><b>commandBuffer</b></td><td>The command buffer to submit to the command queue.</td></tr>
 </tbody>
 </table></div>
-
-<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>waitFor</p>
 
 
 

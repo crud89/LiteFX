@@ -15214,14 +15214,14 @@
 <h1 id="litefxrenderingdescriptorsetlayout"><code>LiteFX::Rendering::DescriptorSetLayout</code><a class="headerlink" href="#litefxrenderingdescriptorsetlayout" title="Permanent link">&para;</a></h1>
 <p>Describes the layout of a descriptor set.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering.hpp#L199">litefx/rendering.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename TDescriptorLayout,
-    typename TDescriptorSet&gt;
-requires meta::implements&lt;TDescriptorLayout, IDescriptorLayout&gt; &amp;&amp;
-        meta::implements&lt;TDescriptorSet, DescriptorSet&lt;typename TDescriptorSet::buffer_type, typename TDescriptorSet::image_type, typename TDescriptorSet::sampler_type, typename TDescriptorSet::acceleration_structure_type&gt;&gt;
-class DescriptorSetLayout
-    : public <a href="../IDescriptorSetLayout/">IDescriptorSetLayout</a></code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering.hpp#L199">litefx/rendering.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TDescriptorLayout</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TDescriptorSet</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">meta</span><span class="o">:</span><span class="o">:</span><span class="n">implements</span><span class="o">&lt;</span><span class="n">TDescriptorLayout</span><span class="p">,</span><span class="w"> </span><span class="n">IDescriptorLayout</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="n">meta</span><span class="o">:</span><span class="o">:</span><span class="n">implements</span><span class="o">&lt;</span><span class="n">TDescriptorSet</span><span class="p">,</span><span class="w"> </span><span class="n">DescriptorSet</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TDescriptorSet</span><span class="o">:</span><span class="o">:</span><span class="n">buffer_type</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">TDescriptorSet</span><span class="o">:</span><span class="o">:</span><span class="n">image_type</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">TDescriptorSet</span><span class="o">:</span><span class="o">:</span><span class="n">sampler_type</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">TDescriptorSet</span><span class="o">:</span><span class="o">:</span><span class="n">acceleration_structure_type</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">class</span><span class="w"> </span><span class="nc">DescriptorSetLayout</span><span class="w">
+</span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><a href="../IDescriptorSetLayout/"><span class="n">IDescriptorSetLayout</span></a></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>A descriptor set groups together multiple descriptors. This concept is identified by the <code>set</code> keyword in GLSL and <code>space</code> in HLSL.</p>
@@ -15323,8 +15323,8 @@ class DescriptorSetLayout
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>IDescriptorLayout</p>
-<p>DescriptorSet</p>
+<p><a href="../IDescriptorLayout/"><code>IDescriptorLayout</code></a></p>
+<p><a href="../DescriptorSet-09/"><code>DescriptorSet</code></a></p>
 
 
 

@@ -15587,93 +15587,80 @@
 <h1 id="litefxrenderingdescriptorsetlayoutallocate"><code>LiteFX::Rendering::DescriptorSetLayout::allocate</code><a class="headerlink" href="#litefxrenderingdescriptorsetlayoutallocate" title="Permanent link">&para;</a></h1>
 <p><code>allocate</code> overloads</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering.hpp#L239">litefx/rendering.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering.hpp#L239">litefx/rendering.hpp</a>&gt;</code></p>
 <p>Allocates a new descriptor set or returns an instance of an unused descriptor set.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual <a href="../../../UniquePtr/">UniquePtr&lt;descriptor_set_type&gt;</a> <a href="../allocate-024/">allocate</a>(<a href="../../../Generator/">Generator&lt;DescriptorBinding&gt;</a> bindings) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><a href="../../../UniquePtr/"><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">descriptor_set_type</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../allocate-024/"><span class="n">allocate</span></a><span class="p">(</span><a href="../../../Generator/"><span class="n">Generator</span><span class="o">&lt;</span><span class="n">DescriptorBinding</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">bindings</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../allocate-024/"><em>» more...</em></a></span></p>
 <p>Allocates a new descriptor set or returns an instance of an unused descriptor set.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual <a href="../../../UniquePtr/">UniquePtr&lt;descriptor_set_type&gt;</a> <a href="../allocate-05a/">allocate</a>(<a href="../../../Span/">Span&lt;DescriptorBinding&gt;</a> bindings) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><a href="../../../UniquePtr/"><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">descriptor_set_type</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../allocate-05a/"><span class="n">allocate</span></a><span class="p">(</span><a href="../../../Span/"><span class="n">Span</span><span class="o">&lt;</span><span class="n">DescriptorBinding</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">bindings</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../allocate-05a/"><em>» more...</em></a></span></p>
 <p>Allocates a new descriptor set or returns an instance of an unused descriptor set.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual <a href="../../../UniquePtr/">UniquePtr&lt;descriptor_set_type&gt;</a> <a href="../allocate-01/">allocate</a>(std::initializer_list&lt;DescriptorBinding&gt; bindings = { }) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><a href="../../../UniquePtr/"><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">descriptor_set_type</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../allocate-01/"><span class="n">allocate</span></a><span class="p">(</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">initializer_list</span><span class="o">&lt;</span><span class="n">DescriptorBinding</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bindings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">}</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../allocate-01/"><em>» more...</em></a></span></p>
 <p>Allocates an array of descriptor sets.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../../../Generator/">Generator&lt;UniquePtr&lt;IDescriptorSet&gt;&gt;</a> <a href="../../IDescriptorSetLayout/allocate-05d/">allocate</a>(
-    <a href="../../../Math/UInt32/">UInt32</a> descriptorSets,
-    std::function&lt;Generator&lt;DescriptorBinding&gt;(<a href="../../../Math/UInt32/">UInt32</a>)&gt; bindingFactory) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../../../Generator/"><span class="n">Generator</span><span class="o">&lt;</span><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">IDescriptorSet</span><span class="o">&gt;</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../../IDescriptorSetLayout/allocate-05d/"><span class="n">allocate</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptorSets</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">function</span><span class="o">&lt;</span><span class="n">Generator</span><span class="o">&lt;</span><span class="n">DescriptorBinding</span><span class="o">&gt;</span><span class="p">(</span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bindingFactory</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../IDescriptorSetLayout/allocate-05d/"><em>» more...</em></a></span></p>
 <p>Allocates an array of descriptor sets.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual <a href="../../../Generator/">Generator&lt;UniquePtr&lt;descriptor_set_type&gt;&gt;</a> <a href="../allocate-059/">allocate</a>(
-    <a href="../../../Math/UInt32/">UInt32</a> descriptorSets,
-    std::function&lt;Generator&lt;DescriptorBinding&gt;(<a href="../../../Math/UInt32/">UInt32</a>)&gt; bindings) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><a href="../../../Generator/"><span class="n">Generator</span><span class="o">&lt;</span><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">descriptor_set_type</span><span class="o">&gt;</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../allocate-059/"><span class="n">allocate</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptorSets</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">function</span><span class="o">&lt;</span><span class="n">Generator</span><span class="o">&lt;</span><span class="n">DescriptorBinding</span><span class="o">&gt;</span><span class="p">(</span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bindings</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../allocate-059/"><em>» more...</em></a></span></p>
 <p>Allocates an array of descriptor sets.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual <a href="../../../Generator/">Generator&lt;UniquePtr&lt;descriptor_set_type&gt;&gt;</a> <a href="../allocate-029/">allocate</a>(
-    <a href="../../../Math/UInt32/">UInt32</a> descriptorSets,
-    std::initializer_list&lt;std::initializer_list&lt;DescriptorBinding&gt;&gt; bindings = { }) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><a href="../../../Generator/"><span class="n">Generator</span><span class="o">&lt;</span><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">descriptor_set_type</span><span class="o">&gt;</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../allocate-029/"><span class="n">allocate</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptorSets</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">initializer_list</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">initializer_list</span><span class="o">&lt;</span><span class="n">DescriptorBinding</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bindings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">}</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../allocate-029/"><em>» more...</em></a></span></p>
 <p>Allocates an array of descriptor sets.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual <a href="../../../Generator/">Generator&lt;UniquePtr&lt;descriptor_set_type&gt;&gt;</a> <a href="../allocate-03/">allocate</a>(
-    <a href="../../../Math/UInt32/">UInt32</a> descriptorSets,
-    std::mdspan&lt;DescriptorBinding, std::dextents&lt;size_t, 2&gt;&gt; bindings) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><a href="../../../Generator/"><span class="n">Generator</span><span class="o">&lt;</span><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">descriptor_set_type</span><span class="o">&gt;</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../allocate-03/"><span class="n">allocate</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptorSets</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">mdspan</span><span class="o">&lt;</span><span class="n">DescriptorBinding</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">dextents</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bindings</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../allocate-03/"><em>» more...</em></a></span></p>
 <p>Allocates an array of descriptor sets.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual <a href="../../../UniquePtr/">UniquePtr&lt;descriptor_set_type&gt;</a> <a href="../allocate-0b/">allocate</a>(
-    <a href="../../../Math/UInt32/">UInt32</a> descriptors,
-    <a href="../../../Generator/">Generator&lt;DescriptorBinding&gt;</a> bindings) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><a href="../../../UniquePtr/"><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">descriptor_set_type</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../allocate-0b/"><span class="n">allocate</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptors</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Generator/"><span class="n">Generator</span><span class="o">&lt;</span><span class="n">DescriptorBinding</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">bindings</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../allocate-0b/"><em>» more...</em></a></span></p>
 <p>Allocates an array of descriptor sets.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual <a href="../../../UniquePtr/">UniquePtr&lt;descriptor_set_type&gt;</a> <a href="../allocate-0a0/">allocate</a>(
-    <a href="../../../Math/UInt32/">UInt32</a> descriptors,
-    <a href="../../../Span/">Span&lt;DescriptorBinding&gt;</a> bindings) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><a href="../../../UniquePtr/"><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">descriptor_set_type</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../allocate-0a0/"><span class="n">allocate</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptors</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Span/"><span class="n">Span</span><span class="o">&lt;</span><span class="n">DescriptorBinding</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">bindings</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../allocate-0a0/"><em>» more...</em></a></span></p>
 <p>Allocates an array of descriptor sets.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual <a href="../../../UniquePtr/">UniquePtr&lt;descriptor_set_type&gt;</a> <a href="../allocate-093/">allocate</a>(
-    <a href="../../../Math/UInt32/">UInt32</a> descriptors,
-    std::initializer_list&lt;DescriptorBinding&gt; bindings) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><a href="../../../UniquePtr/"><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">descriptor_set_type</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../allocate-093/"><span class="n">allocate</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptors</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">initializer_list</span><span class="o">&lt;</span><span class="n">DescriptorBinding</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bindings</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../allocate-093/"><em>» more...</em></a></span></p>
 <p>Allocates an array of descriptor sets.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual <a href="../../../Generator/">Generator&lt;UniquePtr&lt;descriptor_set_type&gt;&gt;</a> <a href="../allocate-092/">allocate</a>(
-    <a href="../../../Math/UInt32/">UInt32</a> descriptorSets,
-    <a href="../../../Math/UInt32/">UInt32</a> descriptors,
-    std::function&lt;Generator&lt;DescriptorBinding&gt;(<a href="../../../Math/UInt32/">UInt32</a>)&gt; bindingFactory) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><a href="../../../Generator/"><span class="n">Generator</span><span class="o">&lt;</span><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">descriptor_set_type</span><span class="o">&gt;</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../allocate-092/"><span class="n">allocate</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptorSets</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptors</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">function</span><span class="o">&lt;</span><span class="n">Generator</span><span class="o">&lt;</span><span class="n">DescriptorBinding</span><span class="o">&gt;</span><span class="p">(</span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bindingFactory</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../allocate-092/"><em>» more...</em></a></span></p>
 <p>Allocates an array of descriptor sets.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual <a href="../../../Generator/">Generator&lt;UniquePtr&lt;descriptor_set_type&gt;&gt;</a> <a href="../allocate-0ac/">allocate</a>(
-    <a href="../../../Math/UInt32/">UInt32</a> descriptorSets,
-    <a href="../../../Math/UInt32/">UInt32</a> descriptors,
-    std::initializer_list&lt;std::initializer_list&lt;DescriptorBinding&gt;&gt; bindings = { }) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><a href="../../../Generator/"><span class="n">Generator</span><span class="o">&lt;</span><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">descriptor_set_type</span><span class="o">&gt;</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../allocate-0ac/"><span class="n">allocate</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptorSets</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptors</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">initializer_list</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">initializer_list</span><span class="o">&lt;</span><span class="n">DescriptorBinding</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bindings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">}</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../allocate-0ac/"><em>» more...</em></a></span></p>
 <p>Allocates an array of descriptor sets.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual <a href="../../../Generator/">Generator&lt;UniquePtr&lt;descriptor_set_type&gt;&gt;</a> <a href="../allocate-08/">allocate</a>(
-    <a href="../../../Math/UInt32/">UInt32</a> descriptorSets,
-    <a href="../../../Math/UInt32/">UInt32</a> descriptors,
-    std::mdspan&lt;DescriptorBinding, std::dextents&lt;size_t, 2&gt;&gt; bindings) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><a href="../../../Generator/"><span class="n">Generator</span><span class="o">&lt;</span><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">descriptor_set_type</span><span class="o">&gt;</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../allocate-08/"><span class="n">allocate</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptorSets</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptors</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">mdspan</span><span class="o">&lt;</span><span class="n">DescriptorBinding</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">dextents</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bindings</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../allocate-08/"><em>» more...</em></a></span></p>
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
@@ -15693,8 +15680,11 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>IDescriptorLayout</p>
-<p>allocate(std::initializer_list)</p>
+<p><a href="../../IDescriptorLayout/"><code>IDescriptorLayout</code></a></p>
+<p><a href="../../IDescriptorLayout/"><code>IDescriptorLayout</code></a></p>
+<p><a href="../../IDescriptorSetLayout/allocate-03b/"><code>allocate(std::initializer_list)</code></a></p>
+<p><a href="../allocate-01/"><code>allocate(std::initializer_list)</code></a></p>
+<p><a href="../allocate-01/"><code>allocate(std::initializer_list)</code></a></p>
 
 
 

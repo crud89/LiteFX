@@ -16437,32 +16437,29 @@
 <h1 id="litefxrenderingcommandbufferdraw"><code>LiteFX::Rendering::CommandBuffer::draw</code><a class="headerlink" href="#litefxrenderingcommandbufferdraw" title="Permanent link">&para;</a></h1>
 <p><code>draw</code> overloads</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L6797">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L6796">litefx/rendering_api.hpp</a>&gt;</code></p>
 <p>Draws a number of vertices from the currently bound vertex buffer.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] virtual void <a href="../../ICommandBuffer/draw-08/">draw</a>(
-    <a href="../../../Math/UInt32/">UInt32</a> vertices,
-    <a href="../../../Math/UInt32/">UInt32</a> instances = 1,
-    <a href="../../../Math/UInt32/">UInt32</a> firstVertex = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> firstInstance = 0) const noexcept = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/draw-08/"><span class="n">draw</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">vertices</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">instances</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstVertex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstInstance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/draw-08/"><em>» more...</em></a></span></p>
 <p>Draws all vertices from the vertex buffer provided in <code>vertexBuffer.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/draw-0a/">draw</a>(
-    <a href="../../IVertexBuffer/">IVertexBuffer</a> const& vertexBuffer,
-    <a href="../../../Math/UInt32/">UInt32</a> instances = 1,
-    <a href="../../../Math/UInt32/">UInt32</a> firstVertex = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> firstInstance = 0) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/draw-0a/"><span class="n">draw</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../IVertexBuffer/"><span class="n">IVertexBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">vertexBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">instances</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstVertex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstInstance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/draw-0a/"><em>» more...</em></a></span></p>
 <p>Draws all vertices from the vertex buffer provided in <code>vertexBuffer.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../draw-0e/">draw</a>(
-    <a href="../vertex_buffer_type/">vertex_buffer_type</a> const& vertexBuffer,
-    <a href="../../../Math/UInt32/">UInt32</a> instances = 1,
-    <a href="../../../Math/UInt32/">UInt32</a> firstVertex = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> firstInstance = 0) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../draw-0e/"><span class="nf">draw</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../vertex_buffer_type/"><span class="n">vertex_buffer_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">vertexBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">instances</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstVertex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstInstance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../draw-0e/"><em>» more...</em></a></span></p>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
@@ -16478,7 +16475,7 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>drawIndirect</p>
+<p><a href="../../ICommandBuffer/drawIndirect-06/"><code>drawIndirect</code></a></p>
 
 
 

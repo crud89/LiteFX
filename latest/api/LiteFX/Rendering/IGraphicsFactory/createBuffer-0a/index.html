@@ -16411,15 +16411,14 @@
 <h1 id="litefxrenderingigraphicsfactorycreatebuffer"><code>LiteFX::Rendering::IGraphicsFactory::createBuffer</code><a class="headerlink" href="#litefxrenderingigraphicsfactorycreatebuffer" title="Permanent link">&para;</a></h1>
 <p>Creates a buffer that can be bound to a specific descriptor.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L8440">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../../../SharedPtr/">SharedPtr&lt;IBuffer&gt;</a> createBuffer(
-    <a href="../../IDescriptorSetLayout/">IDescriptorSetLayout</a> const& descriptorSet,
-    <a href="../../../Math/UInt32/">UInt32</a> binding,
-    <a href="../../ResourceHeap/">ResourceHeap</a> heap,
-    <a href="../../../Math/UInt32/">UInt32</a> elements = 1,
-    <a href="../../ResourceUsage/">ResourceUsage</a> usage = ResourceUsage::Default,
-    <a href="../../AllocationBehavior/">AllocationBehavior</a> allocationBehavior = AllocationBehavior::Default) const;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L8437">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IBuffer</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">createBuffer</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../IDescriptorSetLayout/"><span class="n">IDescriptorSetLayout</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">descriptorSet</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">binding</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../ResourceHeap/"><span class="n">ResourceHeap</span></a><span class="w"> </span><span class="n">heap</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">elements</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../ResourceUsage/"><span class="n">ResourceUsage</span></a><span class="w"> </span><span class="n">usage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ResourceUsage</span><span class="o">:</span><span class="o">:</span><span class="n">Default</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../AllocationBehavior/"><span class="n">AllocationBehavior</span></a><span class="w"> </span><span class="n">allocationBehavior</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AllocationBehavior</span><span class="o">:</span><span class="o">:</span><span class="n">Default</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p>The instance of the buffer.</p>

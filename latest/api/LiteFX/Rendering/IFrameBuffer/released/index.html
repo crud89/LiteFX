@@ -15798,14 +15798,14 @@
 <h1 id="litefxrenderingiframebufferreleased"><code>LiteFX::Rendering::IFrameBuffer::released</code><a class="headerlink" href="#litefxrenderingiframebufferreleased" title="Permanent link">&para;</a></h1>
 <p>Invoked when the frame buffer gets released.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L7348">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">mutable
-<a href="../../../Event/">Event&lt;ReleasedEventArgs&gt;</a> released;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L7349">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">mutable</span><span class="w">
+</span><a href="../../../Event/"><span class="n">Event</span><span class="o">&lt;</span><span class="n">ReleasedEventArgs</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">released</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Note that it is no longer valid to access the frame buffer when receiving this event. The only thing that can be assumed to still be valid is the pointer to the frame buffer. The intent of this event is to release any resources that depend on the frame buffer instance. Internally, render passes and pipelines use this event to release cached frame buffer states they hold, such as descriptor sets for input attachment bindings or command buffers associated with the frame buffer.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>~IFrameBuffer</p>
+<p><a href="../2destructor/"><code>~IFrameBuffer</code></a></p>
 
 
 

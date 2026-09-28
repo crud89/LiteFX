@@ -16107,29 +16107,24 @@
 <h1 id="litefxrenderingigraphicsfactoryoperator"><code>LiteFX::Rendering::IGraphicsFactory::operator=</code><a class="headerlink" href="#litefxrenderingigraphicsfactoryoperator" title="Permanent link">&para;</a></h1>
 <p>Assignment operators</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Core/include/litefx/containers.hpp#L901">litefx/containers.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Core/include/litefx/containers.hpp#L948">litefx/containers.hpp</a>&gt;</code></p>
 <p>Copy assignment operator</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] constexpr <a href="../">IGraphicsFactory</a>& <a href="../operator_assign-06/">operator=</a>(<a href="../">IGraphicsFactory</a> const& other) = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><a href="../"><span class="n">IGraphicsFactory</span></a><span class="o">&amp;</span><span class="w"> </span><a href="../operator_assign-06/"><span class="k">operator</span><span class="o">=</span></a><span class="p">(</span><a href="../"><span class="n">IGraphicsFactory</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../operator_assign-06/"><em>» more...</em></a></span></p>
 <p>Copy assignment operator</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../../../SharedObject/">SharedObject</a>& <a href="../../../SharedObject/operator_assign-06/">operator=</a>(<a href="../../../SharedObject/">SharedObject</a> const& other) = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../../../SharedObject/"><span class="n">SharedObject</span></a><span class="o">&amp;</span><span class="w"> </span><a href="../../../SharedObject/operator_assign-06/"><span class="k">operator</span><span class="o">=</span></a><span class="p">(</span><a href="../../../SharedObject/"><span class="n">SharedObject</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../../SharedObject/operator_assign-06/"><em>» more...</em></a></span></p>
 <p>Move assignment operator</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] constexpr <a href="../">IGraphicsFactory</a>& <a href="../operator_assign-00/">operator=</a>(<a href="../">IGraphicsFactory</a>&& other) noexcept = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><a href="../"><span class="n">IGraphicsFactory</span></a><span class="o">&amp;</span><span class="w"> </span><a href="../operator_assign-00/"><span class="k">operator</span><span class="o">=</span></a><span class="p">(</span><a href="../"><span class="n">IGraphicsFactory</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../operator_assign-00/"><em>» more...</em></a></span></p>
 <p>Move assignment operator</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../../../SharedObject/">SharedObject</a>& <a href="../../../SharedObject/operator_assign-07/">operator=</a>(<a href="../../../SharedObject/">SharedObject</a>&& other) noexcept = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../../../SharedObject/"><span class="n">SharedObject</span></a><span class="o">&amp;</span><span class="w"> </span><a href="../../../SharedObject/operator_assign-07/"><span class="k">operator</span><span class="o">=</span></a><span class="p">(</span><a href="../../../SharedObject/"><span class="n">SharedObject</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../../SharedObject/operator_assign-07/"><em>» more...</em></a></span></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">enable_shared_from_this&lt;SharedObject&gt;& <a href="../../../SharedObject/operator_assign-05/">operator=</a>(enable_shared_from_this&lt;SharedObject&gt; const& value) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="n">enable_shared_from_this</span><span class="o">&lt;</span><span class="n">SharedObject</span><span class="o">&gt;</span><span class="o">&amp;</span><span class="w"> </span><a href="../../../SharedObject/operator_assign-05/"><span class="k">operator</span><span class="o">=</span></a><span class="p">(</span><span class="n">enable_shared_from_this</span><span class="o">&lt;</span><span class="n">SharedObject</span><span class="o">&gt;</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../../SharedObject/operator_assign-05/"><em>» more...</em></a></span></p>
 

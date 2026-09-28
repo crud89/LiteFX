@@ -28093,17 +28093,16 @@
 <h1 id="litefxrenderingbackendsdirectx12commandbuffersetdepthbounds"><code>LiteFX::Rendering::Backends::DirectX12CommandBuffer::setDepthBounds</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12commandbuffersetdepthbounds" title="Permanent link">&para;</a></h1>
 <p>Sets the depth range for the depth bounds test.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L1337">litefx/backends/dx12.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] virtual void setDepthBounds(
-    <a href="../../../../Math/Float/">Float</a> minBounds,
-    <a href="../../../../Math/Float/">Float</a> maxBounds) const noexcept override;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L1337">litefx/backends/dx12.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">setDepthBounds</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/Float/"><span class="n">Float</span></a><span class="w"> </span><span class="n">minBounds</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/Float/"><span class="n">Float</span></a><span class="w"> </span><span class="n">maxBounds</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">override</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>In order to use the depth bounds test, the currently bound render pipeline must have been created with the depth bounds test enabled, which requires the device to be created with the <a href="../../../GraphicsDeviceFeatures/DepthBoundsTest/"><code>GraphicsDeviceFeatures::DepthBoundsTest</code></a> enabled.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>GraphicsDeviceFeatures::DepthBoundsTest</p>
-<p>DepthStencilState::DepthState::DepthBoundsTestEnable</p>
+<p><a href="../../../GraphicsDeviceFeatures/DepthBoundsTest/"><code>GraphicsDeviceFeatures::DepthBoundsTest</code></a></p>
+<p><a href="../../../DepthStencilState/DepthState-0f/DepthBoundsTestEnable/"><code>DepthStencilState::DepthState::DepthBoundsTestEnable</code></a></p>
 
 
 

@@ -15417,39 +15417,35 @@
 <h1 id="litefxrenderingrendertargetrendertarget"><code>LiteFX::Rendering::RenderTarget::RenderTarget</code><a class="headerlink" href="#litefxrenderingrendertargetrendertarget" title="Permanent link">&para;</a></h1>
 <p>Constructors</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L2814">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L2813">litefx/rendering_api.hpp</a>&gt;</code></p>
 <p>Creates a copy of a render target.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../2constructor-0a/">RenderTarget</a>(<a href="../">RenderTarget</a> const& _other);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../2constructor-0a/"><span class="n">RenderTarget</span></a><span class="p">(</span><a href="../"><span class="n">RenderTarget</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">_other</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-0a/"><em>» more...</em></a></span></p>
 <p>Takes over another instance of a render target.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../2constructor-042/">RenderTarget</a>(<a href="../">RenderTarget</a>&& _other) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../2constructor-042/"><span class="n">RenderTarget</span></a><span class="p">(</span><a href="../"><span class="n">RenderTarget</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">_other</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-042/"><em>» more...</em></a></span></p>
 <p>Initializes the render target.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] explicit <a href="../2constructor-040/">RenderTarget</a>(
-    <a href="../../../StringView/">StringView</a> name,
-    <a href="../../../Math/UInt32/">UInt32</a> location,
-    <a href="../../RenderTargetType/">RenderTargetType</a> type,
-    <a href="../../Format/">Format</a> format,
-    <a href="../../RenderTargetFlags/">RenderTargetFlags</a> flags = RenderTargetFlags::None,
-    <a href="../../../Math/Vector4f/">Vector4f</a> const& clearValues = { 0.f , 0.f, 0.f, 0.f },
-    <a href="../../IRenderTarget/BlendState-09/">BlendState</a> const& blendState = {});
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">explicit</span><span class="w"> </span><a href="../2constructor-040/"><span class="n">RenderTarget</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../StringView/"><span class="n">StringView</span></a><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">location</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../RenderTargetType/"><span class="n">RenderTargetType</span></a><span class="w"> </span><span class="n">type</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../Format/"><span class="n">Format</span></a><span class="w"> </span><span class="n">format</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../RenderTargetFlags/"><span class="n">RenderTargetFlags</span></a><span class="w"> </span><span class="n">flags</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">RenderTargetFlags</span><span class="o">:</span><span class="o">:</span><span class="n">None</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/Vector4f/"><span class="n">Vector4f</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">clearValues</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">0.f</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="mf">0.f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.f</span><span class="w"> </span><span class="p">}</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IRenderTarget/BlendState-09/"><span class="n">BlendState</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">blendState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-040/"><em>» more...</em></a></span></p>
 <p>Initializes the render target.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] explicit <a href="../2constructor-09/">RenderTarget</a>(
-    <a href="../../../Math/UInt64/">UInt64</a> uid,
-    <a href="../../../Math/UInt32/">UInt32</a> location,
-    <a href="../../RenderTargetType/">RenderTargetType</a> type,
-    <a href="../../Format/">Format</a> format,
-    <a href="../../RenderTargetFlags/">RenderTargetFlags</a> flags = RenderTargetFlags::None,
-    <a href="../../../Math/Vector4f/">Vector4f</a> const& clearValues = { 0.f , 0.f, 0.f, 0.f },
-    <a href="../../IRenderTarget/BlendState-09/">BlendState</a> const& blendState = {});
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">explicit</span><span class="w"> </span><a href="../2constructor-09/"><span class="n">RenderTarget</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">uid</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">location</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../RenderTargetType/"><span class="n">RenderTargetType</span></a><span class="w"> </span><span class="n">type</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../Format/"><span class="n">Format</span></a><span class="w"> </span><span class="n">format</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../RenderTargetFlags/"><span class="n">RenderTargetFlags</span></a><span class="w"> </span><span class="n">flags</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">RenderTargetFlags</span><span class="o">:</span><span class="o">:</span><span class="n">None</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/Vector4f/"><span class="n">Vector4f</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">clearValues</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">0.f</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="mf">0.f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.f</span><span class="w"> </span><span class="p">}</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IRenderTarget/BlendState-09/"><span class="n">BlendState</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">blendState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-09/"><em>» more...</em></a></span></p>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>

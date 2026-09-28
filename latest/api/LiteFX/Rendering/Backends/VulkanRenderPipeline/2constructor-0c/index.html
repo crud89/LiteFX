@@ -24863,17 +24863,16 @@
 <h1 id="litefxrenderingbackendsvulkanrenderpipelinevulkanrenderpipeline"><code>LiteFX::Rendering::Backends::VulkanRenderPipeline::VulkanRenderPipeline</code><a class="headerlink" href="#litefxrenderingbackendsvulkanrenderpipelinevulkanrenderpipeline" title="Permanent link">&para;</a></h1>
 <p>Initializes a new Vulkan render pipeline.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L1649">litefx/backends/vulkan.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] explicit VulkanRenderPipeline(
-    <a href="../../VulkanRenderPass/">VulkanRenderPass</a> const& renderPass,
-    <a href="../../../../SharedPtr/">SharedPtr&lt;VulkanPipelineLayout&gt;</a> const& layout,
-    <a href="../../../../SharedPtr/">SharedPtr&lt;VulkanShaderProgram&gt;</a> const& shaderProgram,
-    <a href="../../../../SharedPtr/">SharedPtr&lt;VulkanInputAssembler&gt;</a> const& inputAssembler,
-    <a href="../../../../SharedPtr/">SharedPtr&lt;VulkanRasterizer&gt;</a> const& rasterizer,
-    <a href="../../../MultiSamplingLevel/">MultiSamplingLevel</a> samples = MultiSamplingLevel::x1,
-    bool enableAlphaToCoverage = false,
-    <a href="../../../../String/">String</a> const& name = "");
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L1649">litefx/backends/vulkan.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">explicit</span><span class="w"> </span><span class="n">VulkanRenderPipeline</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../VulkanRenderPass/"><span class="n">VulkanRenderPass</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">renderPass</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">VulkanPipelineLayout</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">layout</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">VulkanShaderProgram</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">shaderProgram</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">VulkanInputAssembler</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">inputAssembler</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">VulkanRasterizer</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">rasterizer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../MultiSamplingLevel/"><span class="n">MultiSamplingLevel</span></a><span class="w"> </span><span class="n">samples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MultiSamplingLevel</span><span class="o">:</span><span class="o">:</span><span class="n">x1</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">enableAlphaToCoverage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../String/"><span class="n">String</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;</span><span class="s">&quot;</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">

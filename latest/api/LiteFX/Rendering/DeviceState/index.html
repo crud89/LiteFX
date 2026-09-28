@@ -15438,8 +15438,8 @@
 <h1 id="litefxrenderingdevicestate"><code>LiteFX::Rendering::DeviceState</code><a class="headerlink" href="#litefxrenderingdevicestate" title="Permanent link">&para;</a></h1>
 <p>A class that can be used to manage the state of a <a href="../IGraphicsDevice/"><code>IGraphicsDevice</code></a>.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L2043">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">class [[dllimport, dllexport]] DeviceState;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L2042">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="nc">DeviceState</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>The device state makes managing resources created by a device easier, since you do not have to worry about storage and release order. Note, however, that this is not free. Requesting a resource requires a lookup within a hash-map. Also device states are not specialized for the concrete device, so you can only work with interfaces. This implies potentially inefficient upcasting of the state resource when its passed to another object. You have to decide if or to which degree you want to rely on storing resources in a device state.</p>
@@ -15477,8 +15477,8 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>StateResource</p>
-<p>IGraphicsDevice</p>
+<p><a href="../StateResource/"><code>StateResource</code></a></p>
+<p><a href="../IGraphicsDevice/"><code>IGraphicsDevice</code></a></p>
 
 
 

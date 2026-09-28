@@ -9279,73 +9279,60 @@
 <h1 id="litefxmathmatrixmatrix"><code>LiteFX::Math::Matrix::Matrix</code><a class="headerlink" href="#litefxmathmatrixmatrix" title="Permanent link">&para;</a></h1>
 <p>Constructors</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Math/include/litefx/matrix.hpp#L64">litefx/matrix.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Math/include/litefx/matrix.hpp#L64">litefx/matrix.hpp</a>&gt;</code></p>
 <p>Initializes an empty matrix.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-005/">Matrix</a>() noexcept = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-005/"><span class="n">Matrix</span></a><span class="p">(</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-005/"><em>» more...</em></a></span></p>
 <p>Initializes a matrix with the values provided by another matrix.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-04c/">Matrix</a>(<a href="../">Matrix</a> const& _other) = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-04c/"><span class="n">Matrix</span></a><span class="p">(</span><a href="../"><span class="n">Matrix</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">_other</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-04c/"><em>» more...</em></a></span></p>
 <p>Initializes a matrix by taking over another matrix.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-050/">Matrix</a>(<a href="../">Matrix</a>&& _other) noexcept = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-050/"><span class="n">Matrix</span></a><span class="p">(</span><a href="../"><span class="n">Matrix</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">_other</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-050/"><em>» more...</em></a></span></p>
 <p>Initializes a matrix where all elements take the value provided by <code>val.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-05f/">Matrix</a>(T val) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-05f/"><span class="n">Matrix</span></a><span class="p">(</span><span class="n">T</span><span class="w"> </span><span class="n">val</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-05f/"><em>» more...</em></a></span></p>
 <p>Initializes the matrix with a set of values.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-044/">Matrix</a>(std::initializer_list&lt;scalar_type&gt; elements) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-044/"><span class="n">Matrix</span></a><span class="p">(</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">initializer_list</span><span class="o">&lt;</span><span class="n">scalar_type</span><span class="o">&gt;</span><span class="w"> </span><span class="n">elements</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-044/"><em>» more...</em></a></span></p>
 <p>Initializes a matrix from a DirectX matrix instance.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-030/">Matrix</a>(DirectX::XMFLOAT3X3 const& mat) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-030/"><span class="n">Matrix</span></a><span class="p">(</span><span class="n">DirectX</span><span class="o">:</span><span class="o">:</span><span class="n">XMFLOAT3X3</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-030/"><em>» more...</em></a></span></p>
 <p>Initializes a matrix from a DirectX matrix instance.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-01/">Matrix</a>(DirectX::XMFLOAT3X4 const& mat) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-01/"><span class="n">Matrix</span></a><span class="p">(</span><span class="n">DirectX</span><span class="o">:</span><span class="o">:</span><span class="n">XMFLOAT3X4</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-01/"><em>» more...</em></a></span></p>
 <p>Initializes a matrix from a DirectX matrix instance.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-0c/">Matrix</a>(DirectX::XMFLOAT4X3 const& mat) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-0c/"><span class="n">Matrix</span></a><span class="p">(</span><span class="n">DirectX</span><span class="o">:</span><span class="o">:</span><span class="n">XMFLOAT4X3</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-0c/"><em>» more...</em></a></span></p>
 <p>Initializes a matrix from a DirectX matrix instance.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-09/">Matrix</a>(DirectX::XMFLOAT4X4 const& mat) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-09/"><span class="n">Matrix</span></a><span class="p">(</span><span class="n">DirectX</span><span class="o">:</span><span class="o">:</span><span class="n">XMFLOAT4X4</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-09/"><em>» more...</em></a></span></p>
 <p>Initializes a matrix from a glm matrix instance.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-001/">Matrix</a>(glm::mat&lt;mat_cols, mat_rows, scalar_type&gt; const& mat) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-001/"><span class="n">Matrix</span></a><span class="p">(</span><span class="n">glm</span><span class="o">:</span><span class="o">:</span><span class="n">mat</span><span class="o">&lt;</span><span class="n">mat_cols</span><span class="p">,</span><span class="w"> </span><span class="n">mat_rows</span><span class="p">,</span><span class="w"> </span><span class="n">scalar_type</span><span class="o">&gt;</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-001/"><em>» more...</em></a></span></p>
 <p>Initializes a matrix with an array of values.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-0d/">Matrix</a>(<a href="../array_type/">array_type</a>&& array) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-0d/"><span class="n">Matrix</span></a><span class="p">(</span><a href="../array_type/"><span class="n">array_type</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">array</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-0d/"><em>» more...</em></a></span></p>
 <p>Initializes a matrix from a glm matrix instance.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-0f/">Matrix</a>(glm::mat&lt;mat_cols, mat_rows, scalar_type&gt;&& mat) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-0f/"><span class="n">Matrix</span></a><span class="p">(</span><span class="n">glm</span><span class="o">:</span><span class="o">:</span><span class="n">mat</span><span class="o">&lt;</span><span class="n">mat_cols</span><span class="p">,</span><span class="w"> </span><span class="n">mat_rows</span><span class="p">,</span><span class="w"> </span><span class="n">scalar_type</span><span class="o">&gt;</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-0f/"><em>» more...</em></a></span></p>
 <p>Initializes a copy from another matrix, that might have different dimensions.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    unsigned int rows,
-    unsigned int cols&gt;
-constexpr <a href="../2constructor-031/">Matrix</a>(<a href="../">Matrix&lt;scalar_type, rows, cols&gt;</a> const& _other);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">rows</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">cols</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-031/"><span class="n">Matrix</span></a><span class="p">(</span><a href="../"><span class="n">Matrix</span><span class="o">&lt;</span><span class="n">scalar_type</span><span class="p">,</span><span class="w"> </span><span class="n">rows</span><span class="p">,</span><span class="w"> </span><span class="n">cols</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">_other</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-031/"><em>» more...</em></a></span></p>
 <h2 id="template-parameters">Template Parameters<a class="headerlink" href="#template-parameters" title="Permanent link">&para;</a></h2>

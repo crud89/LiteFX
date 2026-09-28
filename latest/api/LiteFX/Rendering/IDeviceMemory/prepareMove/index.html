@@ -15508,16 +15508,16 @@
 <h1 id="litefxrenderingidevicememorypreparemove"><code>LiteFX::Rendering::IDeviceMemory::prepareMove</code><a class="headerlink" href="#litefxrenderingidevicememorypreparemove" title="Permanent link">&para;</a></h1>
 <p>An event that gets invoked to prepare a resource for a move operation.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L3846">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">mutable
-<a href="../../../Event/">Event&lt;PrepareMoveEventArgs const&&gt;</a> prepareMove;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L3845">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">mutable</span><span class="w">
+</span><a href="../../../Event/"><span class="n">Event</span><span class="o">&lt;</span><span class="n">PrepareMoveEventArgs</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">prepareMove</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>The purpose of this event is to prepare a barrier that synchronizes the resource with other accesses. The event arguments of this event contain a reference to a barrier instance, that can be used to insert a barrier for the resource. Note that the transition must be supported on the underlying command queue that executes the move.</p>
 <p>Note that both, the DirectX 12 as well as the Vulkan backend expect images to be in <a href="../../ImageLayout/"><code>ImageLayout::Common</code></a> layout before moving them.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>IGraphicsFactory::defragment</p>
-<p>https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#command-queue-layout-compatibility</p>
+<p><a href="../../IGraphicsFactory/beginDefragmentation/"><code>IGraphicsFactory::beginDefragmentation</code></a></p>
+<p><a href="https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#command-queue-layout-compatibility">https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#command-queue-layout-compatibility</a></p>
 
 
 

@@ -4557,11 +4557,11 @@
 <h1 id="litefxdelegate"><code>LiteFX::Delegate</code><a class="headerlink" href="#litefxdelegate" title="Permanent link">&para;</a></h1>
 <p>Represents a handler for an <a href="../Event/"><code>Event</code></a>, that is assigned a unique token when created, so that it can be identified later.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/AppModel/include/litefx/app.hpp#L91">litefx/app.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename TResult,
-    typename... TArgs&gt;
-class Delegate final</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/AppModel/include/litefx/app.hpp#L91">litefx/app.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TResult</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w"> </span><span class="n">TArgs</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">class</span><span class="w"> </span><span class="nc">Delegate</span><span class="w"> </span><span class="k">final</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Since a <code>std::function</code> or callable is non-comparable, it is not possible to identify and remove event handlers from an event, after registering them. To support this functionality, the event handler will be encapsulated in a delegate, which gets assigned with a token. This token is unique for the event, the delegate has been registered to.</p>

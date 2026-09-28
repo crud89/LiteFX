@@ -15508,11 +15508,11 @@
 <h1 id="litefxrenderingbarrierbuilder"><code>LiteFX::Rendering::BarrierBuilder</code><a class="headerlink" href="#litefxrenderingbarrierbuilder" title="Permanent link">&para;</a></h1>
 <p>Base class for a builder that builds a <a href="../Barrier-00/"><code>Barrier</code></a>.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_builders.hpp#L16">litefx/rendering_builders.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TBarrier&gt;
-requires meta::implements&lt;TBarrier, Barrier&lt;typename TBarrier::buffer_type, typename TBarrier::image_type&gt;&gt;
-class BarrierBuilder
-    : public <a href="../../Builder-0e7/">Builder&lt;TBarrier&gt;</a></code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_builders.hpp#L16">litefx/rendering_builders.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TBarrier</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">meta</span><span class="o">:</span><span class="o">:</span><span class="n">implements</span><span class="o">&lt;</span><span class="n">TBarrier</span><span class="p">,</span><span class="w"> </span><span class="n">Barrier</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TBarrier</span><span class="o">:</span><span class="o">:</span><span class="n">buffer_type</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">TBarrier</span><span class="o">:</span><span class="o">:</span><span class="n">image_type</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">class</span><span class="w"> </span><span class="nc">BarrierBuilder</span><span class="w">
+</span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><a href="../../Builder-0e7/"><span class="n">Builder</span><span class="o">&lt;</span><span class="n">TBarrier</span><span class="o">&gt;</span></a></code></pre></div>
 
 <h2 id="base-classes">Base Classes<a class="headerlink" href="#base-classes" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
@@ -15603,8 +15603,8 @@ class BarrierBuilder
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>Barrier</p>
-<p>IBarrier</p>
+<p><a href="../Barrier-00/"><code>Barrier</code></a></p>
+<p><a href="../IBarrier/"><code>IBarrier</code></a></p>
 
 
 

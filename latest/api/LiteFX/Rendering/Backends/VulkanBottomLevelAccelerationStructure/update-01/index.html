@@ -24988,25 +24988,23 @@
 <h1 id="litefxrenderingbackendsvulkanbottomlevelaccelerationstructureupdate"><code>LiteFX::Rendering::Backends::VulkanBottomLevelAccelerationStructure::update</code><a class="headerlink" href="#litefxrenderingbackendsvulkanbottomlevelaccelerationstructureupdate" title="Permanent link">&para;</a></h1>
 <p>Performs an update on the acceleration structure.</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L314">litefx/backends/vulkan.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L314">litefx/backends/vulkan.hpp</a>&gt;</code></p>
 <p>Performs an update on the acceleration structure.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../../IAccelerationStructure/update/">update</a>(
-    <a href="../../../ICommandBuffer/">ICommandBuffer</a> const& commandBuffer,
-    <a href="../../../../SharedPtr/">SharedPtr&lt;IBuffer const&gt;</a> const& scratchBuffer = nullptr,
-    <a href="../../../../SharedPtr/">SharedPtr&lt;IBuffer const&gt;</a> const& buffer = nullptr,
-    <a href="../../../../Math/UInt64/">UInt64</a> offset = 0,
-    <a href="../../../../Math/UInt64/">UInt64</a> maxSize = 0);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../../IAccelerationStructure/update/"><span class="n">update</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../ICommandBuffer/"><span class="n">ICommandBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">commandBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">scratchBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">maxSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../../IAccelerationStructure/update/"><em>» more...</em></a></span></p>
 <p>Performs an update on the acceleration structure.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../update-02/">update</a>(
-    <a href="../../VulkanCommandBuffer/">VulkanCommandBuffer</a> const& commandBuffer,
-    <a href="../../../../SharedPtr/">SharedPtr&lt;IVulkanBuffer const&gt;</a> const& scratchBuffer = nullptr,
-    <a href="../../../../SharedPtr/">SharedPtr&lt;IVulkanBuffer const&gt;</a> const& buffer = nullptr,
-    <a href="../../../../Math/UInt64/">UInt64</a> offset = 0,
-    <a href="../../../../Math/UInt64/">UInt64</a> maxSize = 0);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../update-02/"><span class="n">update</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../VulkanCommandBuffer/"><span class="n">VulkanCommandBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">commandBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IVulkanBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">scratchBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IVulkanBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">maxSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../update-02/"><em>» more...</em></a></span></p>
 <h2 id="exceptions">Exceptions<a class="headerlink" href="#exceptions" title="Permanent link">&para;</a></h2>
@@ -25032,7 +25030,7 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>build</p>
+<p><a href="../../../IAccelerationStructure/build/"><code>build</code></a></p>
 
 
 

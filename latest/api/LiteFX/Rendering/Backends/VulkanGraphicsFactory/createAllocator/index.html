@@ -25775,11 +25775,10 @@
 <h1 id="litefxrenderingbackendsvulkangraphicsfactorycreateallocator"><code>LiteFX::Rendering::Backends::VulkanGraphicsFactory::createAllocator</code><a class="headerlink" href="#litefxrenderingbackendsvulkangraphicsfactorycreateallocator" title="Permanent link">&para;</a></h1>
 <p>Creates a virtual allocator that can be used to manage allocation from a custom block of memory.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L2298">litefx/backends/vulkan.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, nodiscard, dllexport]] virtual <a href="../../../VirtualAllocator/">VirtualAllocator</a> createAllocator(
-    <a href="../../../../Math/UInt64/">UInt64</a> overallMemory,
-    <a href="../../../AllocationAlgorithm/">AllocationAlgorithm</a> algorithm = AllocationAlgorithm::Default) const override;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L2298">litefx/backends/vulkan.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">nodiscard</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../../VirtualAllocator/"><span class="n">VirtualAllocator</span></a><span class="w"> </span><span class="n">createAllocator</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">overallMemory</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../AllocationAlgorithm/"><span class="n">AllocationAlgorithm</span></a><span class="w"> </span><span class="n">algorithm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AllocationAlgorithm</span><span class="o">:</span><span class="o">:</span><span class="n">Default</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="p">;</span></code></pre></div>
 
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p>The instance of the virtual allocator.</p>

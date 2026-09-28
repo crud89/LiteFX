@@ -4794,12 +4794,12 @@
 <h1 id="litefxmetais_implicitly_constructible_v"><code>LiteFX::meta::is_implicitly_constructible_v</code><a class="headerlink" href="#litefxmetais_implicitly_constructible_v" title="Permanent link">&para;</a></h1>
 <p>Evalues to <code>true</code> or <code>false</code>, depending if <code>T</code> contains an implicit constructor that takes <code>TArg</code> and <code>TArgs</code> as arguments.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Core/include/litefx/traits.hpp#L87">litefx/traits.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename T,
-    typename TArg,
-    typename... TArgs&gt;
-constexpr bool is_implicitly_constructible_v = is_explicitly_constructible_t&lt;T, TArg, TArgs...&gt;::value;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Core/include/litefx/traits.hpp#L87">litefx/traits.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TArg</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w"> </span><span class="n">TArgs</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">constexpr</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">is_implicitly_constructible_v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">is_explicitly_constructible_t</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">TArg</span><span class="p">,</span><span class="w"> </span><span class="n">TArgs</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="o">&gt;</span><span class="o">:</span><span class="o">:</span><span class="n">value</span><span class="p">;</span></code></pre></div>
 
 <h2 id="template-parameters">Template Parameters<a class="headerlink" href="#template-parameters" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">

@@ -28104,9 +28104,8 @@
 <h1 id="litefxrenderingbackendsdirectx12commandbuffertrack"><code>LiteFX::Rendering::Backends::DirectX12CommandBuffer::track</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12commandbuffertrack" title="Permanent link">&para;</a></h1>
 <p>Sets up tracking for a buffer, so that it will not be destroyed until the command buffer has been executed.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L1310">litefx/backends/dx12.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] virtual void track(<a href="../../../../SharedPtr/">SharedPtr&lt;ISampler const&gt;</a> sampler) const override;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L1310">litefx/backends/dx12.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">track</span><span class="p">(</span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">ISampler</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">sampler</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>When working with resources, often times you only need them for a single execution cycle of a command buffer. Having to manually check if the command buffer has been executed (by waiting for it's submission fence on the target queue) and releasing the resource afterwards can be difficult and intricate. Resource tracking allows the command buffer to store a reference of a resource and releasing it at some point after the command buffer has been executed automatically. Note that this does not automatically destroy the resource, which only happens if all references to it are released. However, if the only reference left is the one that is tracked by the command buffer, this process also destroys the resource.</p>
@@ -28120,8 +28119,8 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>track(SharedPtr≤const IImage≥)</p>
-<p>track(SharedPtr≤const ISampler≥)</p>
+<p><a href="../track-0c/"><code>track(SharedPtr&lt;const IImage&gt;)</code></a></p>
+<p><a href="../track-0c/"><code>track(SharedPtr&lt;const ISampler&gt;)</code></a></p>
 
 
 

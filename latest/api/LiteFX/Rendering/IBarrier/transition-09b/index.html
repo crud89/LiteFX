@@ -15386,18 +15386,17 @@
 <h1 id="litefxrenderingibarriertransition"><code>LiteFX::Rendering::IBarrier::transition</code><a class="headerlink" href="#litefxrenderingibarriertransition" title="Permanent link">&para;</a></h1>
 <p>Inserts an image barrier that blocks access to a sub-resource range of <code>image</code> of the types contained in <code>accessAfter</code> for subsequent commands until previous commands have finished accesses contained in <code>accessBefore</code> and transitions the sub-resource into <code>layout.</code></p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L4822">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] constexpr void transition(
-    <a href="../../IImage/">IImage</a> const& image,
-    <a href="../../../Math/UInt32/">UInt32</a> level,
-    <a href="../../../Math/UInt32/">UInt32</a> levels,
-    <a href="../../../Math/UInt32/">UInt32</a> layer,
-    <a href="../../../Math/UInt32/">UInt32</a> layers,
-    <a href="../../../Math/UInt32/">UInt32</a> plane,
-    <a href="../../ResourceAccess/">ResourceAccess</a> accessBefore,
-    <a href="../../ResourceAccess/">ResourceAccess</a> accessAfter,
-    <a href="../../ImageLayout/">ImageLayout</a> layout);
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L4822">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">transition</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../IImage/"><span class="n">IImage</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">image</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">level</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">levels</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">layer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">layers</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">plane</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../ResourceAccess/"><span class="n">ResourceAccess</span></a><span class="w"> </span><span class="n">accessBefore</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../ResourceAccess/"><span class="n">ResourceAccess</span></a><span class="w"> </span><span class="n">accessAfter</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../ImageLayout/"><span class="n">ImageLayout</span></a><span class="w"> </span><span class="n">layout</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">

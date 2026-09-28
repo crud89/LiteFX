@@ -5457,11 +5457,10 @@
 <h1 id="litefxapponbackendstop"><code>LiteFX::App::onBackendStop</code><a class="headerlink" href="#litefxapponbackendstop" title="Permanent link">&para;</a></h1>
 <p>Sets a callback that is called, if a backend is stopped.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/AppModel/include/litefx/app.hpp#L509">litefx/app.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TBackend&gt;
-requires meta::implements&lt;TBackend, IBackend&gt;
-void onBackendStop(std::function&lt;void(TBackend*)&gt; const& callback);
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/AppModel/include/litefx/app.hpp#L509">litefx/app.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TBackend</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">meta</span><span class="o">:</span><span class="o">:</span><span class="n">implements</span><span class="o">&lt;</span><span class="n">TBackend</span><span class="p">,</span><span class="w"> </span><span class="n">IBackend</span><span class="o">&gt;</span><span class="w">
+</span><span class="kt">void</span><span class="w"> </span><span class="n">onBackendStop</span><span class="p">(</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">(</span><span class="n">TBackend</span><span class="o">*</span><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">callback</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Different to the <a href="../backendStopped/"><code>backendStopped</code></a> event, this event can be strongly typed at compile time, thus different callbacks can be provided per backend type without requiring to differentiate them at run-time.</p>
@@ -5482,8 +5481,8 @@ void onBackendStop(std::function&lt;void(TBackend*)&gt; const& callback);
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>onBackendStart</p>
-<p>backendStopped</p>
+<p><a href="../onBackendStart/"><code>onBackendStart</code></a></p>
+<p><a href="../backendStopped/"><code>backendStopped</code></a></p>
 
 
 

@@ -4795,12 +4795,12 @@
 <h1 id="litefxbuilder"><code>LiteFX::Builder</code><a class="headerlink" href="#litefxbuilder" title="Permanent link">&para;</a></h1>
 <p>Describes an generic builder type.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Core/include/litefx/containers.hpp#L799">litefx/containers.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename T,
-    typename TParent = std::nullptr_t,
-    typename TPointer = <a href="../UniquePtr/">UniquePtr&lt;T&gt;</a>&gt;
-class Builder;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Core/include/litefx/containers.hpp#L846">litefx/containers.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TParent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">nullptr_t</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TPointer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><a href="../UniquePtr/"><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span></a><span class="o">&gt;</span><span class="w">
+</span><span class="k">class</span><span class="w"> </span><span class="nc">Builder</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Builders are helper classes to create objects or object hierarchies. A builder is called <em>root builder</em>, if <code>TParent</code> is set to <code>std::nullptr_t</code>, otherwise it is called <em>child builder</em> and <code>TParent</code> is set to the type of the parent builder in the hierarchy. A builder can be a child builder to either a root builder or another child builder. However, at the top of the hierarchy there needs to be one root builder and each hierarchy can only have one root builder.</p>
@@ -4878,7 +4878,7 @@ class Builder;</code></pre>
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>https://github.com/crud89/LiteFX/wiki/Builders</p>
+<p><a href="https://github.com/crud89/LiteFX/wiki/Builders">https://github.com/crud89/LiteFX/wiki/Builders</a></p>
 
 
 

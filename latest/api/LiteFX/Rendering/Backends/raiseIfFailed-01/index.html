@@ -24233,23 +24233,21 @@
 <h1 id="litefxrenderingbackendsraiseiffailed"><code>LiteFX::Rendering::Backends::raiseIfFailed</code><a class="headerlink" href="#litefxrenderingbackendsraiseiffailed" title="Permanent link">&para;</a></h1>
 <p><code>raiseIfFailed</code> overloads</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/DirectX12/include/litefx/backends/dx12_api.hpp#L271">litefx/backends/dx12_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/DirectX12/include/litefx/backends/dx12_api.hpp#L271">litefx/backends/dx12_api.hpp</a>&gt;</code></p>
 <p>Raises a <a href="../DX12PlatformException/"><code>DX12PlatformException</code></a>, if <code>hr</code> does not equal <code>S_OK</code>.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename... TArgs&gt;
-static void <a href="../raiseIfFailed-02/">raiseIfFailed</a>(
-    HRESULT hr,
-    std::format_string&lt;TArgs...&gt; message,
-    TArgs&&... args);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w"> </span><span class="n">TArgs</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../raiseIfFailed-02/"><span class="n">raiseIfFailed</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><span class="n">HRESULT</span><span class="w"> </span><span class="n">hr</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">format_string</span><span class="o">&lt;</span><span class="n">TArgs</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="o">&gt;</span><span class="w"> </span><span class="n">message</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">TArgs</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../raiseIfFailed-02/"><em>» more...</em></a></span></p>
 <p>Raises a <a href="../VulkanPlatformException/"><code>VulkanPlatformException</code></a>, if <code>result</code> does not equal <code>VK_SUCCESS</code>.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename... TArgs&gt;
-static void <a href="../raiseIfFailed-03/">raiseIfFailed</a>(
-    VkResult result,
-    <a href="../../../StringView/">StringView</a> message,
-    TArgs&&... args);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w"> </span><span class="n">TArgs</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../raiseIfFailed-03/"><span class="n">raiseIfFailed</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><span class="n">VkResult</span><span class="w"> </span><span class="n">result</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../StringView/"><span class="n">StringView</span></a><span class="w"> </span><span class="n">message</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">TArgs</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../raiseIfFailed-03/"><em>» more...</em></a></span></p>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>

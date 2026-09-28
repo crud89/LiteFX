@@ -4794,11 +4794,11 @@
 <h1 id="litefxmetaare_same"><code>LiteFX::meta::are_same</code><a class="headerlink" href="#litefxmetaare_same" title="Permanent link">&para;</a></h1>
 <p>Checks if a set of types are all equal to the type <code>T.</code></p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Core/include/litefx/traits.hpp#L109">litefx/traits.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename T,
-    typename... Ts&gt;
-concept are_same = std::conjunction_v&lt;std::is_same&lt;T, Ts&gt;...&gt;;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Core/include/litefx/traits.hpp#L109">litefx/traits.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w"> </span><span class="n">Ts</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">concept</span><span class="w"> </span><span class="nc">are_same</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">conjunction_v</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">is_same</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">Ts</span><span class="o">&gt;</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="o">&gt;</span><span class="p">;</span></code></pre></div>
 
 <h2 id="template-parameters">Template Parameters<a class="headerlink" href="#template-parameters" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">

@@ -15168,11 +15168,11 @@
 <h1 id="litefxrenderingrenderpipelinebuilder"><code>LiteFX::Rendering::RenderPipelineBuilder</code><a class="headerlink" href="#litefxrenderingrenderpipelinebuilder" title="Permanent link">&para;</a></h1>
 <p>Describes the interface of a render pipeline builder.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_builders.hpp#L1466">litefx/rendering_builders.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TRenderPipeline&gt;
-requires meta::implements&lt;TRenderPipeline, RenderPipeline&lt;typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type&gt;&gt;
-class RenderPipelineBuilder
-    : public <a href="../../Builder-0e7/">Builder&lt;TRenderPipeline&gt;</a></code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_builders.hpp#L1466">litefx/rendering_builders.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TRenderPipeline</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">meta</span><span class="o">:</span><span class="o">:</span><span class="n">implements</span><span class="o">&lt;</span><span class="n">TRenderPipeline</span><span class="p">,</span><span class="w"> </span><span class="n">RenderPipeline</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TRenderPipeline</span><span class="o">:</span><span class="o">:</span><span class="n">pipeline_layout_type</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">TRenderPipeline</span><span class="o">:</span><span class="o">:</span><span class="n">shader_program_type</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">TRenderPipeline</span><span class="o">:</span><span class="o">:</span><span class="n">input_assembler_type</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">TRenderPipeline</span><span class="o">:</span><span class="o">:</span><span class="n">rasterizer_type</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">class</span><span class="w"> </span><span class="nc">RenderPipelineBuilder</span><span class="w">
+</span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><a href="../../Builder-0e7/"><span class="n">Builder</span><span class="o">&lt;</span><span class="n">TRenderPipeline</span><span class="o">&gt;</span></a></code></pre></div>
 
 <h2 id="base-classes">Base Classes<a class="headerlink" href="#base-classes" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
@@ -15251,7 +15251,7 @@ class RenderPipelineBuilder
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>RenderPipeline</p>
+<p><a href="../RenderPipeline-0e/"><code>RenderPipeline</code></a></p>
 
 
 

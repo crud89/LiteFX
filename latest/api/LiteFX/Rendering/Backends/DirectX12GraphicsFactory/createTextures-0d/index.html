@@ -25907,17 +25907,16 @@
 <h1 id="litefxrenderingbackendsdirectx12graphicsfactorycreatetextures"><code>LiteFX::Rendering::Backends::DirectX12GraphicsFactory::createTextures</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12graphicsfactorycreatetextures" title="Permanent link">&para;</a></h1>
 <p>Creates a series of textures.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering.hpp#L1303">litefx/rendering.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport]] virtual <a href="../../../../Generator/">Generator&lt;SharedPtr&lt;IDirectX12Image&gt;&gt;</a> createTextures(
-    <a href="../../../Format/">Format</a> format,
-    <a href="../../../../Math/Size3d/">Size3d</a> const& size,
-    <a href="../../../ImageDimensions/">ImageDimensions</a> dimension = ImageDimensions::DIM_2,
-    <a href="../../../../Math/UInt32/">UInt32</a> layers = 1,
-    <a href="../../../../Math/UInt32/">UInt32</a> levels = 1,
-    <a href="../../../MultiSamplingLevel/">MultiSamplingLevel</a> samples = MultiSamplingLevel::x1,
-    <a href="../../../ResourceUsage/">ResourceUsage</a> usage = ResourceUsage::Default,
-    <a href="../../../AllocationBehavior/">AllocationBehavior</a> allocationBehavior = AllocationBehavior::Default) const = 0;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering.hpp#L1303">litefx/rendering.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../../../Generator/"><span class="n">Generator</span><span class="o">&lt;</span><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IDirectX12Image</span><span class="o">&gt;</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">createTextures</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Format/"><span class="n">Format</span></a><span class="w"> </span><span class="n">format</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/Size3d/"><span class="n">Size3d</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">size</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../ImageDimensions/"><span class="n">ImageDimensions</span></a><span class="w"> </span><span class="n">dimension</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ImageDimensions</span><span class="o">:</span><span class="o">:</span><span class="n">DIM_2</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">layers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">levels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../MultiSamplingLevel/"><span class="n">MultiSamplingLevel</span></a><span class="w"> </span><span class="n">samples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MultiSamplingLevel</span><span class="o">:</span><span class="o">:</span><span class="n">x1</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../ResourceUsage/"><span class="n">ResourceUsage</span></a><span class="w"> </span><span class="n">usage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ResourceUsage</span><span class="o">:</span><span class="o">:</span><span class="n">Default</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../AllocationBehavior/"><span class="n">AllocationBehavior</span></a><span class="w"> </span><span class="n">allocationBehavior</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AllocationBehavior</span><span class="o">:</span><span class="o">:</span><span class="n">Default</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p>A generator for texture instances.</p>
@@ -25937,7 +25936,7 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>createTexture</p>
+<p><a href="../../../IGraphicsFactory/createTexture-02/"><code>createTexture</code></a></p>
 
 
 

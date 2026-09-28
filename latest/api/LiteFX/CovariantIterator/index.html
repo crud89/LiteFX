@@ -4803,9 +4803,9 @@
 <h1 id="litefxcovariantiterator"><code>LiteFX::CovariantIterator</code><a class="headerlink" href="#litefxcovariantiterator" title="Permanent link">&para;</a></h1>
 <p>Wraps an iterator and returns covariants of type <code>T</code> of the iterated value.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Core/include/litefx/containers.hpp#L209">litefx/containers.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename T&gt;
-struct CovariantIterator;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Core/include/litefx/containers.hpp#L209">litefx/containers.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">struct</span><span class="w"> </span><span class="nc">CovariantIterator</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>This iterator uses type erasure to hide the actual iterated types from the interface. This allows to iterate a range of class instances as a range of base class instances. However, due to the type erasure, each iteration requires a virtual indirection, resulting in slightly lower performance. Limit the use of this iterator to base class interfaces and return a reference to the actual underlying range in child classes instead for most performance.</p>
@@ -4843,7 +4843,7 @@ struct CovariantIterator;</code></pre>
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>Enumerable</p>
+<p><a href="../Enumerable/"><code>Enumerable</code></a></p>
 
 
 

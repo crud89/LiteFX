@@ -15099,27 +15099,24 @@
 <h1 id="litefxrenderingpipelinelayoutbuilderuse"><code>LiteFX::Rendering::PipelineLayoutBuilder::use</code><a class="headerlink" href="#litefxrenderingpipelinelayoutbuilderuse" title="Permanent link">&para;</a></h1>
 <p><code>use</code> overloads</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Core/include/litefx/containers.hpp#L854">litefx/containers.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Core/include/litefx/containers.hpp#L901">litefx/containers.hpp</a>&gt;</code></p>
 <p>Called by child builders to pass a constructed object back to the parent builder.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TInstance&gt;
-void <a href="../../../Builder-0e7/use/">use</a>(<a href="../../../Builder-0e7/pointer_type/">pointer_type</a>&&) noexcept = delete;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TInstance</span><span class="o">&gt;</span><span class="w">
+</span><span class="kt">void</span><span class="w"> </span><a href="../../../Builder-0e7/use/"><span class="n">use</span></a><span class="p">(</span><a href="../../../Builder-0e7/pointer_type/"><span class="n">pointer_type</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">delete</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../../Builder-0e7/use/"><em>» more...</em></a></span></p>
 <p>Adds a descriptor set to the pipeline layout.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TSelf&gt;
-constexpr TSelf&& <a href="../use-03/">use</a>(this 
-    TSelf&& self,
-    <a href="../../../SharedPtr/">SharedPtr&lt;descriptor_set_layout_type&gt;</a>&& layout);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TSelf</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">constexpr</span><span class="w"> </span><span class="n">TSelf</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><a href="../use-03/"><span class="n">use</span></a><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">descriptor_set_layout_type</span><span class="o">&gt;</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">layout</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../use-03/"><em>» more...</em></a></span></p>
 <p>Adds a push constants range to the pipeline layout.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TSelf&gt;
-constexpr TSelf&& <a href="../use-00/">use</a>(this 
-    TSelf&& self,
-    <a href="../../../UniquePtr/">UniquePtr&lt;push_constants_layout_type&gt;</a>&& layout);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TSelf</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">constexpr</span><span class="w"> </span><span class="n">TSelf</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><a href="../use-00/"><span class="n">use</span></a><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../UniquePtr/"><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">push_constants_layout_type</span><span class="o">&gt;</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">layout</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../use-00/"><em>» more...</em></a></span></p>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
@@ -15131,8 +15128,8 @@ constexpr TSelf&& <a href="../use-00/">use</a>(this
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>DescriptorSetLayout</p>
-<p>PushConstantsLayout</p>
+<p><a href="../../DescriptorSetLayout-03d/"><code>DescriptorSetLayout</code></a></p>
+<p><a href="../../PushConstantsLayout-06/"><code>PushConstantsLayout</code></a></p>
 
 
 

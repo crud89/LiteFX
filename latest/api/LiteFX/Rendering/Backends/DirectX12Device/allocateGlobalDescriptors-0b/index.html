@@ -26911,16 +26911,16 @@
 <h1 id="litefxrenderingbackendsdirectx12deviceallocateglobaldescriptors"><code>LiteFX::Rendering::Backends::DirectX12Device::allocateGlobalDescriptors</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12deviceallocateglobaldescriptors" title="Permanent link">&para;</a></h1>
 <p>Allocates a <code>descriptors</code> on the descriptor heap indicated by &lt;paramref name=heapType" /&gt; for use with external clients.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L2449">litefx/backends/dx12.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, nodiscard, dllexport]] <a href="../../../VirtualAllocator/Allocation/">VirtualAllocator::Allocation</a> allocateGlobalDescriptors(
-    <a href="../../../../Math/UInt32/">UInt32</a> descriptors,
-    <a href="../../../DescriptorHeapType/">DescriptorHeapType</a> heapType) const;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L2451">litefx/backends/dx12.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">nodiscard</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../../../VirtualAllocator/Allocation/"><span class="n">VirtualAllocator</span><span class="o">:</span><span class="o">:</span><span class="n">Allocation</span></a><span class="w"> </span><span class="n">allocateGlobalDescriptors</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptors</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../DescriptorHeapType/"><span class="n">DescriptorHeapType</span></a><span class="w"> </span><span class="n">heapType</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>This call allocates a descriptor range on one of the global descriptor heaps, that can be used with external clients and libraries. Keep in mind that you have to release those descriptors manually by calling the appropriate overload to <a href="../releaseGlobalDescriptors-0c/"><code>releaseGlobalDescriptors</code></a>. The following example demonstrates how to use this function.</p>
 <h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
-<p>auto allocation = d3dDevice.allocateGlobalDescriptors(1000, DescriptorHeapType::Resource); // Use the descriptors. d3dDevice.releaseGlobalDescriptors(DescriptorHeapType::Resource, std::move(allocation));</p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">auto</span><span class="w"> </span><span class="n">allocation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d3dDevice</span><span class="p">.</span><span class="n">allocateGlobalDescriptors</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="w"> </span><span class="n">DescriptorHeapType</span><span class="o">:</span><span class="o">:</span><span class="n">Resource</span><span class="p">)</span><span class="p">;</span><span class="w"> </span><span class="c1">// Use the descriptors. d3dDevice.releaseGlobalDescriptors(DescriptorHeapType::Resource,
+</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">move</span><span class="p">(</span><span class="n">allocation</span><span class="p">)</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p>The allocation for the requested descriptors in the descriptor heap indicated by <code>heapType.</code></p>
 <div class="admonition note" markdown="0"><p class="admonition-title">Note</p>

@@ -15459,28 +15459,24 @@
 <h1 id="litefxrenderingdepthstencilstatedepthstencilstate"><code>LiteFX::Rendering::DepthStencilState::DepthStencilState</code><a class="headerlink" href="#litefxrenderingdepthstencilstatedepthstencilstate" title="Permanent link">&para;</a></h1>
 <p>Constructors</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L3032">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L3031">litefx/rendering_api.hpp</a>&gt;</code></p>
 <p>Initializes a new rasterizer depth/stencil state.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../2constructor-03/">DepthStencilState</a>() noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../2constructor-03/"><span class="n">DepthStencilState</span></a><span class="p">(</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-03/"><em>» more...</em></a></span></p>
 <p>Creates a copy of a depth/stencil state.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../2constructor-0b/">DepthStencilState</a>(<a href="../">DepthStencilState</a> const& other);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../2constructor-0b/"><span class="n">DepthStencilState</span></a><span class="p">(</span><a href="../"><span class="n">DepthStencilState</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-0b/"><em>» more...</em></a></span></p>
 <p>Moves a depth/stencil state.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../2constructor-05/">DepthStencilState</a>(<a href="../">DepthStencilState</a>&& other) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../2constructor-05/"><span class="n">DepthStencilState</span></a><span class="p">(</span><a href="../"><span class="n">DepthStencilState</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-05/"><em>» more...</em></a></span></p>
 <p>Initializes a new rasterizer depth/stencil state.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] explicit <a href="../2constructor-01/">DepthStencilState</a>(
-    <a href="../DepthState-0f/">DepthState</a> const& depthState,
-    <a href="../DepthBias-09/">DepthBias</a> const& depthBias,
-    <a href="../StencilState-02/">StencilState</a> const& stencilState) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">explicit</span><span class="w"> </span><a href="../2constructor-01/"><span class="n">DepthStencilState</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../DepthState-0f/"><span class="n">DepthState</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">depthState</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../DepthBias-09/"><span class="n">DepthBias</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">depthBias</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../StencilState-02/"><span class="n">StencilState</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stencilState</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-01/"><em>» more...</em></a></span></p>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>

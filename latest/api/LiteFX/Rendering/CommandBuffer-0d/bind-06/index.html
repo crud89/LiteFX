@@ -16577,114 +16577,98 @@
 <h1 id="litefxrenderingcommandbufferbind"><code>LiteFX::Rendering::CommandBuffer::bind</code><a class="headerlink" href="#litefxrenderingcommandbufferbind" title="Permanent link">&para;</a></h1>
 <p><code>bind</code> overloads</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering.hpp#L663">litefx/rendering.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering.hpp#L663">litefx/rendering.hpp</a>&gt;</code></p>
 <p>Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/bind-0d/">bind</a>(<a href="../../../Span/">Span&lt;IDescriptorSet const*&gt;</a> descriptorSets) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/bind-0d/"><span class="n">bind</span></a><span class="p">(</span><a href="../../../Span/"><span class="n">Span</span><span class="o">&lt;</span><span class="n">IDescriptorSet</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">descriptorSets</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/bind-0d/"><em>» more...</em></a></span></p>
 <p>Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../bind-03/">bind</a>(<a href="../../../Span/">Span&lt;descriptor_set_type const*&gt;</a> descriptorSets) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../bind-03/"><span class="nf">bind</span></a><span class="p">(</span><a href="../../../Span/"><span class="n">Span</span><span class="o">&lt;</span><span class="n">descriptor_set_type</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">descriptorSets</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../bind-03/"><em>» more...</em></a></span></p>
 <p>Binds the provided descriptor to the last pipeline that was used by the command buffer.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/bind-05/">bind</a>(<a href="../../IDescriptorSet/">IDescriptorSet</a> const& descriptorSet) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/bind-05/"><span class="n">bind</span></a><span class="p">(</span><a href="../../IDescriptorSet/"><span class="n">IDescriptorSet</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">descriptorSet</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/bind-05/"><em>» more...</em></a></span></p>
 <p>Binds a index buffer to the pipeline.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/bind-0fc9f/">bind</a>(<a href="../../IIndexBuffer/">IIndexBuffer</a> const& buffer) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/bind-0fc9f/"><span class="n">bind</span></a><span class="p">(</span><a href="../../IIndexBuffer/"><span class="n">IIndexBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/bind-0fc9f/"><em>» more...</em></a></span></p>
 <p>Binds a vertex buffer to the pipeline.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/bind-0862/">bind</a>(<a href="../../IVertexBuffer/">IVertexBuffer</a> const& buffer) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/bind-0862/"><span class="n">bind</span></a><span class="p">(</span><a href="../../IVertexBuffer/"><span class="n">IVertexBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/bind-0862/"><em>» more...</em></a></span></p>
 <p>Binds the provided descriptor to the last pipeline that was used by the command buffer.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../bind-0f2/">bind</a>(<a href="../descriptor_set_type/">descriptor_set_type</a> const& descriptorSet) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../bind-0f2/"><span class="nf">bind</span></a><span class="p">(</span><a href="../descriptor_set_type/"><span class="n">descriptor_set_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">descriptorSet</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../bind-0f2/"><em>» more...</em></a></span></p>
 <p>Binds a index buffer to the pipeline.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../bind-0fb/">bind</a>(<a href="../index_buffer_type/">index_buffer_type</a> const& buffer) const noexcept = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../bind-0fb/"><span class="nf">bind</span></a><span class="p">(</span><a href="../index_buffer_type/"><span class="n">index_buffer_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../bind-0fb/"><em>» more...</em></a></span></p>
 <p>Binds a vertex buffer to the pipeline.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../bind-05/">bind</a>(<a href="../vertex_buffer_type/">vertex_buffer_type</a> const& buffer) const noexcept = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../bind-05/"><span class="nf">bind</span></a><span class="p">(</span><a href="../vertex_buffer_type/"><span class="n">vertex_buffer_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../bind-05/"><em>» more...</em></a></span></p>
 <p>Binds an arbitrary input range of descriptor sets to the provided pipeline.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/bind-0fc9b/">bind</a>(
-    <a href="../../../Span/">Span&lt;IDescriptorSet const*&gt;</a> descriptorSets,
-    <a href="../../IPipeline/">IPipeline</a> const& pipeline) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/bind-0fc9b/"><span class="n">bind</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Span/"><span class="n">Span</span><span class="o">&lt;</span><span class="n">IDescriptorSet</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">descriptorSets</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IPipeline/"><span class="n">IPipeline</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">pipeline</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/bind-0fc9b/"><em>» more...</em></a></span></p>
 <p>Binds an arbitrary input range of descriptor sets to the provided pipeline.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../bind-0a/">bind</a>(
-    <a href="../../../Span/">Span&lt;descriptor_set_type const*&gt;</a> descriptorSets,
-    <a href="../pipeline_type/">pipeline_type</a> const& pipeline) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../bind-0a/"><span class="nf">bind</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Span/"><span class="n">Span</span><span class="o">&lt;</span><span class="n">descriptor_set_type</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">descriptorSets</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../pipeline_type/"><span class="n">pipeline_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">pipeline</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../bind-0a/"><em>» more...</em></a></span></p>
 <p>Binds the provided descriptor set to the provided pipeline.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/bind-09/">bind</a>(
-    <a href="../../IDescriptorSet/">IDescriptorSet</a> const& descriptorSet,
-    <a href="../../IPipeline/">IPipeline</a> const& pipeline) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/bind-09/"><span class="n">bind</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../IDescriptorSet/"><span class="n">IDescriptorSet</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">descriptorSet</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IPipeline/"><span class="n">IPipeline</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">pipeline</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/bind-09/"><em>» more...</em></a></span></p>
 <p>Binds the provided descriptor set to the provided pipeline.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../bind-00/">bind</a>(
-    <a href="../descriptor_set_type/">descriptor_set_type</a> const& descriptorSet,
-    <a href="../pipeline_type/">pipeline_type</a> const& pipeline) const = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../bind-00/"><span class="nf">bind</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../descriptor_set_type/"><span class="n">descriptor_set_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">descriptorSet</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../pipeline_type/"><span class="n">pipeline_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">pipeline</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../bind-00/"><em>» more...</em></a></span></p>
 <p>Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TSelf&gt;
-void <a href="../../ICommandBuffer/bind-04/">bind</a>(this 
-    TSelf const& self,
-    auto&& descriptorSets)
-requires std::derived_from&lt;std::remove_cv_t&lt;std::remove_pointer_t&lt;std::iter_value_t&lt;std::ranges::iterator_t&lt;std::remove_cv_t&lt;std::remove_reference_t&lt;decltype(descriptorSets)&gt;&gt;&gt;&gt;&gt;&gt;, IDescriptorSet&gt;;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TSelf</span><span class="o">&gt;</span><span class="w">
+</span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/bind-04/"><span class="n">bind</span></a><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">auto</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">descriptorSets</span><span class="p">)</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">remove_cv_t</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">remove_pointer_t</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">iter_value_t</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">ranges</span><span class="o">:</span><span class="o">:</span><span class="n">iterator_t</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">remove_cv_t</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">remove_reference_t</span><span class="o">&lt;</span><span class="k">decltype</span><span class="p">(</span><span class="n">descriptorSets</span><span class="p">)</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">IDescriptorSet</span><span class="o">&gt;</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/bind-04/"><em>» more...</em></a></span></p>
 <p>Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename TSelf,
-    typename T&gt;
-void <a href="../../ICommandBuffer/bind-02/">bind</a>(this 
-    TSelf const& self,
-    std::initializer_list&lt;T const*&gt; descriptorSets)
-requires std::derived_from&lt;T, IDescriptorSet&gt;;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TSelf</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w">
+</span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/bind-02/"><span class="n">bind</span></a><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">initializer_list</span><span class="o">&lt;</span><span class="n">T</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="o">&gt;</span><span class="w"> </span><span class="n">descriptorSets</span><span class="p">)</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">IDescriptorSet</span><span class="o">&gt;</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/bind-02/"><em>» more...</em></a></span></p>
 <p>Binds an arbitrary input range of descriptor sets to the provided pipeline.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TSelf&gt;
-void <a href="../../ICommandBuffer/bind-0864/">bind</a>(this 
-    TSelf const& self,
-    auto&& descriptorSets,
-    TSelf::pipeline_type const& pipeline)
-requires std::derived_from&lt;std::remove_cv_t&lt;std::remove_pointer_t&lt;std::iter_value_t&lt;std::ranges::iterator_t&lt;std::remove_cv_t&lt;std::remove_reference_t&lt;decltype(descriptorSets)&gt;&gt;&gt;&gt;&gt;&gt;, IDescriptorSet&gt;;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TSelf</span><span class="o">&gt;</span><span class="w">
+</span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/bind-0864/"><span class="n">bind</span></a><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">auto</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">descriptorSets</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="o">:</span><span class="o">:</span><span class="n">pipeline_type</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">pipeline</span><span class="p">)</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">remove_cv_t</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">remove_pointer_t</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">iter_value_t</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">ranges</span><span class="o">:</span><span class="o">:</span><span class="n">iterator_t</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">remove_cv_t</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">remove_reference_t</span><span class="o">&lt;</span><span class="k">decltype</span><span class="p">(</span><span class="n">descriptorSets</span><span class="p">)</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">IDescriptorSet</span><span class="o">&gt;</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/bind-0864/"><em>» more...</em></a></span></p>
 <p>Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename TSelf,
-    typename T&gt;
-void <a href="../../ICommandBuffer/bind-03/">bind</a>(this 
-    TSelf const& self,
-    std::initializer_list&lt;T const*&gt; descriptorSets,
-    TSelf::pipeline_type const& pipeline);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TSelf</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w">
+</span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/bind-03/"><span class="n">bind</span></a><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">initializer_list</span><span class="o">&lt;</span><span class="n">T</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="o">&gt;</span><span class="w"> </span><span class="n">descriptorSets</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="o">:</span><span class="o">:</span><span class="n">pipeline_type</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">pipeline</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/bind-03/"><em>» more...</em></a></span></p>
 <h2 id="exceptions">Exceptions<a class="headerlink" href="#exceptions" title="Permanent link">&para;</a></h2>
@@ -16715,11 +16699,11 @@ void <a href="../../ICommandBuffer/bind-03/">bind</a>(this
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>use</p>
-<p>IndexBuffer</p>
-<p>drawIndexed</p>
-<p>VertexBuffer</p>
-<p>draw</p>
+<p><a href="../../ICommandBuffer/use/"><code>use</code></a></p>
+<p><a href="../../IndexBuffer-0a/"><code>IndexBuffer</code></a></p>
+<p><a href="../../ICommandBuffer/drawIndexed-0c/"><code>drawIndexed</code></a></p>
+<p><a href="../../VertexBuffer-09/"><code>VertexBuffer</code></a></p>
+<p><a href="../../ICommandBuffer/draw-01/"><code>draw</code></a></p>
 
 
 

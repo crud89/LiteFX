@@ -25699,17 +25699,16 @@
 <h1 id="litefxrenderingbackendsvulkanbackendcreatedevice"><code>LiteFX::Rendering::Backends::VulkanBackend::createDevice</code><a class="headerlink" href="#litefxrenderingbackendsvulkanbackendcreatedevice" title="Permanent link">&para;</a></h1>
 <p>Creates a new graphics device.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering.hpp#L1780">litefx/rendering.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename TSelf,
-    typename... TArgs&gt;
-<a href="../../../RenderBackend-0d/">device_type</a>& createDevice(this 
-    TSelf& self,
-    <a href="../../../../String/">String</a> const& name,
-    <a href="../../../RenderBackend-0d/">adapter_type</a> const& adapter,
-    <a href="../../../../UniquePtr/">UniquePtr&lt;surface_type&gt;</a>&& surface,
-    TArgs&&... _args);
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering.hpp#L1780">litefx/rendering.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TSelf</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w"> </span><span class="n">TArgs</span><span class="o">&gt;</span><span class="w">
+</span><a href="../../../RenderBackend-0d/"><span class="n">device_type</span></a><span class="o">&amp;</span><span class="w"> </span><span class="n">createDevice</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../String/"><span class="n">String</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../RenderBackend-0d/"><span class="n">adapter_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">adapter</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../UniquePtr/"><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">surface_type</span><span class="o">&gt;</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">surface</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">TArgs</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w"> </span><span class="n">_args</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p>A pointer of the created graphics device instance.</p>

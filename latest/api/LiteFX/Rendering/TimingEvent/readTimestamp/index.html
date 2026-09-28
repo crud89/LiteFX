@@ -15142,9 +15142,8 @@
 <h1 id="litefxrenderingtimingeventreadtimestamp"><code>LiteFX::Rendering::TimingEvent::readTimestamp</code><a class="headerlink" href="#litefxrenderingtimingeventreadtimestamp" title="Permanent link">&para;</a></h1>
 <p>Reads the current timestamp (as a tick count) of the event.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L3470">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../../../Math/UInt64/">UInt64</a> readTimestamp() const;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L3469">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">readTimestamp</span><span class="p">(</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>In order to convert the number of ticks to (milli-)seconds, this value needs to be divided by <a href="../../IGraphicsDevice/ticksPerMillisecond/"><code>IGraphicsDevice::ticksPerMillisecond</code></a>. To improve precision, calculate the difference between two time stamps in ticks first and only then convert them to seconds.</p>
@@ -15159,7 +15158,7 @@
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p>The current time stamp of the event as a tick count.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>ISwapChain::readTimingEvent</p>
+<p><a href="../../ISwapChain/readTimingEvent/"><code>ISwapChain::readTimingEvent</code></a></p>
 
 
 

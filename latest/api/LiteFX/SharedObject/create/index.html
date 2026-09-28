@@ -4895,13 +4895,12 @@
 <h1 id="litefxsharedobjectcreate"><code>LiteFX::SharedObject::create</code><a class="headerlink" href="#litefxsharedobjectcreate" title="Permanent link">&para;</a></h1>
 <p>Generic factory method used to create instances of the shared object.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Core/include/litefx/containers.hpp#L940">litefx/containers.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename T,
-    typename... TArgs&gt;
-requires std::derived_from&lt;T, SharedObject&gt;
-[[nodiscard]] static <a href="../../SharedPtr/">SharedPtr&lt;T&gt;</a> create(TArgs&&... args);
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Core/include/litefx/containers.hpp#L987">litefx/containers.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w"> </span><span class="n">TArgs</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">SharedObject</span><span class="o">&gt;</span><span class="w">
+</span><span class="p">[[</span><span class="na">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><a href="../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">create</span><span class="p">(</span><span class="n">TArgs</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p>A shared pointer of the shared object.</p>
@@ -4927,7 +4926,7 @@ requires std::derived_from&lt;T, SharedObject&gt;
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>Allocator</p>
+<p><a href="../Allocator/"><code>Allocator</code></a></p>
 
 
 

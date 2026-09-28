@@ -15265,44 +15265,40 @@
 <h1 id="litefxrenderingidescriptorsetupdate"><code>LiteFX::Rendering::IDescriptorSet::update</code><a class="headerlink" href="#litefxrenderingidescriptorsetupdate" title="Permanent link">&para;</a></h1>
 <p><code>update</code> overloads</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L4953">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L4953">litefx/rendering_api.hpp</a>&gt;</code></p>
 <p>Updates an acceleration structure within the current descriptor set.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../update-0c0/">update</a>(
-    <a href="../../../Math/UInt32/">UInt32</a> binding,
-    <a href="../../IAccelerationStructure/">IAccelerationStructure</a> const& accelerationStructure,
-    <a href="../../../Math/UInt32/">UInt32</a> descriptor = 0) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../update-0c0/"><span class="n">update</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">binding</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IAccelerationStructure/"><span class="n">IAccelerationStructure</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">accelerationStructure</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../update-0c0/"><em>» more...</em></a></span></p>
 <p>Updates one or more sampler descriptors within the current descriptor set.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../update-0b/">update</a>(
-    <a href="../../../Math/UInt32/">UInt32</a> binding,
-    <a href="../../ISampler/">ISampler</a> const& sampler,
-    <a href="../../../Math/UInt32/">UInt32</a> descriptor = 0) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../update-0b/"><span class="n">update</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">binding</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../ISampler/"><span class="n">ISampler</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">sampler</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../update-0b/"><em>» more...</em></a></span></p>
 <p>Updates one or more buffer descriptors within the current descriptor set.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../update-02/">update</a>(
-    <a href="../../../Math/UInt32/">UInt32</a> binding,
-    <a href="../../IBuffer/">IBuffer</a> const& buffer,
-    <a href="../../../Math/UInt32/">UInt32</a> bufferElement = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> elements = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> firstDescriptor = 0,
-    <a href="../../Format/">Format</a> texelFormat = Format::None) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../update-02/"><span class="n">update</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">binding</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IBuffer/"><span class="n">IBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">bufferElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">elements</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstDescriptor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../Format/"><span class="n">Format</span></a><span class="w"> </span><span class="n">texelFormat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Format</span><span class="o">:</span><span class="o">:</span><span class="n">None</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../update-02/"><em>» more...</em></a></span></p>
 <p>Updates one or more texture descriptors within the current descriptor set.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../update-0c6/">update</a>(
-    <a href="../../../Math/UInt32/">UInt32</a> binding,
-    <a href="../../IImage/">IImage</a> const& texture,
-    <a href="../../../Math/UInt32/">UInt32</a> descriptor = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> firstLevel = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> levels = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> firstLayer = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> layers = 0) const;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../update-0c6/"><span class="n">update</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">binding</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IImage/"><span class="n">IImage</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">texture</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstLevel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">levels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstLayer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">layers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../update-0c6/"><em>» more...</em></a></span></p>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>

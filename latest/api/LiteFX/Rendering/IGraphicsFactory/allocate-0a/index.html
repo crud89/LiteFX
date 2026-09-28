@@ -16220,12 +16220,11 @@
 <h1 id="litefxrenderingigraphicsfactoryallocate"><code>LiteFX::Rendering::IGraphicsFactory::allocate</code><a class="headerlink" href="#litefxrenderingigraphicsfactoryallocate" title="Permanent link">&para;</a></h1>
 <p>Allocates a set of resources as described by <code>allocationInfos.</code></p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L8394">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] virtual <a href="../../../Generator/">Generator&lt;ResourceAllocationResult&gt;</a> allocate(
-    <a href="../../../Enumerable/">Enumerable&lt;ResourceAllocationInfo const&&gt;</a> allocationInfos,
-    <a href="../../AllocationBehavior/">AllocationBehavior</a> allocationBehavior = AllocationBehavior::Default,
-    bool alias = false) const = 0;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L8391">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../../Generator/"><span class="n">Generator</span><span class="o">&lt;</span><span class="n">ResourceAllocationResult</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">allocate</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Enumerable/"><span class="n">Enumerable</span><span class="o">&lt;</span><span class="n">ResourceAllocationInfo</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">allocationInfos</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../AllocationBehavior/"><span class="n">AllocationBehavior</span></a><span class="w"> </span><span class="n">allocationBehavior</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AllocationBehavior</span><span class="o">:</span><span class="o">:</span><span class="n">Default</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">alias</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>If the <code>alias</code> parameter is set to <code>true</code>, the allocator attempts to overlap the resources in a single allocation, which saves memory. However, this implies that the resources must be properly synchronized and accessed according to the aliasing rules imposed by the backend. Most notably, you have to manually insert aliasing barriers to isolate access.</p>
@@ -16251,9 +16250,9 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>canAlias</p>
-<p>https://gpuopen-librariesandsdks.github.io/D3D12MemoryAllocator/html/resource_aliasing.html</p>
-<p>https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/resource_aliasing.html</p>
+<p><a href="../canAlias/"><code>canAlias</code></a></p>
+<p><a href="https://gpuopen-librariesandsdks.github.io/D3D12MemoryAllocator/html/resource_aliasing.html">https://gpuopen-librariesandsdks.github.io/D3D12MemoryAllocator/html/resource_aliasing.html</a></p>
+<p><a href="https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/resource_aliasing.html">https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/resource_aliasing.html</a></p>
 
 
 

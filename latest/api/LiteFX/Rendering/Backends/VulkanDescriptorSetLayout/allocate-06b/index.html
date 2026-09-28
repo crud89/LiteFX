@@ -25645,12 +25645,11 @@
 <h1 id="litefxrenderingbackendsvulkandescriptorsetlayoutallocate"><code>LiteFX::Rendering::Backends::VulkanDescriptorSetLayout::allocate</code><a class="headerlink" href="#litefxrenderingbackendsvulkandescriptorsetlayoutallocate" title="Permanent link">&para;</a></h1>
 <p>Allocates an array of descriptor sets.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L918">litefx/backends/vulkan.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] virtual <a href="../../../../Generator/">Generator&lt;UniquePtr&lt;VulkanDescriptorSet&gt;&gt;</a> allocate(
-    <a href="../../../../Math/UInt32/">UInt32</a> descriptorSets,
-    <a href="../../../../Math/UInt32/">UInt32</a> descriptors,
-    std::function&lt;Generator&lt;DescriptorBinding&gt;(<a href="../../../../Math/UInt32/">UInt32</a>)&gt; bindingFactory) const override;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L918">litefx/backends/vulkan.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../../../Generator/"><span class="n">Generator</span><span class="o">&lt;</span><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">VulkanDescriptorSet</span><span class="o">&gt;</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">allocate</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptorSets</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">descriptors</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">function</span><span class="o">&lt;</span><span class="n">Generator</span><span class="o">&lt;</span><span class="n">DescriptorBinding</span><span class="o">&gt;</span><span class="p">(</span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bindingFactory</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="p">;</span></code></pre></div>
 
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p>A generator that produces the descriptor set instances.</p>
@@ -25665,7 +25664,7 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>allocate(std::initializer_list)</p>
+<p><a href="../../../DescriptorSetLayout-03d/allocate-01/"><code>allocate(std::initializer_list)</code></a></p>
 
 
 

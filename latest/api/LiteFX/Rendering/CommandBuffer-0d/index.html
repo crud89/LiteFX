@@ -16344,24 +16344,24 @@
 <h1 id="litefxrenderingcommandbuffer"><code>LiteFX::Rendering::CommandBuffer</code><a class="headerlink" href="#litefxrenderingcommandbuffer" title="Permanent link">&para;</a></h1>
 <p>Represents a command buffer, that buffers commands that should be submitted to a <a href="../CommandQueue-0b/"><code>CommandQueue</code></a>.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering.hpp#L569">litefx/rendering.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename TCommandBuffer,
-    typename TBuffer,
-    typename TVertexBuffer,
-    typename TIndexBuffer,
-    typename TImage,
-    typename TBarrier,
-    typename TPipeline,
-    typename TBLAS,
-    typename TTLAS&gt;
-requires meta::implements&lt;TBarrier, Barrier&lt;TBuffer, TImage&gt;&gt; &amp;&amp;
-        //std::derived_from&lt;TCommandBuffer, ICommandBuffer&gt; &amp;&amp;
-        std::derived_from&lt;TPipeline, Pipeline&lt;typename TPipeline::pipeline_layout_type, typename TPipeline::shader_program_type&gt;&gt; &amp;&amp;
-        std::derived_from&lt;TBLAS, IBottomLevelAccelerationStructure&gt; &amp;&amp;
-        std::derived_from&lt;TTLAS, ITopLevelAccelerationStructure&gt;
-class CommandBuffer
-    : public <a href="../ICommandBuffer/">ICommandBuffer</a></code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering.hpp#L569">litefx/rendering.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TCommandBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TVertexBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TIndexBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TImage</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TBarrier</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TPipeline</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TBLAS</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TTLAS</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="n">meta</span><span class="o">:</span><span class="o">:</span><span class="n">implements</span><span class="o">&lt;</span><span class="n">TBarrier</span><span class="p">,</span><span class="w"> </span><span class="n">Barrier</span><span class="o">&lt;</span><span class="n">TBuffer</span><span class="p">,</span><span class="w"> </span><span class="n">TImage</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="c1">//std::derived_from&lt;TCommandBuffer, ICommandBuffer&gt; &amp;&amp;
+</span><span class="w">        </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">TPipeline</span><span class="p">,</span><span class="w"> </span><span class="n">Pipeline</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TPipeline</span><span class="o">:</span><span class="o">:</span><span class="n">pipeline_layout_type</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">TPipeline</span><span class="o">:</span><span class="o">:</span><span class="n">shader_program_type</span><span class="o">&gt;</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">TBLAS</span><span class="p">,</span><span class="w"> </span><span class="n">IBottomLevelAccelerationStructure</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w">
+</span><span class="w">        </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">derived_from</span><span class="o">&lt;</span><span class="n">TTLAS</span><span class="p">,</span><span class="w"> </span><span class="n">ITopLevelAccelerationStructure</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">class</span><span class="w"> </span><span class="nc">CommandBuffer</span><span class="w">
+</span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><a href="../ICommandBuffer/"><span class="n">ICommandBuffer</span></a></code></pre></div>
 
 <h2 id="base-classes">Base Classes<a class="headerlink" href="#base-classes" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">

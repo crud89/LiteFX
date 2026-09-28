@@ -24893,12 +24893,11 @@
 <h1 id="litefxrenderingbackendsvulkanraytracingpipelinemaxpayloadsize"><code>LiteFX::Rendering::Backends::VulkanRayTracingPipeline::maxPayloadSize</code><a class="headerlink" href="#litefxrenderingbackendsvulkanraytracingpipelinemaxpayloadsize" title="Permanent link">&para;</a></h1>
 <p>Returns the maximum size of a single ray payload.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L1795">litefx/backends/vulkan.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] virtual <a href="../../../../Math/UInt32/">UInt32</a> maxPayloadSize() const noexcept override;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L1795">litefx/backends/vulkan.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">maxPayloadSize</span><span class="p">(</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">override</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>A ray payload is the data that is passed down the <code>TraceRay</code> function call chain. It can be zero, if [Ray Payload] Qualifiers](https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#payload-access-qualifiers) are used. Otherwise it must be set to the largest ray payload size used in the ray-tracing pipeline.</p>
+<p>A ray payload is the data that is passed down the <code>TraceRay</code> function call chain. It can be zero, if [Ray Payload] Qualifiers](<a href="https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#payload-access-qualifiers">https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#payload-access-qualifiers</a>) are used. Otherwise it must be set to the largest ray payload size used in the ray-tracing pipeline.</p>
 <p>This property can currently not be queried from reflection.</p>
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p>The maximum size of a single ray payload.</p>

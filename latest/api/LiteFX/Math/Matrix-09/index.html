@@ -8878,13 +8878,13 @@
 <h1 id="litefxmathmatrix"><code>LiteFX::Math::Matrix</code><a class="headerlink" href="#litefxmathmatrix" title="Permanent link">&para;</a></h1>
 <p>An algebraic matrix type.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Math/include/litefx/matrix.hpp#L37">litefx/matrix.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename T,
-    unsigned int ROWS,
-    unsigned int COLS&gt;
-requires (ROWS &gt;= 2 &amp;&amp; COLS &gt;= 2) &amp;&amp; std::is_standard_layout_v&lt;T&gt; &amp;&amp; std::is_trivially_copyable_v&lt;T&gt;
-struct Matrix final</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Math/include/litefx/matrix.hpp#L37">litefx/matrix.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">ROWS</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">COLS</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="p">(</span><span class="n">ROWS</span><span class="w"> </span><span class="o">&gt;</span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">COLS</span><span class="w"> </span><span class="o">&gt;</span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">is_standard_layout_v</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">is_trivially_copyable_v</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">struct</span><span class="w"> </span><span class="nc">Matrix</span><span class="w"> </span><span class="k">final</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Note that matrices in the engine are row-major by convention.</p>

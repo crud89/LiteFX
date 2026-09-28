@@ -24916,17 +24916,15 @@
 <h1 id="litefxrenderingbackendsvulkanqueuewaitfor"><code>LiteFX::Rendering::Backends::VulkanQueue::waitFor</code><a class="headerlink" href="#litefxrenderingbackendsvulkanqueuewaitfor" title="Permanent link">&para;</a></h1>
 <p><code>waitFor</code> overloads</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L1608">litefx/backends/vulkan.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L1608">litefx/backends/vulkan.hpp</a>&gt;</code></p>
 <p>Lets the CPU wait for a certain fence value to complete on the command queue.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] virtual void <a href="../waitFor-0b/">waitFor</a>(<a href="../../../../Math/UInt64/">UInt64</a> fence) const override;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../waitFor-0b/"><span class="n">waitFor</span></a><span class="p">(</span><a href="../../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">fence</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../waitFor-0b/"><em>» more...</em></a></span></p>
 <p>Lets the command queue wait for a certain fence value to complete on another queue.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../waitFor-02/">waitFor</a>(
-    <a href="../">VulkanQueue</a> const& queue,
-    <a href="../../../../Math/UInt64/">UInt64</a> fence) const noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../waitFor-02/"><span class="n">waitFor</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../"><span class="n">VulkanQueue</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">queue</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">fence</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../waitFor-02/"><em>» more...</em></a></span></p>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
@@ -24939,7 +24937,7 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>submit</p>
+<p><a href="../../../ICommandQueue/submit-048/"><code>submit</code></a></p>
 
 
 

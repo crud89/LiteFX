@@ -24994,41 +24994,37 @@
 <h1 id="litefxrenderingbackendsdirectx12barrierbuilderblockaccessto"><code>LiteFX::Rendering::Backends::DirectX12BarrierBuilder::blockAccessTo</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12barrierbuilderblockaccessto" title="Permanent link">&para;</a></h1>
 <p><code>blockAccessTo</code> overloads</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_builders.hpp#L290">litefx/rendering_builders.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_builders.hpp#L290">litefx/rendering_builders.hpp</a>&gt;</code></p>
 <p>Specifies the resource accesses that are blocked in a global barrier until the barrier has executed.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TSelf&gt;
-[[nodiscard]] constexpr <a href="../../../BarrierBuilder-00/">GlobalBarrierBuilder&lt;TSelf&gt;</a> <a href="../blockAccessTo-07a/">blockAccessTo</a>(this 
-    TSelf&& self,
-    <a href="../../../ResourceAccess/">ResourceAccess</a> access);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TSelf</span><span class="o">&gt;</span><span class="w">
+</span><span class="p">[[</span><span class="na">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><a href="../../../BarrierBuilder-00/"><span class="n">GlobalBarrierBuilder</span><span class="o">&lt;</span><span class="n">TSelf</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../blockAccessTo-07a/"><span class="n">blockAccessTo</span></a><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../ResourceAccess/"><span class="n">ResourceAccess</span></a><span class="w"> </span><span class="n">access</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../blockAccessTo-07a/"><em>» more...</em></a></span></p>
 <p>Specifies the resource accesses that are blocked for <code>buffer</code> until the barrier has executed.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TSelf&gt;
-[[nodiscard]] constexpr <a href="../../../BarrierBuilder-00/">BufferBarrierBuilder&lt;TSelf&gt;</a> <a href="../blockAccessTo-0c/">blockAccessTo</a>(this 
-    TSelf&& self,
-    <a href="../../../IBuffer/">IBuffer</a>& buffer,
-    <a href="../../../ResourceAccess/">ResourceAccess</a> access);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TSelf</span><span class="o">&gt;</span><span class="w">
+</span><span class="p">[[</span><span class="na">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><a href="../../../BarrierBuilder-00/"><span class="n">BufferBarrierBuilder</span><span class="o">&lt;</span><span class="n">TSelf</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../blockAccessTo-0c/"><span class="n">blockAccessTo</span></a><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../IBuffer/"><span class="n">IBuffer</span></a><span class="o">&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../ResourceAccess/"><span class="n">ResourceAccess</span></a><span class="w"> </span><span class="n">access</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../blockAccessTo-0c/"><em>» more...</em></a></span></p>
 <p>Specifies the resource accesses that are blocked for <code>image</code> until the barrier has executed.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TSelf&gt;
-[[nodiscard]] constexpr <a href="../../../BarrierBuilder-00/">ImageBarrierBuilder&lt;TSelf&gt;</a> <a href="../blockAccessTo-09/">blockAccessTo</a>(this 
-    TSelf&& self,
-    <a href="../../../IImage/">IImage</a>& image,
-    <a href="../../../ResourceAccess/">ResourceAccess</a> access);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TSelf</span><span class="o">&gt;</span><span class="w">
+</span><span class="p">[[</span><span class="na">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><a href="../../../BarrierBuilder-00/"><span class="n">ImageBarrierBuilder</span><span class="o">&lt;</span><span class="n">TSelf</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../blockAccessTo-09/"><span class="n">blockAccessTo</span></a><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../IImage/"><span class="n">IImage</span></a><span class="o">&amp;</span><span class="w"> </span><span class="n">image</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../ResourceAccess/"><span class="n">ResourceAccess</span></a><span class="w"> </span><span class="n">access</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../blockAccessTo-09/"><em>» more...</em></a></span></p>
 <p>Specifies the resource accesses that are blocked for <code>buffer</code> until the barrier has executed.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TSelf&gt;
-[[nodiscard]] constexpr <a href="../../../BarrierBuilder-00/">BufferBarrierBuilder&lt;TSelf&gt;</a> <a href="../blockAccessTo-078/">blockAccessTo</a>(this 
-    TSelf&& self,
-    <a href="../../../IBuffer/">IBuffer</a>& buffer,
-    <a href="../../../../Math/UInt32/">UInt32</a> subresource,
-    <a href="../../../ResourceAccess/">ResourceAccess</a> access);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TSelf</span><span class="o">&gt;</span><span class="w">
+</span><span class="p">[[</span><span class="na">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><a href="../../../BarrierBuilder-00/"><span class="n">BufferBarrierBuilder</span><span class="o">&lt;</span><span class="n">TSelf</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../blockAccessTo-078/"><span class="n">blockAccessTo</span></a><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../IBuffer/"><span class="n">IBuffer</span></a><span class="o">&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">subresource</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../ResourceAccess/"><span class="n">ResourceAccess</span></a><span class="w"> </span><span class="n">access</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../blockAccessTo-078/"><em>» more...</em></a></span></p>
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>

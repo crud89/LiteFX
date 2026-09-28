@@ -15247,23 +15247,20 @@
 <h1 id="litefxrenderingviewportviewport"><code>LiteFX::Rendering::Viewport::Viewport</code><a class="headerlink" href="#litefxrenderingviewportviewport" title="Permanent link">&para;</a></h1>
 <p>Constructors</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L3254">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L3253">litefx/rendering_api.hpp</a>&gt;</code></p>
 <p>Creates a copy of a viewport.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../2constructor-00/">Viewport</a>(<a href="../">Viewport</a> const& _other);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../2constructor-00/"><span class="n">Viewport</span></a><span class="p">(</span><a href="../"><span class="n">Viewport</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">_other</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-00/"><em>» more...</em></a></span></p>
 <p>Takes over another instance of a viewport.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../2constructor-04/">Viewport</a>(<a href="../">Viewport</a>&& _other) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../2constructor-04/"><span class="n">Viewport</span></a><span class="p">(</span><a href="../"><span class="n">Viewport</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">_other</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-04/"><em>» more...</em></a></span></p>
 <p>Initializes a new viewport.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] explicit <a href="../2constructor-07/">Viewport</a>(
-    <a href="../../../Math/RectF/">RectF</a> const& clientRect = { },
-    <a href="../../../Math/Float/">Float</a> minDepth = 0.f,
-    <a href="../../../Math/Float/">Float</a> maxDepth = 1.f) noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">explicit</span><span class="w"> </span><a href="../2constructor-07/"><span class="n">Viewport</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/RectF/"><span class="n">RectF</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">clientRect</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">}</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/Float/"><span class="n">Float</span></a><span class="w"> </span><span class="n">minDepth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.f</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/Float/"><span class="n">Float</span></a><span class="w"> </span><span class="n">maxDepth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.f</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-07/"><em>» more...</em></a></span></p>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>

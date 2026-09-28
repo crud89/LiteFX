@@ -15632,11 +15632,10 @@
 <h1 id="litefxrenderingicommandqueuesetdebugmarker"><code>LiteFX::Rendering::ICommandQueue::setDebugMarker</code><a class="headerlink" href="#litefxrenderingicommandqueuesetdebugmarker" title="Permanent link">&para;</a></h1>
 <p>Inserts a debug marker.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L8084">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] virtual void setDebugMarker(
-    <a href="../../../String/">String</a> const& label,
-    <a href="../../../Math/Vectors/ByteVector3/">Vectors::ByteVector3</a> const& color = DEFAULT_DEBUG_COLOR) const noexcept;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L8084">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">setDebugMarker</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../String/"><span class="n">String</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">label</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/Vectors/ByteVector3/"><span class="n">Vectors</span><span class="o">:</span><span class="o">:</span><span class="n">ByteVector3</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DEFAULT_DEBUG_COLOR</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>This method is a debug helper, that is not required to be implemented. In the built-in backends, it will no-op by default in non-debug builds.</p>

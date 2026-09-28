@@ -16675,14 +16675,13 @@
 <h1 id="litefxrenderingicommandbufferdrawindexed"><code>LiteFX::Rendering::ICommandBuffer::drawIndexed</code><a class="headerlink" href="#litefxrenderingicommandbufferdrawindexed" title="Permanent link">&para;</a></h1>
 <p>Draws the currently bound vertex buffer using the index buffer provided in <code>indexBuffer.</code></p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L6852">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void drawIndexed(
-    <a href="../../IIndexBuffer/">IIndexBuffer</a> const& indexBuffer,
-    <a href="../../../Math/UInt32/">UInt32</a> instances = 1,
-    <a href="../../../Math/UInt32/">UInt32</a> firstIndex = 0,
-    <a href="../../../Math/Int32/">Int32</a> vertexOffset = 0,
-    <a href="../../../Math/UInt32/">UInt32</a> firstInstance = 0) const;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L6851">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">drawIndexed</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../IIndexBuffer/"><span class="n">IIndexBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">indexBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">instances</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/Int32/"><span class="n">Int32</span></a><span class="w"> </span><span class="n">vertexOffset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">firstInstance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>This helper method binds the index buffer and issues a draw command for all indices.</p>

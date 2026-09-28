@@ -15938,24 +15938,21 @@
 <h1 id="litefxrenderingibottomlevelaccelerationstructuretrianglemeshtrianglemesh"><code>LiteFX::Rendering::IBottomLevelAccelerationStructure::TriangleMesh::TriangleMesh</code><a class="headerlink" href="#litefxrenderingibottomlevelaccelerationstructuretrianglemeshtrianglemesh" title="Permanent link">&para;</a></h1>
 <p>Constructors</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L4312">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L4311">litefx/rendering_api.hpp</a>&gt;</code></p>
 <p>Initializes a new triangle mesh by copying another one.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-02/">TriangleMesh</a>(<a href="../">TriangleMesh</a> const& other) = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-02/"><span class="n">TriangleMesh</span></a><span class="p">(</span><a href="../"><span class="n">TriangleMesh</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-02/"><em>» more...</em></a></span></p>
 <p>Initializes a new triangle mesh by taking over another one.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">constexpr <a href="../2constructor-01/">TriangleMesh</a>(<a href="../">TriangleMesh</a>&& other) noexcept = default;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">constexpr</span><span class="w"> </span><a href="../2constructor-01/"><span class="n">TriangleMesh</span></a><span class="p">(</span><a href="../"><span class="n">TriangleMesh</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-01/"><em>» more...</em></a></span></p>
 <p>Initializes a new triangle mesh.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp"><a href="../2constructor-0b/">TriangleMesh</a>(
-    <a href="../../../../SharedPtr/">SharedPtr&lt;IVertexBuffer const&gt;</a> const& vertexBuffer,
-    <a href="../../../../SharedPtr/">SharedPtr&lt;IIndexBuffer const&gt;</a> const& indexBuffer = nullptr,
-    <a href="../../../../SharedPtr/">SharedPtr&lt;IBuffer const&gt;</a> const& transformBuffer = nullptr,
-    <a href="../../../GeometryFlags/">GeometryFlags</a> flags = GeometryFlags::None);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><a href="../2constructor-0b/"><span class="n">TriangleMesh</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IVertexBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">vertexBuffer</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IIndexBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">indexBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IBuffer</span><span class="w"> </span><span class="k">const</span><span class="o">&gt;</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">transformBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../GeometryFlags/"><span class="n">GeometryFlags</span></a><span class="w"> </span><span class="n">flags</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GeometryFlags</span><span class="o">:</span><span class="o">:</span><span class="n">None</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../2constructor-0b/"><em>» more...</em></a></span></p>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>

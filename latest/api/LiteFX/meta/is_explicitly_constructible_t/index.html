@@ -4805,13 +4805,13 @@
 <h1 id="litefxmetais_explicitly_constructible_t"><code>LiteFX::meta::is_explicitly_constructible_t</code><a class="headerlink" href="#litefxmetais_explicitly_constructible_t" title="Permanent link">&para;</a></h1>
 <p>Evaluates to either <code>true</code> or <code>false</code>, if <code>T</code> can be constructed using the provided arguments, whilst not being able to be converted from <code>TArg.</code></p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Core/include/litefx/traits.hpp#L55">litefx/traits.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    typename T,
-    typename TArg,
-    typename... TArgs&gt;
-struct is_explicitly_constructible_t
-    : std::bool_constant&lt;std::is_constructible_v&lt;T, TArg, TArgs...&gt; &amp;&amp; !std::is_convertible_v&lt;TArg, T&gt;&gt;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Core/include/litefx/traits.hpp#L55">litefx/traits.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TArg</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">typename</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w"> </span><span class="n">TArgs</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">struct</span><span class="w"> </span><span class="nc">is_explicitly_constructible_t</span><span class="w">
+</span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">bool_constant</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">is_constructible_v</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">TArg</span><span class="p">,</span><span class="w"> </span><span class="n">TArgs</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">is_convertible_v</span><span class="o">&lt;</span><span class="n">TArg</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="o">&gt;</span></code></pre></div>
 
 <h2 id="base-classes">Base Classes<a class="headerlink" href="#base-classes" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">

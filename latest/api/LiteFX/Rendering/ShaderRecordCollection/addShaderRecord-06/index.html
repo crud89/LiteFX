@@ -15551,13 +15551,12 @@
 <h1 id="litefxrenderingshaderrecordcollectionaddshaderrecord"><code>LiteFX::Rendering::ShaderRecordCollection::addShaderRecord</code><a class="headerlink" href="#litefxrenderingshaderrecordcollectionaddshaderrecord" title="Permanent link">&para;</a></h1>
 <p>Adds a new shader record based on the name of a shader module in the parent shader program.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L5681">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TLocalData&gt;
-requires (std::alignment_of_v&lt;TLocalData&gt; == SHADER_RECORD_LOCAL_DATA_ALIGNMENT)
-void addShaderRecord(
-    <a href="../../../StringView/">StringView</a> shaderName,
-    TLocalData payload);
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L5680">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TLocalData</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">alignment_of_v</span><span class="o">&lt;</span><span class="n">TLocalData</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="o">=</span><span class="w"> </span><span class="n">SHADER_RECORD_LOCAL_DATA_ALIGNMENT</span><span class="p">)</span><span class="w">
+</span><span class="kt">void</span><span class="w"> </span><span class="n">addShaderRecord</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../StringView/"><span class="n">StringView</span></a><span class="w"> </span><span class="n">shaderName</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">TLocalData</span><span class="w"> </span><span class="n">payload</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an any and closest hit shader, use <a href="../addMeshGeometryShaderHitGroupRecord-09/"><code>addMeshGeometryShaderHitGroupRecord</code></a> instead.</p>

@@ -24425,9 +24425,8 @@
 <h1 id="litefxrenderingbackendsvulkanrasterizerupdatelinewidth"><code>LiteFX::Rendering::Backends::VulkanRasterizer::updateLineWidth</code><a class="headerlink" href="#litefxrenderingbackendsvulkanrasterizerupdatelinewidth" title="Permanent link">&para;</a></h1>
 <p>Sets the line width on the rasterizer.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L1234">litefx/backends/vulkan.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void updateLineWidth(<a href="../../../../Math/Float/">Float</a> lineWidth) noexcept;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L1234">litefx/backends/vulkan.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">updateLineWidth</span><span class="p">(</span><a href="../../../../Math/Float/"><span class="n">Float</span></a><span class="w"> </span><span class="n">lineWidth</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Note that updating the line width requires the "wide lines" feature to be available. If it is not, the line width <b>must</b> be <code>1.0</code>. This constraint is not enforced by the engine and you are responsible of making sure that it is fulfilled.</p>
@@ -24443,7 +24442,7 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#features-wideLines</p>
+<p><a href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#features-wideLines">https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#features-wideLines</a></p>
 
 
 

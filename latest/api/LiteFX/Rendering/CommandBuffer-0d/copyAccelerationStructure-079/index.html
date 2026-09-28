@@ -16465,37 +16465,33 @@
 <h1 id="litefxrenderingcommandbuffercopyaccelerationstructure"><code>LiteFX::Rendering::CommandBuffer::copyAccelerationStructure</code><a class="headerlink" href="#litefxrenderingcommandbuffercopyaccelerationstructure" title="Permanent link">&para;</a></h1>
 <p>Copies the acceleration structure <code>from</code> into the acceleration structure <code>to.</code></p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering.hpp#L742">litefx/rendering.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering.hpp#L742">litefx/rendering.hpp</a>&gt;</code></p>
 <p>Copies the acceleration structure <code>from</code> into the acceleration structure <code>to.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/copyAccelerationStructure-08/">copyAccelerationStructure</a>(
-    <a href="../../IBottomLevelAccelerationStructure/">IBottomLevelAccelerationStructure</a> const& from,
-    <a href="../../IBottomLevelAccelerationStructure/">IBottomLevelAccelerationStructure</a> const& to,
-    bool compress = false) const noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/copyAccelerationStructure-08/"><span class="n">copyAccelerationStructure</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../IBottomLevelAccelerationStructure/"><span class="n">IBottomLevelAccelerationStructure</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">from</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../IBottomLevelAccelerationStructure/"><span class="n">IBottomLevelAccelerationStructure</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">to</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">compress</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/copyAccelerationStructure-08/"><em>» more...</em></a></span></p>
 <p>Copies the acceleration structure <code>from</code> into the acceleration structure <code>to.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void <a href="../../ICommandBuffer/copyAccelerationStructure-0c/">copyAccelerationStructure</a>(
-    <a href="../../ITopLevelAccelerationStructure/">ITopLevelAccelerationStructure</a> const& from,
-    <a href="../../ITopLevelAccelerationStructure/">ITopLevelAccelerationStructure</a> const& to,
-    bool compress = false) const noexcept;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../../ICommandBuffer/copyAccelerationStructure-0c/"><span class="n">copyAccelerationStructure</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../ITopLevelAccelerationStructure/"><span class="n">ITopLevelAccelerationStructure</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">from</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../ITopLevelAccelerationStructure/"><span class="n">ITopLevelAccelerationStructure</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">to</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">compress</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../../ICommandBuffer/copyAccelerationStructure-0c/"><em>» more...</em></a></span></p>
 <p>Copies the acceleration structure <code>from</code> into the acceleration structure <code>to.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../copyAccelerationStructure-00/">copyAccelerationStructure</a>(
-    <a href="../bottom_level_acceleration_structure_type/">bottom_level_acceleration_structure_type</a> const& from,
-    <a href="../bottom_level_acceleration_structure_type/">bottom_level_acceleration_structure_type</a> const& to,
-    bool compress = false) const noexcept = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../copyAccelerationStructure-00/"><span class="nf">copyAccelerationStructure</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../bottom_level_acceleration_structure_type/"><span class="n">bottom_level_acceleration_structure_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">from</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../bottom_level_acceleration_structure_type/"><span class="n">bottom_level_acceleration_structure_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">to</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">compress</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../copyAccelerationStructure-00/"><em>» more...</em></a></span></p>
 <p>Copies the acceleration structure <code>from</code> into the acceleration structure <code>to.</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void <a href="../copyAccelerationStructure-06/">copyAccelerationStructure</a>(
-    <a href="../top_level_acceleration_structure_type/">top_level_acceleration_structure_type</a> const& from,
-    <a href="../top_level_acceleration_structure_type/">top_level_acceleration_structure_type</a> const& to,
-    bool compress = false) const noexcept = 0;
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../copyAccelerationStructure-06/"><span class="nf">copyAccelerationStructure</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../top_level_acceleration_structure_type/"><span class="n">top_level_acceleration_structure_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">from</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../top_level_acceleration_structure_type/"><span class="n">top_level_acceleration_structure_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">to</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">compress</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../copyAccelerationStructure-06/"><em>» more...</em></a></span></p>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>

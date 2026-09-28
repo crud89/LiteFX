@@ -24937,15 +24937,14 @@
 <h1 id="litefxrenderingbackendsdirectx12renderpassbuilderrendertarget"><code>LiteFX::Rendering::Backends::DirectX12RenderPassBuilder::renderTarget</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12renderpassbuilderrendertarget" title="Permanent link">&para;</a></h1>
 <p>Adds a render target to the render pass by assigning it an incremental location number.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_builders.hpp#L1773">litefx/rendering_builders.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TSelf&gt;
-constexpr TSelf&& renderTarget(this 
-    TSelf&& self,
-    <a href="../../../RenderTargetType/">RenderTargetType</a> type,
-    <a href="../../../Format/">Format</a> format,
-    <a href="../../../RenderTargetFlags/">RenderTargetFlags</a> flags = RenderTargetFlags::None,
-    <a href="../../../../Math/Vector4f/">Vector4f</a> const& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f });
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_builders.hpp#L1773">litefx/rendering_builders.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TSelf</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">constexpr</span><span class="w"> </span><span class="n">TSelf</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">renderTarget</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="w">
+</span><span class="w">    </span><span class="n">TSelf</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../RenderTargetType/"><span class="n">RenderTargetType</span></a><span class="w"> </span><span class="n">type</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../Format/"><span class="n">Format</span></a><span class="w"> </span><span class="n">format</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../RenderTargetFlags/"><span class="n">RenderTargetFlags</span></a><span class="w"> </span><span class="n">flags</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">RenderTargetFlags</span><span class="o">:</span><span class="o">:</span><span class="n">None</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/Vector4f/"><span class="n">Vector4f</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">clearValues</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0f</span><span class="w"> </span><span class="p">}</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">

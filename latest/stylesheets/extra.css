@@ -392,3 +392,13 @@
 .md-typeset .mrdocs-table tbody tr:hover {
   background-color: var(--md-accent-fg-color--transparent);
 }
+
+/* Links within highlighted code blocks of the API reference (e.g. to types in a declaration) keep the link color. */
+.md-typeset .highlight code a,
+.md-typeset .highlight code a span {
+  color: var(--md-typeset-a-color);
+}
+
+.md-typeset .highlight code a:hover span {
+  text-decoration: underline;
+}

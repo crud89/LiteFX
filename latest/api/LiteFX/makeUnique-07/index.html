@@ -4445,19 +4445,17 @@
 <h1 id="litefxmakeunique"><code>LiteFX::makeUnique</code><a class="headerlink" href="#litefxmakeunique" title="Permanent link">&para;</a></h1>
 <p>Creates a new unique pointer.</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Core/include/litefx/containers.hpp#L136">litefx/containers.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Core/include/litefx/containers.hpp#L136">litefx/containers.hpp</a>&gt;</code></p>
 <p>Creates a new unique pointer.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;class T&gt;
-[[nodiscard]] constexpr <a href="../UniquePtr/">UniquePtr&lt;T&gt;</a> <a href="../makeUnique-00/">makeUnique</a>();
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w">
+</span><span class="p">[[</span><span class="na">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><a href="../UniquePtr/"><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../makeUnique-00/"><span class="n">makeUnique</span></a><span class="p">(</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../makeUnique-00/"><em>» more...</em></a></span></p>
 <p>Creates a new unique pointer.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;
-    class T,
-    class... TArgs&gt;
-[[nodiscard]] constexpr <a href="../UniquePtr/">UniquePtr&lt;T&gt;</a> <a href="../makeUnique-0d/">makeUnique</a>(TArgs&&... _args);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
+</span><span class="w">    </span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">class</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w"> </span><span class="n">TArgs</span><span class="o">&gt;</span><span class="w">
+</span><span class="p">[[</span><span class="na">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><a href="../UniquePtr/"><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../makeUnique-0d/"><span class="n">makeUnique</span></a><span class="p">(</span><span class="n">TArgs</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w"> </span><span class="n">_args</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../makeUnique-0d/"><em>» more...</em></a></span></p>
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>

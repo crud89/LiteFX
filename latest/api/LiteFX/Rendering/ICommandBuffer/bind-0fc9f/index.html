@@ -16882,9 +16882,8 @@
 <h1 id="litefxrenderingicommandbufferbind"><code>LiteFX::Rendering::ICommandBuffer::bind</code><a class="headerlink" href="#litefxrenderingicommandbufferbind" title="Permanent link">&para;</a></h1>
 <p>Binds a index buffer to the pipeline.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L6691">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] void bind(<a href="../../IIndexBuffer/">IIndexBuffer</a> const& buffer) const;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L6690">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">bind</span><span class="p">(</span><a href="../../IIndexBuffer/"><span class="n">IIndexBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>After binding the index buffer, the next call to <a href="../drawIndexed-0c/"><code>drawIndexed</code></a> will read from it, until another index buffer is bound.</p>
@@ -16897,8 +16896,8 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>IndexBuffer</p>
-<p>drawIndexed</p>
+<p><a href="../../IndexBuffer-0a/"><code>IndexBuffer</code></a></p>
+<p><a href="../drawIndexed-0c/"><code>drawIndexed</code></a></p>
 
 
 

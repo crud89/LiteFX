@@ -5031,9 +5031,9 @@
 <h1 id="litefxevent"><code>LiteFX::Event</code><a class="headerlink" href="#litefxevent" title="Permanent link">&para;</a></h1>
 <p>A class that is used to declare an event, which a number of listeners can subscribe to.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/AppModel/include/litefx/app.hpp#L144">litefx/app.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">template&lt;typename TEventArgs&gt;
-class Event final</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/AppModel/include/litefx/app.hpp#L144">litefx/app.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TEventArgs</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">class</span><span class="w"> </span><span class="nc">Event</span><span class="w"> </span><span class="k">final</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>A listener that subscribes to the event is called <em>event handler</em>. The event handler needs to be invokable and identifiable. Because of this, a <a href="../Delegate/"><code>Delegate</code></a> is created for the event handler. A delegate stores the event handler, as well as a token to identify the event handler. Event handlers must expose the a common signature: they do not return anything and accept two parameters. The first parameter is an unformatted pointer to the event sender (i.e., the object that invoked the event handlers). The second parameter contains additional arguments (<code>TEventArgs),</code> that are passed to all handlers. Note that the sender can also be <code>nullptr</code>.</p>
@@ -5078,7 +5078,7 @@ class Event final</code></pre>
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>EventArgs</p>
+<p><a href="../EventArgs/"><code>EventArgs</code></a></p>
 
 
 

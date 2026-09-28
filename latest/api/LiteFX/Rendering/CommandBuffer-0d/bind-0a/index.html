@@ -16657,11 +16657,10 @@
 <h1 id="litefxrenderingcommandbufferbind"><code>LiteFX::Rendering::CommandBuffer::bind</code><a class="headerlink" href="#litefxrenderingcommandbufferbind" title="Permanent link">&para;</a></h1>
 <p>Binds an arbitrary input range of descriptor sets to the provided pipeline.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering.hpp#L672">litefx/rendering.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual void bind(
-    <a href="../../../Span/">Span&lt;descriptor_set_type const*&gt;</a> descriptorSets,
-    <a href="../pipeline_type/">pipeline_type</a> const& pipeline) const = 0;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering.hpp#L672">litefx/rendering.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">bind</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../Span/"><span class="n">Span</span><span class="o">&lt;</span><span class="n">descriptor_set_type</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">descriptorSets</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../pipeline_type/"><span class="n">pipeline_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">pipeline</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Note that if an element of <code>descriptorSets</code> is <code>nullptr</code>, it will be ignored.</p>

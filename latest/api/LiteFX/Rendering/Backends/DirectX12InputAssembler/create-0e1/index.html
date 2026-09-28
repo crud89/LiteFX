@@ -24676,26 +24676,23 @@
 <h1 id="litefxrenderingbackendsdirectx12inputassemblercreate"><code>LiteFX::Rendering::Backends::DirectX12InputAssembler::create</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12inputassemblercreate" title="Permanent link">&para;</a></h1>
 <p><code>create</code> overloads</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L1106">litefx/backends/dx12.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L1106">litefx/backends/dx12.hpp</a>&gt;</code></p>
 <p>Creates a new DirectX 12 input assembler state as a copy from another one.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] static auto <a href="../create-0c/">create</a>(<a href="../">DirectX12InputAssembler</a> const& other);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><a href="../create-0c/"><span class="n">create</span></a><span class="p">(</span><a href="../"><span class="n">DirectX12InputAssembler</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../create-0c/"><em>» more...</em></a></span></p>
 <p>Creates a new DirectX 12 input assembler state.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] static auto <a href="../create-0e5/">create</a>(
-    <a href="../../../PrimitiveTopology/">PrimitiveTopology</a> primitiveTopology,
-    <a href="../../../../Math/UInt32/">UInt32</a> controlPoints = 1);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><a href="../create-0e5/"><span class="n">create</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../PrimitiveTopology/"><span class="n">PrimitiveTopology</span></a><span class="w"> </span><span class="n">primitiveTopology</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">controlPoints</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../create-0e5/"><em>» more...</em></a></span></p>
 <p>Creates a new DirectX 12 input assembler state.</p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] static auto <a href="../create-05/">create</a>(
-    <a href="../../../../Enumerable/">Enumerable&lt;SharedPtr&lt;DirectX12VertexBufferLayout&gt;&gt;</a>&& vertexBufferLayouts,
-    <a href="../../../../SharedPtr/">SharedPtr&lt;DirectX12IndexBufferLayout&gt;</a>&& indexBufferLayout,
-    <a href="../../../PrimitiveTopology/">PrimitiveTopology</a> primitiveTopology = PrimitiveTopology::TriangleList,
-    <a href="../../../../Math/UInt32/">UInt32</a> controlPoints = 1);
-</code></pre>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><a href="../create-05/"><span class="n">create</span></a><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Enumerable/"><span class="n">Enumerable</span><span class="o">&lt;</span><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">DirectX12VertexBufferLayout</span><span class="o">&gt;</span><span class="o">&gt;</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">vertexBufferLayouts</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../SharedPtr/"><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">DirectX12IndexBufferLayout</span><span class="o">&gt;</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">indexBufferLayout</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../PrimitiveTopology/"><span class="n">PrimitiveTopology</span></a><span class="w"> </span><span class="n">primitiveTopology</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PrimitiveTopology</span><span class="o">:</span><span class="o">:</span><span class="n">TriangleList</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">controlPoints</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../create-05/"><em>» more...</em></a></span></p>
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>

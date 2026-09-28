@@ -15627,8 +15627,8 @@
 <h1 id="litefxrenderingpipelinebindinghintshaderstagehint"><code>LiteFX::Rendering::PipelineBindingHint::ShaderStageHint</code><a class="headerlink" href="#litefxrenderingpipelinebindinghintshaderstagehint" title="Permanent link">&para;</a></h1>
 <p>Defines a hint that is used to mark additional a binding as used by certain shader stages.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L5873">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">struct ShaderStageHint;</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L5872">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">struct</span><span class="w"> </span><span class="nc">ShaderStageHint</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Shader stages are set on the descriptor set, so the binding register for this hint is ignored. If specified, this hint causes shader stages that are not found in shader reflection to be included in the shader stage mask. Usually reflection leaves out shader stages that a descriptor set is not bound to, as this can improve performance. However, if a descriptor set can be re-used between compatible pipeline layouts, shader reflection may be unable to tell which shader stages the descriptor set is actually accessed from. In those scenarios, additional stages can be provided using this hint.</p>

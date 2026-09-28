@@ -17018,9 +17018,8 @@
 <h1 id="litefxrenderinggraphicsdevicedefaultqueue"><code>LiteFX::Rendering::GraphicsDevice::defaultQueue</code><a class="headerlink" href="#litefxrenderinggraphicsdevicedefaultqueue" title="Permanent link">&para;</a></h1>
 <p>Returns the instance of the default <a href="../../ICommandQueue/"><code>ICommandQueue</code></a> that supports the combination of queue types specified by the <code>type</code> parameter.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering.hpp#L1533">litefx/rendering.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">virtual <a href="../command_queue_type/">command_queue_type</a> const& defaultQueue(<a href="../../QueueType/">QueueType</a> type) const = 0;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering.hpp#L1533">litefx/rendering.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">virtual</span><span class="w"> </span><a href="../command_queue_type/"><span class="n">command_queue_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">defaultQueue</span><span class="p">(</span><a href="../../QueueType/"><span class="n">QueueType</span></a><span class="w"> </span><span class="n">type</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>When the device is created, it attempts to create a queue for each singular queue type. Each GPU is expected to provide at least one queue that is capable of supporting all queue types. This queue is used as a fallback queue, if no dedicated queue for a certain type is supported. For example, if no dedicated <a href="../../QueueType/"><code>QueueType::Transfer</code></a> queue can be created, calling this method for the default transfer queue will return the same queue instance as the default graphics queue, which implicitly always supports transfer operations. The same is true for compute queues. This default graphics queue is ensured to support presentation and is also created with the highest queue priority.</p>
@@ -17035,7 +17034,7 @@
 </table></div>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p>createQueue</p>
+<p><a href="../../IGraphicsDevice/createQueue/"><code>createQueue</code></a></p>
 
 
 

@@ -24799,11 +24799,10 @@
 <h1 id="litefxrenderingbackendsdirectx12renderpassbuildermakeinputattachment"><code>LiteFX::Rendering::Backends::DirectX12RenderPassBuilder::makeInputAttachment</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12renderpassbuildermakeinputattachment" title="Permanent link">&para;</a></h1>
 <p>Creates a new input attachment mapping between a render target of a specified render pass and an input location of the render pass that is currently built.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Backends/DirectX12/include/litefx/backends/dx12_builders.hpp#L360">litefx/backends/dx12_builders.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllexport]] virtual <a href="../../../RenderPassDependency/">RenderPassDependency</a> makeInputAttachment(
-    <a href="../../../DescriptorBindingPoint/">DescriptorBindingPoint</a> binding,
-    <a href="../../../RenderTarget/">RenderTarget</a> const& renderTarget) override;
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Backends/DirectX12/include/litefx/backends/dx12_builders.hpp#L360">litefx/backends/dx12_builders.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../../RenderPassDependency/"><span class="n">RenderPassDependency</span></a><span class="w"> </span><span class="n">makeInputAttachment</span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><a href="../../../DescriptorBindingPoint/"><span class="n">DescriptorBindingPoint</span></a><span class="w"> </span><span class="n">binding</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../RenderTarget/"><span class="n">RenderTarget</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">renderTarget</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span></code></pre></div>
 
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p>The input attachment mapping that describes the relation between the earlier render pass render target and the input location.</p>

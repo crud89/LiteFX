@@ -15512,9 +15512,8 @@
 <h1 id="litefxrenderingshaderrecordcollectionwithshaderrecord"><code>LiteFX::Rendering::ShaderRecordCollection::withShaderRecord</code><a class="headerlink" href="#litefxrenderingshaderrecordcollectionwithshaderrecord" title="Permanent link">&para;</a></h1>
 <p>Adds a new shader record based on the name of a shader module in the parent shader program.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/b1636eac1d21631050f685657450be7dc4475c4f/src/Rendering/include/litefx/rendering_api.hpp#L5751">litefx/rendering_api.hpp</a>&gt;</code></p>
-<pre class="mrdocs-synopsis"><code class="source-code cpp">[[dllimport, dllexport]] <a href="../">ShaderRecordCollection</a>&& withShaderRecord(<a href="../../../StringView/">StringView</a> shaderName);
-</code></pre>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/5a60796c565dd3f0d8e6e9336336b916be004b3b/src/Rendering/include/litefx/rendering_api.hpp#L5750">litefx/rendering_api.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><a href="../"><span class="n">ShaderRecordCollection</span></a><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">withShaderRecord</span><span class="p">(</span><a href="../../../StringView/"><span class="n">StringView</span></a><span class="w"> </span><span class="n">shaderName</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an any and closest hit shader, use <a href="../withMeshGeometryHitGroupRecord-07/"><code>withMeshGeometryHitGroupRecord</code></a> instead.</p>
