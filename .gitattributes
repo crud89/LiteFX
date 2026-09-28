@@ -5,12 +5,17 @@
 # Map binary files
 *.png binary
 *.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
 *.psd binary
 *.ttf binary
 *.woff binary
 *.woff2 binary
 *.eot binary
 *.ico binary
+*.webm binary
+*.mp4 binary
 
 # Legacy shader name mappings.
 *.vert linguist-language=HLSL
