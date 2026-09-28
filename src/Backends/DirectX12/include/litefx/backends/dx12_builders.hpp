@@ -11,7 +11,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a DirectX 12 @ref Barrier.
 	///
-	/// @see DirectX12Barrier
+	/// @see @ref DirectX12Barrier
 	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12BarrierBuilder final : public BarrierBuilder<DirectX12Barrier> {
 	public:
 		/// @brief Initializes a DirectX 12 barrier builder.
@@ -40,7 +40,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a DirectX 12 @ref ShaderProgram.
 	///
-	/// @see DirectX12ShaderProgram
+	/// @see @ref DirectX12ShaderProgram
 	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12ShaderProgramBuilder final : public ShaderProgramBuilder<DirectX12ShaderProgram> {
 	public:
 		/// @brief Initializes a DirectX 12 shader program builder.
@@ -70,7 +70,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a DirectX 12 @ref IRasterizer.
 	///
-	/// @see DirectX12Rasterizer
+	/// @see @ref DirectX12Rasterizer
 	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12RasterizerBuilder final : public RasterizerBuilder<DirectX12Rasterizer> {
 	public:
 		/// @brief Initializes a DirectX 12 input assembler builder.
@@ -90,7 +90,7 @@ namespace LiteFX::Rendering::Backends {
 	
 	/// @brief Builds a @ref DirectX12InputAssembler.
 	///
-	/// @see DirectX12InputAssembler
+	/// @see @ref DirectX12InputAssembler
 	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12InputAssemblerBuilder final : public InputAssemblerBuilder<DirectX12InputAssembler> {
 		LITEFX_IMPLEMENTATION(DirectX12InputAssemblerBuilderImpl);
 
@@ -128,8 +128,8 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a see @ref DirectX12VertexBufferLayout.
 	///
-	/// @see DirectX12VertexBuffer
-	/// @see DirectX12VertexBufferLayout
+	/// @see @ref IDirectX12VertexBuffer
+	/// @see @ref DirectX12VertexBufferLayout
 	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12VertexBufferLayoutBuilder final : public VertexBufferLayoutBuilder<DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder> {
 	public:
 		using VertexBufferLayoutBuilder<DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder>::VertexBufferLayoutBuilder;
@@ -142,9 +142,9 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a DirectX 12 @ref PipelineLayout for a pipeline.
 	///
-	/// @see DirectX12PipelineLayout
-	/// @see DirectX12RenderPipeline
-	/// @see DirectX12ComputePipeline
+	/// @see @ref DirectX12PipelineLayout
+	/// @see @ref DirectX12RenderPipeline
+	/// @see @ref DirectX12ComputePipeline
 	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12PipelineLayoutBuilder final : public PipelineLayoutBuilder<DirectX12PipelineLayout> {
 		LITEFX_IMPLEMENTATION(DirectX12PipelineLayoutBuilderImpl);
 		friend class DirectX12DescriptorSetLayoutBuilder;
@@ -186,9 +186,9 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a @ref DirectX12DescriptorSetLayout for a pipeline layout.
 	///
-	/// @see DirectX12DescriptorSetLayout
-	/// @see DirectX12RenderPipeline
-	/// @see DirectX12ComputePipeline
+	/// @see @ref DirectX12DescriptorSetLayout
+	/// @see @ref DirectX12RenderPipeline
+	/// @see @ref DirectX12ComputePipeline
 	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12DescriptorSetLayoutBuilder final : public DescriptorSetLayoutBuilder<DirectX12DescriptorSetLayout, DirectX12PipelineLayoutBuilder> {
 	public:
 		/// @brief Initializes a DirectX 12 descriptor set layout builder.
@@ -220,7 +220,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a DirectX 12 @ref PushConstantsLayout for a pipeline layout.
 	///
-	/// @see DirectX12PushConstantsLayout
+	/// @see @ref DirectX12PushConstantsLayout
 	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12PushConstantsLayoutBuilder final : public PushConstantsLayoutBuilder<DirectX12PushConstantsLayout, DirectX12PipelineLayoutBuilder> {
 	public:
 		/// @brief Initializes a DirectX 12 render pipeline push constants layout builder.
@@ -257,7 +257,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a DirectX 12 @ref RenderPipeline.
 	///
-	/// @see DirectX12RenderPipeline
+	/// @see @ref DirectX12RenderPipeline
 	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12RenderPipelineBuilder final : public RenderPipelineBuilder<DirectX12RenderPipeline> {
 	public:
 		/// @brief Initializes a DirectX 12 render pipeline builder.
@@ -280,7 +280,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a DirectX 12 @ref ComputePipeline.
 	///
-	/// @see DirectX12ComputePipeline
+	/// @see @ref DirectX12ComputePipeline
 	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12ComputePipelineBuilder final : public ComputePipelineBuilder<DirectX12ComputePipeline> {
 	public:
 		/// @brief Initializes a DirectX 12 compute pipeline builder.
@@ -303,7 +303,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Builds a DirectX 12 @ref RayTracingPipeline.
 	///
-	/// @see DirectX12RayTracingPipeline
+	/// @see @ref DirectX12RayTracingPipeline
 	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12RayTracingPipelineBuilder final : public RayTracingPipelineBuilder<DirectX12RayTracingPipeline> {
 	public:
 		/// @brief Initializes a DirectX 12 ray-tracing pipeline builder.
@@ -327,7 +327,7 @@ namespace LiteFX::Rendering::Backends {
 
 	/// @brief Implements the DirectX 12 @ref RenderPassBuilder.
 	///
-	/// @see DirectX12RenderPass
+	/// @see @ref DirectX12RenderPass
 	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12RenderPassBuilder final : public RenderPassBuilder<DirectX12RenderPass> {
 	public:
 		/// @brief Initializes a DirectX 12 render pass builder.

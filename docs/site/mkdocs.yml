@@ -95,6 +95,7 @@ markdown_extensions:
       anchor_linenums: true
   - pymdownx.inlinehilite
   - pymdownx.superfences
+  - pymdownx.magiclink
   - pymdownx.tabbed:
       alternate_style: true
 

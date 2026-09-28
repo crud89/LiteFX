@@ -9,8 +9,8 @@ namespace LiteFX::Rendering {
     /// @brief Base class for a builder that builds a @ref Barrier.
     ///
     /// @tparam TBarrier The type of the barrier. Must implement @ref Barrier.
-    /// @see Barrier
-    /// @see IBarrier
+    /// @see @ref Barrier
+    /// @see @ref IBarrier
     template <typename TBarrier> requires
         meta::implements<TBarrier, Barrier<typename TBarrier::buffer_type, typename TBarrier::image_type>>
     class BarrierBuilder : public Builder<TBarrier> {
@@ -324,7 +324,7 @@ namespace LiteFX::Rendering {
     /// @brief Base class for a builder that builds a @ref ShaderProgram.
     ///
     /// @tparam TShaderProgram The type of the shader program. Must implement @ref ShaderProgram.
-    /// @see ShaderProgram
+    /// @see @ref ShaderProgram
     template <typename TShaderProgram> requires
         meta::implements<TShaderProgram, ShaderProgram<typename TShaderProgram::shader_module_type>>
     class ShaderProgramBuilder : public Builder<TShaderProgram, std::nullptr_t, SharedPtr<TShaderProgram>> {
@@ -754,7 +754,7 @@ namespace LiteFX::Rendering {
     /// @brief Builds a @ref Rasterizer.
     ///
     /// @tparam TRasterizer The type of the rasterizer. Must implement @ref IRasterizer.
-    /// @see IRasterizer
+    /// @see @ref IRasterizer
     template <typename TRasterizer> requires
         meta::implements<TRasterizer, IRasterizer>
     class RasterizerBuilder : public Builder<TRasterizer, std::nullptr_t, SharedPtr<TRasterizer>> {
@@ -887,7 +887,7 @@ namespace LiteFX::Rendering {
     /// @brief Builds a @ref IVertexBufferLayout.
     ///
     /// @tparam TVertexBufferLayout The type of the vertex buffer layout. Must implement @ref IVertexBufferLayout.
-    /// @see IVertexBufferLayout
+    /// @see @ref IVertexBufferLayout
     template <typename TVertexBufferLayout, typename TParent> requires
         meta::implements<TVertexBufferLayout, IVertexBufferLayout>
     class VertexBufferLayoutBuilder : public Builder<TVertexBufferLayout, TParent, SharedPtr<TVertexBufferLayout>> {
@@ -961,8 +961,8 @@ namespace LiteFX::Rendering {
     /// @brief Builds a @ref DescriptorSetLayout for a @ref PipelineLayout.
     ///
     /// @tparam TDescriptorSetLayout The type of the descriptor set layout. Must implement @ref DescriptorSetLayout.
-    /// @see DescriptorSetLayout
-    /// @see PipelineLayout
+    /// @see @ref DescriptorSetLayout
+    /// @see @ref PipelineLayout
     template <typename TDescriptorSetLayout, typename TParent> requires
         meta::implements<TDescriptorSetLayout, DescriptorSetLayout<typename TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSetLayout::descriptor_set_type>>
     class DescriptorSetLayoutBuilder : public Builder<TDescriptorSetLayout, TParent, SharedPtr<TDescriptorSetLayout>> {
@@ -1228,7 +1228,7 @@ namespace LiteFX::Rendering {
         ///
         /// @param binding The binding point or register index at which to create the proxy descriptor.
         /// @param heapSize The number of descriptors to reserve for the proxy descriptor.
-        /// @see GraphicsDeviceFeatures::DynamicDescriptors
+        /// @see @ref GraphicsDeviceFeatures::DynamicDescriptors
         template <typename TSelf>
         [[nodiscard]] constexpr auto withResourceHeapAccess(this TSelf&& self, UInt32 binding, UInt32 heapSize) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::ResourceDescriptorHeap, binding, 0u, heapSize, false)));
@@ -1239,7 +1239,7 @@ namespace LiteFX::Rendering {
         ///
         /// @param binding The binding point or register index at which to create the proxy descriptor.
         /// @param heapSize The number of descriptors to reserve for the proxy descriptor.
-        /// @see GraphicsDeviceFeatures::DynamicDescriptors
+        /// @see @ref GraphicsDeviceFeatures::DynamicDescriptors
         template <typename TSelf>
         [[nodiscard]] constexpr auto withSamplerHeapAccess(this TSelf&& self, UInt32 binding, UInt32 heapSize) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::SamplerDescriptorHeap, binding, 0u, heapSize, false)));
@@ -1268,7 +1268,7 @@ namespace LiteFX::Rendering {
         /// @brief Adds a descriptor layout to the descriptor set.
         ///
         /// @param layout The layout of the descriptor.
-        /// @see DescriptorLayout
+        /// @see @ref IDescriptorLayout
         template <typename TSelf>
         [[nodiscard]] constexpr auto use(this TSelf&& self, UniquePtr<descriptor_layout_type>&& layout) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(layout));
@@ -1279,7 +1279,7 @@ namespace LiteFX::Rendering {
     /// @brief Builds a @ref PushConstantsLayout for a @ref PipelineLayout.
     ///
     /// @tparam TPushConstantsLayout The type of the push constants layout. Must implement @ref PushConstantsLayout.
-    /// @see PushConstantsLayout
+    /// @see @ref PushConstantsLayout
     template <typename TPushConstantsLayout, typename TParent> requires
         meta::implements<TPushConstantsLayout, PushConstantsLayout<typename TPushConstantsLayout::push_constants_range_type>>
     class PushConstantsLayoutBuilder : public Builder<TPushConstantsLayout, TParent> {
@@ -1331,7 +1331,7 @@ namespace LiteFX::Rendering {
     /// @brief Base class for a builder of a @ref PipelineLayout.
     ///
     /// @tparam TPipelineLayout The type of the pipeline layout. Must implement @ref PipelineLayout.
-    /// @see PipelineLayout
+    /// @see @ref PipelineLayout
     template <typename TPipelineLayout> requires
         meta::implements<TPipelineLayout, PipelineLayout<typename TPipelineLayout::descriptor_set_layout_type, typename TPipelineLayout::push_constants_layout_type>>
     class PipelineLayoutBuilder : public Builder<TPipelineLayout, std::nullptr_t, SharedPtr<TPipelineLayout>> {
@@ -1363,7 +1363,7 @@ namespace LiteFX::Rendering {
         /// @brief Adds a descriptor set to the pipeline layout.
         ///
         /// @param layout The layout of the descriptor set.
-        /// @see DescriptorSetLayout
+        /// @see @ref DescriptorSetLayout
         template <typename TSelf>
         constexpr auto use(this TSelf&& self, SharedPtr<descriptor_set_layout_type>&& layout) -> TSelf&& {
             self.m_state.descriptorSetLayouts.push_back(std::move(layout));
@@ -1373,7 +1373,7 @@ namespace LiteFX::Rendering {
         /// @brief Adds a push constants range to the pipeline layout.
         ///
         /// @param layout The layout of the push constants range.
-        /// @see PushConstantsLayout
+        /// @see @ref PushConstantsLayout
         template <typename TSelf>
         constexpr auto use(this TSelf&& self, UniquePtr<push_constants_layout_type>&& layout) -> TSelf&& {
             self.m_state.pushConstantsLayout = std::move(layout);
@@ -1384,7 +1384,7 @@ namespace LiteFX::Rendering {
     /// @brief Builds a @ref InputAssembler.
     ///
     /// @tparam TInputAssembler The type of the input assembler state. Must implement @ref InputAssembler.
-    /// @see InputAssembler
+    /// @see @ref InputAssembler
     template <typename TInputAssembler> requires
         meta::implements<TInputAssembler, InputAssembler<typename TInputAssembler::vertex_buffer_layout_type, typename TInputAssembler::index_buffer_layout_type>>
     class InputAssemblerBuilder : public Builder<TInputAssembler, std::nullptr_t, SharedPtr<TInputAssembler>> {
@@ -1460,7 +1460,7 @@ namespace LiteFX::Rendering {
     /// @brief Describes the interface of a render pipeline builder.
     ///
     /// @tparam TRenderPipeline The type of the render pipeline. Must implement @ref RenderPipeline.
-    /// @see RenderPipeline
+    /// @see @ref RenderPipeline
     template <typename TRenderPipeline> requires
         meta::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>>
     class RenderPipelineBuilder : public Builder<TRenderPipeline> {
@@ -1565,7 +1565,7 @@ namespace LiteFX::Rendering {
     /// @brief Describes the interface of a compute pipeline builder.
     ///
     /// @tparam TComputePipeline The type of the compute pipeline. Must implement @ref ComputePipeline.
-    /// @see ComputePipeline
+    /// @see @ref ComputePipeline
     template <typename TComputePipeline> requires
         meta::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>>
     class ComputePipelineBuilder : public Builder<TComputePipeline> {
@@ -1618,7 +1618,7 @@ namespace LiteFX::Rendering {
     /// @brief Describes the interface of a ray-tracing pipeline builder.
     ///
     /// @tparam TRayTracingPipeline The type of the ray-tracing pipeline. Must implement @ref RayTracingPipeline.
-    /// @see RayTracingPipeline
+    /// @see @ref RayTracingPipeline
     template <typename TRayTracingPipeline> requires
         meta::implements<TRayTracingPipeline, RayTracingPipeline<typename TRayTracingPipeline::pipeline_layout_type, typename TRayTracingPipeline::shader_program_type>>
     class RayTracingPipelineBuilder : public Builder<TRayTracingPipeline> {
@@ -1694,7 +1694,7 @@ namespace LiteFX::Rendering {
     ///
     /// @tparam TDerived The type of the implementation of the builder.
     /// @tparam TRenderPass The type of the render pass. Must implement @ref RenderPass.
-    /// @see RenderPass
+    /// @see @ref RenderPass
     template <typename TRenderPass> requires
         meta::implements<TRenderPass, RenderPass<typename TRenderPass::command_queue_type, typename TRenderPass::frame_buffer_type>>
     class RenderPassBuilder : public Builder<TRenderPass, std::nullptr_t, SharedPtr<TRenderPass>> {
@@ -1723,7 +1723,7 @@ namespace LiteFX::Rendering {
 
             /// @brief A mask that indicates the enabled view instances during rendering, if view instancing is enabled.
             ///
-            /// @see GraphicsDeviceFeatures::ViewInstancing
+            /// @see @ref GraphicsDeviceFeatures::ViewInstancing
             UInt32 viewMask{ 0b0000 };
         } m_state;
 

@@ -205,7 +205,7 @@ namespace LiteFX {
 	/// range in child classes instead for most performance.
 	///
 	/// @tparam T The type returned by the iterator, that is covariant to the actual iterated type.
-	/// @see Enumerable
+	/// @see @ref Enumerable
 	template <typename T>
 	struct CovariantIterator {
 	public:
@@ -424,7 +424,7 @@ namespace LiteFX {
 	/// Keep in mind that the type parameter @p T dictates what an iterator returns from the `Enumerable`, i.e. if an lvalue or (p)rvalue should be returned and wheather or not a copy is created accordingly.
 	///
 	/// @tparam T The type of the values returned by the enumerable.
-	/// @see CovariantIterator
+	/// @see @ref CovariantIterator
 	template <typename T>
 	struct Enumerable {
 	public:
@@ -635,8 +635,6 @@ namespace LiteFX {
 	/// @brief Declares the implementation for the public interface of a class.
 	///
 	/// A class can access the instance of the implementation instance using the pointer `m_impl` after declaring the implementation using this macro.
-	///
-	/// @see Implement
 #  define LITEFX_IMPLEMENTATION(impl) private: \
 	class impl; \
 	PimplPtr<impl> m_impl; \
@@ -649,7 +647,7 @@ namespace LiteFX {
 	/// @brief Provides access to a resource managed by the class.
 	///
 	/// @tparam THandle The type of the resource.
-	/// @see Resource
+	/// @see @ref Resource
 	template <class THandle>
 	class IResource {
 	protected:
@@ -936,7 +934,7 @@ namespace LiteFX {
 		/// @tparam TArgs The types of the arguments passed to the shared object's constructor.
 		/// @param args The arguments that are forwarded to the shared object's constructor.
 		/// @return A shared pointer of the shared object.
-		/// @see Allocator
+		/// @see @ref Allocator
 		template <typename T, typename... TArgs> requires 
 			std::derived_from<T, SharedObject>
 		[[nodiscard]] static inline auto create(TArgs&&... args) -> SharedPtr<T> {

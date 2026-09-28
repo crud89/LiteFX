@@ -203,25 +203,25 @@ namespace LiteFX::Rendering::Backends {
         /// @brief Returns `true`, if all elements of @p are contained by the a list of available extensions.
         ///
         /// @return `true`, if all elements of @p are contained by the a list of available extensions.
-        /// @see getAvailableDeviceExtensions
+        /// @see @ref getAvailableDeviceExtensions
         bool validateDeviceExtensions(Span<const String> extensions) const;
 
         /// @brief Returns a list of available extensions.
         ///
         /// @return A list of available extensions.
-        /// @see validateDeviceExtensions
+        /// @see @ref validateDeviceExtensions
         Enumerable<String> getAvailableDeviceExtensions() const;
 
         /// @brief Returns `true`, if all elements of @p are contained by the a list of available validation layers.
         ///
         /// @return `true`, if all elements of @p are contained by the a list of available validation layers.
-        /// @see getDeviceValidationLayers
+        /// @see @ref deviceValidationLayers
         bool validateDeviceLayers(const Span<const String> validationLayers) const;
 
         /// @brief Returns a list of available validation layers.
         ///
         /// @return A list of available validation layers.
-        /// @see validateDeviceLayers
+        /// @see @ref validateDeviceLayers
         Enumerable<String> deviceValidationLayers() const;
     };
 
@@ -261,7 +261,6 @@ namespace LiteFX::Rendering::Backends {
         /// @brief Returns the window handle of the surface.
         ///
         /// @return The window handle of the surface.
-        /// @see createSurface
         HWND windowHandle() const noexcept;
 #endif // VK_USE_PLATFORM_WIN32_KHR
     };
