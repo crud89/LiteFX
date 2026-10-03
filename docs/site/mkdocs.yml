@@ -97,6 +97,7 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.superfences
   - pymdownx.magiclink
+  - pymdownx.keys
   - pymdownx.tabbed:
       alternate_style: true
 
@@ -116,6 +117,30 @@ nav:
           - 4. Shaders: tutorials/first-triangle/shaders.md
           - 5. The Render Pipeline: tutorials/first-triangle/pipeline.md
           - 6. Drawing: tutorials/first-triangle/drawing.md
-  # NOTE: The API reference must be generated first using the respective CMake target.
+      - Beginner Samples:
+          - tutorials/samples-beginner/index.md
+          - 1. Basic Rendering: tutorials/samples-beginner/basic-rendering.md
+          - 2. Render Passes: tutorials/samples-beginner/render-passes.md
+          - 3. Push Constants: tutorials/samples-beginner/push-constants.md
+          - 4. Uniform Arrays: tutorials/samples-beginner/uniform-arrays.md
+          - 5. Textures: tutorials/samples-beginner/textures.md
+          - 6. Multisampling: tutorials/samples-beginner/multisampling.md
+          - 7. Multithreading: tutorials/samples-beginner/multithreading.md
+      - Intermediate Samples:
+          - tutorials/samples-intermediate/index.md
+          - 1. Bindless: tutorials/samples-intermediate/bindless.md
+          - 2. Compute Pipelines: tutorials/samples-intermediate/compute.md
+          - 3. Mesh Shaders: tutorials/samples-intermediate/mesh-shaders.md
+          - 4. Ray Tracing: tutorials/samples-intermediate/ray-tracing.md
+          - 5. Ray Queries: tutorials/samples-intermediate/ray-queries.md
+          - 6. Indirect Rendering: tutorials/samples-intermediate/indirect.md
+      - Advanced Samples:
+          - tutorials/samples-advanced/index.md
+          - 1. Dynamic Descriptors: tutorials/samples-advanced/dynamic-descriptors.md
+          - 2. Defragmentation: tutorials/samples-advanced/defragmentation.md
+          - 3. Resource Aliasing: tutorials/samples-advanced/resource-aliasing.md
+      - Adjacent Topics:
+          - tutorials/samples-adjacent/index.md
+          - 1. Dear ImGui: tutorials/samples-adjacent/imgui.md
   - API Reference: api/index.md
   - Wiki: https://github.com/crud89/LiteFX/wiki
