@@ -107,5 +107,5 @@ The quad is drawn from its own vertex and index buffers, built from four vertice
 
 !!! tip "Transient images"
 
-    All three passes allocate their own images here. The [resource aliasing](resource-aliasing.md) tutorial shows how images whose
+    All three passes allocate their own images here. The [resource aliasing](../samples-advanced/resource-aliasing.md) tutorial shows how images whose
     lifetimes do not overlap can share the same memory.

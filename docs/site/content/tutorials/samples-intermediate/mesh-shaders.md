@@ -3,7 +3,7 @@
 !!! abstract "Sample 10"
 
     [`Samples/MeshShader`](https://github.com/crud89/LiteFX/tree/main/src/Samples/MeshShader) · builds on
-    [basic rendering](basic-rendering.md).
+    [basic rendering](../samples-beginner/basic-rendering.md).
 
 The traditional pipeline reads vertices and indices from buffers, which the input assembler feeds into the vertex shader. *Mesh shaders*
 replace that fixed part with two programmable stages: a *task* (or amplification) shader decides how much geometry to generate, and a *mesh*

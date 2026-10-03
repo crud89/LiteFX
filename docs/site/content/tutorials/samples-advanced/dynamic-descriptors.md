@@ -3,7 +3,7 @@
 !!! abstract "Sample 14"
 
     [`Samples/DynamicDescriptors`](https://github.com/crud89/LiteFX/tree/main/src/Samples/DynamicDescriptors) · builds on
-    [bindless](bindless.md).
+    [bindless](../samples-intermediate/bindless.md).
 
 Shader model 6.6 introduced a second way to do bindless rendering: instead of binding an array of resources, the shader indexes the GPU's
 global descriptor heap directly, with `ResourceDescriptorHeap`. The type of a descriptor is then only decided when it is bound, not when the
@@ -25,7 +25,7 @@ VertexData main(in VertexInput input, uint id : SV_InstanceID, uint baseId : SV_
 }
 ```
 
-Two things change compared to the [bindless](bindless.md) sample:
+Two things change compared to the [bindless](../samples-intermediate/bindless.md) sample:
 
 - **The instance buffer is no longer declared**, so the camera and draw data move to the spaces after the heap's own space.
 - **`SV_StartInstanceLocation`** provides the offset of the first descriptor, which the draw call passes in. Adding it to the instance ID
@@ -66,7 +66,7 @@ The GPU adds it to each instance ID, so the shader reads the right descriptors w
 
 ## When to use which
 
-| | [Bindless arrays](bindless.md) | Dynamic descriptors |
+| | [Bindless arrays](../samples-intermediate/bindless.md) | Dynamic descriptors |
 |---|---|---|
 | Shader | Declares the array with its binding | Indexes `ResourceDescriptorHeap` |
 | Descriptor type | Fixed by the pipeline layout | Chosen when binding |

@@ -13,7 +13,7 @@ This section contains intermediate samples that demonstrate modern rendering tec
 
 The [samples](https://github.com/crud89/LiteFX/tree/main/src/Samples/) in the repository build on each other: each one starts from the
 *basic rendering* sample and adds one technique. These walkthroughs follow that structure and describe only what each sample changes, so
-start with [basic rendering](basic-rendering.md) and then pick whatever you need.
+start with [basic rendering](../samples-beginner/basic-rendering.md) and then pick whatever you need.
 
 ## Running the samples
 

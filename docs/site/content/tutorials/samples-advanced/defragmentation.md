@@ -3,7 +3,7 @@
 !!! abstract "Sample 16"
 
     [`Samples/Defragmentation`](https://github.com/crud89/LiteFX/tree/main/src/Samples/Defragmentation) · builds on
-    [basic rendering](basic-rendering.md).
+    [basic rendering](../samples-beginner/basic-rendering.md).
 
 Creating and releasing resources over time leaves gaps in GPU memory. Eventually an allocation fails even though enough memory is free, just
 not in one piece. *Defragmentation* moves resources so that the free space is contiguous again. The sample allocates and releases random

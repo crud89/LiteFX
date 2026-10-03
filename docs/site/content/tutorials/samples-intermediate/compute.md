@@ -3,7 +3,7 @@
 !!! abstract "Sample 09"
 
     [`Samples/Compute`](https://github.com/crud89/LiteFX/tree/main/src/Samples/Compute) · builds on
-    [basic rendering](basic-rendering.md).
+    [basic rendering](../samples-beginner/basic-rendering.md).
 
 Not every GPU workload draws geometry. *Compute shaders* run freely over data, which makes them the tool for post-processing, culling,
 simulation and similar work. The sample draws the geometry as before, converts the image to grayscale with a compute shader, and copies the

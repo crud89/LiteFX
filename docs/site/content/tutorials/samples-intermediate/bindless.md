@@ -3,7 +3,7 @@
 !!! abstract "Sample 08"
 
     [`Samples/Bindless`](https://github.com/crud89/LiteFX/tree/main/src/Samples/Bindless) · builds on
-    [basic rendering](basic-rendering.md) and [uniform arrays](uniform-arrays.md).
+    [basic rendering](../samples-beginner/basic-rendering.md) and [uniform arrays](../samples-beginner/uniform-arrays.md).
 
 With one descriptor set per object, drawing many objects means binding many sets. *Bindless* rendering turns this around: all objects live in
 one array that the shader indexes itself, and nothing has to be rebound between draw calls. The sample draws 100,000 instances of the same
@@ -80,5 +80,5 @@ Each instance rotates around its own axis, so the shader builds the rotation mat
 
 !!! tip "The other way around"
 
-    Shader model 6.6 offers an alternative that needs no array binding at all. The [dynamic descriptors](dynamic-descriptors.md) tutorial
-    shows the same sample with `ResourceDescriptorHeap`.
+    Shader model 6.6 offers an alternative that needs no array binding at all. The [dynamic descriptors](../samples-advanced/dynamic-descriptors.md) 
+    tutorial shows the same sample with `ResourceDescriptorHeap`.

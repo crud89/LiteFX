@@ -3,7 +3,7 @@
 !!! abstract "Sample 15"
 
     [`Samples/ImGui`](https://github.com/crud89/LiteFX/tree/main/src/Samples/ImGui) · builds on
-    [basic rendering](basic-rendering.md).
+    [basic rendering](../samples-beginner/basic-rendering.md).
 
 [Dear ImGui](https://github.com/ocornut/imgui) is a widely used library for debug and tool interfaces. It brings its own backends for Vulkan
 and DirectX 12, which need a few handles from the engine. The sample shows how to provide them, and draws its interface on top of the

@@ -3,7 +3,7 @@
 !!! abstract "Sample 17"
 
     [`Samples/ResourceAliasing`](https://github.com/crud89/LiteFX/tree/main/src/Samples/ResourceAliasing) · builds on
-    [render passes](render-passes.md).
+    [render passes](../samples-beginner/render-passes.md).
 
 Render targets are often *transient*: a pass writes them, a later pass reads them, and after that they are no longer needed. If the lifetimes
 of two such images do not overlap, they can share the same memory. This is called *aliasing*, and it saves exactly the memory the second

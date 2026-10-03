@@ -70,4 +70,4 @@ Binding is unchanged: the buffer is passed to `allocate` like a single-element o
 !!! tip "Larger arrays"
 
     The number of elements is part of the shader here, so it is fixed at compile time. For arrays whose size is only known at runtime, see
-    the [bindless](bindless.md) tutorial.
+    the [bindless](../samples-intermediate/bindless.md) tutorial.

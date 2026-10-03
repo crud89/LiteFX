@@ -3,7 +3,7 @@
 !!! abstract "Sample 11"
 
     [`Samples/RayTracing`](https://github.com/crud89/LiteFX/tree/main/src/Samples/RayTracing) · builds on
-    [basic rendering](basic-rendering.md) and [textures](textures.md).
+    [basic rendering](../samples-beginner/basic-rendering.md) and [textures](../samples-beginner/textures.md).
 
 Rasterization asks, for each triangle, which pixels it covers. Ray tracing asks the opposite: for each pixel, which geometry a ray hits.
 This sample builds a scene of nine objects, traces rays into it, reflects them off one object and samples a skybox where a ray hits nothing.
