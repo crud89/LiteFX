@@ -171,6 +171,9 @@ private:
 
         // Improved compatibility between Vulkan and DirectX 12 backends
         m_extensions.emplace_back(VK_EXT_DEPTH_CLIP_ENABLE_EXTENSION_NAME);
+
+        // Allow less strict image layout transitions.
+        m_extensions.emplace_back(VK_KHR_UNIFIED_IMAGE_LAYOUTS_EXTENSION_NAME);
         
         // Required for mesh shading.
         if (features.MeshShaders)
@@ -395,6 +398,14 @@ public:
 
         if (std::ranges::find_if(m_extensions, [](auto& ext) { return ext == VK_KHR_MAINTENANCE_5_EXTENSION_NAME; }) != m_extensions.end()) {
             pMaintenance5Features->maintenance5 = true;
+        }
+
+        VkPhysicalDeviceUnifiedImageLayoutsFeaturesKHR unifiedImageLayoutsFeature { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFIED_IMAGE_LAYOUTS_FEATURES_KHR, .pNext = deviceExtensionObjects, .unifiedImageLayouts = VK_TRUE };
+        auto pUnifiedImageLayoutsFeature = findExtension<VkPhysicalDeviceUnifiedImageLayoutsFeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFIED_IMAGE_LAYOUTS_FEATURES_KHR, deviceExtensionObjects);
+
+        if (pUnifiedImageLayoutsFeature == nullptr) {
+            pUnifiedImageLayoutsFeature = &unifiedImageLayoutsFeature;
+            deviceExtensionObjects = pUnifiedImageLayoutsFeature;
         }
 
         VkPhysicalDeviceFeatures2 deviceFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = deviceExtensionObjects };

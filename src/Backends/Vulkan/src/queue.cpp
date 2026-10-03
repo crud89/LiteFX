@@ -205,7 +205,7 @@ UInt64 VulkanQueue::submit(const SharedPtr<const VulkanCommandBuffer>& commandBu
 		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
 		.semaphore = m_impl->m_timelineSemaphore,
 		.value = fence,
-		.stageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT
+		.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT
 	};
 
 	VkCommandBufferSubmitInfo commandBufferInfo = {
@@ -329,7 +329,7 @@ void VulkanQueue::waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept
 		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
 		.semaphore = queue.m_impl->m_timelineSemaphore,
 		.value = fence,
-		.stageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT
+		.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT
 	};
 
 	VkSubmitInfo2 submitInfo {

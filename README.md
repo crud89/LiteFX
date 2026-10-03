@@ -31,15 +31,15 @@ UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPa
         .cullOrder(CullOrder::ClockWise)
         .lineWidth(1.f))
     .layout(device->buildPipelineLayout()
-        .descriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment)
+        .descriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Pixel)
             .withUniform(0, sizeof(CameraBuffer))
             .add()
         .descriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex)
             .withUniform(0, sizeof(TransformBuffer))
             .add())
     .shaderProgram(device->buildShaderProgram()
-        .withVertexShaderModule("shaders/basic_vs." + FileExtensions<TRenderBackend>::SHADER)
-        .withFragmentShaderModule("shaders/basic_fs." + FileExtensions<TRenderBackend>::SHADER));
+        .withVertexShaderModule("shaders/basic_vs." + FileExtensions<TRenderBackend>::SHADER, "VSMain")
+        .withPixelShaderModule("shaders/basic_fs." + FileExtensions<TRenderBackend>::SHADER), "PSMain");
 ```
 
 LiteFX is written in modern C++23, following established design patterns to make it easy to learn and adapt. Its focus is make the performance of modern graphics APIs easily accessible, whilst retaining full flexibility.
