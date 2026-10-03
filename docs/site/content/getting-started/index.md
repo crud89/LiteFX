@@ -33,7 +33,9 @@ dependencies are managed with [vcpkg](https://vcpkg.io/). This section helps you
 
     ---
 
-    Browse the samples, from basic rendering to ray tracing and mesh shaders.
+    Follow the samples, from basic rendering to ray tracing and mesh shaders.
+
+    [:octicons-arrow-right-24: Sample Walkthroughs](../tutorials/samples-beginner/index.md)
 
     [:octicons-arrow-right-24: Samples on GitHub](https://github.com/crud89/LiteFX/tree/main/src/Samples/)
 
