@@ -456,7 +456,6 @@ void SampleApp::drawFrame()
 
         // Create a barrier that handles image transition.
         auto barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Compute);
-        barrier->transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::ShaderResource, ImageLayout::ReadWrite);
         commandBuffer->barrier(*barrier);
 
         // Bind the image to the texture descriptor.
@@ -467,7 +466,6 @@ void SampleApp::drawFrame()
 
         // After post-processing, transition the image back into a state where it can be copied from.
         barrier = m_device->makeBarrier(PipelineStage::Compute, PipelineStage::None);
-        barrier->transition(image, ResourceAccess::ShaderReadWrite, ResourceAccess::None, ImageLayout::ReadWrite, ImageLayout::CopySource);
         commandBuffer->barrier(*barrier);
 
         // Submit the command buffer.
@@ -482,6 +480,7 @@ void SampleApp::drawFrame()
 
         // Transition the image back into `CopyDestination` layout.
         barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Transfer);
+        barrier->transition(image, ResourceAccess::None, ResourceAccess::TransferRead, ImageLayout::Common, ImageLayout::CopySource);
         barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
         commandBuffer->barrier(*barrier);
 
@@ -492,7 +491,7 @@ void SampleApp::drawFrame()
         // NOTE: It is important to transition the frame buffer image back into "Shader Resource", as frame buffer color images are always expected to be in this state, when no
         //       render pass is currently rendering to them.
         barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::Resolve);
-        barrier->transition(image, ResourceAccess::TransferRead, ResourceAccess::Common, ImageLayout::CopySource, ImageLayout::ShaderResource);
+        barrier->transition(image, ResourceAccess::TransferRead, ResourceAccess::Common, ImageLayout::CopySource, ImageLayout::Common);
         barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::TransferWrite, ResourceAccess::Common, ImageLayout::CopyDestination, ImageLayout::Present);
         commandBuffer->barrier(*barrier);
 
