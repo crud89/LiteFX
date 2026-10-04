@@ -116,7 +116,7 @@ public:
 #ifndef NDEBUG
         // Set debug names.
         std::ranges::for_each(m_images, [device](auto& image) {
-            device->setDebugName(std::as_const(*image).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, image->name().c_str());
+            device->setDebugName(std::as_const(*image).handle(), VK_OBJECT_TYPE_IMAGE, image->name().c_str());
         });
 #endif
 	}

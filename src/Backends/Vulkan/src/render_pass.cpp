@@ -110,7 +110,7 @@ public:
             {
                 auto commandBuffer = queue.createCommandBuffer(false);
 #ifndef NDEBUG
-                m_device->setDebugName(std::as_const(*commandBuffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, 
+                m_device->setDebugName(std::as_const(*commandBuffer).handle(), VK_OBJECT_TYPE_COMMAND_BUFFER,
                     std::format("{0} Primary Commands {1}", renderPass.name(), m_primaryCommandBuffers.size()).c_str());
 #endif
                 m_primaryCommandBuffers[interfacePointer] = commandBuffer;
@@ -121,7 +121,7 @@ public:
                 std::views::transform([&]([[maybe_unused]] UInt32 i) {
                     auto commandBuffer = queue.createCommandBuffer(false, true);
 #ifndef NDEBUG
-                    m_device->setDebugName(std::as_const(*commandBuffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, 
+                    m_device->setDebugName(std::as_const(*commandBuffer).handle(), VK_OBJECT_TYPE_COMMAND_BUFFER,
                         std::format("{0} Secondary Commands {1}", renderPass.name(), i).c_str());
 #endif
                     return commandBuffer;

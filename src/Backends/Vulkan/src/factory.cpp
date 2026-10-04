@@ -756,7 +756,7 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(const Strin
 	auto buffer = VulkanBuffer::allocate(name, bufferInfo, 1u, ResourceUsage::Default, bufferInfo.Heap, *device, m_impl->m_allocator, bufferDescription, allocInfo);
 
 	if (!name.empty())
-		device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+		device->setDebugName(std::as_const(*buffer).handle(), VK_OBJECT_TYPE_BUFFER, name);
 
 	return buffer;
 #else
@@ -908,7 +908,7 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 		auto device = m_impl->m_device.lock();
 		
 		if (device != nullptr) [[likely]]
-			device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+			device->setDebugName(std::as_const(*buffer).handle(), VK_OBJECT_TYPE_BUFFER, name);
 	}
 
 	return buffer;
@@ -940,7 +940,7 @@ SharedPtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 		auto device = m_impl->m_device.lock();
 
 		if (device != nullptr) [[likely]]
-			device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+			device->setDebugName(std::as_const(*buffer).handle(), VK_OBJECT_TYPE_BUFFER, name);
 	}
 
 	return buffer;
@@ -972,7 +972,7 @@ SharedPtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 		auto device = m_impl->m_device.lock();
 
 		if (device != nullptr) [[likely]]
-			device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+			device->setDebugName(std::as_const(*buffer).handle(), VK_OBJECT_TYPE_BUFFER, name);
 	}
 
 	return buffer;
@@ -1005,7 +1005,7 @@ SharedPtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 		auto device = m_impl->m_device.lock();
 
 		if (device != nullptr) [[likely]]
-			device->setDebugName(std::as_const(*image).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, name);
+			device->setDebugName(std::as_const(*image).handle(), VK_OBJECT_TYPE_IMAGE, name);
 	}
 
 	return image;
@@ -1036,7 +1036,7 @@ bool VulkanGraphicsFactory::tryCreateBuffer(SharedPtr<IVulkanBuffer>& buffer, co
 		auto device = m_impl->m_device.lock();
 
 		if (device != nullptr) [[likely]]
-			device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+			device->setDebugName(std::as_const(*buffer).handle(), VK_OBJECT_TYPE_BUFFER, name);
 	}
 
 	return result;
@@ -1068,7 +1068,7 @@ bool VulkanGraphicsFactory::tryCreateVertexBuffer(SharedPtr<IVulkanVertexBuffer>
 		auto device = m_impl->m_device.lock();
 
 		if (device != nullptr) [[likely]]
-			device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+			device->setDebugName(std::as_const(*buffer).handle(), VK_OBJECT_TYPE_BUFFER, name);
 	}
 
 	return result;
@@ -1100,7 +1100,7 @@ bool VulkanGraphicsFactory::tryCreateIndexBuffer(SharedPtr<IVulkanIndexBuffer>& 
 		auto device = m_impl->m_device.lock();
 
 		if (device != nullptr) [[likely]]
-			device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+			device->setDebugName(std::as_const(*buffer).handle(), VK_OBJECT_TYPE_BUFFER, name);
 	}
 
 	return result;
@@ -1133,7 +1133,7 @@ bool VulkanGraphicsFactory::tryCreateTexture(SharedPtr<IVulkanImage>& image, con
 		auto device = m_impl->m_device.lock();
 
 		if (device != nullptr) [[likely]]
-			device->setDebugName(std::as_const(*image).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, name);
+			device->setDebugName(std::as_const(*image).handle(), VK_OBJECT_TYPE_IMAGE, name);
 	}
 
 	return result;
@@ -1173,7 +1173,7 @@ SharedPtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const String& nam
 	auto sampler = VulkanSampler::allocate(*device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
 
 	if (!name.empty())
-		device->setDebugName(std::as_const(*sampler).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_EXT, name);
+		device->setDebugName(std::as_const(*sampler).handle(), VK_OBJECT_TYPE_SAMPLER, name);
 
 	return sampler;
 #else

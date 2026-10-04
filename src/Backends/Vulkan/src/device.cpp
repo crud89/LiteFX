@@ -27,6 +27,7 @@ PFN_vkGetDescriptorEXT vkGetDescriptor{ nullptr };
 PFN_vkCmdBindDescriptorBuffersEXT vkCmdBindDescriptorBuffers{ nullptr };
 PFN_vkCmdSetDescriptorBufferOffsetsEXT vkCmdSetDescriptorBufferOffsets{ nullptr };
 PFN_vkGetAccelerationStructureDeviceAddressKHR vkGetAccelerationStructureDeviceAddress{ nullptr };
+extern PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectName;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
@@ -132,10 +133,6 @@ private:
     UniquePtr<VulkanSurface> m_surface;
     SharedPtr<VulkanGraphicsFactory> m_factory;
 
-#ifndef NDEBUG
-    PFN_vkDebugMarkerSetObjectNameEXT debugMarkerSetObjectName = nullptr;
-#endif
-
     VkPhysicalDeviceDescriptorBufferPropertiesEXT m_descriptorBufferProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT };
     SharedPtr<IVulkanBuffer> m_globalDescriptorHeap;
     VirtualAllocator m_globalDescriptorHeapAllocator;
@@ -213,12 +210,6 @@ private:
 #endif // defined(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN) && defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
 
         auto availableExtensions = m_adapter->getAvailableDeviceExtensions();
-
-#ifndef NDEBUG
-        // Required to set debug names.
-        if (auto match = std::ranges::find_if(availableExtensions, [](const String& extension) { return extension == VK_EXT_DEBUG_MARKER_EXTENSION_NAME; }); match != availableExtensions.end())
-            m_extensions.emplace_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
-#endif
 
         // Required for native budget info by VMA - if not availabe VMA emulates this behavior.
         if (auto match = std::ranges::find_if(availableExtensions, [](const String& extension) { return extension == VK_EXT_MEMORY_BUDGET_EXTENSION_NAME; }); match != availableExtensions.end())
@@ -548,10 +539,6 @@ public:
 
         // Load extension methods.
         // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
-#ifndef NDEBUG
-        debugMarkerSetObjectName = reinterpret_cast<PFN_vkDebugMarkerSetObjectNameEXT>(::vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectNameEXT"));
-#endif
-
         if (features.MeshShaders)
         {
             if (vkCmdDrawMeshTasks == nullptr)
@@ -767,19 +754,19 @@ Span<const String> VulkanDevice::enabledExtensions() const noexcept
     return m_impl->m_extensions;
 }
 
-void VulkanDevice::setDebugName([[maybe_unused]] VkDebugReportObjectTypeEXT type, [[maybe_unused]] UInt64 handle, [[maybe_unused]] StringView name) const
+void VulkanDevice::setDebugName([[maybe_unused]] VkObjectType type, [[maybe_unused]] UInt64 handle, [[maybe_unused]] StringView name) const
 {
 #ifndef NDEBUG
-    if (m_impl->debugMarkerSetObjectName != nullptr)
+    if (vkSetDebugUtilsObjectName != nullptr)
     {
-        VkDebugMarkerObjectNameInfoEXT nameInfo = {
-            .sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT,
+        VkDebugUtilsObjectNameInfoEXT nameInfo = {
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
             .objectType = type,
-            .object = handle,
+            .objectHandle = handle,
             .pObjectName = name.data() // NOLINT(bugprone-suspicious-stringview-data-usage)
         };
 
-        if (m_impl->debugMarkerSetObjectName(this->handle(), &nameInfo) != VK_SUCCESS)
+        if (vkSetDebugUtilsObjectName(this->handle(), &nameInfo) != VK_SUCCESS)
             LITEFX_WARNING(VULKAN_LOG, "Unable to set object name for object handle {0}.", static_cast<const void*>(&handle));
     }
 #endif
