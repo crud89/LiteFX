@@ -815,6 +815,7 @@ void VulkanCommandBuffer::execute(Enumerable<SharedPtr<const VulkanCommandBuffer
 void VulkanCommandBuffer::releaseSharedState() const
 {
 	m_impl->m_sharedResources.clear();
+	m_impl->m_trackedDescriptorSets.clear();
 }
 
 void VulkanCommandBuffer::buildAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
