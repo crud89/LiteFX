@@ -760,7 +760,7 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(const Strin
 
 	return buffer;
 #else
-	return VulkanBuffer::allocate(name, bufferInfo, 1u, ResourceUsage::Default, *device, m_impl->m_allocator, bufferDescription, allocInfo);
+	return VulkanBuffer::allocate(name, bufferInfo, 1u, ResourceUsage::Default, bufferInfo.Heap, *device, m_impl->m_allocator, bufferDescription, allocInfo);
 #endif
 }
 
