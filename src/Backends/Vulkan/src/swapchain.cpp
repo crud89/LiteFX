@@ -166,7 +166,7 @@ public:
 		::vkGetSwapchainImagesKHR(device.handle(), swapChain, &images, imageChain.data());
 
 		m_presentImages = imageChain |
-			std::views::transform([&actualRenderArea, &selectedFormat](const VkImage& image) { return VulkanImage::create(image, Size3d{ actualRenderArea.width(), actualRenderArea.height(), 1 }, selectedFormat, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination, {}); }) | // NOLINT(bugprone-invalid-enum-default-initialization)
+			std::views::transform([&actualRenderArea, &selectedFormat](const VkImage& image) { return VulkanImage::create(image, Size3d{ actualRenderArea.width(), actualRenderArea.height(), 1 }, selectedFormat, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination, ResourceHeap::Resource, {}); }) | // NOLINT(bugprone-invalid-enum-default-initialization)
 			std::ranges::to<Array<SharedPtr<IVulkanImage>>>();
 
 		// Store state variables.
