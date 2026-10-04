@@ -116,7 +116,7 @@ public:
 #ifndef NDEBUG
         // Set debug names.
         std::ranges::for_each(m_images, [device](auto& image) {
-            device->setDebugName(std::as_const(*image).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, image->name().c_str());
+            device->setDebugName(std::as_const(*image).handle(), VK_OBJECT_TYPE_IMAGE, image->name().c_str());
         });
 #endif
 	}
@@ -149,10 +149,7 @@ public:
                 auto newImage = this->createImage(*device, renderTargetId, renderArea, image->usage(), format, image->samples(), image->name());
                 imageReplacements[image.get()] = newImage;
 
-                if (::hasDepth(format) || ::hasStencil(format))
-                    barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::DepthRead);
-                else
-                    barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::ShaderResource);
+                barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::Common);
 
                 return newImage;
             }) 
@@ -313,10 +310,7 @@ void VulkanFrameBuffer::addImage(const String& name, Format format, MultiSamplin
     auto& queue = device->defaultQueue(QueueType::Graphics);
     auto commandBuffer = queue.createCommandBuffer(true);
     auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
-    if (::hasDepth(format) || ::hasStencil(format))
-        barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::DepthRead);
-    else
-        barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::ShaderResource);
+    barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::Common);
     commandBuffer->barrier(*barrier);
     auto fence = queue.submit(commandBuffer);
 
@@ -351,10 +345,7 @@ void VulkanFrameBuffer::addImage(const String& name, const RenderTarget& renderT
     auto& queue = device->defaultQueue(QueueType::Graphics);
     auto commandBuffer = queue.createCommandBuffer(true);
     auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
-    if (::hasDepth(format) || ::hasStencil(format))
-        barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::DepthRead);
-    else
-        barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::ShaderResource);
+    barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::Common);
     commandBuffer->barrier(*barrier);
     auto fence = queue.submit(commandBuffer);
 

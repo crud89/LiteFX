@@ -66,8 +66,9 @@ auto postBindings = postInputLayout.allocate(3, {
 
 ## Dispatching the work
 
-The compute pass runs on the compute queue. Before the shader may touch the image, a barrier transitions it into a layout that allows reads
-and writes:
+The compute pass runs on the compute queue. When no render pass is drawing into it, a frame buffer image is in the `Common` layout, which
+allows any kind of read and write access, including the compute shader's. The image therefore needs no layout transition here, and the
+barriers around the dispatch only order the work, without transitioning anything:
 
 ```cpp
 auto& computeQueue = m_device->defaultQueue(QueueType::Compute);
@@ -76,11 +77,13 @@ commandBuffer->use(postPipeline);
 
 auto& image = frameBuffer["Color Target"];
 auto barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Compute);
-barrier->transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::ShaderResource, ImageLayout::ReadWrite);
 commandBuffer->barrier(*barrier);
 
 commandBuffer->bind(postBindings);
 commandBuffer->dispatch({ static_cast<UInt32>(image.extent().x()) / 8, static_cast<UInt32>(image.extent().y()) / 8, 1 });
+
+barrier = m_device->makeBarrier(PipelineStage::Compute, PipelineStage::None);
+commandBuffer->barrier(*barrier);
 ```
 
 `dispatch` takes the number of thread *groups*, not threads. With groups of 8×8 threads, the image dimensions are divided by eight.
@@ -103,16 +106,23 @@ auto fence = graphicsQueue.submit(commandBuffer);
 m_device->swapChain().present(fence);
 ```
 
-The copy itself is a transfer between two images, framed by barriers that put both into the right layout:
+The copy itself is a transfer between two images. Unlike shader access, copies need dedicated layouts, so barriers move the post-processed
+image from `Common` into the layout for copy sources and the swap chain image into the one for copy destinations:
 
 ```cpp
 barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Transfer);
+barrier->transition(image, ResourceAccess::None, ResourceAccess::TransferRead, ImageLayout::Common, ImageLayout::CopySource);
 barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
 commandBuffer->barrier(*barrier);
 commandBuffer->transfer(image, *m_device->swapChain().image(backBuffer));
+```
 
+Afterwards, both images are transitioned back: the frame buffer image into `Common`, where the next render pass expects it, and the swap chain
+image into the layout for presentation:
+
+```cpp
 barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::Resolve);
-barrier->transition(image, ResourceAccess::TransferRead, ResourceAccess::Common, ImageLayout::CopySource, ImageLayout::ShaderResource);
+barrier->transition(image, ResourceAccess::TransferRead, ResourceAccess::Common, ImageLayout::CopySource, ImageLayout::Common);
 barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::TransferWrite, ResourceAccess::Common, ImageLayout::CopyDestination, ImageLayout::Present);
 commandBuffer->barrier(*barrier);
 ```

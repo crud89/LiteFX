@@ -1037,7 +1037,7 @@ VkPipelineStageFlags2 LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getPipe
 		sync |= VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::DepthStencil))
-		sync |= VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT;
+		sync |= VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Indirect))
 		sync |= VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;
@@ -1073,7 +1073,7 @@ VkAccessFlags2 LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getResourceAcc
 	VkAccessFlags2 access = { };
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::Common))
-		access |= (VK_ACCESS_2_MEMORY_WRITE_BIT | VK_ACCESS_2_MEMORY_READ_BIT);
+		access |= VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_WRITE_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::VertexBuffer))
 		access |= VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT;
@@ -1085,7 +1085,7 @@ VkAccessFlags2 LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getResourceAcc
 		access |= VK_ACCESS_2_UNIFORM_READ_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::RenderTarget))
-		access |= VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT;
+		access |= VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::DepthStencilRead))
 		access |= VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
@@ -1109,10 +1109,10 @@ VkAccessFlags2 LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getResourceAcc
 		access |= VK_ACCESS_2_TRANSFER_WRITE_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ResolveRead))
-		access |= VK_ACCESS_2_MEMORY_READ_BIT;
+		access |= VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ResolveWrite))
-		access |= VK_ACCESS_2_MEMORY_WRITE_BIT;
+		access |= VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::AccelerationStructureRead))
 		access |= VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR;

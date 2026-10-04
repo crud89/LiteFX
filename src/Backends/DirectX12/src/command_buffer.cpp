@@ -664,6 +664,7 @@ void DirectX12CommandBuffer::execute(Enumerable<SharedPtr<const DirectX12Command
 void DirectX12CommandBuffer::releaseSharedState() const
 {
 	m_impl->m_sharedResources.clear();
+	m_impl->m_trackedDescriptorSets.clear();
 }
 
 void DirectX12CommandBuffer::buildAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const

@@ -133,6 +133,7 @@ private:
 	SharedPtr<DirectX12CommandBuffer> m_defragmentationCommandBuffer{ nullptr };
 	Queue<DefragResource> m_destroyedResources{};
 	UInt64 m_defragmentationFence{ 0u };
+	Array<SharedPtr<IDeviceMemory>> m_defragmentationPassResources{};
 
 public:
 	DirectX12GraphicsFactoryImpl(const DirectX12Device& device) :
@@ -183,7 +184,7 @@ public:
 		D3D12MA::ALLOCATION_DESC allocationDescription = getAllocationDesc(bufferInfo.Heap, allocationBehavior);
 
 		// Create the buffer and return.
-		return allocator(std::forward<TArgs>(args)..., name, m_allocator, bufferInfo, static_cast<size_t>(elementAlignment), usage, resourceDescription, allocationDescription);
+		return allocator(std::forward<TArgs>(args)..., name, m_allocator, bufferInfo, static_cast<size_t>(elementAlignment), usage, bufferInfo.Heap, resourceDescription, allocationDescription);
 	}
 
 	template <typename TAllocator, typename... TArgs>
@@ -208,11 +209,12 @@ public:
 		// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
 		// Get a image and allocation create info.
+		constexpr auto heap = ResourceHeap::Resource;
 		D3D12_RESOURCE_DESC1 resourceDescription = getResourceDesc(imageInfo, usage);
-		D3D12MA::ALLOCATION_DESC allocationDescription = getAllocationDesc(ResourceHeap::Resource, allocationBehavior);
+		D3D12MA::ALLOCATION_DESC allocationDescription = getAllocationDesc(heap, allocationBehavior);
 
 		// Create the image and return.
-		return allocator(std::forward<TArgs>(args)..., name, *device.get(), m_allocator, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, usage, resourceDescription, allocationDescription);
+		return allocator(std::forward<TArgs>(args)..., name, *device.get(), m_allocator, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, usage, heap, resourceDescription, allocationDescription);
 	}
 };
 
@@ -278,12 +280,11 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 
 	// Begin recording a command buffer for defragmentation.
 	Array<IDeviceMemory*> resources;
-	auto& commandBuffer = *m_impl->m_defragmentationCommandBuffer;
-	commandBuffer.begin();
 
 	// Prepare the move operation on each resource, i.e., create a barrier to allow then to synchronize the move with their current usage.
 	DirectX12Barrier barrier(PipelineStage::All, PipelineStage::Transfer);
 	IDeviceMemory::PrepareMoveEventArgs eventArgs(barrier);
+	UInt32 moves{ 0u };
 
 	for (UInt32 i{ 0u }; i < pass.MoveCount; ++i)
 	{
@@ -293,9 +294,35 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 		// Acquire the underlying resource device memory instance.
 		auto deviceMemory = static_cast<IDeviceMemory*>(sourceAllocation->GetPrivateData());
 
+		// Ignore moves on the heaps that aren't Resource, as the GPU can't perform those or the CPU-side manages them through the application anyway, we gain
+		// little by supporting this scenario.
+		if (deviceMemory->heap() != ResourceHeap::Resource)
+		{
+			pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			continue;
+		}
+
+		// Keep the resource (and with it the source allocation) alive until the pass has ended, even if the app releases it in between.
+		if (auto buffer = dynamic_cast<DirectX12Buffer*>(deviceMemory); buffer != nullptr)
+			m_impl->m_defragmentationPassResources.emplace_back(buffer->shared_from_this());
+		else if (auto image = dynamic_cast<DirectX12Image*>(deviceMemory); image != nullptr)
+			m_impl->m_defragmentationPassResources.emplace_back(image->shared_from_this());
+
 		// Invoke the `prepareMove` event.
 		deviceMemory->prepareMove(this, eventArgs);
+		++moves;
 	}
+
+	// Early-out if there's nothing to move.
+	if (moves == 0u)
+	{
+		m_impl->m_defragmentationFence = 0u;
+		return 0u;
+	}
+
+	// Begin the command buffer.
+	auto& commandBuffer = *m_impl->m_defragmentationCommandBuffer;
+	commandBuffer.begin();
 
 	// Issue a barrier to transition the resources that requested it.
 	commandBuffer.barrier(barrier);
@@ -307,9 +334,12 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 		auto sourceAllocation = pass.pMoves[i].pSrcAllocation;    // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		auto targetAllocation = pass.pMoves[i].pDstTmpAllocation; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
+		// Check if we already decided to ignore the move.
+		if (pass.pMoves[i].Operation == D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE) // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			continue;
+
 		// Acquire the underlying resource device memory instance and add it to the list of moved-from resources.
 		IDeviceMemory* deviceMemory = static_cast<IDeviceMemory*>(sourceAllocation->GetPrivateData());
-		resources.emplace_back(deviceMemory);
 
 		// Figure out the resource type.
 		if (auto buffer = dynamic_cast<DirectX12Buffer*>(deviceMemory); buffer != nullptr)
@@ -318,8 +348,10 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 
 			if (DirectX12Buffer::move(buffer->shared_from_this(), targetAllocation, commandBuffer))
 				m_impl->m_destroyedResources.emplace(std::move(oldHandle), buffer->shared_from_this());
-			else
+			else {
 				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+				continue;
+			}
 		}
 		else if (auto image = dynamic_cast<DirectX12Image*>(deviceMemory); image != nullptr)
 		{
@@ -333,10 +365,14 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 
 				if (DirectX12Image::move(image->shared_from_this(), targetAllocation, commandBuffer))
 					m_impl->m_destroyedResources.emplace(std::move(oldHandle), image->shared_from_this());
-				else
+				else {
 					pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+					continue;
+				}
 			}
 		}
+
+		resources.emplace_back(deviceMemory);
 	}
 
 	// Submit de command buffer and store the fence.
@@ -380,6 +416,7 @@ bool DirectX12GraphicsFactory::endDefragmentationPass() const
 		throw DX12PlatformException(result, "Unable to end defragmentation pass.");
 
 	resources.clear();
+	m_impl->m_defragmentationPassResources.clear();
 
 	if (result == S_OK)
 	{
@@ -579,16 +616,16 @@ Generator<ResourceAllocationResult> DirectX12GraphicsFactory::allocate(Enumerabl
 				const auto& bufferInfo = std::get<ResourceAllocationInfo::BufferInfo>(allocationInfo.ResourceInfo);
 
 				if (bufferInfo.Type == BufferType::Vertex && bufferInfo.VertexBufferLayout != nullptr)
-					co_yield std::dynamic_pointer_cast<IBuffer>(DirectX12VertexBuffer::create(std::move(resource), dynamic_cast<const DirectX12VertexBufferLayout&>(*bufferInfo.VertexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
+					co_yield std::dynamic_pointer_cast<IBuffer>(DirectX12VertexBuffer::create(std::move(resource), dynamic_cast<const DirectX12VertexBufferLayout&>(*bufferInfo.VertexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, bufferInfo.Heap, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 				else if (bufferInfo.Type == BufferType::Index && bufferInfo.IndexBufferLayout != nullptr)
-					co_yield std::dynamic_pointer_cast<IBuffer>(DirectX12IndexBuffer::create(std::move(resource), dynamic_cast<const DirectX12IndexBufferLayout&>(*bufferInfo.IndexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
+					co_yield std::dynamic_pointer_cast<IBuffer>(DirectX12IndexBuffer::create(std::move(resource), dynamic_cast<const DirectX12IndexBufferLayout&>(*bufferInfo.IndexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, bufferInfo.Heap, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 				else [[likely]]
-					co_yield std::dynamic_pointer_cast<IBuffer>(DirectX12Buffer::create(std::move(resource), bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
+					co_yield std::dynamic_pointer_cast<IBuffer>(DirectX12Buffer::create(std::move(resource), bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, static_cast<size_t>(elementAlignment), allocationInfo.Usage, bufferInfo.Heap, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 			}
 			else if (std::holds_alternative<ResourceAllocationInfo::ImageInfo>(allocationInfo.ResourceInfo))
 			{
 				const auto& imageInfo = std::get<ResourceAllocationInfo::ImageInfo>(allocationInfo.ResourceInfo);
-				co_yield std::dynamic_pointer_cast<IImage>(DirectX12Image::create(*device, std::move(resource), imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, allocationInfo.Usage, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
+				co_yield std::dynamic_pointer_cast<IImage>(DirectX12Image::create(*device, std::move(resource), imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, allocationInfo.Usage, ResourceHeap::Resource, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 			}
 		}
 	}

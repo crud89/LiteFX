@@ -15,14 +15,15 @@ private:
 	UInt32 m_elements;
 	size_t m_elementSize, m_alignment;
 	ResourceUsage m_usage;
+	ResourceHeap m_heap;
 	VkBufferCreateInfo m_createInfo;
 	VmaAllocator m_allocator;
 	AllocationPtr m_allocation;
 	UInt64 m_virtualAddress{0};
 
 public:
-	VulkanBufferImpl(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VmaAllocator& allocator, AllocationPtr allocation) :
-		m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_usage(usage), m_createInfo(createInfo), m_allocator(allocator), m_allocation(std::move(allocation))
+	VulkanBufferImpl(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, ResourceHeap heap, const VkBufferCreateInfo& createInfo, const VmaAllocator& allocator, AllocationPtr allocation) :
+		m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_usage(usage), m_heap(heap), m_createInfo(createInfo), m_allocator(allocator), m_allocation(std::move(allocation))
 	{
 	}
 };
@@ -31,8 +32,8 @@ public:
 // Buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const AllocationPtr& allocation, const String& name) :
-	Resource<VkBuffer>(buffer), m_impl(type, elements, elementSize, alignment, usage, createInfo, allocator, allocation)
+VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, ResourceHeap heap, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const AllocationPtr& allocation, const String& name) :
+	Resource<VkBuffer>(buffer), m_impl(type, elements, elementSize, alignment, usage, heap, createInfo, allocator, allocation)
 {
 	if (!name.empty())
 	{
@@ -96,6 +97,11 @@ size_t VulkanBuffer::alignedElementSize() const noexcept
 ResourceUsage VulkanBuffer::usage() const noexcept
 {
 	return m_impl->m_usage;
+}
+
+ResourceHeap VulkanBuffer::heap() const noexcept
+{
+	return m_impl->m_heap;
 }
 
 UInt64 VulkanBuffer::virtualAddress() const noexcept
@@ -164,7 +170,7 @@ VmaAllocation VulkanBuffer::allocationInfo() const noexcept
 	return m_impl->m_allocation.get();
 }
 
-SharedPtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+SharedPtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, ResourceHeap heap, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer{};
 	VmaAllocation allocation{};
@@ -180,10 +186,10 @@ SharedPtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, const Resour
 		(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
-	return SharedObject::create<VulkanBuffer>(buffer, bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, alignment, usage, createInfo, device, allocator, AllocationPtr(allocation, VmaAllocationDeleter{ allocator }), name);
+	return SharedObject::create<VulkanBuffer>(buffer, bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, alignment, usage, heap, createInfo, device, allocator, AllocationPtr(allocation, VmaAllocationDeleter{ allocator }), name);
 }
 
-bool VulkanBuffer::tryAllocate(SharedPtr<IVulkanBuffer>& buffer, const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+bool VulkanBuffer::tryAllocate(SharedPtr<IVulkanBuffer>& buffer, const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, ResourceHeap heap, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	buffer = nullptr;
 	VkBuffer bufferHandle{};
@@ -208,7 +214,7 @@ bool VulkanBuffer::tryAllocate(SharedPtr<IVulkanBuffer>& buffer, const String& n
 			(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
-		buffer = SharedObject::create<VulkanBuffer>(bufferHandle, bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, alignment, usage, createInfo, device, allocator, AllocationPtr(allocation, VmaAllocationDeleter{ allocator }), name);
+		buffer = SharedObject::create<VulkanBuffer>(bufferHandle, bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, alignment, usage, heap, createInfo, device, allocator, AllocationPtr(allocation, VmaAllocationDeleter{ allocator }), name);
 		return true;
 	}
 }
@@ -259,6 +265,15 @@ bool VulkanBuffer::move(SharedPtr<IVulkanBuffer> buffer, VmaAllocation to, const
 	//       The new resource handle is valid beyond this point, but may contain uninitialized data. Any attempt of using the resource must be properly synchronized to execute after the submission
 	//       of `commandBuffer`.
 	source.handle() = bufferHandle;
+
+	// Store the virtual address of the new buffer instance.
+	VkBufferDeviceAddressInfo addressInfo {
+		.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+		.buffer = bufferHandle
+	};
+
+	source.m_impl->m_virtualAddress = static_cast<UInt64>(::vkGetBufferDeviceAddress(device->handle(), &addressInfo));
+
 	return true;
 }
 
@@ -284,8 +299,8 @@ public:
 // Vertex buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanVertexBuffer::VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, UInt32 elements, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const AllocationPtr& allocation, const String& name) :
-	VulkanBuffer(buffer, BufferType::Vertex, elements, layout.elementSize(), alignment, usage, createInfo, device, allocator, allocation, name), m_impl(layout)
+VulkanVertexBuffer::VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, UInt32 elements, size_t alignment, ResourceUsage usage, ResourceHeap heap, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const AllocationPtr& allocation, const String& name) :
+	VulkanBuffer(buffer, BufferType::Vertex, elements, layout.elementSize(), alignment, usage, heap, createInfo, device, allocator, allocation, name), m_impl(layout)
 {
 }
 
@@ -296,7 +311,7 @@ const VulkanVertexBufferLayout& VulkanVertexBuffer::layout() const noexcept
 	return *m_impl->m_layout;
 }
 
-SharedPtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+SharedPtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, ResourceHeap heap, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	if (bufferInfo.Type != BufferType::Vertex || bufferInfo.VertexBufferLayout == nullptr) [[unlikely]]
 		throw InvalidArgumentException("bufferInfo", "The provided buffer info provides a wrong buffer type or no vertex buffer layout.");
@@ -315,10 +330,10 @@ SharedPtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, 
 		(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
-	return SharedObject::create<VulkanVertexBuffer>(buffer, dynamic_cast<const VulkanVertexBufferLayout&>(*bufferInfo.VertexBufferLayout), bufferInfo.Elements, alignment, usage, createInfo, device, allocator, AllocationPtr(allocation, VmaAllocationDeleter{ allocator }), name);
+	return SharedObject::create<VulkanVertexBuffer>(buffer, dynamic_cast<const VulkanVertexBufferLayout&>(*bufferInfo.VertexBufferLayout), bufferInfo.Elements, alignment, usage, heap, createInfo, device, allocator, AllocationPtr(allocation, VmaAllocationDeleter{ allocator }), name);
 }
 
-bool VulkanVertexBuffer::tryAllocate(SharedPtr<IVulkanVertexBuffer>& buffer, const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+bool VulkanVertexBuffer::tryAllocate(SharedPtr<IVulkanVertexBuffer>& buffer, const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, ResourceHeap heap, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	if (bufferInfo.Type != BufferType::Vertex || bufferInfo.VertexBufferLayout == nullptr) [[unlikely]]
 		throw InvalidArgumentException("bufferInfo", "The provided buffer info provides a wrong buffer type or no vertex buffer layout.");
@@ -345,7 +360,7 @@ bool VulkanVertexBuffer::tryAllocate(SharedPtr<IVulkanVertexBuffer>& buffer, con
 			(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
-		buffer = SharedObject::create<VulkanVertexBuffer>(bufferHandle, dynamic_cast<const VulkanVertexBufferLayout&>(*bufferInfo.VertexBufferLayout), bufferInfo.Elements, alignment, usage, createInfo, device, allocator, AllocationPtr(allocation, VmaAllocationDeleter{ allocator }), name);
+		buffer = SharedObject::create<VulkanVertexBuffer>(bufferHandle, dynamic_cast<const VulkanVertexBufferLayout&>(*bufferInfo.VertexBufferLayout), bufferInfo.Elements, alignment, usage, heap, createInfo, device, allocator, AllocationPtr(allocation, VmaAllocationDeleter{ allocator }), name);
 		return true;
 	}
 }
@@ -372,8 +387,8 @@ public:
 // Index buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanIndexBuffer::VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, UInt32 elements, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const AllocationPtr& allocation, const String& name) :
-	VulkanBuffer(buffer, BufferType::Index, elements, layout.elementSize(), alignment, usage, createInfo, device, allocator, allocation, name), m_impl(layout)
+VulkanIndexBuffer::VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, UInt32 elements, size_t alignment, ResourceUsage usage, ResourceHeap heap, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const AllocationPtr& allocation, const String& name) :
+	VulkanBuffer(buffer, BufferType::Index, elements, layout.elementSize(), alignment, usage, heap, createInfo, device, allocator, allocation, name), m_impl(layout)
 {
 }
 
@@ -384,7 +399,7 @@ const VulkanIndexBufferLayout& VulkanIndexBuffer::layout() const noexcept
 	return *m_impl->m_layout;
 }
 
-SharedPtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+SharedPtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, ResourceHeap heap, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	if (bufferInfo.Type != BufferType::Index || bufferInfo.IndexBufferLayout == nullptr) [[unlikely]]
 		throw InvalidArgumentException("bufferInfo", "The provided buffer info provides a wrong buffer type or no index buffer layout.");
@@ -403,10 +418,10 @@ SharedPtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const String& name, co
 		(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
-	return SharedObject::create<VulkanIndexBuffer>(buffer, dynamic_cast<const VulkanIndexBufferLayout&>(*bufferInfo.IndexBufferLayout), bufferInfo.Elements, alignment, usage, createInfo, device, allocator, AllocationPtr(allocation, VmaAllocationDeleter{ allocator }), name);
+	return SharedObject::create<VulkanIndexBuffer>(buffer, dynamic_cast<const VulkanIndexBufferLayout&>(*bufferInfo.IndexBufferLayout), bufferInfo.Elements, alignment, usage, heap, createInfo, device, allocator, AllocationPtr(allocation, VmaAllocationDeleter{ allocator }), name);
 }
 
-bool VulkanIndexBuffer::tryAllocate(SharedPtr<IVulkanIndexBuffer>& buffer, const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+bool VulkanIndexBuffer::tryAllocate(SharedPtr<IVulkanIndexBuffer>& buffer, const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, ResourceHeap heap, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	if (bufferInfo.Type != BufferType::Index || bufferInfo.IndexBufferLayout == nullptr) [[unlikely]]
 		throw InvalidArgumentException("bufferInfo", "The provided buffer info provides a wrong buffer type or no index buffer layout.");
@@ -433,7 +448,7 @@ bool VulkanIndexBuffer::tryAllocate(SharedPtr<IVulkanIndexBuffer>& buffer, const
 			(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
-		buffer = SharedObject::create<VulkanIndexBuffer>(bufferHandle, dynamic_cast<const VulkanIndexBufferLayout&>(*bufferInfo.IndexBufferLayout), bufferInfo.Elements, alignment, usage, createInfo, device, allocator, AllocationPtr(allocation, VmaAllocationDeleter{ allocator }), name);
+		buffer = SharedObject::create<VulkanIndexBuffer>(bufferHandle, dynamic_cast<const VulkanIndexBufferLayout&>(*bufferInfo.IndexBufferLayout), bufferInfo.Elements, alignment, usage, heap, createInfo, device, allocator, AllocationPtr(allocation, VmaAllocationDeleter{ allocator }), name);
 		return true;
 	}
 }

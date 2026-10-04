@@ -1139,95 +1139,95 @@ namespace LiteFX::Rendering {
     enum class PipelineStage {
         /// @brief Represents no-blocking behavior.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_NONE` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_NONE` in DirectX 12 ❎.
+        /// Translates to `VK_PIPELINE_2_STAGE_NONE` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_NONE` in DirectX 12 ❎.
         ///
         /// This stage flag is special, as it cannot be combined with other stage flags.
         None = 0x00000000,
 
         /// @brief Waits for all previous commands to be finished, or blocks all following commands until the barrier is executed.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_ALL_COMMANDS_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_ALL` in DirectX 12 ❎.
+        /// Translates to `VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_ALL` in DirectX 12 ❎.
         ///
         /// This stage flag is special, as it cannot be combined with other stage flags.
         All = 0x00000001,
 
         /// @brief Waits for previous commands to finish all graphics stages, or blocks following commands until the graphics stages has finished.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_DRAW` in DirectX 12 ❎.
+        /// Translates to `VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_DRAW` in DirectX 12 ❎.
         ///
         /// This stage flag is special, as it cannot be combined with other stage flags.
         Draw = 0x00000002,
 
         /// @brief Waits for previous commands to finish the input assembly stage, or blocks following commands until the input assembly stage has finished.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_VERTEX_INPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_INDEX_INPUT` in DirectX 12 ❎.
+        /// Translates to `VK_PIPELINE_STAGE_2_INDEX_INPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_INDEX_INPUT` in DirectX 12 ❎.
         InputAssembly = 0x00000004,
 
         /// @brief Waits for previous commands to finish the vertex shader stage, or blocks following commands until the vertex shader stage has finished.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_VERTEX_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
-        Vertex = 0x00000006,
+        /// Translates to `VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
+        Vertex = 0x00000008,
 
         /// @brief Waits for previous commands to finish the tessellation control/hull shader stage, or blocks following commands until the tessellation control/hull shader stage has finished.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
-        TessellationControl = 0x00000008,
+        /// Translates to `VK_PIPELINE_STAGE_2_TESSELLATION_CONTROL_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
+        TessellationControl = 0x00000010,
 
         /// @copydoc TessellationControl
-        Hull = 0x00000008,
+        Hull = 0x00000010,
 
         /// @brief Waits for previous commands to finish the tessellation evaluation/domain shader stage, or blocks following commands until the tessellation evaluation/domain shader stage has finished.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
-        TessellationEvaluation = 0x00000010,
+        /// Translates to `VK_PIPELINE_STAGE_2_TESSELLATION_EVALUATION_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
+        TessellationEvaluation = 0x00000020,
        
         /// @copydoc TessellationEvaluation
-        Domain = 0x00000010,
+        Domain = 0x00000020,
 
         /// @brief Waits for previous commands to finish the geometry shader stage, or blocks following commands until the geometry shader stage has finished.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
-        Geometry = 0x00000020,
+        /// Translates to `VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
+        Geometry = 0x00000040,
 
         /// @brief Waits for previous commands to finish the fragment/pixel shader stage, or blocks following commands until the fragment/pixel shader stage has finished.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_PIXEL_SHADING` in DirectX 12 ❎.
-        Fragment = 0x00000040,
+        /// Translates to `VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_PIXEL_SHADING` in DirectX 12 ❎.
+        Fragment = 0x00000080,
 
         /// @copydoc Fragment
-        Pixel = 0x00000040,
+        Pixel = 0x00000080,
 
         /// @brief Waits for previous commands to finish the depth/stencil stage, or blocks following commands until the depth/stencil stage has finished.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_DEPTH_STENCIL` in DirectX 12 ❎.
-        DepthStencil = 0x00000080,
+        /// Translates to `VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT ` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_DEPTH_STENCIL` in DirectX 12 ❎.
+        DepthStencil = 0x00000100,
 
         /// @brief Waits for previous commands to finish the draw indirect stage, or blocks following commands until the draw indirect stage has finished.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_EXECUTE_INDIRECT` in DirectX 12 ❎.
-        Indirect = 0x00000100,
+        /// Translates to `VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_EXECUTE_INDIRECT` in DirectX 12 ❎.
+        Indirect = 0x00000200,
 
         /// @brief Waits for previous commands to finish the output merger stage, or blocks following commands until the output merger stage has finished.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_RENDER_TARGET` in DirectX 12 ❎.
-        RenderTarget = 0x00000200,
+        /// Translates to `VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_RENDER_TARGET` in DirectX 12 ❎.
+        RenderTarget = 0x00000400,
 
         /// @brief Waits for previous commands to finish the compute shader stage, or blocks following commands until the compute shader stage has finished.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_COMPUTE_SHADING` in DirectX 12 ❎.
+        /// Translates to `VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_COMPUTE_SHADING` in DirectX 12 ❎.
         ///
         /// This stage flag is special, as it cannot be combined with other stage flags.
-        Compute = 0x00000400,
+        Compute = 0x00000800,
 
         /// @brief Waits for previous commands to finish the transfer stage, or blocks following commands until the transfer stage has finished.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_TRANSFER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_COPY` in DirectX 12 ❎.
-        Transfer = 0x00000800,
+        /// Translates to `VK_PIPELINE_STAGE_2_TRANSFER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_COPY` in DirectX 12 ❎.
+        Transfer = 0x00001000,
 
         /// @brief Waits for previous commands to finish the multi-sampling resolution stage, or blocks following commands until the multi-sampling resolution stage has finished.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_RESOLVE` in DirectX 12 ❎.
-        Resolve = 0x00001000,
+        /// Translates to `VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_RESOLVE` in DirectX 12 ❎.
+        Resolve = 0x00002000,
 
         /// @brief Waits for previous commands to finish the building stage for an acceleration structure, or blocks the following commands until the building has finished.
         ///
@@ -1324,19 +1324,19 @@ namespace LiteFX::Rendering {
 
         /// @brief Indicates that a resource is accessed as to read during a resolve operation.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_RESOLVE_SOURCE` in the DirectX 12 ❎ backend and `VK_ACCESS_MEMORY_READ_BIT` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_RESOLVE_SOURCE` in the DirectX 12 ❎ backend and `VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT` in the Vulkan 🌋 backend.
         ResolveRead = 0x00000800,
 
         /// @brief Indicates that a resource is accessed as to write during a resolve operation.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_RESOLVE_DEST` in the DirectX 12 ❎ backend and `VK_ACCESS_MEMORY_WRITE_BIT` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_RESOLVE_DEST` in the DirectX 12 ❎ backend and `VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT` in the Vulkan 🌋 backend.
         ResolveWrite = 0x00001000,
         
         /// @brief Indicates that a resource can be accessed in any way, compatible to the layout.
         ///
         /// Note that you have to ensure that you do not access the resource in an incompatible way manually.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_COMMON` in the DirectX 12 ❎ backend and `VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_COMMON` in the DirectX 12 ❎ backend and `VK_ACCESS_2_NONE` in the Vulkan 🌋 backend.
         Common = 0x00002000,
 
         /// @brief Indicates that a resources is accessed to read an acceleration structure.
@@ -3916,6 +3916,11 @@ namespace LiteFX::Rendering {
         ///
         /// @return The usage flags for the resource.
         virtual ResourceUsage usage() const noexcept = 0;
+
+        /// @brief Returns the heap that stores the resource.
+        ///
+        /// @return The heap that stores the resource.
+        virtual ResourceHeap heap() const noexcept = 0;
 
         /// @brief Gets the address of the resource in GPU memory.
         ///
@@ -8308,6 +8313,8 @@ namespace LiteFX::Rendering {
         /// consider the alternative approach if you are doing per-frame defragmentation.
         ///
         /// Calling this method while another defragmentation process is active will raise an exception.
+        /// 
+        /// Note that defragmentation is only supported for resources on the @ref ResourceHeap::Resource heap.
         ///
         /// @param queue The queue to execute the move commands on.
         /// @param strategy The strategy to pack the fragmented memory.
@@ -8327,6 +8334,7 @@ namespace LiteFX::Rendering {
         /// invalidated. This means, that you might have to update descriptor bindings for the resource. You can subscribe to the @ref IDeviceMemory::moved event for this purpose. You might also want to issue a
         /// barrier to transition an image resource back into the required layout. Calling this method will leave the new resource in a @ref ImageLayout::Common state.
         ///
+        /// @returns The fence on the queue provided with @ref beginDefragmentation that marks the end of the defragmentation pass.
         /// @throws RuntimeException Thrown, if no defragmentation process is currently active.
         /// @see @ref beginDefragmentation
         /// @see @ref endDefragmentationPass
@@ -8340,6 +8348,7 @@ namespace LiteFX::Rendering {
         /// This method waits for the fence issued by the last call to @ref beginDefragmentation before first invoking the @ref IDeviceMemory::moved event on all affected resources and finally destroying the
         /// moved-from resources.
         ///
+        /// @returns `true` if the defragmentation is complete and `false` otherwise.
         /// @throws RuntimeException Thrown, if no defragmentation process is currently active.
         /// @see @ref beginDefragmentation
         /// @see @ref beginDefragmentationPass
@@ -9074,18 +9083,10 @@ namespace LiteFX::Rendering {
         bool DrawIndirect { false };
 
         /// @brief Enables or disables support for dynamic descriptor types ([SM 6.6 dynamic resources](https://microsoft.github.io/DirectX-Specs/d3d/HLSL_SM_6_6_DynamicResources.html) and
-        /// [VK_EXT_mutable_descriptor_type](https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_mutable_descriptor_type.html)).
+        /// [VK_EXT_descriptor_heap](https://docs.vulkan.org/features/latest/features/proposals/VK_EXT_descriptor_heap.html)).
         ///
         /// Note that support for this feature is limited in the engine. It's purpose is to bind resources of different @ref DescriptorType "DescriptorTypes" within a single descriptor array. However, you still
         /// have to allocate a @ref IDescriptorSet to be able to bind resources and retrieve resource indices by calling @ref IDescriptorSet::bindToHeap.
-        ///
-        /// If you are only using the DirectX 12 backend, you can generally index any bound resource this way. However, in the Vulkan backend, only resources within the descriptor set can be indexed. Descriptor
-        /// sets that contain descriptors of @ref DescriptorType::ResourceDescriptorHeap or @ref DescriptorType::SamplerDescriptorHeap can be used to bind those descriptors. Such descriptor sets are called proxy
-        /// sets, because they do not actually occur in the shader. Instead they are directly accessed using the `ResourceDescriptorHeap` or `SamplerDescriptorHeap` syntax. In order to acquire a resource from
-        /// those heaps, you need to provide the index, that can be retrieved as described above.
-        ///
-        /// Be aware that dynamic descriptors (aka mutable descriptors) are considered inefficient in Vulkan. You should not use them, if you could instead use multiple descriptor sets containing unbounded
-        /// descriptor arrays. They can, however, be more efficient if you can replace multiple pipeline layouts with a single one that relies on mutable type descriptors.
         bool DynamicDescriptors { false };
 
         /// @brief Enables support for enabling depth bounds test on @ref IRenderPipeline creation.

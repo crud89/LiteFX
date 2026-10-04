@@ -47,12 +47,13 @@ m_device->computeAccelerationStructureSizes(*opaque, opaqueSize, opaqueScratchSi
 auto blasBuffer = m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, size, 1u, ResourceUsage::AllowWrite);
 ```
 
-Between uploading the geometry and building the structures, a barrier makes the buffers readable for the build:
+Between uploading the geometry and building the structures, a barrier makes the buffers readable for the build. The build reads them like a
+shader does, so the barrier waits for the transfer writes and makes the buffers available for shader reads:
 
 ```cpp
 auto barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::AccelerationStructureBuild);
-barrier->transition(*vertexBuffer, ResourceAccess::TransferWrite, ResourceAccess::Common);
-barrier->transition(*indexBuffer, ResourceAccess::TransferWrite, ResourceAccess::Common);
+barrier->transition(*vertexBuffer, ResourceAccess::TransferWrite, ResourceAccess::ShaderRead);
+barrier->transition(*indexBuffer, ResourceAccess::TransferWrite, ResourceAccess::ShaderRead);
 commandBuffer->barrier(*barrier);
 ```
 

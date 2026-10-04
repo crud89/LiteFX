@@ -107,3 +107,45 @@ renderPass.end();
 
 ImGui records into the engine's command buffer, which it reaches through the backend-specific handle. The Vulkan backend works the same way,
 with `ImGui_ImplVulkan_RenderDrawData` and the Vulkan command buffer handle.
+
+## Switching backends
+
+The [basic rendering](../samples-beginner/basic-rendering.md) sample switches backends directly from the key callback. With ImGui, that is
+not safe: ImGui installs its own GLFW callbacks, and stopping a backend shuts ImGui down, which removes those callbacks while one of them is
+still running. The result is a use-after-free.
+
+The sample therefore only records the switch in the key callback:
+
+```cpp
+std::function<void()> switchBackendHandler{ nullptr };
+
+void SampleApp::keyDown(int key, int /*scancode*/, int action, int /*mods*/)
+{
+    if (key == GLFW_KEY_F9 && action == GLFW_PRESS)
+        switchBackendHandler = [this]() { this->startBackend<VulkanBackend>(); };
+    else if (key == GLFW_KEY_F10 && action == GLFW_PRESS)
+        switchBackendHandler = [this]() { this->startBackend<DirectX12Backend>(); };
+}
+```
+
+The application loop then performs it after the events have been handled, outside of any callback:
+
+```cpp
+while (!::glfwWindowShouldClose(m_window.get()))
+{
+    this->handleEvents();
+
+    // If a backend switch was requested, execute it here, reset it and continue.
+    if (switchBackendHandler)
+    {
+        std::exchange(switchBackendHandler, nullptr)();
+        continue;
+    }
+
+    this->drawFrame();
+    this->updateWindowTitle();
+}
+```
+
+`std::exchange` resets the handler before calling it, so the switch runs exactly once. The loop then starts over, so the next frame is drawn
+with the new backend. The same pattern applies to any library that registers callbacks with the window and is torn down with the backend.

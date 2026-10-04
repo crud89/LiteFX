@@ -68,7 +68,7 @@ public:
 			throw std::runtime_error("Unable to compile shader file.");
 
 #ifndef NDEBUG
-		m_device->setDebugName(module, VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, std::format("{0}: {1}", m_fileName, m_entryPoint));
+		m_device->setDebugName(module, VK_OBJECT_TYPE_SHADER_MODULE, std::format("{0}: {1}", m_fileName, m_entryPoint));
 #endif
 
 		return module;
