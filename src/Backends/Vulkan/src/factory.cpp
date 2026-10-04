@@ -427,12 +427,11 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 
 	// Begin recording a command buffer for defragmentation.
 	Array<IDeviceMemory*> resources;
-	auto& commandBuffer = *m_impl->m_defragmentationCommandBuffer;
-	commandBuffer.begin();
 
 	// Prepare the move operation on each resource, i.e., create a barrier to allow then to synchronize the move with their current usage.
 	VulkanBarrier barrier(PipelineStage::All, PipelineStage::Transfer);
 	IDeviceMemory::PrepareMoveEventArgs eventArgs(barrier);
+	UInt32 moves{ 0u };
 
 	for (UInt32 i{ 0u }; i < pass.moveCount; ++i)
 	{
@@ -446,6 +445,14 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 		// Keep the resource (and with it the source allocation) alive until the pass has ended, even if the app releases it in between.
 		auto deviceMemory = static_cast<IDeviceMemory*>(allocationInfo.pUserData);
 
+		// Ignore moves on the heaps that aren't Resource, as the GPU can't perform those or the CPU-side manages them through the application anyway, we gain
+		// little by supporting this scenario.
+		if (deviceMemory->heap() != ResourceHeap::Resource)
+		{
+			pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			continue;
+		}
+
 		if (auto buffer = dynamic_cast<VulkanBuffer*>(deviceMemory); buffer != nullptr)
 			m_impl->m_defragmentationPassResources.emplace_back(buffer->shared_from_this());
 		else if (auto image = dynamic_cast<VulkanImage*>(deviceMemory); image != nullptr)
@@ -453,7 +460,19 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 
 		// Invoke the `prepareMove` event.
 		deviceMemory->prepareMove(this, eventArgs);
+		++moves;
 	}
+
+	// Early-out if there's nothing to move.
+	if (moves == 0u)
+	{
+		m_impl->m_defragmentationFence = 0u;
+		return 0u;
+	}
+
+	// Begin the command buffer.
+	auto& commandBuffer = *m_impl->m_defragmentationCommandBuffer;
+	commandBuffer.begin();
 
 	// Issue a barrier to transition the resources that requested it.
 	commandBuffer.barrier(barrier);
@@ -465,19 +484,15 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 		auto sourceAllocation = pass.pMoves[i].srcAllocation;    // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		auto targetAllocation = pass.pMoves[i].dstTmpAllocation; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
+		// Check if we already decided to ignore the move.
+		if (pass.pMoves[i].operation == VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE)
+			continue;
+
 		VmaAllocationInfo allocationInfo{};
 		::vmaGetAllocationInfo(m_impl->m_allocator, sourceAllocation, &allocationInfo);
 
 		// Acquire the underlying resource device memory instance and add it to the list of moved-from resources.
 		auto deviceMemory = static_cast<IDeviceMemory*>(allocationInfo.pUserData);
-
-		// Ignore moves on the heaps that aren't Resource, as the GPU can't perform those or the CPU-side manages them through the application anyway, we gain
-		// little by supporting this scenario.
-		if (deviceMemory->heap() != ResourceHeap::Resource)
-		{
-			pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			continue;
-		}
 
 		// Figure out the resource type.
 		if (auto buffer = dynamic_cast<VulkanBuffer*>(deviceMemory); buffer != nullptr)

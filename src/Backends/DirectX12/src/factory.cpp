@@ -280,12 +280,11 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 
 	// Begin recording a command buffer for defragmentation.
 	Array<IDeviceMemory*> resources;
-	auto& commandBuffer = *m_impl->m_defragmentationCommandBuffer;
-	commandBuffer.begin();
 
 	// Prepare the move operation on each resource, i.e., create a barrier to allow then to synchronize the move with their current usage.
 	DirectX12Barrier barrier(PipelineStage::All, PipelineStage::Transfer);
 	IDeviceMemory::PrepareMoveEventArgs eventArgs(barrier);
+	UInt32 moves{ 0u };
 
 	for (UInt32 i{ 0u }; i < pass.MoveCount; ++i)
 	{
@@ -295,6 +294,14 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 		// Acquire the underlying resource device memory instance.
 		auto deviceMemory = static_cast<IDeviceMemory*>(sourceAllocation->GetPrivateData());
 
+		// Ignore moves on the heaps that aren't Resource, as the GPU can't perform those or the CPU-side manages them through the application anyway, we gain
+		// little by supporting this scenario.
+		if (deviceMemory->heap() != ResourceHeap::Resource)
+		{
+			pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			continue;
+		}
+
 		// Keep the resource (and with it the source allocation) alive until the pass has ended, even if the app releases it in between.
 		if (auto buffer = dynamic_cast<DirectX12Buffer*>(deviceMemory); buffer != nullptr)
 			m_impl->m_defragmentationPassResources.emplace_back(buffer->shared_from_this());
@@ -303,7 +310,19 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 
 		// Invoke the `prepareMove` event.
 		deviceMemory->prepareMove(this, eventArgs);
+		++moves;
 	}
+
+	// Early-out if there's nothing to move.
+	if (moves == 0u)
+	{
+		m_impl->m_defragmentationFence = 0u;
+		return 0u;
+	}
+
+	// Begin the command buffer.
+	auto& commandBuffer = *m_impl->m_defragmentationCommandBuffer;
+	commandBuffer.begin();
 
 	// Issue a barrier to transition the resources that requested it.
 	commandBuffer.barrier(barrier);
@@ -315,16 +334,12 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 		auto sourceAllocation = pass.pMoves[i].pSrcAllocation;    // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		auto targetAllocation = pass.pMoves[i].pDstTmpAllocation; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
+		// Check if we already decided to ignore the move.
+		if (pass.pMoves[i].Operation == D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE)
+			continue;
+
 		// Acquire the underlying resource device memory instance and add it to the list of moved-from resources.
 		IDeviceMemory* deviceMemory = static_cast<IDeviceMemory*>(sourceAllocation->GetPrivateData());
-
-		// Ignore moves on the heaps that aren't Resource, as the GPU can't perform those or the CPU-side manages them through the application anyway, we gain
-		// little by supporting this scenario.
-		if (deviceMemory->heap() != ResourceHeap::Resource)
-		{
-			pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			continue;
-		}
 
 		// Figure out the resource type.
 		if (auto buffer = dynamic_cast<DirectX12Buffer*>(deviceMemory); buffer != nullptr)
