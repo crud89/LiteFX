@@ -331,7 +331,7 @@ public:
 
 		// Create the buffer and return.
 		VmaAllocationInfo allocationResult{};
-		return allocator(std::forward<TArgs>(args)..., name, bufferInfo, static_cast<size_t>(elementAlignment), usage, *device, m_allocator, bufferDescription, allocationDescription, &allocationResult);
+		return allocator(std::forward<TArgs>(args)..., name, bufferInfo, static_cast<size_t>(elementAlignment), usage, bufferInfo.Heap, *device, m_allocator, bufferDescription, allocationDescription, &allocationResult);
 	}
 
 	template <typename TAllocator, typename... TArgs>
@@ -351,12 +351,13 @@ public:
 			throw ArgumentOutOfRangeException("imageInfo", std::make_pair(1u, 1u), imageInfo.Layers, "A 3D texture can only have one layer, but {0} are provided.", imageInfo.Layers);
 
 		// Get a image and allocation create info.
+		constexpr auto heap = ResourceHeap::Resource;
 		auto imageDescription = getCreateInfo(imageInfo, usage);
-		auto allocationDescription = getAllocationCreateInfo(ResourceHeap::Resource, allocationBehavior);
+		auto allocationDescription = getAllocationCreateInfo(heap, allocationBehavior);
 
 		// Create the image and return.
 		VmaAllocationInfo allocationResult{};
-		return allocator(std::forward<TArgs>(args)..., name, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, usage, m_allocator, imageDescription, allocationDescription, &allocationResult);
+		return allocator(std::forward<TArgs>(args)..., name, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, usage, heap, m_allocator, imageDescription, allocationDescription, &allocationResult);
 	}
 };
 
@@ -713,7 +714,7 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(const Strin
 	};
 
 #ifndef NDEBUG
-	auto buffer = VulkanBuffer::allocate(name, bufferInfo, 1u, ResourceUsage::Default, *device, m_impl->m_allocator, bufferDescription, allocInfo);
+	auto buffer = VulkanBuffer::allocate(name, bufferInfo, 1u, ResourceUsage::Default, bufferInfo.Heap, *device, m_impl->m_allocator, bufferDescription, allocInfo);
 
 	if (!name.empty())
 		device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
@@ -792,11 +793,11 @@ Generator<ResourceAllocationResult> VulkanGraphicsFactory::allocate(Enumerable<c
 					throw VulkanPlatformException(result, "Unable to allocate resource from memory reserved for aliasing resource block.");
 
 				if (bufferInfo.Type == BufferType::Vertex && bufferInfo.VertexBufferLayout != nullptr)
-					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanVertexBuffer::create(buffer, dynamic_cast<const VulkanVertexBufferLayout&>(*bufferInfo.VertexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, *device, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
+					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanVertexBuffer::create(buffer, dynamic_cast<const VulkanVertexBufferLayout&>(*bufferInfo.VertexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, bufferInfo.Heap, resourceDescription, *device, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 				else if (bufferInfo.Type == BufferType::Index && bufferInfo.IndexBufferLayout != nullptr)
-					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanIndexBuffer::create(buffer, dynamic_cast<const VulkanIndexBufferLayout&>(*bufferInfo.IndexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, *device, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
+					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanIndexBuffer::create(buffer, dynamic_cast<const VulkanIndexBufferLayout&>(*bufferInfo.IndexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, bufferInfo.Heap, resourceDescription, *device, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 				else [[likely]]
-					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanBuffer::create(buffer, bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, *device, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
+					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanBuffer::create(buffer, bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, static_cast<size_t>(elementAlignment), allocationInfo.Usage, bufferInfo.Heap, resourceDescription, *device, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 			}
 			else if (std::holds_alternative<ResourceAllocationInfo::ImageInfo>(allocationInfo.ResourceInfo))
 			{
@@ -809,7 +810,7 @@ Generator<ResourceAllocationResult> VulkanGraphicsFactory::allocate(Enumerable<c
 				if (result != VK_SUCCESS) [[unlikely]]
 					throw VulkanPlatformException(result, "Unable to allocate resource from memory reserved for aliasing resource block.");
 
-				co_yield std::dynamic_pointer_cast<IImage>(VulkanImage::create(image, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, allocationInfo.Usage, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
+				co_yield std::dynamic_pointer_cast<IImage>(VulkanImage::create(image, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, allocationInfo.Usage, ResourceHeap::Resource, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 			}
 		}
 	}

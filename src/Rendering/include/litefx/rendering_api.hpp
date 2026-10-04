@@ -3917,6 +3917,11 @@ namespace LiteFX::Rendering {
         /// @return The usage flags for the resource.
         virtual ResourceUsage usage() const noexcept = 0;
 
+        /// @brief Returns the heap that stores the resource.
+        ///
+        /// @return The heap that stores the resource.
+        virtual ResourceHeap heap() const noexcept = 0;
+
         /// @brief Gets the address of the resource in GPU memory.
         ///
         /// Note that this may not be supported for all resource types in all backends. For example, Vulkan does not support obtaining virtual addresses of image resources.

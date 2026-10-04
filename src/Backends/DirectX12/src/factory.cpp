@@ -208,11 +208,12 @@ public:
 		// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
 		// Get a image and allocation create info.
+		constexpr auto heap = ResourceHeap::Resource;
 		D3D12_RESOURCE_DESC1 resourceDescription = getResourceDesc(imageInfo, usage);
-		D3D12MA::ALLOCATION_DESC allocationDescription = getAllocationDesc(ResourceHeap::Resource, allocationBehavior);
+		D3D12MA::ALLOCATION_DESC allocationDescription = getAllocationDesc(heap, allocationBehavior);
 
 		// Create the image and return.
-		return allocator(std::forward<TArgs>(args)..., name, *device.get(), m_allocator, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, usage, resourceDescription, allocationDescription);
+		return allocator(std::forward<TArgs>(args)..., name, *device.get(), m_allocator, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, usage, heap, resourceDescription, allocationDescription);
 	}
 };
 
@@ -579,16 +580,16 @@ Generator<ResourceAllocationResult> DirectX12GraphicsFactory::allocate(Enumerabl
 				const auto& bufferInfo = std::get<ResourceAllocationInfo::BufferInfo>(allocationInfo.ResourceInfo);
 
 				if (bufferInfo.Type == BufferType::Vertex && bufferInfo.VertexBufferLayout != nullptr)
-					co_yield std::dynamic_pointer_cast<IBuffer>(DirectX12VertexBuffer::create(std::move(resource), dynamic_cast<const DirectX12VertexBufferLayout&>(*bufferInfo.VertexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
+					co_yield std::dynamic_pointer_cast<IBuffer>(DirectX12VertexBuffer::create(std::move(resource), dynamic_cast<const DirectX12VertexBufferLayout&>(*bufferInfo.VertexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, bufferInfo.Heap, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 				else if (bufferInfo.Type == BufferType::Index && bufferInfo.IndexBufferLayout != nullptr)
-					co_yield std::dynamic_pointer_cast<IBuffer>(DirectX12IndexBuffer::create(std::move(resource), dynamic_cast<const DirectX12IndexBufferLayout&>(*bufferInfo.IndexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
+					co_yield std::dynamic_pointer_cast<IBuffer>(DirectX12IndexBuffer::create(std::move(resource), dynamic_cast<const DirectX12IndexBufferLayout&>(*bufferInfo.IndexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, bufferInfo.Heap, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 				else [[likely]]
-					co_yield std::dynamic_pointer_cast<IBuffer>(DirectX12Buffer::create(std::move(resource), bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
+					co_yield std::dynamic_pointer_cast<IBuffer>(DirectX12Buffer::create(std::move(resource), bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, static_cast<size_t>(elementAlignment), allocationInfo.Usage, bufferInfo.Heap, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 			}
 			else if (std::holds_alternative<ResourceAllocationInfo::ImageInfo>(allocationInfo.ResourceInfo))
 			{
 				const auto& imageInfo = std::get<ResourceAllocationInfo::ImageInfo>(allocationInfo.ResourceInfo);
-				co_yield std::dynamic_pointer_cast<IImage>(DirectX12Image::create(*device, std::move(resource), imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, allocationInfo.Usage, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
+				co_yield std::dynamic_pointer_cast<IImage>(DirectX12Image::create(*device, std::move(resource), imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, allocationInfo.Usage, ResourceHeap::Resource, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 			}
 		}
 	}

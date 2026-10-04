@@ -838,7 +838,7 @@ public:
 			m_imageResources[image].image = std::move(resource);
 			// NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
-			return VulkanImage::create(backBuffer, Size3d{ imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth }, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination, {}); // NOLINT(bugprone-invalid-enum-default-initialization)
+			return VulkanImage::create(backBuffer, Size3d{ imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth }, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination, ResourceHeap::Resource, {}); // NOLINT(bugprone-invalid-enum-default-initialization)
 		});
 
 		// Store state variables.
