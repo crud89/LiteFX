@@ -47,6 +47,8 @@ template<>
 const String FileExtensions<DirectX12Backend>::SHADER = "dxi"; // NOLINT(bugprone-throwing-static-initialization)
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
+std::function<void()> switchBackendHandler{ nullptr };
+
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
 void SampleApp::allocImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* context, D3D12_CPU_DESCRIPTOR_HANDLE* cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE* gpu_handle)
 {
@@ -209,6 +211,14 @@ void SampleApp::onStartup()
     while (!::glfwWindowShouldClose(m_window.get()))
     {
         this->handleEvents();
+
+        // If a backend switch was requested, execute it here, reset it and continue.
+        if (switchBackendHandler)
+        {
+            std::exchange(switchBackendHandler, nullptr)();
+            continue;
+        }
+
         this->drawFrame();
         this->updateWindowTitle();
     }
@@ -425,14 +435,17 @@ void SampleApp::onResize(const void* /*sender*/, const ResizeEventArgs& e)
 
 void SampleApp::keyDown(int key, int /*scancode*/, int action, int /*mods*/)
 {
+    // NOTE: Since DearImGui installs internal callbacks with GLFW, tearing down the backends from inside a callback causes use-after-free issues. For this reason, we queue a 
+    //       backend switch here and execute it only afterwards in `onStartup`.
+
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
     if (key == GLFW_KEY_F9 && action == GLFW_PRESS)
-        this->startBackend<VulkanBackend>();
+        switchBackendHandler = [this]() { this->startBackend<VulkanBackend>(); };
 #endif // LITEFX_BUILD_VULKAN_BACKEND
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
     if (key == GLFW_KEY_F10 && action == GLFW_PRESS)
-        this->startBackend<DirectX12Backend>();
+        switchBackendHandler = [this]() { this->startBackend<DirectX12Backend>(); };
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
     if (key == GLFW_KEY_F8 && action == GLFW_PRESS)
