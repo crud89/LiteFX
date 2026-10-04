@@ -11,56 +11,129 @@ textures and buffers every frame, and defragments the memory on request.
 
 ## Preparing resources for moving
 
-A resource that is moved is copied to a new location, so the GPU must not be using it at that moment. The engine asks each resource to
-prepare itself, through the `prepareMove` event. The handler records the barrier that makes the resource readable for the copy:
+A resource that is moved is copied to a new location, which means it is read by a transfer. The engine asks each resource to prepare itself
+for this through the `prepareMove` event, whose handler records the barrier that makes the resource readable for the copy:
 
 ```cpp
-static inline void setupPrepareMoveHandler(const SharedPtr<const IBuffer>& resource, ResourceAccess beforeAccess) {
-    resource->prepareMove += [buffer = resource->weak_from_this(), beforeAccess](const void* /*sender*/, const IDeviceMemory::PrepareMoveEventArgs& e) {
+static inline void setupMoveHandlers(const SharedPtr<const IBuffer>& resource) {
+    resource->prepareMove += [buffer = resource->weak_from_this()](const void* /*sender*/, const IDeviceMemory::PrepareMoveEventArgs& e) {
         auto resource = buffer.lock();
 
         if (resource)
-            e.barrier().transition(*resource, beforeAccess, ResourceAccess::TransferRead);
+            e.barrier().transition(*resource, ResourceAccess::None, ResourceAccess::TransferRead);
     };
 }
 ```
 
-Images additionally need their layout, since the copy expects a different one than rendering:
+The barrier starts from `ResourceAccess::None`, because defragmentation runs on its own queue, where nothing has accessed the resource
+before. That does not mean the resource is unused: other queues may still be reading it. Those accesses are synchronized between the queues
+with fences, as described below, not with this barrier.
+
+Images additionally need a target layout for the copy. The sample uses `Common`, which allows any kind of access, including the transfer
+read:
 
 ```cpp
-static inline void setupPrepareMoveHandler(const SharedPtr<const IImage>& resource, ResourceAccess beforeAccess, ImageLayout layout) {
-    resource->prepareMove += [image = resource->weak_from_this(), beforeAccess, layout](const void* /*sender*/, const IDeviceMemory::PrepareMoveEventArgs& e) {
+static inline void setupMoveHandlers(const SharedPtr<const IImage>& resource) {
+    resource->prepareMove += [image = resource->weak_from_this()](const void* /*sender*/, const IDeviceMemory::PrepareMoveEventArgs& e) {
         auto resource = image.lock();
 
         if (resource)
-            e.barrier().transition(*resource, beforeAccess, ResourceAccess::TransferRead, layout);
+            e.barrier().transition(*resource, ResourceAccess::None, ResourceAccess::TransferRead, ImageLayout::Common);
     };
 }
 ```
 
-The handler is registered for every resource that may be moved, with the access it is used for:
+The handlers are registered for every resource that may be moved:
 
 ```cpp
-::setupPrepareMoveHandler(vertexBuffer, ResourceAccess::VertexBuffer);
-::setupPrepareMoveHandler(indexBuffer, ResourceAccess::IndexBuffer);
-::setupPrepareMoveHandler(cameraBuffer, ResourceAccess::TransferWrite | ResourceAccess::ShaderRead);
-::setupPrepareMoveHandler(transformBuffer, ResourceAccess::ShaderRead);
+::setupMoveHandlers(vertexBuffer);
+::setupMoveHandlers(indexBuffer);
+::setupMoveHandlers(cameraBuffer);
+::setupMoveHandlers(transformBuffer);
 ```
 
 Capturing the resource as a weak pointer matters: the handler must not keep the resource alive, and it checks whether the resource still
 exists before using it.
 
-## Running the defragmentation
+## Updating descriptor sets after a move
 
-Defragmentation runs on a queue and works in passes, so that it can be spread over several frames instead of stalling the application:
+A moved resource lives at a new address, so descriptors that point to the old one become invalid. Only resources on the `Resource` heap are
+moved; the transform buffer is on the dynamic heap, so its descriptor sets stay valid. The camera buffer, however, can be moved, and its
+descriptor set has to be replaced when that happens.
+
+The `moving` event tells the application that a resource is about to move. Since descriptor sets must not change while frames that use them
+are still in flight, the handler only sets a flag:
 
 ```cpp
-if (!isDefragmenting)
-    m_device->factory().beginDefragmentation(transferQueue, DefragmentationStrategy::Balanced, 0u, 10u);
+m_cameraBindings = cameraBindingLayout.allocate({ { .resource = *cameraBuffer } });
+cameraBuffer->moving += [this](const void* /*sender*/, const IDeviceMemory::ResourceMovingEventArgs& /*e*/) noexcept { m_rebindCamera = true; };
+```
+
+The next frame replaces the descriptor set before binding it. The old set may still be used by earlier frames, so it cannot simply be
+released. Instead, it is handed to the command buffer with `track`, which keeps it alive until the command buffer has been executed:
+
+```cpp
+if (m_rebindCamera) {
+    auto& cameraBuffer = m_device->state().buffer("Camera");
+    auto& layout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
+
+    commandBuffer->track(std::move(m_cameraBindings));
+    m_cameraBindings = layout.allocate({ { .resource = cameraBuffer } });
+    m_rebindCamera = false;
+}
+
+commandBuffer->bind({ m_cameraBindings.get(), &transformBindings });
+```
+
+This is also why the sample keeps the camera's descriptor set in a member instead of the device state: transferring ownership to a command
+buffer is not possible for resources owned by the device state.
+
+## Running the defragmentation
+
+Defragmentation is a sequence of *passes*, so that the work can be spread over several frames instead of stalling the application. It is
+started once, on the queue that performs the copies:
+
+```cpp
+if (!isDefragmenting) {
+    m_device->factory().beginDefragmentation(transferQueue, DefragmentationStrategy::Balanced, 0u, 20u);
+    isDefragmenting = true;
+}
 ```
 
 The strategy decides how aggressively resources are moved, and the last arguments limit how much work a pass may do. `Balanced` is a
 reasonable default; other strategies trade more moves for tighter packing.
+
+Each pass copies resources and returns the fence of that work on the transfer queue. Rendering has to wait for it, so it uses the resources
+at their new locations:
+
+```cpp
+auto transferFence = m_transferFence;
+
+if (!isInDefragmentationPass) {
+    transferFence = std::max(transferFence, m_device->factory().beginDefragmentationPass());
+    isInDefragmentationPass = true;
+
+    // Remember the fence that marks the last usage of the resources that should be released.
+    defragmentationFence = renderFence;
+}
+
+renderQueue.waitFor(transferQueue, transferFence);
+```
+
+Ending a pass releases the old copies of the moved resources. Frames that were already in flight when the pass started may still use them,
+so the pass is only ended once the render queue has finished those frames. The fence of the last frame before the pass marks that point:
+
+```cpp
+renderFence = renderPass.end();
+
+// End defragmentation if the resources that should be released aren't used by any frames in flight anymore.
+if (renderQueue.lastCompletedFence() >= defragmentationFence) {
+    isDefragmenting = !m_device->factory().endDefragmentationPass();
+    isInDefragmentationPass = false;
+}
+```
+
+`endDefragmentationPass` returns whether the defragmentation is complete. Until then, the next frame starts another pass.
 
 ## Watching it work
 
