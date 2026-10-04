@@ -457,11 +457,30 @@ private:
 	Float m_minLod, m_maxLod;
 	Float m_anisotropy;
 	WeakPtr<const VulkanDevice> m_device;
+	VkSamplerCreateInfo m_createInfo;
 
 public:
 	VulkanSamplerImpl(const VulkanDevice& device, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) :
 		m_magFilter(magFilter), m_minFilter(minFilter), m_borderU(borderU), m_borderV(borderV), m_borderW(borderW), m_mipMapMode(mipMapMode), m_mipMapBias(mipMapBias), m_minLod(minLod), m_maxLod(maxLod), m_anisotropy(anisotropy), m_device(device.weak_from_this())
 	{
+		m_createInfo = {
+			.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+			.magFilter = getFilterMode(m_magFilter),
+			.minFilter = getFilterMode(m_minFilter),
+			.mipmapMode = getMipMapMode(m_mipMapMode),
+			.addressModeU = getBorderMode(m_borderU),
+			.addressModeV = getBorderMode(m_borderV),
+			.addressModeW = getBorderMode(m_borderW),
+			.mipLodBias = m_mipMapBias,
+			.anisotropyEnable = m_anisotropy > 0.f ? VK_TRUE : VK_FALSE,
+			.maxAnisotropy = m_anisotropy,
+			.compareEnable = VK_FALSE,
+			.compareOp = VK_COMPARE_OP_ALWAYS,
+			.minLod = m_minLod,
+			.maxLod = m_maxLod,
+			.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+			.unnormalizedCoordinates = VK_FALSE
+		};
 	}
 
 private:
@@ -507,26 +526,8 @@ public:
 		if (device == nullptr) [[unlikely]]
 			throw RuntimeException("Cannot allocate sampler from a released device instance.");
 
-		VkSamplerCreateInfo samplerInfo = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
-		samplerInfo.magFilter = getFilterMode(m_magFilter);
-		samplerInfo.minFilter = getFilterMode(m_minFilter);
-		samplerInfo.addressModeU = getBorderMode(m_borderU);
-		samplerInfo.addressModeV = getBorderMode(m_borderV);
-		samplerInfo.addressModeW = getBorderMode(m_borderW);
-		samplerInfo.anisotropyEnable = m_anisotropy > 0.f ? VK_TRUE : VK_FALSE;
-		samplerInfo.maxAnisotropy = m_anisotropy;
-		samplerInfo.mipmapMode = getMipMapMode(m_mipMapMode);
-		samplerInfo.mipLodBias = m_mipMapBias;
-		samplerInfo.minLod = m_minLod;
-		samplerInfo.maxLod = m_maxLod;
-
-		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-		samplerInfo.unnormalizedCoordinates = VK_FALSE;
-		samplerInfo.compareEnable = VK_FALSE;
-		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-
 		VkSampler sampler{};
-		raiseIfFailed(::vkCreateSampler(device->handle(), &samplerInfo, nullptr, &sampler), "Unable to create sampler.");
+		raiseIfFailed(::vkCreateSampler(device->handle(), &m_createInfo, nullptr, &sampler), "Unable to create sampler.");
 
 		return sampler;
 	}
@@ -614,4 +615,9 @@ Float VulkanSampler::getMaxLOD() const noexcept
 Float VulkanSampler::getMinLOD() const noexcept
 {
 	return m_impl->m_minLod;
+}
+
+const VkSamplerCreateInfo& VulkanSampler::createInfo() const noexcept
+{
+	return m_impl->m_createInfo;
 }

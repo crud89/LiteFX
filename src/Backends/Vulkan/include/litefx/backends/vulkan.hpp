@@ -253,6 +253,12 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         ~IVulkanSampler() noexcept override = default;
+
+    public:
+        /// @brief Returns a reference to the sampler create info structure which was used to create the sampler.
+        /// 
+        /// @return A reference to the sampler's create info structure.
+        virtual const VkSamplerCreateInfo& createInfo() const noexcept = 0;
     };
 
     /// @brief Represents the base interface for a Vulkan acceleration structure implementation.
