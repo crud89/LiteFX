@@ -461,7 +461,14 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 
 		// Acquire the underlying resource device memory instance and add it to the list of moved-from resources.
 		auto deviceMemory = static_cast<IDeviceMemory*>(allocationInfo.pUserData);
-		resources.emplace_back(deviceMemory);
+
+		// Ignore moves on the heaps that aren't Resource, as the GPU can't perform those or the CPU-side manages them through the application anyway, we gain
+		// little by supporting this scenario.
+		if (deviceMemory->heap() != ResourceHeap::Resource)
+		{
+			pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			continue;
+		}
 
 		// Figure out the resource type.
 		if (auto buffer = dynamic_cast<VulkanBuffer*>(deviceMemory); buffer != nullptr)
@@ -470,8 +477,10 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 
 			if (VulkanBuffer::move(buffer->shared_from_this(), targetAllocation, commandBuffer))
 				m_impl->m_destroyedResources.emplace([oldHandle](VkDevice device) { ::vkDestroyBuffer(device, oldHandle, nullptr); }, buffer->shared_from_this());
-			else
+			else {
 				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+				continue;
+			}
 		}
 		else if (auto image = dynamic_cast<VulkanImage*>(deviceMemory); image != nullptr)
 		{
@@ -485,10 +494,14 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 
 				if (VulkanImage::move(image->shared_from_this(), targetAllocation, commandBuffer))
 					m_impl->m_destroyedResources.emplace([oldHandle](VkDevice device) { ::vkDestroyImage(device, oldHandle, nullptr); }, image->shared_from_this());
-				else
+				else {
 					pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+					continue;
+				}
 			}
 		}
+
+		resources.emplace_back(deviceMemory);
 	}
 
 	// Submit de command buffer and store the fence.

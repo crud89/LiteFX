@@ -183,7 +183,7 @@ public:
 		D3D12MA::ALLOCATION_DESC allocationDescription = getAllocationDesc(bufferInfo.Heap, allocationBehavior);
 
 		// Create the buffer and return.
-		return allocator(std::forward<TArgs>(args)..., name, m_allocator, bufferInfo, static_cast<size_t>(elementAlignment), usage, resourceDescription, allocationDescription);
+		return allocator(std::forward<TArgs>(args)..., name, m_allocator, bufferInfo, static_cast<size_t>(elementAlignment), usage, bufferInfo.Heap, resourceDescription, allocationDescription);
 	}
 
 	template <typename TAllocator, typename... TArgs>
@@ -310,7 +310,14 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 
 		// Acquire the underlying resource device memory instance and add it to the list of moved-from resources.
 		IDeviceMemory* deviceMemory = static_cast<IDeviceMemory*>(sourceAllocation->GetPrivateData());
-		resources.emplace_back(deviceMemory);
+
+		// Ignore moves on the heaps that aren't Resource, as the GPU can't perform those or the CPU-side manages them through the application anyway, we gain
+		// little by supporting this scenario.
+		if (deviceMemory->heap() != ResourceHeap::Resource)
+		{
+			pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			continue;
+		}
 
 		// Figure out the resource type.
 		if (auto buffer = dynamic_cast<DirectX12Buffer*>(deviceMemory); buffer != nullptr)
@@ -319,8 +326,10 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 
 			if (DirectX12Buffer::move(buffer->shared_from_this(), targetAllocation, commandBuffer))
 				m_impl->m_destroyedResources.emplace(std::move(oldHandle), buffer->shared_from_this());
-			else
+			else {
 				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+				continue;
+			}
 		}
 		else if (auto image = dynamic_cast<DirectX12Image*>(deviceMemory); image != nullptr)
 		{
@@ -334,10 +343,14 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 
 				if (DirectX12Image::move(image->shared_from_this(), targetAllocation, commandBuffer))
 					m_impl->m_destroyedResources.emplace(std::move(oldHandle), image->shared_from_this());
-				else
+				else {
 					pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+					continue;
+				}
 			}
 		}
+
+		resources.emplace_back(deviceMemory);
 	}
 
 	// Submit de command buffer and store the fence.

@@ -8314,6 +8314,8 @@ namespace LiteFX::Rendering {
         ///
         /// Calling this method while another defragmentation process is active will raise an exception.
         ///
+        /// Note that defragmentation is only supported for resources on the @ref ResourceHeap::Resource heap.
+        ///
         /// @param queue The queue to execute the move commands on.
         /// @param strategy The strategy to pack the fragmented memory.
         /// @param maxBytesToMove The maximum number of bytes to move during this pass or `0`, if no limitation should be imposed.
@@ -8332,6 +8334,7 @@ namespace LiteFX::Rendering {
         /// invalidated. This means, that you might have to update descriptor bindings for the resource. You can subscribe to the @ref IDeviceMemory::moved event for this purpose. You might also want to issue a
         /// barrier to transition an image resource back into the required layout. Calling this method will leave the new resource in a @ref ImageLayout::Common state.
         ///
+        /// @returns The fence on the queue provided with @ref beginDefragmentation that marks the end of the defragmentation pass.
         /// @throws RuntimeException Thrown, if no defragmentation process is currently active.
         /// @see @ref beginDefragmentation
         /// @see @ref endDefragmentationPass
