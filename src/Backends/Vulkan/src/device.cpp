@@ -26,6 +26,7 @@ PFN_vkGetDescriptorSetLayoutBindingOffsetEXT vkGetDescriptorSetLayoutBindingOffs
 PFN_vkGetDescriptorEXT vkGetDescriptor{ nullptr };
 PFN_vkCmdBindDescriptorBuffersEXT vkCmdBindDescriptorBuffers{ nullptr };
 PFN_vkCmdSetDescriptorBufferOffsetsEXT vkCmdSetDescriptorBufferOffsets{ nullptr };
+PFN_vkGetAccelerationStructureDeviceAddressKHR vkGetAccelerationStructureDeviceAddress{ nullptr };
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
@@ -630,6 +631,8 @@ public:
         if (vkCmdSetDescriptorBufferOffsets == nullptr)
             vkCmdSetDescriptorBufferOffsets = reinterpret_cast<PFN_vkCmdSetDescriptorBufferOffsetsEXT>(::vkGetDeviceProcAddr(device, "vkCmdSetDescriptorBufferOffsetsEXT"));
 
+        if (vkGetAccelerationStructureDeviceAddress == nullptr)
+            vkGetAccelerationStructureDeviceAddress = reinterpret_cast<PFN_vkGetAccelerationStructureDeviceAddressKHR>(::vkGetDeviceProcAddr(device, "vkGetAccelerationStructureDeviceAddressKHR"));
         // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
 
         // Return the device instance.

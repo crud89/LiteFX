@@ -6,6 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 extern PFN_vkGetDescriptorSetLayoutSizeEXT vkGetDescriptorSetLayoutSize;
 extern PFN_vkGetDescriptorSetLayoutBindingOffsetEXT vkGetDescriptorSetLayoutBindingOffset;
 extern PFN_vkGetDescriptorEXT vkGetDescriptor;
+extern PFN_vkGetAccelerationStructureDeviceAddressKHR vkGetAccelerationStructureDeviceAddress;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
@@ -422,13 +423,16 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStruct
     if (accelerationStructure.buffer() == nullptr || accelerationStructure.handle() == VK_NULL_HANDLE) [[unlikely]]
         throw InvalidArgumentException("accelerationStructure", "The acceleration structure buffer has not yet been allocated.");
 
+    auto layout = m_impl->m_layout;
+    auto& device = layout->device();
+
     // Find the descriptor.
-    auto descriptors = m_impl->m_layout->descriptors();
+    auto descriptors = layout->descriptors();
     auto descriptorLayout = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
 
     if (descriptorLayout == descriptors.end()) [[unlikely]]
     {
-        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
+        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", layout->space(), binding);
         return;
     }
 
@@ -441,21 +445,26 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStruct
         throw ArgumentOutOfRangeException("descriptor", "The descriptor layout can only bind up to {0} descriptors at binding {3}, however the request was to bind {1} descriptors starting at {2}.", descriptorLayout->descriptors(), 1, descriptor, binding);
 
     // Acquire the binding offset.
-    auto descriptorOffset = static_cast<VkDeviceSize>(m_impl->m_layout->getDescriptorOffset(binding, descriptor));
+    auto descriptorOffset = static_cast<VkDeviceSize>(layout->getDescriptorOffset(binding, descriptor));
 
     // Offset to first array index. Arrays are tightly packed, so we simply add the descriptor size for each element.
-    size_t descriptorSize = m_impl->m_layout->device().descriptorSize(descriptorLayout->descriptorType());
+    size_t descriptorSize = device.descriptorSize(descriptorLayout->descriptorType());
 
     // Setup the descriptor info.
+    VkAccelerationStructureDeviceAddressInfoKHR info {
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR,
+        .accelerationStructure = accelerationStructure.handle()
+    };
+
     VkDescriptorGetInfoEXT descriptorInfo = { 
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT,
         .type = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
-        .data = { .accelerationStructure = accelerationStructure.buffer()->virtualAddress() }
+        .data = { .accelerationStructure = ::vkGetAccelerationStructureDeviceAddress(device.handle(), &info) }
     };
 
     // Create the descriptor in the descriptor buffer.
-    vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), static_cast<size_t>(descriptorOffset))); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
+    ::vkGetDescriptor(device.handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), static_cast<size_t>(descriptorOffset))); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
 
     // Update the invalidated range on the global descriptor heap.
-    m_impl->m_layout->device().updateGlobalDescriptors(*this, binding, descriptor, 1u);
+    device.updateGlobalDescriptors(*this, binding, descriptor, 1u);
 }
