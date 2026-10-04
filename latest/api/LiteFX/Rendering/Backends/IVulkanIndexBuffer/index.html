@@ -14822,6 +14822,8 @@
       
         
       
+        
+      
     
     
     
@@ -24399,7 +24401,7 @@
 <h1 id="litefxrenderingbackendsivulkanindexbuffer"><code>LiteFX::Rendering::Backends::IVulkanIndexBuffer</code><a class="headerlink" href="#litefxrenderingbackendsivulkanindexbuffer" title="Permanent link">&para;</a></h1>
 <p>Represents a Vulkan index buffer.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/07846d47c8f8ac18502e27e7cbecbc8c68619e8e/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L197">litefx/backends/vulkan.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/df93ec27cbfd4d5d8ffcfa4b5929bdaba307d99a/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L197">litefx/backends/vulkan.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="nc">IVulkanIndexBuffer</span><span class="w">
 </span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../IndexBuffer-0a/"><span class="n">IndexBuffer</span><span class="o">&lt;</span><span class="n">VulkanIndexBufferLayout</span><span class="o">&gt;</span></a><span class="w">
 </span><span class="w">    </span><span class="p">,</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../IVulkanBuffer/"><span class="n">IVulkanBuffer</span></a></code></pre></div>
@@ -24441,6 +24443,7 @@
 <tr><td><a href="../../IDeviceMemory/elementSize/"><code>elementSize</code></a>  <span class="small">[virtual]</span></td><td>Returns the size of a single element within the buffer. If there is only one element, this is equal to <a href="../../IDeviceMemory/size/"><code>size</code></a>.</td></tr>
 <tr><td><a href="../../IDeviceMemory/elements/"><code>elements</code></a>  <span class="small">[virtual]</span></td><td>Gets the number of sub-resources inside the memory chunk.</td></tr>
 <tr><td><a href="../IVulkanBuffer/handle-0c/"><code>handle</code></a>  <span class="small">[virtual]</span></td><td>Returns the resource managed by the class.</td></tr>
+<tr><td><a href="../../IDeviceMemory/heap/"><code>heap</code></a>  <span class="small">[virtual]</span></td><td>Returns the heap that stores the resource.</td></tr>
 <tr><td><a href="layout/"><code>layout</code></a>  <span class="small">[virtual]</span></td><td>Gets the layout of the index buffer.</td></tr>
 <tr><td><a href="../../IMappable/map-0b/"><code>map</code></a> </td><td><code>map</code> overloads</td></tr>
 <tr><td><a href="../../IStateResource/name/"><code>name</code></a>  <span class="small">[virtual]</span></td><td>Returns the name of the resource.</td></tr>

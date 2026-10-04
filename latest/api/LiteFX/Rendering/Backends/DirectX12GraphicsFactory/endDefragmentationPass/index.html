@@ -4952,6 +4952,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#return-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Return Value
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#see-also" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -16206,6 +16217,8 @@
       
         
       
+        
+      
     
     
     
@@ -25783,12 +25796,14 @@
 <h1 id="litefxrenderingbackendsdirectx12graphicsfactoryenddefragmentationpass"><code>LiteFX::Rendering::Backends::DirectX12GraphicsFactory::endDefragmentationPass</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12graphicsfactoryenddefragmentationpass" title="Permanent link">&para;</a></h1>
 <p>Ends a defragmentation pass.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/07846d47c8f8ac18502e27e7cbecbc8c68619e8e/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L2260">litefx/backends/dx12.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/df93ec27cbfd4d5d8ffcfa4b5929bdaba307d99a/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L2260">litefx/backends/dx12.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">endDefragmentationPass</span><span class="p">(</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Before calling this method, make sure you have started a defragmentation process by calling <a href="../../../IGraphicsFactory/beginDefragmentation/"><code>beginDefragmentation</code></a>. If no defragmentation process is currently started, calling this method raises an exception.</p>
 <p>This method waits for the fence issued by the last call to <a href="../../../IGraphicsFactory/beginDefragmentation/"><code>beginDefragmentation</code></a> before first invoking the <a href="../../../IDeviceMemory/moved/"><code>IDeviceMemory::moved</code></a> event on all affected resources and finally destroying the moved-from resources.</p>
+<h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
+<p><code>true</code> if the defragmentation is complete and <code>false</code> otherwise.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <p><a href="../beginDefragmentation/"><code>beginDefragmentation</code></a></p>
 <p><a href="../beginDefragmentationPass/"><code>beginDefragmentationPass</code></a></p>

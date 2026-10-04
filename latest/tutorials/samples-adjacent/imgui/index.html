@@ -988,6 +988,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#switching-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Switching backends
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1153,6 +1164,17 @@
     <span class="md-ellipsis">
       
         Drawing the interface
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#switching-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Switching backends
       
     </span>
   </a>
@@ -1341,6 +1363,39 @@ texture, and asks for them through the two callbacks above. The engine can hand 
 </code></pre></div>
 <p>ImGui records into the engine's command buffer, which it reaches through the backend-specific handle. The Vulkan backend works the same way,
 with <code>ImGui_ImplVulkan_RenderDrawData</code> and the Vulkan command buffer handle.</p>
+<h2 id="switching-backends">Switching backends<a class="headerlink" href="#switching-backends" title="Permanent link">&para;</a></h2>
+<p>The <a href="../../samples-beginner/basic-rendering/">basic rendering</a> sample switches backends directly from the key callback. With ImGui, that is
+not safe: ImGui installs its own GLFW callbacks, and stopping a backend shuts ImGui down, which removes those callbacks while one of them is
+still running. The result is a use-after-free.</p>
+<p>The sample therefore only records the switch in the key callback:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">()</span><span class="o">&gt;</span><span class="w"> </span><span class="n">switchBackendHandler</span><span class="p">{</span><span class="w"> </span><span class="nb">nullptr</span><span class="w"> </span><span class="p">};</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kt">void</span><span class="w"> </span><span class="nf">SampleApp::keyDown</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="cm">/*scancode*/</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">action</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="cm">/*mods*/</span><span class="p">)</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">{</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">key</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">GLFW_KEY_F9</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">action</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">GLFW_PRESS</span><span class="p">)</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">        </span><span class="n">switchBackendHandler</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">]()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">this</span><span class="o">-&gt;</span><span class="n">startBackend</span><span class="o">&lt;</span><span class="n">VulkanBackend</span><span class="o">&gt;</span><span class="p">();</span><span class="w"> </span><span class="p">};</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">key</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">GLFW_KEY_F10</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">action</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">GLFW_PRESS</span><span class="p">)</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">        </span><span class="n">switchBackendHandler</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">]()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">this</span><span class="o">-&gt;</span><span class="n">startBackend</span><span class="o">&lt;</span><span class="n">DirectX12Backend</span><span class="o">&gt;</span><span class="p">();</span><span class="w"> </span><span class="p">};</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="p">}</span>
+</code></pre></div>
+<p>The application loop then performs it after the events have been handled, outside of any callback:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="o">!::</span><span class="n">glfwWindowShouldClose</span><span class="p">(</span><span class="n">m_window</span><span class="p">.</span><span class="n">get</span><span class="p">()))</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="p">{</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="k">this</span><span class="o">-&gt;</span><span class="n">handleEvents</span><span class="p">();</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="c1">// If a backend switch was requested, execute it here, reset it and continue.</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">switchBackendHandler</span><span class="p">)</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">exchange</span><span class="p">(</span><span class="n">switchBackendHandler</span><span class="p">,</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">)();</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">        </span><span class="k">continue</span><span class="p">;</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span><span class="k">this</span><span class="o">-&gt;</span><span class="n">drawFrame</span><span class="p">();</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">    </span><span class="k">this</span><span class="o">-&gt;</span><span class="n">updateWindowTitle</span><span class="p">();</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="p">}</span>
+</code></pre></div>
+<p><code>std::exchange</code> resets the handler before calling it, so the switch runs exactly once. The loop then starts over, so the next frame is drawn
+with the new backend. The same pattern applies to any library that registers callbacks with the window and is torn down with the backend.</p>
 
 
 

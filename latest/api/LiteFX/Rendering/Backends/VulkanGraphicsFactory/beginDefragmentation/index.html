@@ -16206,6 +16206,8 @@
       
         
       
+        
+      
     
     
     
@@ -25783,7 +25785,7 @@
 <h1 id="litefxrenderingbackendsvulkangraphicsfactorybegindefragmentation"><code>LiteFX::Rendering::Backends::VulkanGraphicsFactory::beginDefragmentation</code><a class="headerlink" href="#litefxrenderingbackendsvulkangraphicsfactorybegindefragmentation" title="Permanent link">&para;</a></h1>
 <p>Starts a defragmentation process for the resources allocated from the factory.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/07846d47c8f8ac18502e27e7cbecbc8c68619e8e/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L2301">litefx/backends/vulkan.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/df93ec27cbfd4d5d8ffcfa4b5929bdaba307d99a/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L2301">litefx/backends/vulkan.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">beginDefragmentation</span><span class="p">(</span><span class="w">
 </span><span class="w">    </span><a href="../../../ICommandQueue/"><span class="n">ICommandQueue</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">queue</span><span class="p">,</span><span class="w">
 </span><span class="w">    </span><a href="../../../DefragmentationStrategy/"><span class="n">DefragmentationStrategy</span></a><span class="w"> </span><span class="n">strategy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DefragmentationStrategy</span><span class="o">:</span><span class="o">:</span><span class="n">Balanced</span><span class="p">,</span><span class="w">
@@ -25796,6 +25798,7 @@
 <p>Moving a resource happens by recording copy commands on a command buffer created from <code>queue.</code> If a resource does not need to be copied, for example because it only contains temporary data, you can set the <a href="../../../IDeviceMemory/volatileMove/"><code>IDeviceMemory::volatileMove</code></a> property to <code>true</code>. This will only allocate a new resource, but wont copy the contents of the old allocation.</p>
 <p>Calling <a href="../../../IGraphicsFactory/beginDefragmentationPass/"><code>beginDefragmentationPass</code></a> returns the fence on that queue after which the move commands have been executed. You can either manually wait for the fence (e.g., by calling <a href="../../../ICommandQueue/lastCompletedFence/"><code>ICommandQueue::lastCompletedFence</code></a>) or call <a href="../../../IGraphicsFactory/endDefragmentationPass/"><code>endDefragmentationPass</code></a> directly. Keep in mind that <a href="../../../IGraphicsFactory/endDefragmentationPass/"><code>endDefragmentationPass</code></a> blocks to wait for the last fence to finish, so you might want to consider the alternative approach if you are doing per-frame defragmentation.</p>
 <p>Calling this method while another defragmentation process is active will raise an exception.</p>
+<p>Note that defragmentation is only supported for resources on the <a href="../../../ResourceHeap/"><code>ResourceHeap::Resource</code></a> heap.</p>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
 <thead><tr><th>Name</th><th>Description</th></tr></thead>

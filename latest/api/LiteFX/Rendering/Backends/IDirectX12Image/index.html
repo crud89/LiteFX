@@ -14822,6 +14822,8 @@
       
         
       
+        
+      
     
     
     
@@ -24399,7 +24401,7 @@
 <h1 id="litefxrenderingbackendsidirectx12image"><code>LiteFX::Rendering::Backends::IDirectX12Image</code><a class="headerlink" href="#litefxrenderingbackendsidirectx12image" title="Permanent link">&para;</a></h1>
 <p>Represents a DirectX 12 sampled image or the base interface for a texture.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/07846d47c8f8ac18502e27e7cbecbc8c68619e8e/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L221">litefx/backends/dx12.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/df93ec27cbfd4d5d8ffcfa4b5929bdaba307d99a/src/Backends/DirectX12/include/litefx/backends/dx12.hpp#L221">litefx/backends/dx12.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="nc">IDirectX12Image</span><span class="w">
 </span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../IImage/"><span class="n">IImage</span></a><span class="w">
 </span><span class="w">    </span><span class="p">,</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../../IResource-0af/"><span class="n">IResource</span><span class="o">&lt;</span><span class="n">ComPtr</span><span class="o">&lt;</span><span class="n">ID3D12Resource</span><span class="o">&gt;</span><span class="o">&gt;</span></a></code></pre></div>
@@ -24443,6 +24445,7 @@
 <tr><td><a href="../../IImage/extent/"><code>extent</code></a>  <span class="small">[virtual]</span></td><td>Gets the extent of the image at a certain mip-map level.</td></tr>
 <tr><td><a href="../../IImage/format/"><code>format</code></a>  <span class="small">[virtual]</span></td><td>Gets the internal format of the image.</td></tr>
 <tr><td><a href="handle-04f/"><code>handle</code></a>  <span class="small">[virtual]</span></td><td>Returns the resource managed by the class.</td></tr>
+<tr><td><a href="../../IDeviceMemory/heap/"><code>heap</code></a>  <span class="small">[virtual]</span></td><td>Returns the heap that stores the resource.</td></tr>
 <tr><td><a href="../../IImage/layers/"><code>layers</code></a>  <span class="small">[virtual]</span></td><td>Gets the number of layers (slices) of the image.</td></tr>
 <tr><td><a href="../../IImage/levels/"><code>levels</code></a>  <span class="small">[virtual]</span></td><td>Gets the number of mip-map levels of the image.</td></tr>
 <tr><td><a href="../../IStateResource/name/"><code>name</code></a>  <span class="small">[virtual]</span></td><td>Returns the name of the resource.</td></tr>

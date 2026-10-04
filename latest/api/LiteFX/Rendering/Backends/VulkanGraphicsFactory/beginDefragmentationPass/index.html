@@ -16217,6 +16217,8 @@
       
         
       
+        
+      
     
     
     
@@ -25794,7 +25796,7 @@
 <h1 id="litefxrenderingbackendsvulkangraphicsfactorybegindefragmentationpass"><code>LiteFX::Rendering::Backends::VulkanGraphicsFactory::beginDefragmentationPass</code><a class="headerlink" href="#litefxrenderingbackendsvulkangraphicsfactorybegindefragmentationpass" title="Permanent link">&para;</a></h1>
 <p>Starts a new defragmentation pass.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/07846d47c8f8ac18502e27e7cbecbc8c68619e8e/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L2304">litefx/backends/vulkan.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/df93ec27cbfd4d5d8ffcfa4b5929bdaba307d99a/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L2304">litefx/backends/vulkan.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../../../Math/UInt64/"><span class="n">UInt64</span></a><span class="w"> </span><span class="n">beginDefragmentationPass</span><span class="p">(</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="p">;</span></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
@@ -25802,7 +25804,7 @@
 <p>You are expected to issue alternating calls to this method and <a href="../../../IGraphicsFactory/endDefragmentationPass/"><code>endDefragmentationPass</code></a>. This can happen either at the beginning or end of a frame, or on a separate thread.</p>
 <p>In between a call to this method and <a href="../../../IGraphicsFactory/endDefragmentationPass/"><code>endDefragmentationPass</code></a>, the moved-from resources remain valid. Only after the move has finished and <a href="../../../IGraphicsFactory/endDefragmentationPass/"><code>endDefragmentationPass</code></a> has been called, they will get invalidated. This means, that you might have to update descriptor bindings for the resource. You can subscribe to the <a href="../../../IDeviceMemory/moved/"><code>IDeviceMemory::moved</code></a> event for this purpose. You might also want to issue a barrier to transition an image resource back into the required layout. Calling this method will leave the new resource in a <a href="../../../ImageLayout/"><code>ImageLayout::Common</code></a> state.</p>
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
-<p>A type for an unsigned 64 bit integer.</p>
+<p>The fence on the queue provided with <a href="../beginDefragmentation/"><code>beginDefragmentation</code></a> that marks the end of the defragmentation pass.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <p><a href="../beginDefragmentation/"><code>beginDefragmentation</code></a></p>
 <p><a href="../endDefragmentationPass/"><code>endDefragmentationPass</code></a></p>

@@ -5236,6 +5236,8 @@
       
         
       
+        
+      
     
     
     
@@ -5481,6 +5483,34 @@
     
   
     elementSize
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="heap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    heap
   
 
     
@@ -15436,7 +15466,7 @@
 <h1 id="litefxrenderingidevicememory"><code>LiteFX::Rendering::IDeviceMemory</code><a class="headerlink" href="#litefxrenderingidevicememory" title="Permanent link">&para;</a></h1>
 <p>Describes a chunk of device memory.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/07846d47c8f8ac18502e27e7cbecbc8c68619e8e/src/Rendering/include/litefx/rendering_api.hpp#L3751">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/df93ec27cbfd4d5d8ffcfa4b5929bdaba307d99a/src/Rendering/include/litefx/rendering_api.hpp#L3751">litefx/rendering_api.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="nc">IDeviceMemory</span><span class="p">;</span></code></pre></div>
 
 <h2 id="types">Types<a class="headerlink" href="#types" title="Permanent link">&para;</a></h2>
@@ -15457,6 +15487,7 @@
 <tr><td><a href="elementAlignment/"><code>elementAlignment</code></a>  <span class="small">[virtual]</span></td><td>Returns the alignment of a single element.</td></tr>
 <tr><td><a href="elementSize/"><code>elementSize</code></a>  <span class="small">[virtual]</span></td><td>Returns the size of a single element within the buffer. If there is only one element, this is equal to <a href="size/"><code>size</code></a>.</td></tr>
 <tr><td><a href="elements/"><code>elements</code></a>  <span class="small">[virtual]</span></td><td>Gets the number of sub-resources inside the memory chunk.</td></tr>
+<tr><td><a href="heap/"><code>heap</code></a>  <span class="small">[virtual]</span></td><td>Returns the heap that stores the resource.</td></tr>
 <tr><td><a href="size/"><code>size</code></a>  <span class="small">[virtual]</span></td><td>Gets the size (in bytes) of the aligned memory chunk.</td></tr>
 <tr><td><a href="usage/"><code>usage</code></a>  <span class="small">[virtual]</span></td><td>Returns the usage flags for the resource.</td></tr>
 <tr><td><a href="virtualAddress/"><code>virtualAddress</code></a>  <span class="small">[virtual]</span></td><td>Gets the address of the resource in GPU memory.</td></tr>

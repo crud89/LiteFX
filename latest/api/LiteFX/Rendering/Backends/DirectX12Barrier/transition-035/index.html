@@ -15539,6 +15539,8 @@
       
         
       
+        
+      
     
     
     
@@ -25134,7 +25136,7 @@
 <h1 id="litefxrenderingbackendsdirectx12barriertransition"><code>LiteFX::Rendering::Backends::DirectX12Barrier::transition</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12barriertransition" title="Permanent link">&para;</a></h1>
 <p>Inserts an image barrier that blocks access to all sub-resources of <code>image</code> of the types contained in <code>accessAfter</code> for subsequent commands until previous commands have finished accesses contained in <code>accessBefore</code> and transitions all sub-resources into <code>layout.</code></p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/07846d47c8f8ac18502e27e7cbecbc8c68619e8e/src/Rendering/include/litefx/rendering.hpp#L46">litefx/rendering.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/df93ec27cbfd4d5d8ffcfa4b5929bdaba307d99a/src/Rendering/include/litefx/rendering.hpp#L46">litefx/rendering.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">transition</span><span class="p">(</span><span class="w">
 </span><span class="w">    </span><a href="../../../Barrier-00/"><span class="n">image_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">image</span><span class="p">,</span><span class="w">
 </span><span class="w">    </span><a href="../../../ResourceAccess/"><span class="n">ResourceAccess</span></a><span class="w"> </span><span class="n">accessBefore</span><span class="p">,</span><span class="w">

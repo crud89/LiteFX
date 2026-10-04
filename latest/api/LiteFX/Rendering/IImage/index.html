@@ -5234,6 +5234,8 @@
       
         
       
+        
+      
     
     
     
@@ -15280,7 +15282,7 @@
 <h1 id="litefxrenderingiimage"><code>LiteFX::Rendering::IImage</code><a class="headerlink" href="#litefxrenderingiimage" title="Permanent link">&para;</a></h1>
 <p>Describes a generic image.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/07846d47c8f8ac18502e27e7cbecbc8c68619e8e/src/Rendering/include/litefx/rendering_api.hpp#L3969">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/df93ec27cbfd4d5d8ffcfa4b5929bdaba307d99a/src/Rendering/include/litefx/rendering_api.hpp#L3974">litefx/rendering_api.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="nc">IImage</span><span class="w">
 </span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../IDeviceMemory/"><span class="n">IDeviceMemory</span></a><span class="w">
 </span><span class="w">    </span><span class="p">,</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../IStateResource/"><span class="n">IStateResource</span></a><span class="w">
@@ -15325,6 +15327,7 @@
 <tr><td><a href="../IDeviceMemory/elements/"><code>elements</code></a>  <span class="small">[virtual]</span></td><td>Gets the number of sub-resources inside the memory chunk.</td></tr>
 <tr><td><a href="extent/"><code>extent</code></a>  <span class="small">[virtual]</span></td><td>Gets the extent of the image at a certain mip-map level.</td></tr>
 <tr><td><a href="format/"><code>format</code></a>  <span class="small">[virtual]</span></td><td>Gets the internal format of the image.</td></tr>
+<tr><td><a href="../IDeviceMemory/heap/"><code>heap</code></a>  <span class="small">[virtual]</span></td><td>Returns the heap that stores the resource.</td></tr>
 <tr><td><a href="layers/"><code>layers</code></a>  <span class="small">[virtual]</span></td><td>Gets the number of layers (slices) of the image.</td></tr>
 <tr><td><a href="levels/"><code>levels</code></a>  <span class="small">[virtual]</span></td><td>Gets the number of mip-map levels of the image.</td></tr>
 <tr><td><a href="../IStateResource/name/"><code>name</code></a>  <span class="small">[virtual]</span></td><td>Returns the name of the resource.</td></tr>
