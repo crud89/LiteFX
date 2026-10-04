@@ -485,7 +485,7 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 		auto targetAllocation = pass.pMoves[i].dstTmpAllocation; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
 		// Check if we already decided to ignore the move.
-		if (pass.pMoves[i].operation == VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE)
+		if (pass.pMoves[i].operation == VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE) // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			continue;
 
 		VmaAllocationInfo allocationInfo{};

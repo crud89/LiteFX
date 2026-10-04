@@ -335,7 +335,7 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 		auto targetAllocation = pass.pMoves[i].pDstTmpAllocation; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
 		// Check if we already decided to ignore the move.
-		if (pass.pMoves[i].Operation == D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE)
+		if (pass.pMoves[i].Operation == D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE) // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			continue;
 
 		// Acquire the underlying resource device memory instance and add it to the list of moved-from resources.

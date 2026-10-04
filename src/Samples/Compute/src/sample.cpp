@@ -488,7 +488,7 @@ void SampleApp::drawFrame()
         commandBuffer->transfer(image, *m_device->swapChain().image(backBuffer));
 
         // Transition the image back into `Present` layout.
-        // NOTE: It is important to transition the frame buffer image back into "Shader Resource", as frame buffer color images are always expected to be in this state, when no
+        // NOTE: It is important to transition the frame buffer image back into "Common", as frame buffer color images are always expected to be in this state, when no
         //       render pass is currently rendering to them.
         barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::Resolve);
         barrier->transition(image, ResourceAccess::TransferRead, ResourceAccess::Common, ImageLayout::CopySource, ImageLayout::Common);

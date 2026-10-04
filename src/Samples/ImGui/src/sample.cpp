@@ -47,7 +47,7 @@ template<>
 const String FileExtensions<DirectX12Backend>::SHADER = "dxi"; // NOLINT(bugprone-throwing-static-initialization)
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
-std::function<void()> switchBackendHandler{ nullptr };
+std::function<void()> switchBackendHandler{ nullptr }; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
 void SampleApp::allocImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* context, D3D12_CPU_DESCRIPTOR_HANDLE* cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE* gpu_handle)
