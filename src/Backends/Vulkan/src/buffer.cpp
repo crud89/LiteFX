@@ -265,6 +265,15 @@ bool VulkanBuffer::move(SharedPtr<IVulkanBuffer> buffer, VmaAllocation to, const
 	//       The new resource handle is valid beyond this point, but may contain uninitialized data. Any attempt of using the resource must be properly synchronized to execute after the submission
 	//       of `commandBuffer`.
 	source.handle() = bufferHandle;
+
+	// Store the virtual address of the new buffer instance.
+	VkBufferDeviceAddressInfo addressInfo {
+		.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+		.buffer = bufferHandle
+	};
+
+	source.m_impl->m_virtualAddress = static_cast<UInt64>(::vkGetBufferDeviceAddress(device->handle(), &addressInfo));
+
 	return true;
 }
 
