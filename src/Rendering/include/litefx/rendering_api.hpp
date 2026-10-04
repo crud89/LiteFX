@@ -1336,7 +1336,7 @@ namespace LiteFX::Rendering {
         ///
         /// Note that you have to ensure that you do not access the resource in an incompatible way manually.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_COMMON` in the DirectX 12 ❎ backend and `VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_COMMON` in the DirectX 12 ❎ backend and `VK_ACCESS_2_NONE` in the Vulkan 🌋 backend.
         Common = 0x00002000,
 
         /// @brief Indicates that a resources is accessed to read an acceleration structure.
@@ -8313,7 +8313,7 @@ namespace LiteFX::Rendering {
         /// consider the alternative approach if you are doing per-frame defragmentation.
         ///
         /// Calling this method while another defragmentation process is active will raise an exception.
-        ///
+        /// 
         /// Note that defragmentation is only supported for resources on the @ref ResourceHeap::Resource heap.
         ///
         /// @param queue The queue to execute the move commands on.
@@ -8348,6 +8348,7 @@ namespace LiteFX::Rendering {
         /// This method waits for the fence issued by the last call to @ref beginDefragmentation before first invoking the @ref IDeviceMemory::moved event on all affected resources and finally destroying the
         /// moved-from resources.
         ///
+        /// @returns `true` if the defragmentation is complete and `false` otherwise.
         /// @throws RuntimeException Thrown, if no defragmentation process is currently active.
         /// @see @ref beginDefragmentation
         /// @see @ref beginDefragmentationPass
