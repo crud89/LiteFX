@@ -28,6 +28,7 @@ private:
 	SharedPtr<VulkanCommandBuffer> m_defragmentationCommandBuffer{ nullptr };
 	Queue<DefragResource> m_destroyedResources{};
 	UInt64 m_defragmentationFence{ 0u };
+	Array<SharedPtr<IDeviceMemory>> m_defragmentationPassResources{};
 	Array<UInt32> m_queueIds;
 
 public:
@@ -442,8 +443,16 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 		VmaAllocationInfo allocationInfo{};
 		::vmaGetAllocationInfo(m_impl->m_allocator, sourceAllocation, &allocationInfo);
 
+		// Keep the resource (and with it the source allocation) alive until the pass has ended, even if the app releases it in between.
+		auto deviceMemory = static_cast<IDeviceMemory*>(allocationInfo.pUserData);
+
+		if (auto buffer = dynamic_cast<VulkanBuffer*>(deviceMemory); buffer != nullptr)
+			m_impl->m_defragmentationPassResources.emplace_back(buffer->shared_from_this());
+		else if (auto image = dynamic_cast<VulkanImage*>(deviceMemory); image != nullptr)
+			m_impl->m_defragmentationPassResources.emplace_back(image->shared_from_this());
+
 		// Invoke the `prepareMove` event.
-		static_cast<IDeviceMemory*>(allocationInfo.pUserData)->prepareMove(this, eventArgs);
+		deviceMemory->prepareMove(this, eventArgs);
 	}
 
 	// Issue a barrier to transition the resources that requested it.
@@ -546,6 +555,8 @@ bool VulkanGraphicsFactory::endDefragmentationPass() const
 		// Erase the allocation from the queue.
 		m_impl->m_destroyedResources.pop();
 	}
+
+	m_impl->m_defragmentationPassResources.clear();
 
 	if (result == VK_SUCCESS)
 	{

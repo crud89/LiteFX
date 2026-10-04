@@ -133,6 +133,7 @@ private:
 	SharedPtr<DirectX12CommandBuffer> m_defragmentationCommandBuffer{ nullptr };
 	Queue<DefragResource> m_destroyedResources{};
 	UInt64 m_defragmentationFence{ 0u };
+	Array<SharedPtr<IDeviceMemory>> m_defragmentationPassResources{};
 
 public:
 	DirectX12GraphicsFactoryImpl(const DirectX12Device& device) :
@@ -294,6 +295,12 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 		// Acquire the underlying resource device memory instance.
 		auto deviceMemory = static_cast<IDeviceMemory*>(sourceAllocation->GetPrivateData());
 
+		// Keep the resource (and with it the source allocation) alive until the pass has ended, even if the app releases it in between.
+		if (auto buffer = dynamic_cast<DirectX12Buffer*>(deviceMemory); buffer != nullptr)
+			m_impl->m_defragmentationPassResources.emplace_back(buffer->shared_from_this());
+		else if (auto image = dynamic_cast<DirectX12Image*>(deviceMemory); image != nullptr)
+			m_impl->m_defragmentationPassResources.emplace_back(image->shared_from_this());
+
 		// Invoke the `prepareMove` event.
 		deviceMemory->prepareMove(this, eventArgs);
 	}
@@ -394,6 +401,7 @@ bool DirectX12GraphicsFactory::endDefragmentationPass() const
 		throw DX12PlatformException(result, "Unable to end defragmentation pass.");
 
 	resources.clear();
+	m_impl->m_defragmentationPassResources.clear();
 
 	if (result == S_OK)
 	{
