@@ -99,6 +99,9 @@ namespace LiteFX::Rendering::Backends {
 		/// @return A pointer to the allocation info.
 		const D3D12MA::Allocation* allocationInfo() const noexcept;
 
+		/// @brief Invoked after the resource handle got updated during a @ref move.
+		virtual void handleChanged() noexcept {};
+
 	private:
 		static inline auto create(ComPtr<ID3D12Resource>&& buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, ResourceHeap heap, const D3D12_RESOURCE_DESC1& resourceDesc, AllocatorPtr allocator = nullptr, AllocationPtr allocation = nullptr, const String& name = "") {
 			return SharedObject::create<DirectX12Buffer>(std::move(buffer), type, elements, elementSize, alignment, usage, heap, resourceDesc, std::move(allocator), std::move(allocation), name);
@@ -138,6 +141,10 @@ namespace LiteFX::Rendering::Backends {
 		/// @copydoc IDirectX12VertexBuffer::view
 		const D3D12_VERTEX_BUFFER_VIEW& view() const noexcept override;
 
+	protected:
+		/// @copydoc DirectX12Buffer::handleChanged
+		void handleChanged() noexcept override;
+
 	private:
 		static inline auto create(ComPtr<ID3D12Resource>&& buffer, const DirectX12VertexBufferLayout& layout, UInt32 elements, size_t alignment, ResourceUsage usage, ResourceHeap heap, const D3D12_RESOURCE_DESC1& resourceDesc, AllocatorPtr allocator, AllocationPtr allocation, const String& name = "") {
 			return SharedObject::create<DirectX12VertexBuffer>(std::move(buffer), layout, elements, alignment, usage, heap, resourceDesc, std::move(allocator), std::move(allocation), name);
@@ -175,6 +182,10 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		/// @copydoc IDirectX12IndexBuffer::layout
 		const D3D12_INDEX_BUFFER_VIEW& view() const noexcept override;
+
+	protected:
+		/// @copydoc DirectX12Buffer::handleChanged
+		void handleChanged() noexcept override;
 
 	private:
 		static inline auto create(ComPtr<ID3D12Resource>&& buffer, const DirectX12IndexBufferLayout& layout, UInt32 elements, size_t alignment, ResourceUsage usage, ResourceHeap heap, const D3D12_RESOURCE_DESC1& resourceDesc, AllocatorPtr allocator, AllocationPtr allocation, const String& name = "") {

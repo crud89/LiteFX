@@ -244,6 +244,9 @@ bool DirectX12Buffer::move(SharedPtr<IDirectX12Buffer> buffer, D3D12MA::Allocati
 	if (!buffer->volatileMove())
 		commandBuffer.handle()->CopyResource(resource.Get(), source.handle().Get());
 
+	// Reset the resource name on the old resource.
+	source.handle()->SetName(Widen(std::format("{} (moved)", source.name())).c_str());
+
 	// Reset the resource and return.
 	// NOTE: At this point, the previous resource does still exist, but is inaccessible through the current instance. The only remaining reference should be stored by the source allocation during 
 	//       defragmentation. After it gets released, the resource should also be removed. If a reference is stored somewhere else this leaks, but you should never store the reference obtained by
@@ -251,6 +254,9 @@ bool DirectX12Buffer::move(SharedPtr<IDirectX12Buffer> buffer, D3D12MA::Allocati
 	//       The new resource handle is valid beyond this point, but may contain uninitialized data. Any attempt of using the resource must be properly synchronized to execute after the submission
 	//       of `commandBuffer`.
 	source.handle() = std::move(resource);
+
+	// Recreate views on derived buffer types.
+	source.handleChanged();
 	return true;
 }
 
@@ -304,6 +310,11 @@ const DirectX12VertexBufferLayout& DirectX12VertexBuffer::layout() const noexcep
 const D3D12_VERTEX_BUFFER_VIEW& DirectX12VertexBuffer::view() const noexcept
 {
 	return m_impl->m_view;
+}
+
+void DirectX12VertexBuffer::handleChanged() noexcept
+{
+	m_impl->initialize(*this);
 }
 
 SharedPtr<IDirectX12VertexBuffer> DirectX12VertexBuffer::allocate(const String& name, AllocatorPtr allocator, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, ResourceHeap heap, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
@@ -403,6 +414,11 @@ const DirectX12IndexBufferLayout& DirectX12IndexBuffer::layout() const noexcept
 const D3D12_INDEX_BUFFER_VIEW& DirectX12IndexBuffer::view() const noexcept
 {
 	return m_impl->m_view;
+}
+
+void DirectX12IndexBuffer::handleChanged() noexcept
+{
+	m_impl->initialize(*this);
 }
 
 SharedPtr<IDirectX12IndexBuffer> DirectX12IndexBuffer::allocate(const String& name, AllocatorPtr allocator, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, ResourceHeap heap, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
