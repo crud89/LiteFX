@@ -27,10 +27,6 @@ public:
 		m_allocator(std::move(allocator)), m_allocation(std::move(allocation)), m_format(format), m_extent(std::move(extent)), m_levels(levels), m_layers(layers), m_planes{ ::D3D12GetFormatPlaneCount(device.handle().Get(), DX12::getFormat(format)) }, m_dimensions(dimension), m_usage(usage), m_heap(heap), m_samples(samples), m_resourceDesc(resourceDesc)
 	{
 		m_elements = m_planes * m_layers * m_levels;
-
-		// Patch alignment.
-		if (m_allocation != nullptr)
-			m_resourceDesc.Alignment = m_allocation->GetAlignment();
 	}
 };
 
@@ -42,6 +38,12 @@ DirectX12Image::DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resou
 	ComResource<ID3D12Resource>(nullptr), m_impl(device, extent, format, dimension, levels, layers, samples, usage, heap, std::move(allocator), std::move(allocation), resourceDesc)
 {
 	this->handle() = std::move(image);
+
+	// Store the resource description that's actually been used to allocate the resource. This overwrites the user-provided one.
+	ComPtr<ID3D12Resource2> resource2;
+
+	if (this->handle() != nullptr && SUCCEEDED(this->handle().As(&resource2)))
+		m_impl->m_resourceDesc = resource2->GetDesc1();
 
 	if (!name.empty())
 	{

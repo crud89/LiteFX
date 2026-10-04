@@ -36,6 +36,12 @@ DirectX12Buffer::DirectX12Buffer(ComPtr<ID3D12Resource>&& buffer, BufferType typ
 {
 	this->handle() = std::move(buffer);
 
+	// Store the resource description that's actually been used to allocate the resource. This overwrites the user-provided one.
+	ComPtr<ID3D12Resource2> resource2;
+
+	if (this->handle() != nullptr && SUCCEEDED(this->handle().As(&resource2)))
+		m_impl->m_resourceDesc = resource2->GetDesc1();
+
 	if (!name.empty())
 	{
 		this->name() = name;
