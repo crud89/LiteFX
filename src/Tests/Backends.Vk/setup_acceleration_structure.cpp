@@ -176,6 +176,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 int main(int /*argc*/, char* argv[])
 {
+    std::setvbuf(stdout, nullptr, _IONBF, 0);
+
     // Set the current path.
     auto binaryDir = std::filesystem::path(argv[0]);
     std::filesystem::current_path(binaryDir.remove_filename());

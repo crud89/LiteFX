@@ -36,7 +36,8 @@ void termination_sink::sink_it_(const spdlog::details::log_msg& msg)
     if (msg.level >= m_minLevel)
     {
         std::println("{}\r\nTrace: {}", msg.payload, std::stacktrace::current());
-        ::exit(m_status);
+        std::fflush(stdout);
+        std::quick_exit(m_status);
     }
 }
 
