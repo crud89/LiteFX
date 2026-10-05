@@ -30,7 +30,8 @@ Array<::Allocation> allocations{};
 
 std::random_device rnd;
 std::mt19937 rng{ rnd() };
-bool isDefragmenting = false;
+bool isDefragmenting{ false }, isInDefragmentationPass{ false };
+UInt64 renderFence{ 0ull }, defragmentationFence{ 0ull };
 
 static struct CameraBuffer {
     glm::mat4 ViewProjection;
@@ -58,21 +59,26 @@ template<>
 const String FileExtensions<DirectX12Backend>::SHADER = "dxi"; // NOLINT(bugprone-throwing-static-initialization)
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
-static inline void setupPrepareMoveHandler(const SharedPtr<const IBuffer>& resource, ResourceAccess beforeAccess) {
-    resource->prepareMove += [buffer = resource->weak_from_this(), beforeAccess](const void* /*sender*/, const IDeviceMemory::PrepareMoveEventArgs& e) {
+static inline void setupMoveHandlers(const SharedPtr<const IBuffer>& resource) {
+    resource->prepareMove += [buffer = resource->weak_from_this()](const void* /*sender*/, const IDeviceMemory::PrepareMoveEventArgs& e) {
         auto resource = buffer.lock();
 
+        // NOTE: We can use `ResourceAccess::None` here, because we are running defragmentation on a dedicated queue. There is no previous access to the resource on
+        //       that queue anyway. However, this still means that we must synchronize queues, i.e., we need to ensure that other queues are finished with their
+        //       accesses to the resources. This is done through fences.
         if (resource)
-            e.barrier().transition(*resource, beforeAccess, ResourceAccess::TransferRead);
+            e.barrier().transition(*resource, ResourceAccess::None, ResourceAccess::TransferRead);
     };
 }
 
-static inline void setupPrepareMoveHandler(const SharedPtr<const IImage>& resource, ResourceAccess beforeAccess, ImageLayout layout) {
-    resource->prepareMove += [image = resource->weak_from_this(), beforeAccess, layout](const void* /*sender*/, const IDeviceMemory::PrepareMoveEventArgs& e) {
+static inline void setupMoveHandlers(const SharedPtr<const IImage>& resource) {
+    resource->prepareMove += [image = resource->weak_from_this()](const void* /*sender*/, const IDeviceMemory::PrepareMoveEventArgs& e) {
         auto resource = image.lock();
 
+        // NOTE: Similar to above, access synchronization means queue synchronization. What's different here is that we also need provide a target layout for the image.
+        //       Since the image is moved anyway, which requires a copy to be made, we can initialize it from undefined to common layout, clearing it in the process.
         if (resource)
-            e.barrier().transition(*resource, beforeAccess, ResourceAccess::TransferRead, layout);
+            e.barrier().transition(*resource, ResourceAccess::None, ResourceAccess::TransferRead, ImageLayout::Common);
     };
 }
 
@@ -145,20 +151,24 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // Create the vertex buffer and transfer the staging buffer into it.
     auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
     commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, static_cast<UInt32>(vertices.size()));
-    ::setupPrepareMoveHandler(vertexBuffer, ResourceAccess::VertexBuffer);
+    ::setupMoveHandlers(vertexBuffer);
 
     // Create the index buffer and transfer the staging buffer into it.
     auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, static_cast<UInt32>(indices.size()));
     commandBuffer->transfer(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), *indexBuffer, 0, static_cast<UInt32>(indices.size()));
-    ::setupPrepareMoveHandler(indexBuffer, ResourceAccess::IndexBuffer);
+    ::setupMoveHandlers(indexBuffer);
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
     auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, ResourceHeap::Resource);
-    auto cameraBindings = cameraBindingLayout.allocate({ { .resource = *cameraBuffer } });
-    ::setupPrepareMoveHandler(cameraBuffer, ResourceAccess::TransferWrite | ResourceAccess::ShaderRead);
+    m_cameraBindings = cameraBindingLayout.allocate({ { .resource = *cameraBuffer } });
+    ::setupMoveHandlers(cameraBuffer);
+    
+    // If the camera buffer is moved, we also need to invalidate the descriptor sets that bind it. For this, we set a flag that indicates that the buffer should be rebound. This then
+    // happens during `drawFrame`, as we need to synchronize binding updates with rendering.
+    cameraBuffer->moving += [this](const void* /*sender*/, const IDeviceMemory::ResourceMovingEventArgs& /*e*/) noexcept { m_rebindCamera = true; };
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraBuffer);
@@ -173,7 +183,8 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
         { { .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
     }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 
-    ::setupPrepareMoveHandler(transformBuffer, ResourceAccess::ShaderRead);
+    // The transform buffer is put onto the dynamic heap. Only resources on the `Resource` heap are moved, so it doesn't need rebinding logic.
+    ::setupMoveHandlers(transformBuffer);
     
     // End and submit the command buffer.
     m_transferFence = commandBuffer->submit();
@@ -183,7 +194,6 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     m_device->state().add(std::move(indexBuffer));
     m_device->state().add(std::move(cameraBuffer));
     m_device->state().add(std::move(transformBuffer));
-    m_device->state().add("Camera Bindings", std::move(cameraBindings));
     std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(std::format("Transform Bindings {0}", i++), std::move(binding)); });
 }
 
@@ -257,7 +267,10 @@ void SampleApp::onInit()
         return true;
     };
 
-    auto stopCallback = []<typename TBackend>(TBackend* backend) {
+    auto stopCallback = [this]<typename TBackend>(TBackend* backend) {
+        // Release the camera bindings, so that they don't leak.
+        m_cameraBindings.reset();
+
         // Reset allocations.
         allocations.clear();
         isDefragmenting = false;
@@ -426,7 +439,7 @@ void SampleApp::drawFrame()
         for (UInt32 i{}; i < images && allocations.size() < maxResources; ++i)
         {
             auto& allocation = allocations.emplace_back(m_device->factory().createTexture(Format::R8G8B8A8_SRGB, { resolutionDice(rng), resolutionDice(rng) , 1u }), frameDice(rng));
-            ::setupPrepareMoveHandler(std::get<SharedPtr<IImage>>(allocation.resource), ResourceAccess::None, ImageLayout::Common);
+            ::setupMoveHandlers(std::get<SharedPtr<IImage>>(allocation.resource));
         }
 
         // Generate new buffers.
@@ -435,7 +448,7 @@ void SampleApp::drawFrame()
         for (UInt32 i{}; i < buffers && allocations.size() < maxResources; ++i)
         {
             auto& allocation = allocations.emplace_back(m_device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, resolutionDice(rng)), frameDice(rng));
-            ::setupPrepareMoveHandler(std::get<SharedPtr<IBuffer>>(allocation.resource), ResourceAccess::None);
+            ::setupMoveHandlers(std::get<SharedPtr<IBuffer>>(allocation.resource));
         }
     }
 
@@ -450,20 +463,41 @@ void SampleApp::drawFrame()
     auto& renderPass = m_device->state().renderPass("Opaque");
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& transformBuffer = m_device->state().buffer("Transform");
-    auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
     auto& transformBindings = m_device->state().descriptorSet(std::format("Transform Bindings {0}", backBuffer));
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
-
-    // Wait for all transfers to finish.
     auto& transferQueue = m_device->defaultQueue(QueueType::Transfer);
-    renderPass.commandQueue().waitFor(transferQueue, m_transferFence);
+    auto& renderQueue = renderPass.commandQueue();
+
+    // NOTE: Defragmentation is a sequential process. The process is started by calling `beginDefragmentation` and then executes multiple passes. During each of those passes,
+    //       resources are copied. In order for the rendering to pick up the up-to-date resources, it must be synchronized with the queue that handles defragmentation. For 
+    //       this reason, we need to let the rendering queue wait for the transfer queue.
+    //       However, there might still be frames in flight that access the old resources. Those are only deleted in `endDefragmentationPass`, but in order for it not to release
+    //       any resources too early, we must wait for the frames in flight up to the point where we started the defragmentation pass to be executed. We do this by remembering 
+    //       the fence of the rendering queue that rendered the frame before we submitted the defragmentation pass. When ending the defragmentation pass we first check if the
+    //       rendering queue has passed this fence and only then perform the actual ending. We only start a new defragmentation pass, if the previous one has been ended.
 
     // Begin defragmentation.
-    if (!isDefragmenting)
-        m_device->factory().beginDefragmentation(transferQueue, DefragmentationStrategy::Balanced, 0u, 10u); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    if (!isDefragmenting) {
+        m_device->factory().beginDefragmentation(transferQueue, DefragmentationStrategy::Balanced, 0u, 20u); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        isDefragmenting = true;
+    }
 
-    m_device->factory().beginDefragmentationPass();
+    // The transfer fence is the latest fence on the transfer queue, the rendering queue needs to wait on: either the resize-fence or the defragmentation fence.
+    auto transferFence = m_transferFence;
+
+    if (!isInDefragmentationPass) {
+        transferFence = std::max(transferFence, m_device->factory().beginDefragmentationPass());
+
+        // Prevent the next frames to start a new defragmentation pass, if we're still waiting for resources to be released.
+        isInDefragmentationPass = true;
+
+        // Remember the fence that marks the last usage of the resources that should be released.
+        defragmentationFence = renderFence;
+    }
+
+    // Wait for all transfers to finish.
+    renderQueue.waitFor(transferQueue, transferFence);
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     renderPass.begin(frameBuffer);
@@ -480,8 +514,21 @@ void SampleApp::drawFrame()
     transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     transformBuffer.map(static_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
+    // Check if we need to rebind the camera buffer after a move.
+    if (m_rebindCamera) {
+        auto& cameraBuffer = m_device->state().buffer("Camera");
+        auto& layout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
+
+        // Track the current camera bindings, such that they are released when the previous frames are finished.
+        commandBuffer->track(std::move(m_cameraBindings));
+        
+        // Allocate a new binding that can be used from the current frame onward and disable the rebinding marker.
+        m_cameraBindings = layout.allocate({ { .resource = cameraBuffer } });
+        m_rebindCamera = false;
+    }
+
     // Bind both descriptor sets to the pipeline.
-    commandBuffer->bind({ &cameraBindings, &transformBindings });
+    commandBuffer->bind({ m_cameraBindings.get(), &transformBindings});
 
     // Bind the vertex and index buffers.
     commandBuffer->bind(vertexBuffer);
@@ -489,8 +536,13 @@ void SampleApp::drawFrame()
 
     // Draw the object and present the frame by ending the render pass.
     commandBuffer->drawIndexed(indexBuffer.elements());
-    renderPass.end();
+    renderFence = renderPass.end();
 
-    // End defragmentation.
-    isDefragmenting = !m_device->factory().endDefragmentationPass();
+    // End defragmentation if the resources that should be released aren't used by any frames in flight anymore.
+    if (renderQueue.lastCompletedFence() >= defragmentationFence) {
+        isDefragmenting = !m_device->factory().endDefragmentationPass();
+
+        // Allow the next frame to start a new defragmentation pass.
+        isInDefragmentationPass = false;
+    }
 }

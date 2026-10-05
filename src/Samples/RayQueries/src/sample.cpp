@@ -165,8 +165,8 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
 
     // Before building the acceleration structures the GPU needs to wait for the transfer to finish.
     auto barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::AccelerationStructureBuild);
-    barrier->transition(*vertexBuffer, ResourceAccess::TransferWrite, ResourceAccess::Common);
-    barrier->transition(*indexBuffer, ResourceAccess::TransferWrite, ResourceAccess::Common);
+    barrier->transition(*vertexBuffer, ResourceAccess::TransferWrite, ResourceAccess::ShaderRead);
+    barrier->transition(*indexBuffer, ResourceAccess::TransferWrite, ResourceAccess::ShaderRead);
     commandBuffer->barrier(*barrier);
 
     // Pre-build acceleration structures. We start with 2 bottom-level acceleration structures (BLAS) for our simple geometry and a few top-level acceleration structures (TLAS) for the 

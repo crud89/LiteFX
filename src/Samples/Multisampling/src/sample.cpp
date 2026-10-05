@@ -86,8 +86,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create a shader program.
     SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
-        .withVertexShaderModule("shaders/basic_vs." + FileExtensions<TRenderBackend>::SHADER)
-        .withFragmentShaderModule("shaders/basic_fs." + FileExtensions<TRenderBackend>::SHADER);
+        .withVertexShaderModule("shaders/basic_vs." + FileExtensions<TRenderBackend>::SHADER, "VSMain")
+        .withFragmentShaderModule("shaders/basic_fs." + FileExtensions<TRenderBackend>::SHADER, "PSMain");
 
     // Create a render pipeline. We also need to set the sampling level here.
     UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")

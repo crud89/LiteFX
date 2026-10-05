@@ -18,7 +18,7 @@ namespace LiteFX::Rendering::Backends {
 		friend class VulkanGraphicsFactory;
 
 	private:
-		explicit VulkanImage(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const VkImageCreateInfo& createInfo, VmaAllocator allocator = nullptr, const AllocationPtr& allocation = nullptr, const String& name = "");
+		explicit VulkanImage(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, ResourceHeap heap, const VkImageCreateInfo& createInfo, VmaAllocator allocator = nullptr, const AllocationPtr& allocation = nullptr, const String& name = "");
 		
 		VulkanImage(VulkanImage&&) noexcept = delete;
 		VulkanImage(const VulkanImage&) = delete;
@@ -47,6 +47,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// @copydoc IDeviceMemory::usage()
 		ResourceUsage usage() const noexcept override;
+
+		/// @copydoc IDeviceMemory::heap()
+		ResourceHeap heap() const noexcept override;
 
 		/// @copydoc IDeviceMemory::virtualAddress()
 		UInt64 virtualAddress() const noexcept override;
@@ -97,13 +100,13 @@ namespace LiteFX::Rendering::Backends {
 		VmaAllocation allocationInfo() const noexcept;
 
 	private:
-		static inline auto create(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const VkImageCreateInfo& createInfo, VmaAllocator allocator = nullptr, const AllocationPtr& allocation = nullptr, const String& name = "") {
-			return SharedObject::create<VulkanImage>(image, extent, format, dimensions, levels, layers, samples, usage, createInfo, allocator, allocation, name);
+		static inline auto create(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, ResourceHeap heap, const VkImageCreateInfo& createInfo, VmaAllocator allocator = nullptr, const AllocationPtr& allocation = nullptr, const String& name = "") {
+			return SharedObject::create<VulkanImage>(image, extent, format, dimensions, levels, layers, samples, usage, heap, createInfo, allocator, allocation, name);
 		}
 
 	public:
-		static SharedPtr<IVulkanImage> allocate(const String& name, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
-		static bool tryAllocate(SharedPtr<IVulkanImage>& image, const String& name, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static SharedPtr<IVulkanImage> allocate(const String& name, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, ResourceHeap heap, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static bool tryAllocate(SharedPtr<IVulkanImage>& image, const String& name, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, ResourceHeap heap, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 
 		static bool move(SharedPtr<IVulkanImage> image, VmaAllocation to, const VulkanCommandBuffer& commandBuffer);
 	};

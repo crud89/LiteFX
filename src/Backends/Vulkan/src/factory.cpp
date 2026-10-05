@@ -28,6 +28,7 @@ private:
 	SharedPtr<VulkanCommandBuffer> m_defragmentationCommandBuffer{ nullptr };
 	Queue<DefragResource> m_destroyedResources{};
 	UInt64 m_defragmentationFence{ 0u };
+	Array<SharedPtr<IDeviceMemory>> m_defragmentationPassResources{};
 	Array<UInt32> m_queueIds;
 
 public:
@@ -331,7 +332,7 @@ public:
 
 		// Create the buffer and return.
 		VmaAllocationInfo allocationResult{};
-		return allocator(std::forward<TArgs>(args)..., name, bufferInfo, static_cast<size_t>(elementAlignment), usage, *device, m_allocator, bufferDescription, allocationDescription, &allocationResult);
+		return allocator(std::forward<TArgs>(args)..., name, bufferInfo, static_cast<size_t>(elementAlignment), usage, bufferInfo.Heap, *device, m_allocator, bufferDescription, allocationDescription, &allocationResult);
 	}
 
 	template <typename TAllocator, typename... TArgs>
@@ -351,12 +352,13 @@ public:
 			throw ArgumentOutOfRangeException("imageInfo", std::make_pair(1u, 1u), imageInfo.Layers, "A 3D texture can only have one layer, but {0} are provided.", imageInfo.Layers);
 
 		// Get a image and allocation create info.
+		constexpr auto heap = ResourceHeap::Resource;
 		auto imageDescription = getCreateInfo(imageInfo, usage);
-		auto allocationDescription = getAllocationCreateInfo(ResourceHeap::Resource, allocationBehavior);
+		auto allocationDescription = getAllocationCreateInfo(heap, allocationBehavior);
 
 		// Create the image and return.
 		VmaAllocationInfo allocationResult{};
-		return allocator(std::forward<TArgs>(args)..., name, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, usage, m_allocator, imageDescription, allocationDescription, &allocationResult);
+		return allocator(std::forward<TArgs>(args)..., name, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, usage, heap, m_allocator, imageDescription, allocationDescription, &allocationResult);
 	}
 };
 
@@ -425,12 +427,11 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 
 	// Begin recording a command buffer for defragmentation.
 	Array<IDeviceMemory*> resources;
-	auto& commandBuffer = *m_impl->m_defragmentationCommandBuffer;
-	commandBuffer.begin();
 
 	// Prepare the move operation on each resource, i.e., create a barrier to allow then to synchronize the move with their current usage.
 	VulkanBarrier barrier(PipelineStage::All, PipelineStage::Transfer);
 	IDeviceMemory::PrepareMoveEventArgs eventArgs(barrier);
+	UInt32 moves{ 0u };
 
 	for (UInt32 i{ 0u }; i < pass.moveCount; ++i)
 	{
@@ -441,9 +442,37 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 		VmaAllocationInfo allocationInfo{};
 		::vmaGetAllocationInfo(m_impl->m_allocator, sourceAllocation, &allocationInfo);
 
+		// Keep the resource (and with it the source allocation) alive until the pass has ended, even if the app releases it in between.
+		auto deviceMemory = static_cast<IDeviceMemory*>(allocationInfo.pUserData);
+
+		// Ignore moves on the heaps that aren't Resource, as the GPU can't perform those or the CPU-side manages them through the application anyway, we gain
+		// little by supporting this scenario.
+		if (deviceMemory->heap() != ResourceHeap::Resource)
+		{
+			pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			continue;
+		}
+
+		if (auto buffer = dynamic_cast<VulkanBuffer*>(deviceMemory); buffer != nullptr)
+			m_impl->m_defragmentationPassResources.emplace_back(buffer->shared_from_this());
+		else if (auto image = dynamic_cast<VulkanImage*>(deviceMemory); image != nullptr)
+			m_impl->m_defragmentationPassResources.emplace_back(image->shared_from_this());
+
 		// Invoke the `prepareMove` event.
-		static_cast<IDeviceMemory*>(allocationInfo.pUserData)->prepareMove(this, eventArgs);
+		deviceMemory->prepareMove(this, eventArgs);
+		++moves;
 	}
+
+	// Early-out if there's nothing to move.
+	if (moves == 0u)
+	{
+		m_impl->m_defragmentationFence = 0u;
+		return 0u;
+	}
+
+	// Begin the command buffer.
+	auto& commandBuffer = *m_impl->m_defragmentationCommandBuffer;
+	commandBuffer.begin();
 
 	// Issue a barrier to transition the resources that requested it.
 	commandBuffer.barrier(barrier);
@@ -455,12 +484,15 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 		auto sourceAllocation = pass.pMoves[i].srcAllocation;    // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		auto targetAllocation = pass.pMoves[i].dstTmpAllocation; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
+		// Check if we already decided to ignore the move.
+		if (pass.pMoves[i].operation == VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE) // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			continue;
+
 		VmaAllocationInfo allocationInfo{};
 		::vmaGetAllocationInfo(m_impl->m_allocator, sourceAllocation, &allocationInfo);
 
 		// Acquire the underlying resource device memory instance and add it to the list of moved-from resources.
 		auto deviceMemory = static_cast<IDeviceMemory*>(allocationInfo.pUserData);
-		resources.emplace_back(deviceMemory);
 
 		// Figure out the resource type.
 		if (auto buffer = dynamic_cast<VulkanBuffer*>(deviceMemory); buffer != nullptr)
@@ -469,8 +501,10 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 
 			if (VulkanBuffer::move(buffer->shared_from_this(), targetAllocation, commandBuffer))
 				m_impl->m_destroyedResources.emplace([oldHandle](VkDevice device) { ::vkDestroyBuffer(device, oldHandle, nullptr); }, buffer->shared_from_this());
-			else
+			else {
 				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+				continue;
+			}
 		}
 		else if (auto image = dynamic_cast<VulkanImage*>(deviceMemory); image != nullptr)
 		{
@@ -484,10 +518,14 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 
 				if (VulkanImage::move(image->shared_from_this(), targetAllocation, commandBuffer))
 					m_impl->m_destroyedResources.emplace([oldHandle](VkDevice device) { ::vkDestroyImage(device, oldHandle, nullptr); }, image->shared_from_this());
-				else
+				else {
 					pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+					continue;
+				}
 			}
 		}
+
+		resources.emplace_back(deviceMemory);
 	}
 
 	// Submit de command buffer and store the fence.
@@ -532,6 +570,8 @@ bool VulkanGraphicsFactory::endDefragmentationPass() const
 		// Erase the allocation from the queue.
 		m_impl->m_destroyedResources.pop();
 	}
+
+	m_impl->m_defragmentationPassResources.clear();
 
 	if (result == VK_SUCCESS)
 	{
@@ -713,14 +753,14 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(const Strin
 	};
 
 #ifndef NDEBUG
-	auto buffer = VulkanBuffer::allocate(name, bufferInfo, 1u, ResourceUsage::Default, *device, m_impl->m_allocator, bufferDescription, allocInfo);
+	auto buffer = VulkanBuffer::allocate(name, bufferInfo, 1u, ResourceUsage::Default, bufferInfo.Heap, *device, m_impl->m_allocator, bufferDescription, allocInfo);
 
 	if (!name.empty())
-		device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+		device->setDebugName(std::as_const(*buffer).handle(), VK_OBJECT_TYPE_BUFFER, name);
 
 	return buffer;
 #else
-	return VulkanBuffer::allocate(name, bufferInfo, 1u, ResourceUsage::Default, *device, m_impl->m_allocator, bufferDescription, allocInfo);
+	return VulkanBuffer::allocate(name, bufferInfo, 1u, ResourceUsage::Default, bufferInfo.Heap, *device, m_impl->m_allocator, bufferDescription, allocInfo);
 #endif
 }
 
@@ -792,11 +832,11 @@ Generator<ResourceAllocationResult> VulkanGraphicsFactory::allocate(Enumerable<c
 					throw VulkanPlatformException(result, "Unable to allocate resource from memory reserved for aliasing resource block.");
 
 				if (bufferInfo.Type == BufferType::Vertex && bufferInfo.VertexBufferLayout != nullptr)
-					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanVertexBuffer::create(buffer, dynamic_cast<const VulkanVertexBufferLayout&>(*bufferInfo.VertexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, *device, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
+					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanVertexBuffer::create(buffer, dynamic_cast<const VulkanVertexBufferLayout&>(*bufferInfo.VertexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, bufferInfo.Heap, resourceDescription, *device, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 				else if (bufferInfo.Type == BufferType::Index && bufferInfo.IndexBufferLayout != nullptr)
-					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanIndexBuffer::create(buffer, dynamic_cast<const VulkanIndexBufferLayout&>(*bufferInfo.IndexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, *device, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
+					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanIndexBuffer::create(buffer, dynamic_cast<const VulkanIndexBufferLayout&>(*bufferInfo.IndexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, bufferInfo.Heap, resourceDescription, *device, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 				else [[likely]]
-					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanBuffer::create(buffer, bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, *device, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
+					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanBuffer::create(buffer, bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, static_cast<size_t>(elementAlignment), allocationInfo.Usage, bufferInfo.Heap, resourceDescription, *device, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 			}
 			else if (std::holds_alternative<ResourceAllocationInfo::ImageInfo>(allocationInfo.ResourceInfo))
 			{
@@ -809,7 +849,7 @@ Generator<ResourceAllocationResult> VulkanGraphicsFactory::allocate(Enumerable<c
 				if (result != VK_SUCCESS) [[unlikely]]
 					throw VulkanPlatformException(result, "Unable to allocate resource from memory reserved for aliasing resource block.");
 
-				co_yield std::dynamic_pointer_cast<IImage>(VulkanImage::create(image, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, allocationInfo.Usage, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
+				co_yield std::dynamic_pointer_cast<IImage>(VulkanImage::create(image, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, allocationInfo.Usage, ResourceHeap::Resource, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 			}
 		}
 	}
@@ -868,7 +908,7 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 		auto device = m_impl->m_device.lock();
 		
 		if (device != nullptr) [[likely]]
-			device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+			device->setDebugName(std::as_const(*buffer).handle(), VK_OBJECT_TYPE_BUFFER, name);
 	}
 
 	return buffer;
@@ -900,7 +940,7 @@ SharedPtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 		auto device = m_impl->m_device.lock();
 
 		if (device != nullptr) [[likely]]
-			device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+			device->setDebugName(std::as_const(*buffer).handle(), VK_OBJECT_TYPE_BUFFER, name);
 	}
 
 	return buffer;
@@ -932,7 +972,7 @@ SharedPtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 		auto device = m_impl->m_device.lock();
 
 		if (device != nullptr) [[likely]]
-			device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+			device->setDebugName(std::as_const(*buffer).handle(), VK_OBJECT_TYPE_BUFFER, name);
 	}
 
 	return buffer;
@@ -965,7 +1005,7 @@ SharedPtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 		auto device = m_impl->m_device.lock();
 
 		if (device != nullptr) [[likely]]
-			device->setDebugName(std::as_const(*image).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, name);
+			device->setDebugName(std::as_const(*image).handle(), VK_OBJECT_TYPE_IMAGE, name);
 	}
 
 	return image;
@@ -996,7 +1036,7 @@ bool VulkanGraphicsFactory::tryCreateBuffer(SharedPtr<IVulkanBuffer>& buffer, co
 		auto device = m_impl->m_device.lock();
 
 		if (device != nullptr) [[likely]]
-			device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+			device->setDebugName(std::as_const(*buffer).handle(), VK_OBJECT_TYPE_BUFFER, name);
 	}
 
 	return result;
@@ -1028,7 +1068,7 @@ bool VulkanGraphicsFactory::tryCreateVertexBuffer(SharedPtr<IVulkanVertexBuffer>
 		auto device = m_impl->m_device.lock();
 
 		if (device != nullptr) [[likely]]
-			device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+			device->setDebugName(std::as_const(*buffer).handle(), VK_OBJECT_TYPE_BUFFER, name);
 	}
 
 	return result;
@@ -1060,7 +1100,7 @@ bool VulkanGraphicsFactory::tryCreateIndexBuffer(SharedPtr<IVulkanIndexBuffer>& 
 		auto device = m_impl->m_device.lock();
 
 		if (device != nullptr) [[likely]]
-			device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+			device->setDebugName(std::as_const(*buffer).handle(), VK_OBJECT_TYPE_BUFFER, name);
 	}
 
 	return result;
@@ -1093,7 +1133,7 @@ bool VulkanGraphicsFactory::tryCreateTexture(SharedPtr<IVulkanImage>& image, con
 		auto device = m_impl->m_device.lock();
 
 		if (device != nullptr) [[likely]]
-			device->setDebugName(std::as_const(*image).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, name);
+			device->setDebugName(std::as_const(*image).handle(), VK_OBJECT_TYPE_IMAGE, name);
 	}
 
 	return result;
@@ -1133,7 +1173,7 @@ SharedPtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const String& nam
 	auto sampler = VulkanSampler::allocate(*device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
 
 	if (!name.empty())
-		device->setDebugName(std::as_const(*sampler).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_EXT, name);
+		device->setDebugName(std::as_const(*sampler).handle(), VK_OBJECT_TYPE_SAMPLER, name);
 
 	return sampler;
 #else

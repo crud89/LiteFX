@@ -65,6 +65,16 @@ private:
 	/// @brief Stores the fence created at application load time.
 	UInt64 m_transferFence = 0;
 
+	/// @brief Stores the bindings for the camera buffer.
+	/// 
+	/// We store the camera bindings outside of the device state, because they can't be released from there. If the camera buffer gets moved, we need to rebind it to a new descriptor set
+	/// (since the old one might still be used in previous frames in flight). The straightforward way to achieve this is to track it in the command buffer. For this, ownership needs to
+	/// be transferred to the command buffer, which is not possible from a device state.
+	UniquePtr<IDescriptorSet> m_cameraBindings;
+	
+	/// @brief Stores a flag that indicates if @ref m_cameraBindings should be rebound during the next frame.
+	bool m_rebindCamera{ false };
+
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) : 
 		App(), m_window(std::move(window)), m_adapterId(adapterId)

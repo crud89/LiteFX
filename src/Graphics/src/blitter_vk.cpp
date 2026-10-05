@@ -31,8 +31,8 @@ Blitter<VulkanBackend>::Blitter(const VulkanDevice& /*device*/) :
 template <>
 void Blitter<VulkanBackend>::generateMipMaps(IVulkanImage& image, VulkanCommandBuffer& commandBuffer)
 {
-	VulkanBarrier startBarrier(PipelineStage::None, PipelineStage::Transfer);
-	startBarrier.transition(image, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
+	// NOTE: We currently assume that this only happens after a texture is initialized by transferring data into it, so the last resource access is TransferWrite and the layout is CopyDestination.
+	VulkanBarrier startBarrier(PipelineStage::Transfer, PipelineStage::Transfer);
 	commandBuffer.barrier(startBarrier);
 
 	for (UInt32 layer(0); layer < image.layers(); ++layer)
