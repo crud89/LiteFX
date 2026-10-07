@@ -2614,6 +2614,78 @@ namespace LiteFX::Rendering {
         }
     };
 
+    /// @brief Stores the relative location of a descriptor within a @ref DescriptorAllocationLayout in a descriptor heap.
+    ///
+    /// Using traditional @ref IDescriptorSet "IDescriptorSets", a descriptor allocation range stores the number of descriptors (for descriptor arrays), as well as the relative offset to the start of a 
+    /// descriptor set allocation. For a raw descriptor heap allocation, @ref DescriptorAllocationRange::RelativeOffset directly maps to the offset within the descriptor heap. Think about it as a relative 
+    /// offset to the start of the heap.
+    /// 
+    /// A descriptor allocation range does not refer to an actual allocation, but is rather part of a @ref DescriptorAllocationLayout that defines how an allocation on a heap looks like.
+    struct LITEFX_RENDERING_API DescriptorAllocationRange final {
+    public:
+        /// @brief The descriptor heap from which to allocate the descriptors.
+        DescriptorHeapType Heap{};
+
+        /// @brief Stores the binding point of the descriptor slot in a @ref IDescriptorSet.
+        UInt32 Binding{};
+
+        /// @brief The offset to the start of a @ref IDescriptorSet, or a descriptor heap.
+        UInt32 RelativeOffset{};
+
+        /// @brief The number of descriptors in an allocated descriptor array.
+        UInt32 DescriptorCount{};
+
+        /// @brief `true` if the descriptor is an unbounded runtime array, in which case (@ref DescriptorCount is `0`) and `false` otherwise.
+        bool Unbounded{};
+    };
+
+    /// @brief Stores the layout of a @see IDescriptorSet on a descriptor heap.
+    class LITEFX_RENDERING_API DescriptorAllocationLayout final {
+        LITEFX_IMPLEMENTATION(DescriptorAllocationLayoutImpl);
+
+    public:
+        /// @brief Creates a new descriptor allocation layout instance.
+        /// 
+        /// @param descriptors The individual descriptors from the descriptor set.
+        explicit DescriptorAllocationLayout(Enumerable<const IDescriptorLayout&> descriptors);
+
+        DescriptorAllocationLayout(const DescriptorAllocationLayout&) = delete;
+        DescriptorAllocationLayout(DescriptorAllocationLayout&&) noexcept = default;
+        DescriptorAllocationLayout& operator=(const DescriptorAllocationLayout&) = delete;
+        DescriptorAllocationLayout& operator=(DescriptorAllocationLayout&&) noexcept = default;
+        ~DescriptorAllocationLayout() = default;
+
+    public:
+        /// @brief Returns all descriptor allocation ranges of the layout.
+        /// 
+        /// @return An array that contains all descriptor allocation ranges of the layout.
+        const Array<DescriptorAllocationRange>& ranges() const noexcept;
+
+        /// @brief Returns the descriptor allocation range for a binding.
+        /// 
+        /// @param binding The binding for which to obtain the allocation range.
+        /// @return The allocation range layout or `std::nullopt`, if @p binding is not part of the layout.
+        Optional<DescriptorAllocationRange> range(UInt32 binding) const noexcept;
+
+        /// @brief returns the number of descriptors that must be allocated on @p heap.
+        /// 
+        /// @param heap The heap to check.
+        /// @param unboundedArrayElements The number of elements in the unbounded array range.
+        /// @return The number of descriptors that must be allocated for a descriptor set with this layout on @p heap.
+        UInt32 descriptorCount(DescriptorHeapType heap, UInt32 unboundedArrayElements = 0) const noexcept;
+
+        /// @brief Returns `true` if the layout contains an allocation range that binds to @p heap and `false` otherwise.
+        /// 
+        /// @param heap The heap to check.
+        /// @return `true` if the layout contains an allocation range that binds to @p heap and `false` otherwise.
+        bool binds(DescriptorHeapType heap) const noexcept;
+
+        /// @brief Returns the descriptor allocation range that describes the unbounded array binding, or `std::nullopt` if the layout does not contain an unbounded array binding.
+        /// 
+        /// @return The descriptor allocation range that describes the unbounded array binding, or `std::nullopt` if the layout does not contain an unbounded array binding.
+        Optional<DescriptorAllocationRange> unboundedArrayRange() const noexcept;
+    };
+
     /// @brief Represents a single shader module, i.e. a part of a @ref IShaderProgram.
     ///
     /// A shader module corresponds to a single shader source file.
