@@ -134,6 +134,8 @@ DEFINE_TEST("device_sets_up_vk_acceleration_structures" FOLDER "Tests/Backends/V
 	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
+SET_TESTS_PROPERTIES(device_sets_up_vk_acceleration_structures PROPERTIES TIMEOUT 120)
+
 DEFINE_TEST("shader_program_reflects_vk_render_pipeline_with_dynamic_descriptors" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_reflect_dynamic_descriptors_pipeline_test" 
 	SOURCES "common.h" "reflect_dynamic_descriptors.cpp"
 	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan

@@ -2492,7 +2492,7 @@ namespace LiteFX::Rendering::Backends {
         /// @param objectType The type of the object.
         /// @param objectHandle The handle of the object casted to an integer.
         /// @param name The debug name of the object.
-        void setDebugName(VkDebugReportObjectTypeEXT objectType, UInt64 objectHandle, StringView name) const;
+        void setDebugName(VkObjectType objectType, UInt64 objectHandle, StringView name) const;
 
     public:
         /// @brief Returns the array that stores the extensions that were used to initialize the device.
@@ -2510,7 +2510,7 @@ namespace LiteFX::Rendering::Backends {
         /// @param objectType The type of the object.
         /// @param name The debug name of the object.
         template <typename THandle>
-        inline void setDebugName(THandle objectHandle, VkDebugReportObjectTypeEXT objectType, StringView name) const {
+        inline void setDebugName(THandle objectHandle, VkObjectType objectType, StringView name) const {
             this->setDebugName(objectType, Vk::handleAddress(objectHandle), name); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         }
 

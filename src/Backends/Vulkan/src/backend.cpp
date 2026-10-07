@@ -9,11 +9,12 @@ using namespace LiteFX::Rendering::Backends;
 
 // Exported extensions (we should probably find a better solution for this).
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
-PFN_vkCreateDebugUtilsMessengerEXT   vkCreateDebugUtilsMessenger;
-PFN_vkDestroyDebugUtilsMessengerEXT  vkDestroyDebugUtilsMessenger;
-PFN_vkQueueBeginDebugUtilsLabelEXT   vkQueueBeginDebugUtilsLabel;
-PFN_vkQueueEndDebugUtilsLabelEXT     vkQueueEndDebugUtilsLabel;
-PFN_vkQueueInsertDebugUtilsLabelEXT  vkQueueInsertDebugUtilsLabel;
+PFN_vkCreateDebugUtilsMessengerEXT   vkCreateDebugUtilsMessenger{ nullptr };
+PFN_vkDestroyDebugUtilsMessengerEXT  vkDestroyDebugUtilsMessenger{ nullptr };
+PFN_vkQueueBeginDebugUtilsLabelEXT   vkQueueBeginDebugUtilsLabel{ nullptr };
+PFN_vkQueueEndDebugUtilsLabelEXT     vkQueueEndDebugUtilsLabel{ nullptr };
+PFN_vkQueueInsertDebugUtilsLabelEXT  vkQueueInsertDebugUtilsLabel{ nullptr };
+PFN_vkSetDebugUtilsObjectNameEXT     vkSetDebugUtilsObjectName{ nullptr };
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
@@ -184,6 +185,7 @@ public:
         vkQueueBeginDebugUtilsLabel     = reinterpret_cast<PFN_vkQueueBeginDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueBeginDebugUtilsLabelEXT"));
         vkQueueEndDebugUtilsLabel       = reinterpret_cast<PFN_vkQueueEndDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueEndDebugUtilsLabelEXT"));
         vkQueueInsertDebugUtilsLabel    = reinterpret_cast<PFN_vkQueueInsertDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueInsertDebugUtilsLabelEXT"));
+        vkSetDebugUtilsObjectName       = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(::vkGetInstanceProcAddr(instance, "vkSetDebugUtilsObjectNameEXT"));
         // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
 
         if (vkCreateDebugUtilsMessenger == nullptr)
@@ -333,7 +335,7 @@ void VulkanBackend::registerDevice(const String& name, SharedPtr<VulkanDevice>&&
         throw InvalidArgumentException("name", "The backend already contains a device with the name \"{0}\".", name);
 
 #ifndef NDEBUG
-    device->setDebugName(std::as_const(*device).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT, name);
+    device->setDebugName(std::as_const(*device).handle(), VK_OBJECT_TYPE_DEVICE, name);
 #endif
 
     m_impl->m_devices.insert(std::make_pair(name, std::move(device)));

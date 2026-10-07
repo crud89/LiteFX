@@ -136,7 +136,7 @@ public:
 		raiseIfFailed(::vkCreateRayTracingPipelines(m_device->handle(), VK_NULL_HANDLE, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
 
 #ifndef NDEBUG
-		m_device->setDebugName(pipeline, VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, parent.name());
+		m_device->setDebugName(pipeline, VK_OBJECT_TYPE_PIPELINE, parent.name());
 #endif
 
 		return pipeline;

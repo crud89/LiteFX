@@ -304,8 +304,7 @@ void VulkanQueue::waitFor(UInt64 fence) const
 		throw RuntimeException("Cannot wait for fence on a released device instance.");
 
 	UInt64 completedValue{ 0 };
-	//raiseIfFailed(::vkGetSemaphoreCounterValue(device->handle(), m_impl->m_timelineSemaphore, &completedValue), "Unable to query current queue timeline semaphore value.");
-	::vkGetSemaphoreCounterValue(device->handle(), m_impl->m_timelineSemaphore, &completedValue);
+	raiseIfFailed(::vkGetSemaphoreCounterValue(device->handle(), m_impl->m_timelineSemaphore, &completedValue), "Unable to query current queue timeline semaphore value.");
 
 	if (completedValue < fence)
 	{
@@ -316,8 +315,7 @@ void VulkanQueue::waitFor(UInt64 fence) const
 			.pValues = &fence
 		};
 
-		//raiseIfFailed(::vkWaitSemaphores(device->handle(), &waitInfo, std::numeric_limits<UInt64>::max()), "Unable to wait for queue timeline semaphore.");
-		::vkWaitSemaphores(device->handle(), &waitInfo, std::numeric_limits<UInt64>::max());
+		raiseIfFailed(::vkWaitSemaphores(device->handle(), &waitInfo, std::numeric_limits<UInt64>::max()), "Unable to wait for queue timeline semaphore.");
 	}
 
 	m_impl->releaseCommandBuffers(*this, fence);

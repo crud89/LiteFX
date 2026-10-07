@@ -91,7 +91,7 @@ public:
 		auto pipeline = this->initializeGraphicsPipeline(parent, dynamicState, shaderStages);
 
 #ifndef NDEBUG
-		m_renderPass->device().setDebugName(pipeline, VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, parent.name());
+		m_renderPass->device().setDebugName(pipeline, VK_OBJECT_TYPE_PIPELINE, parent.name());
 #endif
 
 		// Return the pipeline instance.
