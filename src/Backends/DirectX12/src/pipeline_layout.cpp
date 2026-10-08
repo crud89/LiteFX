@@ -142,6 +142,7 @@ public:
             // Parse the shader stage descriptor.
             D3D12_SHADER_VISIBILITY shaderStages = D3D12_SHADER_VISIBILITY_ALL;
             auto stages = layout->shaderStages();
+            auto& allocationLayout = layout->allocationLayout();
             UInt32 space = layout->space();
 
             switch (stages)
@@ -168,20 +169,22 @@ public:
                         range.descriptorType() != DescriptorType::SamplerDescriptorHeap; })
                 | std::views::transform([&](auto& range) {
                     CD3DX12_DESCRIPTOR_RANGE1 descriptorRange = {};
+                    auto allocationRange = allocationLayout.range(range.binding());
+                    auto descriptors = allocationRange->Unbounded ? UINT_MAX : allocationRange->DescriptorCount;
 
                     switch(range.descriptorType()) 
                     { 
-                    case DescriptorType::ConstantBuffer:    descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, range.descriptors(), range.binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
+                    case DescriptorType::ConstantBuffer:    descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, descriptors, allocationRange->Binding, space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE, allocationRange->RelativeOffset); break;
                     case DescriptorType::InputAttachment:   hasInputAttachments = true; [[fallthrough]];
                     case DescriptorType::AccelerationStructure:
                     case DescriptorType::Buffer:
                     case DescriptorType::StructuredBuffer:
                     case DescriptorType::ByteAddressBuffer:
-                    case DescriptorType::Texture:           descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, range.descriptors(), range.binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
+                    case DescriptorType::Texture:           descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, descriptors, allocationRange->Binding, space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE, allocationRange->RelativeOffset); break;
                     case DescriptorType::RWBuffer:
                     case DescriptorType::RWStructuredBuffer:
                     case DescriptorType::RWByteAddressBuffer:
-                    case DescriptorType::RWTexture:         descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, range.descriptors(), range.binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
+                    case DescriptorType::RWTexture:         descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, descriptors, allocationRange->Binding, space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE, allocationRange->RelativeOffset); break;
                     default: throw InvalidArgumentException("descriptorSetLayouts", "Invalid descriptor type: {0}.", range.descriptorType());
                     }
 
@@ -194,8 +197,10 @@ public:
                     return !range.local() && 
                         range.descriptorType() == DescriptorType::Sampler && 
                         range.staticSampler() == nullptr; })
-                | std::views::transform([&](auto& range) { 
-                    return CD3DX12_DESCRIPTOR_RANGE1(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, range.descriptors(), range.binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); }) 
+                | std::views::transform([&](auto& range) {
+                    auto allocationRange = allocationLayout.range(range.binding());
+                    auto descriptors = allocationRange->Unbounded ? UINT_MAX : allocationRange->DescriptorCount;
+                    return CD3DX12_DESCRIPTOR_RANGE1(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, descriptors, allocationRange->Binding, space, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, allocationRange->RelativeOffset); })
                 | std::ranges::to<Array<D3D12_DESCRIPTOR_RANGE1>>();
 
             // Define the static samplers. Those do not occur within the descriptor table and instead are part of the pipeline state object, so we handle them separately.

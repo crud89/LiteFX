@@ -17,10 +17,11 @@ private:
     } m_resourceHeap{}, m_samplerHeap{};
 
     SharedPtr<const DirectX12DescriptorSetLayout> m_layout;
+    UInt32 m_unboundedArrayCapacity;
 
 public:
-    DirectX12DescriptorSetImpl(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& resourceHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap) :
-        m_resourceHeap{ .Heap = std::move(resourceHeap) }, m_samplerHeap{ .Heap = std::move(samplerHeap) }, m_layout(layout.shared_from_this())
+    DirectX12DescriptorSetImpl(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& resourceHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap, UInt32 unboundedArrayCapacity) :
+        m_resourceHeap{ .Heap = std::move(resourceHeap) }, m_samplerHeap{ .Heap = std::move(samplerHeap) }, m_layout(layout.shared_from_this()), m_unboundedArrayCapacity(unboundedArrayCapacity)
     {
         if (m_layout->bindsResources() && m_resourceHeap.Heap == nullptr) [[unlikely]]
             throw ArgumentNotInitializedException("resourceHeap", "The local resource heap must be initialized, if the descriptor set binds resources.");
@@ -79,8 +80,8 @@ public:
             throw InvalidArgumentException("bufferElement", "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), elementCount, bufferElement);
 
         // Validate the descriptor index.
-        if (firstDescriptor + elementCount > descriptorLayout.descriptors()) [[unlikely]]
-            throw InvalidArgumentException("firstDescriptor", "The descriptor array only has {0} elements, however there are {1} elements starting at descriptor {2} specified.", descriptorLayout.descriptors(), elementCount, firstDescriptor);
+        if (firstDescriptor + elementCount > parent.capacity(descriptorLayout.binding())) [[unlikely]]
+            throw InvalidArgumentException("firstDescriptor", "The descriptor array only has {0} elements, however there are {1} elements starting at descriptor {2} specified.", parent.capacity(descriptorLayout.binding()), elementCount, firstDescriptor);
 
         // Get the descriptor handle for binding.
         auto device = m_layout->device();
@@ -221,8 +222,8 @@ public:
     UInt32 updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 descriptor, const IDirectX12Image& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers)
     {
         // Validate the descriptor index.
-        if (descriptor >= descriptorLayout.descriptors()) [[unlikely]]
-            throw InvalidArgumentException("descriptor", "The descriptor index {0} was out of bounds. The resource descriptor heap only contains {1} descriptors.", descriptor, descriptorLayout.descriptors());
+        if (descriptor >= parent.capacity(descriptorLayout.binding())) [[unlikely]]
+            throw InvalidArgumentException("descriptor", "The descriptor index {0} was out of bounds. The resource descriptor heap only contains {1} descriptors.", descriptor, parent.capacity(descriptorLayout.binding()));
 
         // Get the descriptor handle for binding.
         auto device = m_layout->device();
@@ -397,8 +398,8 @@ public:
     UInt32 updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, UInt32 descriptor, const IDirectX12Sampler& sampler)
     {
         // Validate the descriptor index.
-        if (descriptor >= descriptorLayout.descriptors()) [[unlikely]]
-            throw InvalidArgumentException("descriptor", "The descriptor array at binding {1} of descriptor set {0} does only contain {2} descriptors, but the descriptor {3} has been specified for binding.", m_layout->space(), descriptorLayout.binding(), descriptorLayout.descriptors(), descriptor);
+        if (descriptor >= parent.capacity(descriptorLayout.binding())) [[unlikely]]
+            throw InvalidArgumentException("descriptor", "The descriptor array at binding {1} of descriptor set {0} does only contain {2} descriptors, but the descriptor {3} has been specified for binding.", m_layout->space(), descriptorLayout.binding(), parent.capacity(descriptorLayout.binding()), descriptor);
         
         // Validate the descriptor type.
         if (descriptorLayout.descriptorType() != DescriptorType::Sampler && descriptorLayout.descriptorType() != DescriptorType::SamplerDescriptorHeap) [[unlikely]]
@@ -441,8 +442,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12DescriptorSet::DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& resourceHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap) :
-    m_impl(layout, std::move(resourceHeap), std::move(samplerHeap))
+DirectX12DescriptorSet::DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& resourceHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap, UInt32 unboundedArrayCapacity) :
+    m_impl(layout, std::move(resourceHeap), std::move(samplerHeap), unboundedArrayCapacity)
 {
     if (layout.bindsResources())
         m_impl->m_resourceHeap.Allocation = layout.device()->allocateGlobalDescriptors(*this, DescriptorHeapType::Resource);
@@ -460,6 +461,16 @@ DirectX12DescriptorSet::~DirectX12DescriptorSet() noexcept
 const DirectX12DescriptorSetLayout& DirectX12DescriptorSet::layout() const noexcept
 {
     return *m_impl->m_layout;
+}
+
+UInt32 DirectX12DescriptorSet::capacity(UInt32 binding) const noexcept
+{
+    auto range = m_impl->m_layout->allocationLayout().range(binding);
+
+    if (!range.has_value())
+        return 0u;
+
+    return range->Unbounded ? m_impl->m_unboundedArrayCapacity : range->DescriptorCount;
 }
 
 VirtualAllocator::Allocation DirectX12DescriptorSet::globalHeapAllocation(DescriptorHeapType heapType) const noexcept

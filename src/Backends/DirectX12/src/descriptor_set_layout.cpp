@@ -15,12 +15,11 @@ public:
 
 private:
     Array<DirectX12DescriptorLayout> m_layouts{};
-    UInt32 m_space{ 0 }, m_samplers{ 0 }, m_descriptors{ 0 };
+    UniquePtr<DescriptorAllocationLayout> m_allocationLayout;
+    UInt32 m_space{ 0 };
     ShaderStage m_stages{ ShaderStage::Other };
     Queue<ComPtr<ID3D12DescriptorHeap>> m_cachedResourceSets{}, m_cachedSamplerSets{};
-    Dictionary<UInt32, UInt32> m_bindingToDescriptor{};
     WeakPtr<const DirectX12Device> m_device;
-    bool m_isRuntimeArray = false, m_dynamicResourceAccess = false, m_dynamicSamplerAccess = false;
     mutable std::mutex m_mutex;
 
 public:
@@ -28,6 +27,7 @@ public:
         m_space(space), m_stages(stages), m_device(device.weak_from_this())
     {
         m_layouts = descriptorLayouts | std::ranges::to<Array<DirectX12DescriptorLayout>>();
+        m_allocationLayout = makeUnique<DescriptorAllocationLayout>(m_layouts);
     }
 
     DirectX12DescriptorSetLayoutImpl(const DirectX12Device& device) :
@@ -43,54 +43,14 @@ public:
         // Sort the layouts by binding.
         std::sort(std::begin(m_layouts), std::end(m_layouts), [](const auto& a, const auto& b) { return a.binding() < b.binding(); });
 
-        // Count the samplers and descriptors.
+#ifndef NDEBUG
         std::ranges::for_each(m_layouts, [&, i = 0](const auto& layout) mutable {
-#ifdef NDEBUG
-            (void)i; // Required as [[maybe_unused]] is not supported in captures.
-#else
             LITEFX_TRACE(DIRECTX12_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Array size: {6}, Offset: {4}, Binding point: {5} }}...", 
-                ++i, m_layouts.size(), layout.descriptorType(), layout.elementSize(), 0, layout.binding(), layout.descriptors());
-#endif
-
-            // If an previous descriptor is an unbounded array, no subsequent descriptors are allowed.
-            if (m_isRuntimeArray) [[unlikely]]
-                throw InvalidArgumentException("descriptorLayouts", "If an unbounded runtime array descriptor is used, it must be the last descriptor in the descriptor set.");
-
-            // If the current descriptor is an unbounded array, remember it.
-            if (layout.unbounded())
-                m_isRuntimeArray = true;
-            
-            // Map and count the descriptors.
-            if (layout.descriptorType() == DescriptorType::Sampler || layout.descriptorType() == DescriptorType::SamplerDescriptorHeap)
-            {
-                // Only count dynamic samplers.
-                if (layout.staticSampler() == nullptr)
-                {
-                    m_bindingToDescriptor[layout.binding()] = m_samplers;
-                    m_samplers += layout.unbounded() ? 1u : layout.descriptors(); // For unbounded arrays, only add 1 sampler, as we set the actual size during descriptor set allocation.
-                }
-            }
-            else
-            {
-                m_bindingToDescriptor[layout.binding()] = m_descriptors;
-                m_descriptors += layout.unbounded() ? 1u : layout.descriptors(); // For unbounded arrays, only add 1 descriptor, as we set the actual during descriptor set allocation.
-            }
+                ++i, m_layouts.size(), layout.descriptorType(), layout.elementSize(), 
+                m_allocationLayout->range(layout.binding()).transform([](const DescriptorAllocationRange& range) { return range.RelativeOffset; }).value_or(0u), 
+                layout.binding(), layout.descriptors());
         });
-
-        // We only support one of each descriptor heap in a descriptor set.
-        auto resourceDescriptorHeaps = std::ranges::count_if(m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ResourceDescriptorHeap; });
-        auto samplerDescriptorHeaps = std::ranges::count_if(m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::SamplerDescriptorHeap; });
-
-        if (resourceDescriptorHeaps > 1u) [[unlikely]]
-            throw InvalidArgumentException("descriptorLayouts", "There must be no more than one descriptor of type `ResourceDescriptorHeap`.");
-        
-        if (samplerDescriptorHeaps > 1u) [[unlikely]]
-            throw InvalidArgumentException("descriptorLayouts", "There must be no more than one descriptor of type `SamplerDescriptorHeap`.");
-
-        // If the layout is a proxy descriptor, remember it, as we don't want to cache those either. Those potentially occupy many descriptors and not intended to be allocated in 
-        // large quantities.
-        m_dynamicResourceAccess = resourceDescriptorHeaps > 0;
-        m_dynamicSamplerAccess = samplerDescriptorHeaps > 0;
+#endif
 
         LITEFX_TRACE(DIRECTX12_LOG, "Creating descriptor set {0} layout with {1} bindings {{ Uniform: {2}, Storage: {3}, Images: {4}, Sampler: {5}, Input Attachments: {6}, Texel Buffers: {7} }}...",
             m_space, m_layouts.size(), this->uniforms(), this->storages(), this->images(), this->samplers(), this->inputAttachments(), this->buffers());
@@ -107,7 +67,7 @@ public:
         // Use cached descriptor heaps if possible.
         ComPtr<ID3D12DescriptorHeap> resourceHeap, samplerHeap;
 
-        if (m_descriptors > 0)
+        if (m_allocationLayout->binds(DescriptorHeapType::Resource))
         {
             if (!m_cachedResourceSets.empty())
             {
@@ -116,9 +76,14 @@ public:
             }
             else
             {
+                auto descriptors = m_allocationLayout->descriptorCount(DescriptorHeapType::Resource, descriptorCount);
+
+                if (descriptors == 0u)
+                    throw InvalidArgumentException("descriptorCount", "The descriptor set only binds an unbounded array on the resource heap, but the requested number of descriptors in that array is 0, so no descriptors can be allocated.");
+
                 D3D12_DESCRIPTOR_HEAP_DESC bufferHeapDesc = {
                     .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-                    .NumDescriptors = m_isRuntimeArray ? descriptorCount : m_descriptors,
+                    .NumDescriptors = descriptors,
                     .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE
                 };
 
@@ -126,7 +91,7 @@ public:
             }
         }
         
-        if (m_samplers > 0)
+        if (m_allocationLayout->binds(DescriptorHeapType::Sampler))
         {
             if (!m_cachedSamplerSets.empty())
             {
@@ -135,9 +100,14 @@ public:
             }
             else
             {
+                auto descriptors = m_allocationLayout->descriptorCount(DescriptorHeapType::Sampler, descriptorCount);
+
+                if (descriptors == 0u)
+                    throw InvalidArgumentException("descriptorCount", "The descriptor set only binds an unbounded array on the resource heap, but the requested number of descriptors in that array is 0, so no descriptors can be allocated.");
+
                 D3D12_DESCRIPTOR_HEAP_DESC samplerHeapDesc = {
                     .Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
-                    .NumDescriptors = m_isRuntimeArray ? descriptorCount : m_samplers,
+                    .NumDescriptors = descriptors,
                     .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE
                 };
 
@@ -145,7 +115,7 @@ public:
             }
         }
 
-        return makeUnique<DirectX12DescriptorSet>(parent, std::move(resourceHeap), std::move(samplerHeap));
+        return makeUnique<DirectX12DescriptorSet>(parent, std::move(resourceHeap), std::move(samplerHeap), descriptorCount);
     }
     
     inline auto allocate(const DirectX12DescriptorSetLayout& parent, UInt32 descriptors)
@@ -235,6 +205,7 @@ DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12Descri
     DescriptorSetLayout(other), m_impl(*other.device())
 {
     m_impl->m_layouts = other.m_impl->m_layouts;
+    m_impl->m_allocationLayout = makeUnique<DescriptorAllocationLayout>(m_impl->m_layouts);
     m_impl->m_space = other.space();
     m_impl->m_stages = other.shaderStages();
     m_impl->initialize();
@@ -258,6 +229,11 @@ const DirectX12DescriptorLayout& DirectX12DescriptorSetLayout::descriptor(UInt32
         return *match;
 
     throw InvalidArgumentException("binding", "No layout has been provided for the binding {0}.", binding);
+}
+
+const DescriptorAllocationLayout& DirectX12DescriptorSetLayout::allocationLayout() const noexcept
+{
+    return *m_impl->m_allocationLayout;
 }
 
 UInt32 DirectX12DescriptorSetLayout::space() const noexcept
@@ -307,25 +283,27 @@ UInt32 DirectX12DescriptorSetLayout::inputAttachments() const noexcept
 
 bool DirectX12DescriptorSetLayout::containsUnboundedArray() const noexcept
 {
-    return m_impl->m_isRuntimeArray;
+    return m_impl->m_allocationLayout->unboundedArrayRange().has_value();
 }
 
 UInt32 DirectX12DescriptorSetLayout::getDescriptorOffset(UInt32 binding, UInt32 element) const
 {
-    if (!m_impl->m_bindingToDescriptor.contains(binding)) [[unlikely]]
-        throw InvalidArgumentException("binding", "The descriptor set does not contain a descriptor at binding {0}.", binding);
+    auto allocationRange = m_impl->m_allocationLayout->range(binding);
 
-    return m_impl->m_bindingToDescriptor[binding] + element;
+    if (!allocationRange.has_value())
+        throw InvalidArgumentException("binding", "The descriptor set does not contain a descriptor at binding {0}.", binding);
+    else
+       return allocationRange->RelativeOffset + element;
 }
 
 bool DirectX12DescriptorSetLayout::bindsResources() const noexcept
 {
-    return m_impl->m_descriptors > 0;
+    return m_impl->m_allocationLayout->binds(DescriptorHeapType::Resource);
 }
 
 bool DirectX12DescriptorSetLayout::bindsSamplers() const noexcept
 {
-    return m_impl->m_samplers > 0;
+    return m_impl->m_allocationLayout->binds(DescriptorHeapType::Sampler);
 }
 
 UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const
@@ -388,12 +366,12 @@ void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptor
     std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
     // Unbounded array descriptor sets aren't cached.
-    if (!m_impl->m_isRuntimeArray || m_impl->m_dynamicResourceAccess || m_impl->m_dynamicSamplerAccess)
+    if (!this->containsUnboundedArray())
     {
-        if (m_impl->m_descriptors > 0)
+        if (this->bindsResources())
             m_impl->m_cachedResourceSets.emplace(descriptorSet.localHeap(DescriptorHeapType::Resource));
 
-        if (m_impl->m_samplers > 0)
+        if (this->bindsSamplers())
             m_impl->m_cachedSamplerSets.emplace(descriptorSet.localHeap(DescriptorHeapType::Sampler));
     }
 }
@@ -416,6 +394,7 @@ void DirectX12DescriptorSetLayoutBuilder::build()
 {
     auto instance = this->instance();
     instance->m_impl->m_layouts = std::move(this->state().descriptorLayouts);
+    instance->m_impl->m_allocationLayout = makeUnique<DescriptorAllocationLayout>(instance->m_impl->m_layouts);
     instance->m_impl->m_space = this->state().space;
     instance->m_impl->m_stages = this->state().stages;
     instance->m_impl->initialize();

@@ -66,8 +66,8 @@ public:
             throw InvalidArgumentException("bufferElement", "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), elementCount, bufferElement);
 
         // Validate the descriptor index.
-        if (firstDescriptor + elementCount > descriptorLayout.descriptors()) [[unlikely]]
-            throw InvalidArgumentException("firstDescriptor", "The descriptor array only has {0} elements, however there are {1} elements starting at descriptor {2} specified.", descriptorLayout.descriptors(), elementCount, firstDescriptor);
+        if (firstDescriptor + elementCount > parent.capacity(descriptorLayout.binding())) [[unlikely]]
+            throw InvalidArgumentException("firstDescriptor", "The descriptor array only has {0} elements, however there are {1} elements starting at descriptor {2} specified.", parent.capacity(descriptorLayout.binding()), elementCount, firstDescriptor);
 
         // Check if the descriptor type is valid for the requested operation.
         if (bindingType != DescriptorType::Buffer &&
@@ -140,8 +140,8 @@ public:
     UInt32 updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 descriptor, const IVulkanImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers)
     {
         // Validate the descriptor index.
-        if (descriptor >= descriptorLayout.descriptors()) [[unlikely]]
-            throw InvalidArgumentException("descriptor", "The descriptor index {0} was out of bounds. The resource descriptor heap only contains {1} descriptors.", descriptor, descriptorLayout.descriptors());
+        if (descriptor >= parent.capacity(descriptorLayout.binding())) [[unlikely]]
+            throw InvalidArgumentException("descriptor", "The descriptor index {0} was out of bounds. The resource descriptor heap only contains {1} descriptors.", descriptor, parent.capacity(descriptorLayout.binding()));
 
         // Check if the descriptor type is valid for the requested operation.
         if (bindingType != DescriptorType::Texture &&
@@ -247,8 +247,8 @@ public:
     UInt32 updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, UInt32 descriptor, const IVulkanSampler& sampler)
     {
         // Validate the descriptor index.
-        if (descriptor >= descriptorLayout.descriptors()) [[unlikely]]
-            throw InvalidArgumentException("descriptor", "The descriptor array at binding {1} of descriptor set {0} does only contain {2} descriptors, but the descriptor {3} has been specified for binding.", m_layout->space(), descriptorLayout.binding(), descriptorLayout.descriptors(), descriptor);
+        if (descriptor >= parent.capacity(descriptorLayout.binding())) [[unlikely]]
+            throw InvalidArgumentException("descriptor", "The descriptor array at binding {1} of descriptor set {0} does only contain {2} descriptors, but the descriptor {3} has been specified for binding.", m_layout->space(), descriptorLayout.binding(), parent.capacity(descriptorLayout.binding()), descriptor);
 
         // Validate the descriptor type.
         if (descriptorLayout.descriptorType() != DescriptorType::Sampler && descriptorLayout.descriptorType() != DescriptorType::SamplerDescriptorHeap) [[unlikely]]
@@ -323,6 +323,16 @@ Array<Byte>&& VulkanDescriptorSet::releaseBuffer() const noexcept
 Span<const Byte> VulkanDescriptorSet::descriptorBuffer() const noexcept
 {
     return m_impl->m_descriptorBuffer;
+}
+
+UInt32 VulkanDescriptorSet::capacity(UInt32 binding) const noexcept
+{
+    auto range = m_impl->m_layout->allocationLayout().range(binding);
+
+    if (!range.has_value())
+        return 0u;
+
+    return range->Unbounded ? m_impl->m_unboundedArraySize : range->DescriptorCount;
 }
 
 VirtualAllocator::Allocation VulkanDescriptorSet::globalHeapAllocation(DescriptorHeapType /*heapType*/) const noexcept

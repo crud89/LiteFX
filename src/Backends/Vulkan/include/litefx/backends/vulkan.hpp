@@ -679,6 +679,9 @@ namespace LiteFX::Rendering::Backends {
         Span<const Byte> descriptorBuffer() const noexcept;
 
     public:
+        /// @copydoc IDescriptorSet::capacity
+        UInt32 capacity(UInt32 binding) const noexcept override;
+
         /// @copydoc IDescriptorSet::globalHeapAllocation
         VirtualAllocator::Allocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept override;
 
@@ -862,6 +865,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// @copydoc DescriptorSetLayout::descriptor
         const VulkanDescriptorLayout& descriptor(UInt32 binding) const override;
+
+        /// @copydoc IDescriptorSetLayout::allocationLayout 
+        const DescriptorAllocationLayout& allocationLayout() const noexcept override;
 
         /// @copydoc IDescriptorSetLayout::space
         UInt32 space() const noexcept override;

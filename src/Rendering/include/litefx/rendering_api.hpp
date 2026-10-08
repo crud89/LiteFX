@@ -4957,6 +4957,12 @@ namespace LiteFX::Rendering {
         virtual ~IDescriptorSet() noexcept = default;
 
     public:
+        /// @brief Returns the size of a descriptor array bound at @p binding.
+        /// 
+        /// @param binding The binding for which to obtain the descriptor count.
+        /// @return The size of the descriptor array bound at @p binding, or `0` if the descriptor set does not contain a binding at @p binding.
+        virtual UInt32 capacity(UInt32 binding) const noexcept = 0;
+
         /// @brief Returns the allocation information for the descriptor set in the global descriptor heap indicated by @p heapType.
         ///
         /// @param heapType The type of the descriptor heap for which to obtain the heap allocation.
@@ -5161,6 +5167,11 @@ namespace LiteFX::Rendering {
         /// @param binding The binding point of the requested descriptor layout.
         /// @return The descriptor layout for the descriptor bound to the binding point provided with @p binding.
         virtual const IDescriptorLayout& descriptor(UInt32 binding) const = 0;
+
+        /// @brief Returns the allocation layout of the descriptor set on the global descriptor heaps.
+        /// 
+        /// @return A reference to the descriptor allocation layout.
+        virtual const DescriptorAllocationLayout& allocationLayout() const noexcept = 0;
 
         /// @brief Returns the space index of the descriptor set.
         ///

@@ -617,7 +617,8 @@ namespace LiteFX::Rendering::Backends {
         /// @param layout The parent descriptor set layout.
         /// @param resourceHeap A CPU-visible descriptor heap that contains the descriptors for the resources of the descriptor set.
         /// @param samplerHeap A CPU-visible descriptor heap that contains the descriptors for the samplers of the descriptor set.
-        explicit DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& resourceHeap = nullptr, ComPtr<ID3D12DescriptorHeap>&& samplerHeap = nullptr);
+        /// @param unboundedArrayCapacity The capacity of the unbounded descriptor array (if any).
+        explicit DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& resourceHeap = nullptr, ComPtr<ID3D12DescriptorHeap>&& samplerHeap = nullptr, UInt32 unboundedArrayCapacity = 0u);
 
         DirectX12DescriptorSet(DirectX12DescriptorSet&&) noexcept = delete;
         DirectX12DescriptorSet(const DirectX12DescriptorSet&) = delete;
@@ -632,6 +633,9 @@ namespace LiteFX::Rendering::Backends {
         const DirectX12DescriptorSetLayout& layout() const noexcept;
 
     public:
+        /// @copydoc IDescriptorSet::capacity
+        UInt32 capacity(UInt32 binding) const noexcept override;
+
         /// @copydoc IDescriptorSet::globalHeapAllocation
         VirtualAllocator::Allocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept override;
 
@@ -812,6 +816,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// @copydoc DescriptorSetLayout::descriptor
         const DirectX12DescriptorLayout& descriptor(UInt32 binding) const override;
+
+        /// @copydoc IDescriptorSetLayout::allocationLayout 
+        const DescriptorAllocationLayout& allocationLayout() const noexcept override;
 
         /// @copydoc IDescriptorSetLayout::space
         UInt32 space() const noexcept override;

@@ -54,7 +54,8 @@ DescriptorAllocationLayout::DescriptorAllocationLayout(Enumerable<const IDescrip
         }
     }
 
-    // Validate if the unbounded array is the last element (if it exists). This must be true even for mixed descriptor sets, i.e., no sampler goes behind an unbounded resource array.
+    // Validate if the unbounded array is the last element (if it exists). This must be true even for mixed descriptor sets, i.e., no sampler goes behind an unbounded resource array. This is directly enforced
+    // by the Vulkan spec: https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkDescriptorBindingFlagBits.html#_description.
     if (std::ranges::any_of(m_impl->m_ranges | std::views::reverse | std::views::drop(1), [](const DescriptorAllocationRange& slot) { return slot.Unbounded; }))
         throw InvalidArgumentException("descriptors", "The provided descriptors contain an unbounded array, that is not bound to the last binding in the descriptor set.");
 }
