@@ -136,12 +136,14 @@ private:
     VkPhysicalDeviceDescriptorBufferPropertiesEXT m_descriptorBufferProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT };
     SharedPtr<IVulkanBuffer> m_globalDescriptorHeap;
     VirtualAllocator m_globalDescriptorHeapAllocator;
+    UniquePtr<GlobalDescriptorHeaps> m_descriptorHeaps; // NOTE: Currently not used - will replace the current allocator once we start working on the descriptor heap backend for Vulkan.
     mutable std::mutex m_bufferBindMutex;
 
 public:
     VulkanDeviceImpl(const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const GraphicsDeviceFeatures& features, Span<String> extensions, size_t globalDescriptorHeapSize) :
         m_adapter(adapter.shared_from_this()), m_surface(std::move(surface)),
-        m_globalDescriptorHeapAllocator(VirtualAllocator::create<VulkanBackend>(globalDescriptorHeapSize))
+        m_globalDescriptorHeapAllocator(VirtualAllocator::create<VulkanBackend>(globalDescriptorHeapSize)),
+        m_descriptorHeaps(GlobalDescriptorHeaps::create<VulkanBackend>(1u, 1u))
     {
         if (m_surface == nullptr)
             throw ArgumentNotInitializedException("surface", "The surface must be initialized.");
@@ -822,19 +824,24 @@ UInt32 VulkanDevice::descriptorSize(DescriptorType type) const
     }
 }
 
-VirtualAllocator::Allocation VulkanDevice::allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType /*heapType*/) const
+const GlobalDescriptorHeaps& VulkanDevice::descriptorHeaps() const noexcept 
+{
+    return *m_impl->m_descriptorHeaps;
+}
+
+DescriptorHeapAllocation VulkanDevice::allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType) const
 {
     std::lock_guard<std::mutex> lock(m_impl->m_bufferBindMutex);
-    return m_impl->m_globalDescriptorHeapAllocator.allocate(
-        static_cast<UInt64>(descriptorSet.descriptorBuffer().size()), 
-        static_cast<UInt32>(m_impl->m_descriptorBufferProperties.descriptorBufferOffsetAlignment), 
-        AllocationStrategy::OptimizeTime);
+    return { heapType, m_impl->m_globalDescriptorHeapAllocator.allocate(
+        static_cast<UInt64>(descriptorSet.descriptorBuffer().size()),
+        static_cast<UInt32>(m_impl->m_descriptorBufferProperties.descriptorBufferOffsetAlignment),
+        AllocationStrategy::OptimizeTime) };
 }
 
 void VulkanDevice::releaseGlobalDescriptors(const VulkanDescriptorSet& descriptorSet) const
 {
     std::lock_guard<std::mutex> lock(m_impl->m_bufferBindMutex);
-    m_impl->m_globalDescriptorHeapAllocator.free(descriptorSet.globalHeapAllocation(DescriptorHeapType::Resource)); // NOTE: Heap type does not matter in Vulkan.
+    m_impl->m_globalDescriptorHeapAllocator.free(descriptorSet.globalHeapAllocation(DescriptorHeapType::Resource).Allocation); // NOTE: Heap type does not matter in Vulkan.
 }
 
 void VulkanDevice::updateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const
@@ -852,10 +859,10 @@ void VulkanDevice::updateGlobalDescriptors(const VulkanDescriptorSet& descriptor
     // NOTE: We actually only need to check for a static sampler here, but in case we need to change this later, we'll keep it this way.
     if (descriptorLayout.descriptorType() == DescriptorType::Sampler && descriptorLayout.staticSampler() == nullptr)
         m_impl->m_globalDescriptorHeap->write(descriptorOffset, mappedRange, 
-            static_cast<size_t>(descriptorSet.globalHeapAllocation(DescriptorHeapType::Sampler).Offset) + firstDescriptor);
+            static_cast<size_t>(descriptorSet.globalHeapAllocation(DescriptorHeapType::Sampler).Allocation.Offset) + firstDescriptor);
     else if (descriptorLayout.descriptorType() != DescriptorType::Sampler)
         m_impl->m_globalDescriptorHeap->write(descriptorOffset, mappedRange, 
-            static_cast<size_t>(descriptorSet.globalHeapAllocation(DescriptorHeapType::Resource).Offset) + firstDescriptor);
+            static_cast<size_t>(descriptorSet.globalHeapAllocation(DescriptorHeapType::Resource).Allocation.Offset) + firstDescriptor);
 }
 
 void VulkanDevice::bindDescriptorSet(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const
@@ -863,8 +870,8 @@ void VulkanDevice::bindDescriptorSet(const VulkanCommandBuffer& commandBuffer, c
     // Copy the descriptors to the global heaps and set the root table parameters.
     if (descriptorSet.layout().bindsResources() || descriptorSet.layout().bindsSamplers()) // Discard empty sets.
     {
-        const UInt32 bufferIndex{ 0u }; // See `bindGlobalDescriptorHeaps` below - the only heap is bound at index 0 there.
-        const auto bufferOffset = static_cast<VkDeviceSize>(descriptorSet.globalHeapAllocation(DescriptorHeapType::Resource).Offset); // NOTE: Heap type does not matter in Vulkan.
+        UInt32 bufferIndex{ 0u }; // See `bindGlobalDescriptorHeaps` below - the only heap is bound at index 0 there.
+        auto bufferOffset = static_cast<VkDeviceSize>(descriptorSet.globalHeapAllocation(DescriptorHeapType::Resource).Allocation.Offset); // NOTE: Heap type does not matter in Vulkan.
 
         // Set the descriptor buffer offsets for the descriptor sets.
         vkCmdSetDescriptorBufferOffsets(commandBuffer.handle(), pipeline.pipelineType(), pipeline.layout()->handle(), descriptorSet.layout().space(), 1u, &bufferIndex, &bufferOffset);

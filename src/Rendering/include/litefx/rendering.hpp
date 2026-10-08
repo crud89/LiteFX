@@ -1583,7 +1583,7 @@ namespace LiteFX::Rendering {
         virtual void computeAccelerationStructureSizes(const top_level_acceleration_structure_type& tlas, UInt64 & bufferSize, UInt64 & scratchSize, bool forUpdate = false) const = 0;
 
         /// @copydoc IGraphicsDevice::allocateGlobalDescriptors(const IDescriptorSet&, DescriptorHeapType)
-        [[nodiscard]] virtual VirtualAllocator::Allocation allocateGlobalDescriptors(const descriptor_set_type& descriptorSet, DescriptorHeapType heapType) const = 0;
+        [[nodiscard]] virtual DescriptorHeapAllocation allocateGlobalDescriptors(const descriptor_set_type& descriptorSet, DescriptorHeapType heapType) const = 0;
 
         /// @copydoc IGraphicsDevice::releaseGlobalDescriptors(const IDescriptorSet&)
         virtual void releaseGlobalDescriptors(const descriptor_set_type& descriptorSet) const = 0;
@@ -1606,7 +1606,7 @@ namespace LiteFX::Rendering {
             this->computeAccelerationStructureSizes(dynamic_cast<const top_level_acceleration_structure_type&>(tlas), bufferSize, scratchSize, forUpdate);
         }
         
-        inline VirtualAllocator::Allocation doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const override {
+        inline DescriptorHeapAllocation doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const override {
             return this->allocateGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet), heapType);
         }
 

@@ -637,7 +637,7 @@ namespace LiteFX::Rendering::Backends {
         UInt32 capacity(UInt32 binding) const noexcept override;
 
         /// @copydoc IDescriptorSet::globalHeapAllocation
-        VirtualAllocator::Allocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept override;
+        DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept override;
 
         /// @copydoc DescriptorSet::bindToHeap(DescriptorType, UInt32, const buffer_type&, UInt32, UInt32, Format) const
         UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const override;
@@ -2448,14 +2448,13 @@ namespace LiteFX::Rendering::Backends {
         ///
         /// @par Example
         /// @code
-        /// auto allocation = d3dDevice.allocateGlobalDescriptors(1000, DescriptorHeapType::Resource); // Use the descriptors. d3dDevice.releaseGlobalDescriptors(DescriptorHeapType::Resource,
-        /// std::move(allocation));
+        /// auto allocation = d3dDevice.allocateGlobalDescriptors(1000, DescriptorHeapType::Resource); // Use the descriptors. d3dDevice.releaseGlobalDescriptors(std::move(allocation));
         /// @endcode
         ///
         /// @param descriptors The number of descriptors to allocate.
         /// @param heapType The heap type, indicating the descriptor heap to allocate the descriptors from.
         /// @return The allocation for the requested descriptors in the descriptor heap indicated by @p heapType.
-        [[nodiscard]] VirtualAllocator::Allocation allocateGlobalDescriptors(UInt32 descriptors, DescriptorHeapType heapType) const;
+        [[nodiscard]] DescriptorHeapAllocation allocateGlobalDescriptors(UInt32 descriptors, DescriptorHeapType heapType) const;
 
         /// @brief Releases a manually allocated descriptor range from the descriptor heap indicated by @p heapType.
         ///
@@ -2464,7 +2463,7 @@ namespace LiteFX::Rendering::Backends {
         /// @param heapType The heap type, indicating the descriptor heap to release the descriptors from.
         /// @param allocation The allocation to release.
         /// @see @ref allocateGlobalDescriptors(descriptors, heapType)
-        void releaseGlobalDescriptors(DescriptorHeapType heapType, VirtualAllocator::Allocation&& allocation) const;
+        void releaseGlobalDescriptors(DescriptorHeapAllocation&& allocation) const;
 
         // GraphicsDevice interface.
     public:
@@ -2518,8 +2517,11 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc GraphicsDevice::computeAccelerationStructureSizes(const top_level_acceleration_structure_type&, UInt64&, UInt64&, bool) const
         void computeAccelerationStructureSizes(const DirectX12TopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
 
+        /// @copydoc GraphicsDevice::descriptorHeaps
+        const GlobalDescriptorHeaps& descriptorHeaps() const noexcept override;
+
         /// @copydoc GraphicsDevice::allocateGlobalDescriptors
-        [[nodiscard]] VirtualAllocator::Allocation allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, DescriptorHeapType heapType) const override;
+        [[nodiscard]] DescriptorHeapAllocation allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, DescriptorHeapType heapType) const override;
 
         /// @copydoc GraphicsDevice::releaseGlobalDescriptors
         void releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const override;

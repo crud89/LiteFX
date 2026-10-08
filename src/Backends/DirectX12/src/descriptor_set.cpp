@@ -13,7 +13,7 @@ public:
 private:
     struct LocalHeap {
         ComPtr<ID3D12DescriptorHeap> Heap{};
-        VirtualAllocator::Allocation Allocation;
+        DescriptorHeapAllocation Allocation;
     } m_resourceHeap{}, m_samplerHeap{};
 
     SharedPtr<const DirectX12DescriptorSetLayout> m_layout;
@@ -58,7 +58,7 @@ public:
         }
     }
 
-    inline VirtualAllocator::Allocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept
+    inline DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept
     {
         switch (heapType)
         {
@@ -216,7 +216,7 @@ public:
         m_layout->device()->updateGlobalDescriptors(parent, descriptorLayout.binding(), firstDescriptor, elementCount);
 
         // Return the global descriptor offset in the global descriptor heap.
-        return static_cast<UInt32>(this->globalHeapAllocation(DescriptorHeapType::Resource).Offset) + offset;
+        return static_cast<UInt32>(this->globalHeapAllocation(DescriptorHeapType::Resource).Allocation.Offset) + offset;
     }
 
     UInt32 updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 descriptor, const IDirectX12Image& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers)
@@ -392,7 +392,7 @@ public:
         m_layout->device()->updateGlobalDescriptors(parent, descriptorLayout.binding(), descriptor, 1u);
 
         // Return the global descriptor offset in the global descriptor heap.
-        return static_cast<UInt32>(this->globalHeapAllocation(DescriptorHeapType::Resource).Offset) + offset;
+        return static_cast<UInt32>(this->globalHeapAllocation(DescriptorHeapType::Resource).Allocation.Offset) + offset;
     }
 
     UInt32 updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, UInt32 descriptor, const IDirectX12Sampler& sampler)
@@ -434,7 +434,7 @@ public:
         device->updateGlobalDescriptors(parent, descriptorLayout.binding(), descriptor, 1u);
 
         // Return the global descriptor offset in the global descriptor heap.
-        return static_cast<UInt32>(this->globalHeapAllocation(DescriptorHeapType::Sampler).Offset) + offset;
+        return static_cast<UInt32>(this->globalHeapAllocation(DescriptorHeapType::Sampler).Allocation.Offset) + offset;
     }
 };
 
@@ -473,7 +473,7 @@ UInt32 DirectX12DescriptorSet::capacity(UInt32 binding) const noexcept
     return range->Unbounded ? m_impl->m_unboundedArrayCapacity : range->DescriptorCount;
 }
 
-VirtualAllocator::Allocation DirectX12DescriptorSet::globalHeapAllocation(DescriptorHeapType heapType) const noexcept
+DescriptorHeapAllocation DirectX12DescriptorSet::globalHeapAllocation(DescriptorHeapType heapType) const noexcept
 {
     return m_impl->globalHeapAllocation(heapType);
 }

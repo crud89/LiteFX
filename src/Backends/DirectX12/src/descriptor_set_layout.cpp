@@ -103,7 +103,7 @@ public:
                 auto descriptors = m_allocationLayout->descriptorCount(DescriptorHeapType::Sampler, descriptorCount);
 
                 if (descriptors == 0u)
-                    throw InvalidArgumentException("descriptorCount", "The descriptor set only binds an unbounded array on the resource heap, but the requested number of descriptors in that array is 0, so no descriptors can be allocated.");
+                    throw InvalidArgumentException("descriptorCount", "The descriptor set only binds an unbounded array on the sampler heap, but the requested number of descriptors in that array is 0, so no descriptors can be allocated.");
 
                 D3D12_DESCRIPTOR_HEAP_DESC samplerHeapDesc = {
                     .Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,

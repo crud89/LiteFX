@@ -2499,6 +2499,17 @@ namespace LiteFX::Rendering {
         };
     };
 
+    /// @brief Represents an allocation from a global descriptor heap.
+    ///
+    /// @see GlobalDescriptorHeaps
+    struct LITEFX_RENDERING_API DescriptorHeapAllocation final {
+        /// @brief Stores the heap on which the allocation was made.
+        DescriptorHeapType Heap{};
+
+        /// @brief Stores the allocation.
+        VirtualAllocator::Allocation Allocation{};
+    };
+
     /// @brief Represents a physical graphics adapter.
     ///
     /// A graphics adapter can be seen as an actual physical device that can run graphics computations. Typically this resembles a GPU that is connected to the bus. However, it can also represent an emulated,
@@ -4967,7 +4978,7 @@ namespace LiteFX::Rendering {
         ///
         /// @param heapType The type of the descriptor heap for which to obtain the heap allocation.
         /// @return The allocation for the descriptor set in the global descriptor heap.
-        virtual VirtualAllocator::Allocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept = 0;
+        virtual DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept = 0;
 
         /// @brief Binds a resource directly to a descriptor heap and returns the index that can be used to access it.
         ///
@@ -8417,7 +8428,7 @@ namespace LiteFX::Rendering {
         /// invalidated. This means, that you might have to update descriptor bindings for the resource. You can subscribe to the @ref IDeviceMemory::moved event for this purpose. You might also want to issue a
         /// barrier to transition an image resource back into the required layout. Calling this method will leave the new resource in a @ref ImageLayout::Common state.
         ///
-        /// @returns The fence on the queue provided with @ref beginDefragmentation that marks the end of the defragmentation pass.
+        /// @return The fence on the queue provided with @ref beginDefragmentation that marks the end of the defragmentation pass.
         /// @throws RuntimeException Thrown, if no defragmentation process is currently active.
         /// @see @ref beginDefragmentation
         /// @see @ref endDefragmentationPass
@@ -8431,7 +8442,7 @@ namespace LiteFX::Rendering {
         /// This method waits for the fence issued by the last call to @ref beginDefragmentation before first invoking the @ref IDeviceMemory::moved event on all affected resources and finally destroying the
         /// moved-from resources.
         ///
-        /// @returns `true` if the defragmentation is complete and `false` otherwise.
+        /// @return `true` if the defragmentation is complete and `false` otherwise.
         /// @throws RuntimeException Thrown, if no defragmentation process is currently active.
         /// @see @ref beginDefragmentation
         /// @see @ref beginDefragmentationPass
@@ -9191,6 +9202,63 @@ namespace LiteFX::Rendering {
         bool ViewInstancing { false };
     };
 
+    /// @brief Implements the book-keeping required for allocations on the global descriptor heaps used by a @ref IGraphicsDevice.
+    ///
+    /// @see IGraphicsDevice::descriptorHeaps
+    class LITEFX_RENDERING_API GlobalDescriptorHeaps final {
+        LITEFX_IMPLEMENTATION(GlobalDescriptorHeapsImpl);
+
+    private:
+        /// @brief Creates a new descriptor heaps instance.
+        /// 
+        /// @param resourceAllocator The allocator from which resource descriptors are allocated.
+        /// @param samplerAllocator The allocator from which sampler descriptors are allocated.
+        GlobalDescriptorHeaps(UniquePtr<VirtualAllocator>&& resourceAllocator, UniquePtr<VirtualAllocator>&& samplerAllocator);
+
+        GlobalDescriptorHeaps(const GlobalDescriptorHeaps&) = delete;
+        GlobalDescriptorHeaps(GlobalDescriptorHeaps&&) noexcept = delete;
+        GlobalDescriptorHeaps& operator=(const GlobalDescriptorHeaps&) = delete;
+        GlobalDescriptorHeaps& operator=(GlobalDescriptorHeaps&&) noexcept = delete;
+
+    public:
+        ~GlobalDescriptorHeaps() noexcept = default;
+
+    public:
+        /// @brief Creates a new descriptor heaps instance.
+        /// 
+        /// @tparam TBackend The type of the backend from which the global descriptor heaps are allocated.
+        /// @param resourceDescriptors The number of available resource descriptors.
+        /// @param samplerDescriptors The number of available sampler descriptors.
+        /// @return A pointer to the newly created descriptor heaps instance.
+        template <typename TBackend>
+        [[nodiscard]] static UniquePtr<GlobalDescriptorHeaps> create(UInt32 resourceDescriptors, UInt32 samplerDescriptors) {
+            auto resources = UniquePtr<VirtualAllocator>(new VirtualAllocator(VirtualAllocator::create<TBackend>(resourceDescriptors)));
+            auto samplers = UniquePtr<VirtualAllocator>(new VirtualAllocator(VirtualAllocator::create<TBackend>(samplerDescriptors)));
+
+            return UniquePtr<GlobalDescriptorHeaps>(new GlobalDescriptorHeaps(std::move(resources), std::move(samplers)));
+        }
+
+        /// @brief Allocates @p descriptors from @p heap.
+        /// 
+        /// @param heap The heap to allocate from.
+        /// @param descriptors The number of descriptors to allocate from @p heap.
+        /// @return The allocation for the descriptors.
+        /// @exception ArgumentOutOfRangeException Thrown if @p descriptors is `0`.
+        /// @exception RuntimeException Thrown if the descriptor heap is out of space.
+        [[nodiscard]] DescriptorHeapAllocation allocate(DescriptorHeapType heap, UInt32 descriptors);
+
+        /// @brief Releases a heap allocation.
+        /// 
+        /// @param allocation The allocation to release.
+        void release(DescriptorHeapAllocation&& allocation);
+
+        /// @brief Returns the total capacity on @p heap.
+        /// 
+        /// @param heap The heap for which to obtain the capacity.
+        /// @return The total capacity on @p heap.
+        UInt32 capacity(DescriptorHeapType heap) const;
+    };
+
     /// @brief The interface for a graphics device that.
     class LITEFX_RENDERING_API IGraphicsDevice : public SharedObject {
     protected:
@@ -9338,12 +9406,17 @@ namespace LiteFX::Rendering {
             this->getAccelerationStructureSizes(tlas, bufferSize, scratchSize, forUpdate);
         }
 
+        /// @brief Returns the global descriptor heaps from which all descriptors in the device are allocated.
+        ///
+        /// @return A reference to the global descriptor heaps container.
+        virtual const GlobalDescriptorHeaps& descriptorHeaps() const noexcept = 0;
+
         /// @brief Allocates a range of descriptors in the global descriptor heaps for the provided @p descriptorSet.
         ///
         /// @param descriptorSet The descriptor set containing the descriptors to update.
         /// @param heapType The type of the descriptor heap to allocate descriptors on.
         /// @return The allocation for the descriptor set at the descriptor heap indicated by @p heapType.
-        [[nodiscard]] inline VirtualAllocator::Allocation allocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const {
+        [[nodiscard]] inline DescriptorHeapAllocation allocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const {
             return this->doAllocateGlobalDescriptors(descriptorSet, heapType);
         }
 
@@ -9388,7 +9461,7 @@ namespace LiteFX::Rendering {
     private:
         virtual void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
         virtual void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
-        virtual VirtualAllocator::Allocation doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const = 0;
+        virtual DescriptorHeapAllocation doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const = 0;
         virtual void doReleaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const = 0;
         virtual void doUpdateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const = 0;
         virtual void doBindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const = 0;

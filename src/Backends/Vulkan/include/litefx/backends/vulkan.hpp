@@ -683,7 +683,7 @@ namespace LiteFX::Rendering::Backends {
         UInt32 capacity(UInt32 binding) const noexcept override;
 
         /// @copydoc IDescriptorSet::globalHeapAllocation
-        VirtualAllocator::Allocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept override;
+        DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept override;
 
         /// @copydoc DescriptorSet::bindToHeap(DescriptorType, UInt32, const buffer_type&, UInt32, UInt32, Format) const
         UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const override;
@@ -2582,8 +2582,11 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc GraphicsDevice::computeAccelerationStructureSizes(const top_level_acceleration_structure_type&, UInt64&, UInt64&, bool) const
         void computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
 
+        /// @copydoc GraphicsDevice::descriptorHeaps
+        const GlobalDescriptorHeaps& descriptorHeaps() const noexcept override;
+
         /// @copydoc GraphicsDevice::allocateGlobalDescriptors
-        [[nodiscard]] VirtualAllocator::Allocation allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType) const override;
+        [[nodiscard]] DescriptorHeapAllocation allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType) const override;
 
         /// @copydoc GraphicsDevice::releaseGlobalDescriptors
         void releaseGlobalDescriptors(const VulkanDescriptorSet& descriptorSet) const override;

@@ -57,7 +57,7 @@ void SampleApp::allocImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* cont
     auto& device = dynamic_cast<const DirectX12Device&>(*app->m_device);
 
     // Allocate an externally managed descriptor.
-    auto allocation = device.allocateGlobalDescriptors(1u, DescriptorHeapType::Resource);
+    auto allocation = device.allocateGlobalDescriptors(1u, DescriptorHeapType::Resource).Allocation;
 
     // Initialize the CPU and GPU handles.
     auto descriptorHandleIncrement = device.handle().Get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -83,7 +83,7 @@ void SampleApp::releaseImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* co
     if (match != app->m_d3dDescriptorAllocations.end())
     {
         // Release the descriptor range.
-        device.releaseGlobalDescriptors(DescriptorHeapType::Resource, std::move(match->second)); // NOLINT(performance-move-const-arg)
+        device.releaseGlobalDescriptors({ DescriptorHeapType::Resource, std::move(match->second) }); // NOLINT(performance-move-const-arg)
         app->m_d3dDescriptorAllocations.erase(cpu_handle.ptr);
     }
 }

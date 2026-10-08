@@ -21,7 +21,7 @@ private:
     SharedPtr<const VulkanDescriptorSetLayout> m_layout;
     Array<Byte> m_descriptorBuffer{};
     UInt32 m_unboundedArraySize;
-    VirtualAllocator::Allocation m_globalHeapAllocation{};
+    DescriptorHeapAllocation m_globalHeapAllocation{};
 
 public:
     VulkanDescriptorSetImpl(const VulkanDescriptorSetLayout& layout, Array<Byte>&& buffer) :
@@ -335,7 +335,7 @@ UInt32 VulkanDescriptorSet::capacity(UInt32 binding) const noexcept
     return range->Unbounded ? m_impl->m_unboundedArraySize : range->DescriptorCount;
 }
 
-VirtualAllocator::Allocation VulkanDescriptorSet::globalHeapAllocation(DescriptorHeapType /*heapType*/) const noexcept
+DescriptorHeapAllocation VulkanDescriptorSet::globalHeapAllocation(DescriptorHeapType /*heapType*/) const noexcept
 {
     return m_impl->m_globalHeapAllocation;
 }
