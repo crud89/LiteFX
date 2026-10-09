@@ -5296,28 +5296,28 @@ namespace LiteFX::Rendering {
 
         /// @brief Allocates a new descriptor set or returns an instance of an unused descriptor set.
         ///
-        /// @param descriptors The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
+        /// @param unboundedArraySize The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
         /// @param bindings Optional default bindings for descriptors in the descriptor set.
         /// @return The instance of the descriptor set.
         /// @see @ref IDescriptorLayout
         /// @see @ref allocate(std::initializer_list)
-        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const {
-            return this->getDescriptorSet(descriptors, bindings);
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 unboundedArraySize, std::initializer_list<DescriptorBinding> bindings) const {
+            return this->getDescriptorSet(unboundedArraySize, bindings);
         }
 
         /// @copydoc allocate(UInt32, std::initializer_list)
-        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, Span<DescriptorBinding> bindings) const {
-            return this->getDescriptorSet(descriptors, bindings);
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 unboundedArraySize, Span<DescriptorBinding> bindings) const {
+            return this->getDescriptorSet(unboundedArraySize, bindings);
         }
 
         /// @brief Allocates an array of descriptor sets.
         ///
-        /// @param descriptors The number of descriptor sets to allocate.
+        /// @param unboundedArraySize The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
         /// @param bindings A generator that generates the optional default bindings for descriptors in each descriptor set.
         /// @return The instance of the descriptor set.
         /// @see @ref allocate(std::initializer_list)
-        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, Generator<DescriptorBinding> bindings) const {
-            return this->getDescriptorSet(descriptors, std::move(bindings));
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 unboundedArraySize, Generator<DescriptorBinding> bindings) const {
+            return this->getDescriptorSet(unboundedArraySize, std::move(bindings));
         }
 
         /// @brief Allocates an array of descriptor sets.
@@ -5350,30 +5350,30 @@ namespace LiteFX::Rendering {
         /// @brief Allocates an array of descriptor sets.
         ///
         /// @param descriptorSets The number of descriptor sets to allocate.
-        /// @param descriptors The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
+        /// @param unboundedArraySize The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
         /// @param bindings Optional default bindings for descriptors in each descriptor set.
         /// @return A generator that produces the descriptor set instances.
         /// @see @ref allocate(std::initializer_list)
-        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
-            return this->getDescriptorSets(descriptorSets, descriptors, bindings);
+        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
+            return this->getDescriptorSets(descriptorSets, unboundedArraySize, bindings);
         }
 
 #ifdef __cpp_lib_mdspan
         /// @copydoc allocate(UInt32, UInt32, std::initializer_list)
-        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
-            return this->getDescriptorSets(descriptorSets, descriptors, bindings);
+        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
+            return this->getDescriptorSets(descriptorSets, unboundedArraySize, bindings);
         }
 #endif
 
         /// @brief Allocates an array of descriptor sets.
         ///
         /// @param descriptorSets The number of descriptor sets to allocate.
-        /// @param descriptors The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
+        /// @param unboundedArraySize The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
         /// @param bindingFactory A factory function that is called for each descriptor set in order to provide the default bindings.
         /// @return A generator that produces the descriptor set instances.
         /// @see @ref allocate(std::initializer_list)
-        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const {
-            return this->getDescriptorSets(descriptorSets, descriptors, std::move(bindingFactory));
+        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const {
+            return this->getDescriptorSets(descriptorSets, unboundedArraySize, std::move(bindingFactory));
         }
 
         /// @brief Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.
@@ -5385,14 +5385,14 @@ namespace LiteFX::Rendering {
 
     private:
         virtual Enumerable<const IDescriptorLayout&> getDescriptors() const noexcept = 0;
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const = 0;
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Span<DescriptorBinding> bindings) const = 0;
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Generator<DescriptorBinding> bindings) const = 0;
-        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings) const = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, std::initializer_list<DescriptorBinding> bindings) const = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, Span<DescriptorBinding> bindings) const = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, Generator<DescriptorBinding> bindings) const = 0;
+        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings) const = 0;
 #ifdef __cpp_lib_mdspan
-        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const = 0;
+        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const = 0;
 #endif
-        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
+        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
         virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const = 0;
     };
 

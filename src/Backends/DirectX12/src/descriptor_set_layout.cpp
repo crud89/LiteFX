@@ -117,38 +117,6 @@ public:
 
         return makeUnique<DirectX12DescriptorSet>(parent, std::move(resourceHeap), std::move(samplerHeap), descriptorCount);
     }
-    
-    inline auto allocate(const DirectX12DescriptorSetLayout& parent, UInt32 descriptors)
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-
-        return this->doAllocate(parent, descriptors);
-    }
-
-    template <typename TDescriptorBindings>
-    inline auto allocate(const DirectX12DescriptorSetLayout& parent, UInt32 descriptors, TDescriptorBindings bindings)
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-
-        auto descriptorSet = this->doAllocate(parent, descriptors);
-
-        // Apply the default bindings.
-        for (UInt32 i{ 0 }; auto binding : bindings)
-        {
-            std::visit(type_switch{
-                [](const std::monostate&) {}, // Default: don't bind anything.
-                [&](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
-                [&](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
-                [&](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
-                [&](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
-            }, binding.resource);
-
-            ++i;
-        }
-
-        // Return the descriptor set.
-        return descriptorSet;
-    }
 
     inline UInt32 uniforms() const noexcept
     {
@@ -306,59 +274,10 @@ bool DirectX12DescriptorSetLayout::bindsSamplers() const noexcept
     return m_impl->m_allocationLayout->binds(DescriptorHeapType::Sampler);
 }
 
-UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const
+UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocateDescriptorSet(UInt32 unboundedArraySize) const
 {
-    return m_impl->allocate(*this, descriptors, bindings);
-}
-
-UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(UInt32 descriptors, Span<DescriptorBinding> bindings) const
-{
-    return m_impl->allocate(*this, descriptors, bindings);
-}
-
-UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(UInt32 descriptors, Generator<DescriptorBinding> bindings) const
-{
-    return m_impl->allocate(*this, descriptors, std::move(bindings));
-}
-
-Generator<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocate(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindingsPerSet) const
-{
-    // Get a shared pointer to the current instance to keep it alive as long as the coroutine lives.
-    auto self = this->shared_from_this();
-
-    // First, allocate each descriptor set that a binding is provided for.
-    for (auto& bindings : bindingsPerSet | std::views::take(descriptorSets))
-        co_yield m_impl->allocate(*self, descriptors, bindings);
-
-    // If there are more descriptor sets requested than bindings are provided, continue with default bindings.
-    for (auto i = bindingsPerSet.size(); i < descriptorSets; ++i)
-        co_yield m_impl->allocate(*self, descriptors);
-}
-
-#ifdef __cpp_lib_mdspan
-Generator<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocate(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const
-{
-    // Get a shared pointer to the current instance to keep it alive as long as the coroutine lives.
-    auto self = this->shared_from_this();
-
-    // Depending on the set index, allocate with default bindings, if they are provided.
-    // TODO: With C++26 we can use submdspan here. The workaround works, as `layout_right` of the mdspan.
-    for (size_t i{ 0 }; i < static_cast<size_t>(descriptorSets); ++i)
-        co_yield i < bindings.extent(0) ?
-            m_impl->allocate(*self, descriptors, Span<DescriptorBinding>{ bindings.data_handle() + i * sizeof(DescriptorBinding), bindings.extent(1) * sizeof(DescriptorBinding) }) : // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic));
-            m_impl->allocate(*self, descriptors);
-}
-#endif
-
-Generator<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocate(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const
-{
-    // Get a shared pointer to the current instance to keep it alive as long as the coroutine lives.
-    auto self = this->shared_from_this();
-
-    // Straight up allocate a descriptor set with the bindings provided from the factory.
-    // TODO: With C++26 we can use submdspan here. The workaround works, as `layout_right` of the mdspan.
-    for (UInt32 i{ 0 }; i < descriptorSets; ++i)
-        co_yield m_impl->allocate(*self, descriptors, bindingFactory(i)); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic));
+    std::lock_guard<std::mutex> lock(m_impl->m_mutex);
+    return m_impl->doAllocate(*this, unboundedArraySize);
 }
 
 void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptorSet) const

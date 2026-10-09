@@ -296,74 +296,6 @@ public:
     }
 
 public:
-    template <typename TDescriptorBindings>
-    inline auto allocate(SharedPtr<const VulkanDescriptorSetLayout> layout, UInt32 descriptors, TDescriptorBindings bindings) // NOLINT(performance-unnecessary-value-param)
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-
-        // If no descriptor sets are free, or the descriptor set contains an unbounded descriptor array, allocate a new descriptor set.
-        UniquePtr<VulkanDescriptorSet> descriptorSet;
-
-        if (m_allocationLayout->unboundedArrayRange().has_value() || m_freeDescriptorSets.empty())
-            descriptorSet = makeUnique<VulkanDescriptorSet>(*layout, descriptors);
-        else
-        {
-            // Otherwise, pick and remove one from the list.
-            descriptorSet = UniquePtr<VulkanDescriptorSet>(new VulkanDescriptorSet(*layout, std::move(m_freeDescriptorSets.front())));
-            m_freeDescriptorSets.pop();
-        }
-
-        // Apply the default bindings.
-        for (UInt32 i{ 0 }; auto binding : bindings)
-        {
-            std::visit(type_switch{
-                [](const std::monostate&) {}, // Default: don't bind anything.
-                [&descriptorSet, &binding, i](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
-                [&descriptorSet, &binding, i](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
-                [&descriptorSet, &binding, i](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
-                [&descriptorSet, &binding, i](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
-            }, binding.resource);
-
-            ++i;
-        }
-
-        // Return the descriptor set.
-        return descriptorSet;
-    }
-
-    inline Generator<UniquePtr<VulkanDescriptorSet>> allocate(SharedPtr<const VulkanDescriptorSetLayout> layout, UInt32 descriptorSets, UInt32 unboundedDescriptorArraySize)
-    {
-        Array<UniquePtr<VulkanDescriptorSet>> handles;
-        handles.reserve(descriptorSets);
-        auto& impl = layout->m_impl;
-
-        {
-            std::lock_guard<std::mutex> lock(impl->m_mutex);
-
-            // Descriptor sets that use unbounded runtime arrays aren't cached.
-            if (m_allocationLayout->unboundedArrayRange().has_value() || impl->m_freeDescriptorSets.empty())
-            {
-                handles.resize(descriptorSets);
-                std::ranges::generate(handles, [&]() { return makeUnique<VulkanDescriptorSet>(*layout, unboundedDescriptorArraySize); });
-            }
-            else
-            {
-                // Pop cached descriptor sets.
-                while (!impl->m_freeDescriptorSets.empty() && descriptorSets --> 0) // Finally a good use for the "-->" operator!!!
-                {
-                    handles.emplace_back(UniquePtr<VulkanDescriptorSet>(new VulkanDescriptorSet(*layout, std::move(impl->m_freeDescriptorSets.front()))));
-                    impl->m_freeDescriptorSets.pop();
-                }
-
-                // Allocate the rest from a new descriptor pool and return them.
-                for (UInt32 i{ 0 }; i < descriptorSets; ++i)
-                    handles.emplace_back(makeUnique<VulkanDescriptorSet>(*layout, unboundedDescriptorArraySize));
-            }
-        }
-
-        co_yield std::ranges::elements_of(handles | std::views::as_rvalue);
-    }
-
     inline UInt32 uniforms() const noexcept
     {
         return static_cast<UInt32>(std::ranges::count_if(m_descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ConstantBuffer; }));
@@ -534,116 +466,17 @@ bool VulkanDescriptorSetLayout::bindsSamplers() const noexcept
     return m_impl->m_allocationLayout->binds(DescriptorHeapType::Sampler);
 }
 
-UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const
+UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocateDescriptorSet(UInt32 unboundedArraySize) const
 {
-    return m_impl->allocate(this->shared_from_this(), descriptors, bindings);
-}
+    std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
-UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(UInt32 descriptors, Span<DescriptorBinding> bindings) const
-{
-    return m_impl->allocate(this->shared_from_this(), descriptors, bindings);
-}
+    // Descriptor sets with unbounded arrays aren't cached.
+    if (this->containsUnboundedArray() || m_impl->m_freeDescriptorSets.empty())
+        return makeUnique<VulkanDescriptorSet>(*this, unboundedArraySize);
 
-UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(UInt32 descriptors, Generator<DescriptorBinding> bindings) const
-{
-    return m_impl->allocate(this->shared_from_this(), descriptors, std::move(bindings));
-}
-
-Generator<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocate(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindingsPerSet) const
-{
-    // Get a shared pointer to the current instance to keep it alive as long as the coroutine lives.
-    auto self = this->shared_from_this();
-
-    // Create the descriptor set handles and assign each of them their default bindings.
-    auto handles = m_impl->allocate(self, descriptorSets, descriptors);
-    auto bindings = bindingsPerSet.begin();
-
-    // Iterate the handles and apply the bindings.
-    for (auto descriptorSet : handles)
-    {
-        // Only start binding, if there are any more bindings provided.
-        if (bindings != bindingsPerSet.end())
-        {
-            for (UInt32 i{ 0 }; auto & binding : *bindings)
-            {
-                std::visit(type_switch{
-                    [](const std::monostate&) {}, // Default: don't bind anything.
-                    [&](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
-                    [&](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
-                    [&](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
-                    [&](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
-                }, binding.resource);
-
-                ++i;
-            }
-
-            // Advance to next provided binding set.
-            bindings++; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        }
-
-        co_yield std::move(descriptorSet);
-    }
-}
-
-#ifdef __cpp_lib_mdspan
-Generator<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocate(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const
-{
-    // Get a shared pointer to the current instance to keep it alive as long as the coroutine lives.
-    auto self = this->shared_from_this();
-
-    // Make a generator that returns the descriptor set handles.
-    auto handles = m_impl->allocate(self, descriptorSets, descriptors);
-
-    // Iterate the handles and bind them.
-    for (UInt32 offset{ 0 }; auto descriptorSet : handles)
-    {
-        // TODO: With C++26 we can use submdspan here. The workaround works, as `layout_right` of the mdspan.
-        for (UInt32 i{ 0 }; auto& binding : Span<DescriptorBinding>{ bindings.data_handle() + offset++ * sizeof(DescriptorBinding), bindings.extent(1) * sizeof(DescriptorBinding) }) // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        {
-            std::visit(type_switch{
-                [](const std::monostate&) {}, // Default: don't bind anything.
-                [&](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
-                [&](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
-                [&](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
-                [&](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
-            }, binding.resource);
-
-            ++i;
-        }
-
-        co_yield std::move(descriptorSet);
-    }
-}
-#endif
-
-Generator<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocate(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const
-{
-    // Get a shared pointer to the current instance to keep it alive as long as the coroutine lives.
-    auto self = this->shared_from_this();
-
-    // Make a generator that returns the descriptor set handles.
-    auto handles = m_impl->allocate(self, descriptorSets, descriptors);
-
-    // Iterate the handles and bind them.
-    for (UInt32 setId{ 0 }; auto descriptorSet : handles)
-    {
-        auto bindingsGenerator = bindingFactory(setId++);
-
-        for (UInt32 i{ 0 }; auto binding : bindingsGenerator)
-        {
-            std::visit(type_switch{
-                [](const std::monostate&) {}, // Default: don't bind anything.
-                [&](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
-                [&](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
-                [&](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
-                [&](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
-            }, binding.resource);
-
-            ++i;
-        }
-
-        co_yield std::move(descriptorSet);
-    }
+    auto descriptorSet = UniquePtr<VulkanDescriptorSet>(new VulkanDescriptorSet(*this, std::move(m_impl->m_freeDescriptorSets.front())));
+    m_impl->m_freeDescriptorSets.pop();
+    return descriptorSet;
 }
 
 void VulkanDescriptorSetLayout::free(const VulkanDescriptorSet& descriptorSet) const

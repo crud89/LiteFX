@@ -221,89 +221,152 @@ namespace LiteFX::Rendering {
         const descriptor_layout_type& descriptor(UInt32 binding) const override = 0;
 
         /// @copydoc IDescriptorSetLayout::allocate(std::initializer_list<DescriptorBinding>)
-        virtual inline UniquePtr<descriptor_set_type> allocate(std::initializer_list<DescriptorBinding> bindings = { }) const {
+        inline UniquePtr<descriptor_set_type> allocate(std::initializer_list<DescriptorBinding> bindings = { }) const {
             return this->allocate(0, bindings);
         }
 
         /// @copydoc IDescriptorSetLayout::allocate(Span<DescriptorBinding>)
-        virtual inline UniquePtr<descriptor_set_type> allocate(Span<DescriptorBinding> bindings) const {
+        inline UniquePtr<descriptor_set_type> allocate(Span<DescriptorBinding> bindings) const {
             return this->allocate(0, bindings);
         }
 
         /// @copydoc IDescriptorSetLayout::allocate(Generator<DescriptorBinding>)
-        virtual inline UniquePtr<descriptor_set_type> allocate(Generator<DescriptorBinding> bindings) const {
+        inline UniquePtr<descriptor_set_type> allocate(Generator<DescriptorBinding> bindings) const {
             return this->allocate(0, std::move(bindings));
         }
 
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, std::initializer_list<DescriptorBinding>)
-        virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const = 0;
+        inline UniquePtr<descriptor_set_type> allocate(UInt32 unboundedArraySize, std::initializer_list<DescriptorBinding> bindings) const {
+            return this->allocateWithBindings(unboundedArraySize, bindings);
+        }
 
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, Span<DescriptorBinding>)
-        virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, Span<DescriptorBinding> bindings) const = 0;
+        inline UniquePtr<descriptor_set_type> allocate(UInt32 unboundedArraySize, Span<DescriptorBinding> bindings) const {
+            return this->allocateWithBindings(unboundedArraySize, bindings);
+        }
 
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, Generator<DescriptorBinding>)
-        virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, Generator<DescriptorBinding> bindings) const = 0;
+        inline UniquePtr<descriptor_set_type> allocate(UInt32 unboundedArraySize, Generator<DescriptorBinding> bindings) const {
+            return this->allocateWithBindings(unboundedArraySize, std::move(bindings));
+        }
 
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, std::initializer_list<std::initializer_list<DescriptorBinding>>)
-        virtual inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
+        inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
             return this->allocate(descriptorSets, 0, bindings);
         }
 
 #ifdef __cpp_lib_mdspan
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>>)
-        virtual inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
+        inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
             return this->allocate(descriptorSets, 0, bindings);
         }
 #endif
 
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, std::function<Generator<DescriptorBinding>(UInt32)>)
-        virtual inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::function<Generator<DescriptorBinding>(UInt32)> bindings) const {
+        inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::function<Generator<DescriptorBinding>(UInt32)> bindings) const {
             return this->allocate(descriptorSets, 0, std::move(bindings));
         }
 
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, UInt32, std::initializer_list<std::initializer_list<DescriptorBinding>>)
-        virtual Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const = 0;
+        inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
+            return this->allocateSets(descriptorSets, unboundedArraySize, bindings
+                | std::views::transform([](const auto& setBindings) { return Array<DescriptorBinding>(setBindings); })
+                | std::ranges::to<Array<Array<DescriptorBinding>>>());
+        }
 
 #ifdef __cpp_lib_mdspan
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, UInt32, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>>)
-        virtual Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const = 0;
+        Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
+            auto self = this->shared_from_this();
+
+            // TODO: With C++26 we can use submdspan here. Rows are contiguous, since `layout_right` is the default layout of the mdspan.
+            for (size_t i{ 0 }; i < static_cast<size_t>(descriptorSets); ++i)
+                co_yield i < bindings.extent(0) ?
+                this->allocateWithBindings(unboundedArraySize, Span<DescriptorBinding>{ bindings.data_handle() + i * bindings.extent(1), bindings.extent(1) }) : // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+                this->allocateDescriptorSet(unboundedArraySize);
+        }
 #endif
 
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, UInt32, std::function<Generator<DescriptorBinding>(UInt32)>)
-        virtual Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
+        Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const {
+            auto self = this->shared_from_this();
+
+            for (UInt32 i{ 0 }; i < descriptorSets; ++i)
+                co_yield this->allocateWithBindings(unboundedArraySize, bindingFactory(i));
+        }
 
         /// @copydoc IDescriptorSetLayout::free(const IDescriptorSet&)
         virtual void free(const descriptor_set_type& descriptorSet) const = 0;
 
     private:
+        /// @brief Allocates a descriptor set from the layout. The implementation must be thread-safe.
+        ///
+        /// @param unboundedArraySize The number of descriptors in the unbounded array, if the layout contains one.
+        virtual UniquePtr<descriptor_set_type> allocateDescriptorSet(UInt32 unboundedArraySize) const = 0;
+
+        template <typename TBindings>
+        inline UniquePtr<descriptor_set_type> allocateWithBindings(UInt32 unboundedArraySize, TBindings&& bindings) const {
+            auto descriptorSet = this->allocateDescriptorSet(unboundedArraySize);
+
+            for (UInt32 i{ 0 }; const DescriptorBinding& binding : bindings)
+            {
+                std::visit(type_switch {
+                    [](const std::monostate&) {}, // Default: don't bind anything.
+                    [&](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
+                    [&](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
+                    [&](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
+                    [&](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
+                }, binding.resource);
+
+                ++i;
+            }
+
+            return descriptorSet;
+        }
+
+        Generator<UniquePtr<descriptor_set_type>> allocateSets(UInt32 descriptorSets, UInt32 unboundedArraySize, Array<Array<DescriptorBinding>> bindings) const {
+            auto self = this->shared_from_this();
+
+            for (size_t i{ 0 }; i < static_cast<size_t>(descriptorSets); ++i)
+                co_yield i < bindings.size() ? this->allocateWithBindings(unboundedArraySize, bindings[i]) : this->allocateDescriptorSet(unboundedArraySize);
+        }
+
+    private:
+        /// @brief A helper that ensures that contents from an initializer list or mdspan are copied and don't dangle.
+        static constexpr auto upcast = [](Generator<UniquePtr<descriptor_set_type>> descriptorSets) static->Generator<UniquePtr<IDescriptorSet>> {
+            for (auto&& descriptorSet : descriptorSets)
+                co_yield std::move(descriptorSet);
+        };
+
+
         inline Enumerable<const IDescriptorLayout&> getDescriptors() const noexcept override {
             return this->descriptors();
         }
 
-        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const override {
-            return this->allocate(descriptors, bindings);
+        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, std::initializer_list<DescriptorBinding> bindings) const override {
+            return this->allocate(unboundedArraySize, bindings);
         }
 
-        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Span<DescriptorBinding> bindings) const override {
-            return this->allocate(descriptors, bindings);
+        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, Span<DescriptorBinding> bindings) const override {
+            return this->allocate(unboundedArraySize, bindings);
         }
 
-        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Generator<DescriptorBinding> bindings) const override {
-            return this->allocate(descriptors, std::move(bindings));
+        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, Generator<DescriptorBinding> bindings) const override {
+            return this->allocate(unboundedArraySize, std::move(bindings));
         }
 
-        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings) const override {
-            co_yield std::ranges::elements_of(this->allocate(descriptorSets, descriptors, bindings) | std::views::transform([](auto set) -> UniquePtr<IDescriptorSet> { return set; }));
+        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings) const override {
+            return upcast(this->allocate(descriptorSets, unboundedArraySize, bindings));
         }
 
 #ifdef __cpp_lib_mdspan
-        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const override {
-            co_yield std::ranges::elements_of(this->allocate(descriptorSets, descriptors, bindings) | std::views::transform([](auto set) -> UniquePtr<IDescriptorSet> { return set; }));
+        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const override {
+            return upcast(this->allocate(descriptorSets, unboundedArraySize, bindings));
         }
 #endif
 
-        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const override {
-            co_yield std::ranges::elements_of(this->allocate(descriptorSets, descriptors, std::move(bindingFactory)) | std::views::transform([](auto set) -> UniquePtr<IDescriptorSet> { return set; }));
+        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const override {
+            return upcast(this->allocate(descriptorSets, unboundedArraySize, std::move(bindingFactory)));
         }
 
         inline void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const override {

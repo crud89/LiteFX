@@ -908,29 +908,12 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc IDescriptorSetLayout::bindsSamplers
         bool bindsSamplers() const noexcept override;
 
-    public:
-        /// @copydoc DescriptorSetLayout::allocate(UInt32, std::initializer_list<DescriptorBinding>) const
-        UniquePtr<VulkanDescriptorSet> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const override;
-
-        /// @copydoc DescriptorSetLayout::allocate(UInt32, Span<DescriptorBinding>) const
-        UniquePtr<VulkanDescriptorSet> allocate(UInt32 descriptors, Span<DescriptorBinding> bindings) const override;
-
-        /// @copydoc DescriptorSetLayout::allocate(UInt32, Generator<DescriptorBinding>) const
-        UniquePtr<VulkanDescriptorSet> allocate(UInt32 descriptors, Generator<DescriptorBinding> bindings) const override;
-
-        /// @copydoc DescriptorSetLayout::allocate(UInt32, UInt32, std::initializer_list<std::initializer_list<DescriptorBinding>>) const
-        Generator<UniquePtr<VulkanDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const override;
-
-#ifdef __cpp_lib_mdspan
-        /// @copydoc DescriptorSetLayout::allocate(UInt32, UInt32, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>>) const
-        Generator<UniquePtr<VulkanDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const override;
-#endif
-
-        /// @copydoc DescriptorSetLayout::allocate(UInt32, UInt32, std::function<Generator<DescriptorBinding>(UInt32)>) const
-        Generator<UniquePtr<VulkanDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const override;
-
         /// @copydoc DescriptorSetLayout::free
         void free(const VulkanDescriptorSet& descriptorSet) const override;
+
+    private:
+        /// @copydoc DescriptorSetLayout::allocateDescriptorSet
+        UniquePtr<VulkanDescriptorSet> allocateDescriptorSet(UInt32 unboundedArraySize) const override;
     };
 
     /// @brief Implements the Vulkan @ref IPushConstantsRange.
