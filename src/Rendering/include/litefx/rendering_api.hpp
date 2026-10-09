@@ -9181,6 +9181,7 @@ namespace LiteFX::Rendering {
         ///
         /// Note that support for this feature is limited in the engine. It's purpose is to bind resources of different @ref DescriptorType "DescriptorTypes" within a single descriptor array. However, you still
         /// have to allocate a @ref IDescriptorSet to be able to bind resources and retrieve resource indices by calling @ref IDescriptorSet::bindToHeap.
+        [[deprecated]]
         bool DynamicDescriptors { false };
 
         /// @brief Enables support for enabling depth bounds test on @ref IRenderPipeline creation.

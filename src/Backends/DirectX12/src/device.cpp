@@ -98,8 +98,6 @@ private:
 			throw RuntimeException("The device does not support ray-queries and inline ray-tracing.");
 		if (features.MeshShaders && featureSupport.MeshShaderTier() < D3D12_MESH_SHADER_TIER_1)
 			throw RuntimeException("The device does not support mesh shaders.");
-		if (features.DynamicDescriptors && featureSupport.HighestShaderModel() < D3D_SHADER_MODEL_6_6)
-			throw RuntimeException("The device does not support shader model 6.6 or later, which is required for the dynamic descriptors feature.");
 		if (features.DrawIndirect && featureSupport.HighestShaderModel() < D3D_SHADER_MODEL_6_8)
 			throw RuntimeException("The device does not support shader model 6.8 or later, which is required for the indirect draw feature.");
 		if (features.DepthBoundsTest && !featureSupport.DepthBoundsTestSupported())

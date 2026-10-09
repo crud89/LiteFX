@@ -168,6 +168,7 @@ private:
 
         // Required for improved descriptor management.
         m_extensions.emplace_back(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
+        m_extensions.emplace_back(VK_EXT_DESCRIPTOR_HEAP_EXTENSION_NAME);
 
         // Improved compatibility between Vulkan and DirectX 12 backends
         m_extensions.emplace_back(VK_EXT_DEPTH_CLIP_ENABLE_EXTENSION_NAME);
@@ -191,9 +192,6 @@ private:
             m_extensions.emplace_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
             m_extensions.emplace_back(VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME);
         }
-
-        if (features.DynamicDescriptors)
-            m_extensions.emplace_back(VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME);
 
         if (features.ConservativeRasterization)
             m_extensions.emplace_back(VK_EXT_CONSERVATIVE_RASTERIZATION_EXTENSION_NAME);
@@ -370,18 +368,6 @@ public:
             pMeshShaderFeatures->meshShader = true;
         }
 
-        VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT mutableDescriptorTypeFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT, .pNext = deviceExtensionObjects };
-        auto pMutableDescriptorTypeFeatures = findExtension<VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT, deviceExtensionObjects);
-
-        if (pMutableDescriptorTypeFeatures == nullptr) {
-            pMutableDescriptorTypeFeatures = &mutableDescriptorTypeFeatures;
-            deviceExtensionObjects = pMutableDescriptorTypeFeatures;
-        }
-
-        if (features.DynamicDescriptors) {
-            pMutableDescriptorTypeFeatures->mutableDescriptorType = true;
-        }
-
         VkPhysicalDeviceMaintenance5FeaturesKHR maintenance5Features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES_KHR, .pNext = deviceExtensionObjects };
         auto pMaintenance5Features = findExtension<VkPhysicalDeviceMaintenance5FeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES_KHR, deviceExtensionObjects);
 
@@ -400,6 +386,14 @@ public:
         if (pUnifiedImageLayoutsFeature == nullptr) {
             pUnifiedImageLayoutsFeature = &unifiedImageLayoutsFeature;
             deviceExtensionObjects = pUnifiedImageLayoutsFeature;
+        }
+
+        VkPhysicalDeviceDescriptorHeapFeaturesEXT descriptorHeapFeature { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_HEAP_FEATURES_EXT, .pNext = deviceExtensionObjects, .descriptorHeap = VK_TRUE };
+        auto pDescriptorHeapFeature = findExtension<VkPhysicalDeviceDescriptorHeapFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_HEAP_FEATURES_EXT, deviceExtensionObjects);
+
+        if (pDescriptorHeapFeature == nullptr) {
+            pDescriptorHeapFeature = &descriptorHeapFeature;
+            deviceExtensionObjects = pDescriptorHeapFeature;
         }
 
         VkPhysicalDeviceFeatures2 deviceFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = deviceExtensionObjects };
