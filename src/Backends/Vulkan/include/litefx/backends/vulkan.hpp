@@ -2533,6 +2533,13 @@ namespace LiteFX::Rendering::Backends {
         UInt32 descriptorSize(DescriptorType type) const;
 
         // GraphicsDevice interface.
+    private:
+        /// @copydoc GraphicsDevice::copyDescriptors
+        void copyDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heap, UInt32 targetIndex, UInt32 sourceIndex, UInt32 descriptors) const override;
+        
+        /// @copydoc GraphicsDevice::bindDescriptors
+        void bindDescriptors(const VulkanCommandBuffer& commandBuffer, const VulkanPipelineState& pipeline, const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heap, UInt32 baseIndex) const override;
+
     public:
         /// @copydoc IGraphicsDevice::state
         DeviceState& state() const noexcept override;

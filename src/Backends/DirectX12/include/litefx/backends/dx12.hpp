@@ -2419,6 +2419,13 @@ namespace LiteFX::Rendering::Backends {
         void release() noexcept;
 
         // DirectX 12 Device interface.
+    private:
+        /// @copydoc GraphicsDevice::copyDescriptors
+        void copyDescriptors(const DirectX12DescriptorSet& descriptorSet, DescriptorHeapType heap, UInt32 targetIndex, UInt32 sourceIndex, UInt32 descriptors) const override;
+
+        /// @copydoc GraphicsDevice::bindDescriptors
+        void bindDescriptors(const DirectX12CommandBuffer& commandBuffer, const DirectX12PipelineState& pipeline, const DirectX12DescriptorSet& descriptorSet, DescriptorHeapType heap, UInt32 baseIndex) const override;
+
     public:
         /// @brief Returns the global descriptor heap.
         ///
@@ -2525,12 +2532,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// @copydoc GraphicsDevice::releaseGlobalDescriptors
         void releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const override;
-
-        /// @copydoc GraphicsDevice::updateGlobalDescriptors
-        void updateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const override;
-
-        /// @copydoc GraphicsDevice::bindDescriptorSet
-        void bindDescriptorSet(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const override;
 
         /// @copydoc GraphicsDevice::bindGlobalDescriptorHeaps
         void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept override;

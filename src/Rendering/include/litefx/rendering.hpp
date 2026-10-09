@@ -1575,6 +1575,24 @@ namespace LiteFX::Rendering {
             return std::static_pointer_cast<const ICommandQueue>(this->createQueue(type, priority));
         }
 
+        /// @brief Copies the local descriptors of @p descriptorSet into the global descriptor heap @p heap.
+        /// 
+        /// @param descriptorSet The descriptor set for which to copy the descriptors.
+        /// @param heap The heap that receives the descriptors.
+        /// @param targetIndex The index of the first descriptor on the global descriptor heap.
+        /// @param sourceIndex The index of the first descriptor in the descriptor set's local descriptor heap.
+        /// @param descriptors The number of descriptors to copy.
+        virtual void copyDescriptors(const descriptor_set_type& descriptorSet, DescriptorHeapType heap, UInt32 targetIndex, UInt32 sourceIndex, UInt32 descriptors) const = 0;
+
+        /// @brief Makes the descriptors contained by @p descriptorSet on @p heap available to @p pipeline
+        /// 
+        /// @param commandBuffer The command buffer on which @p pipeline is bound.
+        /// @param pipeline The pipeline for which to make the descriptors available.
+        /// @param descriptorSet The descriptor set that should be bound.
+        /// @param heap The heap that binds the descriptors.
+        /// @param baseIndex The index of the first descriptor to bind.
+        virtual void bindDescriptors(const command_buffer_type& commandBuffer, const pipeline_type& pipeline, const descriptor_set_type& descriptorSet, DescriptorHeapType heap, UInt32 baseIndex) const = 0;
+
     public:
         /// @copydoc IGraphicsDevice::computeAccelerationStructureSizes(const IBottomLevelAccelerationStructure&, UInt64&, UInt64&, bool)
         virtual void computeAccelerationStructureSizes(const bottom_level_acceleration_structure_type& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const = 0;
@@ -1588,14 +1606,34 @@ namespace LiteFX::Rendering {
         /// @copydoc IGraphicsDevice::releaseGlobalDescriptors(const IDescriptorSet&)
         virtual void releaseGlobalDescriptors(const descriptor_set_type& descriptorSet) const = 0;
 
-        /// @copydoc IGraphicsDevice::updateGlobalDescriptors(const IDescriptorSet&, UInt32, UInt32, UInt32)
-        virtual void updateGlobalDescriptors(const descriptor_set_type& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const = 0;
-
-        /// @copydoc IGraphicsDevice::bindDescriptorSet(const ICommandBuffer&, const IDescriptorSet&, const IPipeline&)
-        virtual void bindDescriptorSet(const command_buffer_type& commandBuffer, const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const = 0;
-
         /// @copydoc IGraphicsDevice::bindGlobalDescriptorHeaps(const ICommandBuffer&)
         virtual void bindGlobalDescriptorHeaps(const command_buffer_type& commandBuffer) const noexcept = 0;
+
+        /// @copydoc IGraphicsDevice::updateGlobalDescriptors(const IDescriptorSet&, UInt32, UInt32, UInt32)
+        virtual void updateGlobalDescriptors(const descriptor_set_type& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const {
+            // Obtain the allocation range.
+            auto range = descriptorSet.layout().allocationLayout().range(binding);
+
+            // Check if a range exists for the binding. If it doesn't, it's not a failure, since it could very well refer to a static sampler.
+            if (!range.has_value())
+                return;
+
+            // Obtain the source and target descriptor indices.
+            const auto sourceIndex = range->RelativeOffset + offset;
+            const auto targetIndex = static_cast<UInt32>(descriptorSet.globalHeapAllocation(range->Heap).Allocation.Offset) + sourceIndex;
+
+            // Copy the descriptors.
+            this->copyDescriptors(descriptorSet, range->Heap, targetIndex, sourceIndex, descriptors);
+        }
+
+        /// @copydoc IGraphicsDevice::bindDescriptorSet(const ICommandBuffer&, const IDescriptorSet&, const IPipeline&)
+        virtual void bindDescriptorSet(const command_buffer_type& commandBuffer, const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const {
+            const auto& layout = descriptorSet.layout();
+
+            for (auto heap : { DescriptorHeapType::Resource, DescriptorHeapType::Sampler })
+                if (layout.allocationLayout().binds(heap))
+                    this->bindDescriptors(commandBuffer, pipeline, descriptorSet, heap, static_cast<UInt32>(descriptorSet.globalHeapAllocation(heap).Allocation.Offset));
+        }
 
     private:
         inline void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const override {

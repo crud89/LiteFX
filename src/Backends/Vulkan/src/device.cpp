@@ -829,6 +829,18 @@ const GlobalDescriptorHeaps& VulkanDevice::descriptorHeaps() const noexcept
     return *m_impl->m_descriptorHeaps;
 }
 
+void VulkanDevice::copyDescriptors(const VulkanDescriptorSet& /*descriptorSet*/, DescriptorHeapType /*heap*/, UInt32 /*targetIndex*/, UInt32 /*sourceIndex*/, UInt32 /*descriptors*/) const
+{
+    // TODO: Implement this.
+    throw;
+}
+
+void VulkanDevice::bindDescriptors(const VulkanCommandBuffer& /*commandBuffer*/, const VulkanPipelineState& /*pipeline*/, const VulkanDescriptorSet& /*descriptorSet*/, DescriptorHeapType /*heap*/, UInt32 /*baseIndex*/) const
+{
+    // TODO: Implement this.
+    throw;
+}
+
 DescriptorHeapAllocation VulkanDevice::allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType) const
 {
     std::lock_guard<std::mutex> lock(m_impl->m_bufferBindMutex);
