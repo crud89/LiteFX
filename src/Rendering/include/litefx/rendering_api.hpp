@@ -9176,11 +9176,8 @@ namespace LiteFX::Rendering {
         /// @brief Enables or disables support for indirect draw.
         bool DrawIndirect { false };
 
-        /// @brief Enables or disables support for dynamic descriptor types ([SM 6.6 dynamic resources](https://microsoft.github.io/DirectX-Specs/d3d/HLSL_SM_6_6_DynamicResources.html) and
-        /// [VK_EXT_descriptor_heap](https://docs.vulkan.org/features/latest/features/proposals/VK_EXT_descriptor_heap.html)).
-        ///
-        /// Note that support for this feature is limited in the engine. It's purpose is to bind resources of different @ref DescriptorType "DescriptorTypes" within a single descriptor array. However, you still
-        /// have to allocate a @ref IDescriptorSet to be able to bind resources and retrieve resource indices by calling @ref IDescriptorSet::bindToHeap.
+        /// @brief Enables direct access to the global descriptor heaps from shaders ([SM 6.6 dynamic resources](https://microsoft.github.io/DirectX-Specs/d3d/HLSL_SM_6_6_DynamicResources.html) and
+        /// [VK_KHR_shader_untyped_pointers](https://docs.vulkan.org/features/latest/features/proposals/VK_KHR_shader_untyped_pointers.html)).
         bool DynamicDescriptors { false };
 
         /// @brief Enables support for enabling depth bounds test on @ref IRenderPipeline creation.

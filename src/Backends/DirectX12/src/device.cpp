@@ -40,7 +40,6 @@ public:
 			throw ArgumentOutOfRangeException("globalBufferHeapSize", std::make_pair<UInt32, UInt32>(0, D3D12_MAX_SHADER_VISIBLE_DESCRIPTOR_HEAP_SIZE_TIER_2), globalBufferHeapSize, 
 				"Only {1} samplers are allowed in the global sampler heap, but {0} have been specified.", globalSamplerHeapSize, D3D12_MAX_SHADER_VISIBLE_DESCRIPTOR_HEAP_SIZE_TIER_2);
 
-
 		if (globalSamplerHeapSize > D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE) [[unlikely]]
 			throw ArgumentOutOfRangeException("globalSamplerHeapSize", std::make_pair<UInt32, UInt32>(0, D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE), globalSamplerHeapSize, 
 				"Only {1} samplers are allowed in the global sampler heap, but {0} have been specified.", globalSamplerHeapSize, D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE);

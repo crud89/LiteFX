@@ -332,12 +332,11 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        /// @brief A helper that ensures that contents from an initializer list or mdspan are copied and don't dangle.
-        static constexpr auto upcast = [](Generator<UniquePtr<descriptor_set_type>> descriptorSets) static->Generator<UniquePtr<IDescriptorSet>> {
+        /// @brief Upcasts a range of descriptor set pointers to @ref IDescriptorSet.
+        static constexpr auto upcast = [](Generator<UniquePtr<descriptor_set_type>> descriptorSets) static -> Generator<UniquePtr<IDescriptorSet>> {
             for (auto&& descriptorSet : descriptorSets)
                 co_yield std::move(descriptorSet);
         };
-
 
         inline Enumerable<const IDescriptorLayout&> getDescriptors() const noexcept override {
             return this->descriptors();
