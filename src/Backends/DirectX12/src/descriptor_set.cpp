@@ -58,7 +58,7 @@ public:
         }
     }
 
-    inline DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept
+    inline DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const
     {
         switch (heapType)
         {
@@ -67,7 +67,7 @@ public:
         case DescriptorHeapType::Sampler:
             return m_samplerHeap.Allocation;
         default:
-            std::unreachable();
+            throw InvalidArgumentException("heapType", "The heap type must refer to a valid descriptor heap.");
         }
     }
 
@@ -473,7 +473,7 @@ UInt32 DirectX12DescriptorSet::capacity(UInt32 binding) const noexcept
     return range->Unbounded ? m_impl->m_unboundedArrayCapacity : range->DescriptorCount;
 }
 
-DescriptorHeapAllocation DirectX12DescriptorSet::globalHeapAllocation(DescriptorHeapType heapType) const noexcept
+DescriptorHeapAllocation DirectX12DescriptorSet::globalHeapAllocation(DescriptorHeapType heapType) const
 {
     return m_impl->globalHeapAllocation(heapType);
 }

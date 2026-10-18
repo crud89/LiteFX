@@ -9,12 +9,13 @@ using namespace LiteFX::Rendering::Backends;
 
 // Exported extensions (we should probably find a better solution for this).
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
-PFN_vkCreateDebugUtilsMessengerEXT   vkCreateDebugUtilsMessenger{ nullptr };
-PFN_vkDestroyDebugUtilsMessengerEXT  vkDestroyDebugUtilsMessenger{ nullptr };
-PFN_vkQueueBeginDebugUtilsLabelEXT   vkQueueBeginDebugUtilsLabel{ nullptr };
-PFN_vkQueueEndDebugUtilsLabelEXT     vkQueueEndDebugUtilsLabel{ nullptr };
-PFN_vkQueueInsertDebugUtilsLabelEXT  vkQueueInsertDebugUtilsLabel{ nullptr };
-PFN_vkSetDebugUtilsObjectNameEXT     vkSetDebugUtilsObjectName{ nullptr };
+PFN_vkCreateDebugUtilsMessengerEXT          vkCreateDebugUtilsMessenger{ nullptr };
+PFN_vkDestroyDebugUtilsMessengerEXT         vkDestroyDebugUtilsMessenger{ nullptr };
+PFN_vkQueueBeginDebugUtilsLabelEXT          vkQueueBeginDebugUtilsLabel{ nullptr };
+PFN_vkQueueEndDebugUtilsLabelEXT            vkQueueEndDebugUtilsLabel{ nullptr };
+PFN_vkQueueInsertDebugUtilsLabelEXT         vkQueueInsertDebugUtilsLabel{ nullptr };
+PFN_vkSetDebugUtilsObjectNameEXT            vkSetDebugUtilsObjectName{ nullptr };
+PFN_vkGetPhysicalDeviceDescriptorSizeEXT    vkGetPhysicalDeviceDescriptorSize{ nullptr };
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
@@ -178,14 +179,19 @@ public:
         VkInstance instance{};
         raiseIfFailed(::vkCreateInstance(&createInfo, nullptr, &instance), "Unable to create Vulkan instance.");
 
+        // Load required device extension functions.
+        // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
+        vkGetPhysicalDeviceDescriptorSize   = reinterpret_cast<PFN_vkGetPhysicalDeviceDescriptorSizeEXT>(::vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceDescriptorSizeEXT"));
+        // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
+
 #ifndef NDEBUG
         // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
-        vkCreateDebugUtilsMessenger     = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(::vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
-        vkDestroyDebugUtilsMessenger    = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(::vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
-        vkQueueBeginDebugUtilsLabel     = reinterpret_cast<PFN_vkQueueBeginDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueBeginDebugUtilsLabelEXT"));
-        vkQueueEndDebugUtilsLabel       = reinterpret_cast<PFN_vkQueueEndDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueEndDebugUtilsLabelEXT"));
-        vkQueueInsertDebugUtilsLabel    = reinterpret_cast<PFN_vkQueueInsertDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueInsertDebugUtilsLabelEXT"));
-        vkSetDebugUtilsObjectName       = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(::vkGetInstanceProcAddr(instance, "vkSetDebugUtilsObjectNameEXT"));
+        vkCreateDebugUtilsMessenger         = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(::vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
+        vkDestroyDebugUtilsMessenger        = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(::vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
+        vkQueueBeginDebugUtilsLabel         = reinterpret_cast<PFN_vkQueueBeginDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueBeginDebugUtilsLabelEXT"));
+        vkQueueEndDebugUtilsLabel           = reinterpret_cast<PFN_vkQueueEndDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueEndDebugUtilsLabelEXT"));
+        vkQueueInsertDebugUtilsLabel        = reinterpret_cast<PFN_vkQueueInsertDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueInsertDebugUtilsLabelEXT"));
+        vkSetDebugUtilsObjectName           = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(::vkGetInstanceProcAddr(instance, "vkSetDebugUtilsObjectNameEXT"));
         // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
 
         if (vkCreateDebugUtilsMessenger == nullptr)

@@ -562,8 +562,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// @brief Returns the shader stage creation info for convenience.
         ///
+        /// @param pNext The extension chain added to the pipeline shader stage creation info.
         /// @return The shader stage creation info for convenience.
-        VkPipelineShaderStageCreateInfo shaderStageDefinition() const;
+        VkPipelineShaderStageCreateInfo shaderStageDefinition(const void* pNext = nullptr) const;
     };
 
     /// @brief Implements a Vulkan @ref ShaderProgram.
@@ -644,8 +645,9 @@ namespace LiteFX::Rendering::Backends {
         /// @brief Initializes the descriptor set from a cached buffer. This is only called from the descriptor set layout.
         ///
         /// @param layout The parent layout of the descriptor set.
-        /// @param buffer The buffer to take over.
-        explicit VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, Array<Byte>&& buffer);
+        /// @param resourceHeap The host-local resource descriptor heap to take over.
+        /// @param samplerHeap The host-local sampler descriptor heap to take over.
+        explicit VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, Array<Byte>&& resourceHeap, Array<Byte>&& samplerHeap);
 
     public:
         /// @brief Initializes a new descriptor set.
@@ -669,21 +671,23 @@ namespace LiteFX::Rendering::Backends {
     private:
         /// @brief Releases the underlying buffer of the descriptor set and returns it to the caller (usually the parent descriptor set layout).
         ///
+        /// @param heapType The type of the host-local descriptor heap to release.
         /// @return The underlying descriptor buffer.
-        Array<Byte>&& releaseBuffer() const noexcept;
+        Array<Byte>&& releaseBuffer(DescriptorHeapType heapType) const;
 
     public:
         /// @brief Returns a view over the underlying descriptor buffer.
         ///
+        /// @param heapType The type of the descriptor heap for which to obtain the descriptor buffer.
         /// @return A view over the underlying descriptor buffer.
-        Span<const Byte> descriptorBuffer() const noexcept;
+        Span<const Byte> descriptorBuffer(DescriptorHeapType heapType) const;
 
     public:
         /// @copydoc IDescriptorSet::capacity
         UInt32 capacity(UInt32 binding) const noexcept override;
 
         /// @copydoc IDescriptorSet::globalHeapAllocation
-        DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept override;
+        DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const override;
 
         /// @copydoc DescriptorSet::bindToHeap(DescriptorType, UInt32, const buffer_type&, UInt32, UInt32, Format) const
         UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const override;
@@ -786,7 +790,7 @@ namespace LiteFX::Rendering::Backends {
     ///
     /// @see @ref VulkanDescriptorSet
     /// @see @ref VulkanDescriptorSetLayoutBuilder
-    class LITEFX_VULKAN_API VulkanDescriptorSetLayout final : public DescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>, public Resource<VkDescriptorSetLayout> {
+    class LITEFX_VULKAN_API VulkanDescriptorSetLayout final : public DescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet> {
         LITEFX_IMPLEMENTATION(VulkanDescriptorSetLayoutImpl);
         LITEFX_BUILDER(VulkanDescriptorSetLayoutBuilder);
         friend struct SharedObject::Allocator<VulkanDescriptorSetLayout>;
@@ -817,7 +821,7 @@ namespace LiteFX::Rendering::Backends {
         VulkanDescriptorSetLayout& operator=(const VulkanDescriptorSetLayout&) = delete;
 
     public:
-        ~VulkanDescriptorSetLayout() noexcept override;
+        ~VulkanDescriptorSetLayout() noexcept override = default;
 
     public:
         /// @brief Creates a Vulkan descriptor set layout.
@@ -995,7 +999,7 @@ namespace LiteFX::Rendering::Backends {
     /// @brief Implements a Vulkan @ref PipelineLayout.
     ///
     /// @see @ref VulkanPipelineLayoutBuilder
-    class LITEFX_VULKAN_API VulkanPipelineLayout final : public PipelineLayout<VulkanDescriptorSetLayout, VulkanPushConstantsLayout>, public Resource<VkPipelineLayout> {
+    class LITEFX_VULKAN_API VulkanPipelineLayout final : public PipelineLayout<VulkanDescriptorSetLayout, VulkanPushConstantsLayout> {
         LITEFX_IMPLEMENTATION(VulkanPipelineLayoutImpl);
         LITEFX_BUILDER(VulkanPipelineLayoutBuilder);
         friend struct SharedObject::Allocator<VulkanPipelineLayout>;
@@ -1020,7 +1024,7 @@ namespace LiteFX::Rendering::Backends {
         VulkanPipelineLayout& operator=(const VulkanPipelineLayout&) = delete;
 
     public:
-        ~VulkanPipelineLayout() noexcept override;
+        ~VulkanPipelineLayout() noexcept override = default;
 
     public:
         /// @brief Creates a new Vulkan render pipeline layout.
@@ -1041,6 +1045,19 @@ namespace LiteFX::Rendering::Backends {
         static inline auto create(const VulkanDevice& device) {
             return SharedObject::create<VulkanPipelineLayout>(device);
         }
+
+        // Vulkan Pipeline Layout
+    public:
+        /// @brief Returns a reference to the pipeline's descriptor set binding mappings.
+        /// 
+        /// @return A reference to the pipeline's descriptor set binding mappings.
+        const VkShaderDescriptorSetAndBindingMappingInfoEXT& mappingInfo() const noexcept;
+
+        /// @brief Returns the push data offset for a descriptor set at @p space on the descriptor heap referred to by @p heap.
+        ///
+        /// @param space The descriptor set size.
+        /// @param heap The descriptor heap type.
+        Optional<UInt32> pushDataOffset(UInt32 space, DescriptorHeapType heap) const;
 
         // PipelineLayout interface.
     public:
@@ -2390,11 +2407,21 @@ namespace LiteFX::Rendering::Backends {
         friend class VulkanBackend;
 
     public:
-        /// @brief The default size for the global buffer heap in bytes.
+        /// @brief The default size for the global resource descriptor heap. Matches the required maximum in D3D12.
+        static constexpr UInt32 DEFAULT_RESOURCE_HEAP_SIZE = 1'000'000;
+
+        /// @brief The default size for the global sampler descriptor heap. Matches the required maximum in D3D12.
+        static constexpr UInt32 DEFAULT_SAMPLER_HEAP_SIZE = 2048;
+
+        /// @brief Equals the maximum descriptor size for buffers and images (`max(128, 64)`) from the VK_EXT_descriptor_heap proposal.
         ///
-        /// The default value represents the minimum supported value over all devices registered at GPUinfo:
-        /// https://vulkan.gpuinfo.org/displayextensionproperty.php?extensionname=VK_EXT_descriptor_buffer&extensionproperty=descriptorBufferAddressSpaceSize&platform=all.
-        static const size_t DEFAULT_DESCRIPTOR_HEAP_SIZE = 134'217'728;   // equals 128 Mb
+        /// Note that acceleration structures aren't guaranteed to be at maximum 128 bytes wide. DXC accepts strides up to 256 bytes, but without any rationale on how this limit was chosen. In practice,
+        /// only acceleration structures could reach such high descriptor widths, because the other descriptor's maxima are well-defined. However, acceleration structure descriptors are device addresses,
+        /// which rarely exceeds 16 bytes anyway, so 128 remains a sensible choice here. Acceleration structure strides are validated during startup.
+        static constexpr UInt32 RESOURCE_DESCRIPTOR_STRIDE = 128u;
+
+        /// @brief Equals the maximum descriptor size for samplers from the VK_EXT_descriptor_heap proposal.
+        static constexpr UInt32 SAMPLER_DESCRIPTOR_STRIDE = 32u;
 
     private:
         /// @brief Creates a new device instance.
@@ -2404,8 +2431,9 @@ namespace LiteFX::Rendering::Backends {
         /// @param surface The surface, the device should draw to.
         /// @param features The features that should be supported by this device.
         /// @param extensions The required extensions the device gets initialized with.
-        /// @param globalDescriptorHeapSize The size of the global descriptor heap in bytes.
-        explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }, size_t globalDescriptorHeapSize = DEFAULT_DESCRIPTOR_HEAP_SIZE);
+        /// @param globalResourceHeapSize The number of descriptors in the global resource descriptor heap.
+        /// @param globalSamplerHeapSize The number of descriptors in the global sampler descriptor heap.
+        explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }, UInt32 globalResourceHeapSize = DEFAULT_RESOURCE_HEAP_SIZE, UInt32 globalSamplerHeapSize = DEFAULT_SAMPLER_HEAP_SIZE);
 
     private:
         VulkanDevice(VulkanDevice&&) noexcept = delete;
@@ -2429,10 +2457,9 @@ namespace LiteFX::Rendering::Backends {
         /// @param features The features that should be supported by this device.
         /// @param extensions The required extensions the device gets initialized with.
         /// @param deviceExtensionObjects A pointer to additional extension objects (such as device features) that are stored in the devices's `pNext` chain during device creation.
-        /// @param globalDescriptorHeapSize The size of the global descriptor heap in bytes.
         /// @return A shared pointer to the new device instance.
-        static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }, void* deviceExtensionObjects = nullptr, size_t globalDescriptorHeapSize = DEFAULT_DESCRIPTOR_HEAP_SIZE) {
-            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions, globalDescriptorHeapSize)->initialize(Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features, deviceExtensionObjects); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }, void* deviceExtensionObjects = nullptr) {
+            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions)->initialize(Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features, deviceExtensionObjects); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         }
 
         /// @brief Initializes the device instance.
@@ -2450,10 +2477,11 @@ namespace LiteFX::Rendering::Backends {
         /// @param features The features that should be supported by this device.
         /// @param extensions The required extensions the device gets initialized with.
         /// @param deviceExtensionObjects A pointer to additional extension objects (such as device features) that are stored in the devices's `pNext` chain during device creation.
-        /// @param globalDescriptorHeapSize The size of the global descriptor heap in bytes.
+        /// @param globalResourceHeapSize The number of descriptors in the global resource descriptor heap.
+        /// @param globalSamplerHeapSize The number of descriptors in the global sampler descriptor heap.
         /// @return A shared pointer to the new device instance.
-        static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }, void* deviceExtensionObjects = nullptr, size_t globalDescriptorHeapSize = DEFAULT_DESCRIPTOR_HEAP_SIZE) {
-            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions, globalDescriptorHeapSize)->initialize(format, renderArea, backBuffers, enableVsync, features, deviceExtensionObjects);
+        static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }, void* deviceExtensionObjects = nullptr, UInt32 globalResourceHeapSize = DEFAULT_RESOURCE_HEAP_SIZE, UInt32 globalSamplerHeapSize = DEFAULT_SAMPLER_HEAP_SIZE) {
+            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions, globalResourceHeapSize, globalSamplerHeapSize)->initialize(format, renderArea, backBuffers, enableVsync, features, deviceExtensionObjects);
         }
 
     private:
@@ -2514,6 +2542,9 @@ namespace LiteFX::Rendering::Backends {
         /// @param type The type of the descriptor.
         /// @return The size of the descriptor.
         UInt32 descriptorSize(DescriptorType type) const;
+
+        /// @brief Returns the maximum push data size supported by the device.
+        UInt32 maxPushDataSize() const noexcept;
 
         // GraphicsDevice interface.
     private:
@@ -2580,12 +2611,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// @copydoc GraphicsDevice::releaseGlobalDescriptors
         void releaseGlobalDescriptors(const VulkanDescriptorSet& descriptorSet) const override;
-
-        /// @copydoc GraphicsDevice::updateGlobalDescriptors
-        void updateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const override;
-
-        /// @copydoc GraphicsDevice::bindDescriptorSet
-        void bindDescriptorSet(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const override;
 
         /// @copydoc GraphicsDevice::bindGlobalDescriptorHeaps
         void bindGlobalDescriptorHeaps(const VulkanCommandBuffer& commandBuffer) const noexcept override;

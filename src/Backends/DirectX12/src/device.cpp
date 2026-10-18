@@ -235,8 +235,8 @@ DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, Unique
 	LITEFX_DEBUG(DIRECTX12_LOG, "API Version: {0:#0x}", adapter.apiVersion());
 	LITEFX_DEBUG(DIRECTX12_LOG, "Dedicated Memory: {0} Bytes", adapter.dedicatedMemory());
 	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
-	LITEFX_DEBUG(DIRECTX12_LOG, "Descriptor Heap Size: {0}", globalBufferHeapSize);
-	LITEFX_DEBUG(DIRECTX12_LOG, "Sampler Heap Size: {0}", globalSamplerHeapSize);
+	LITEFX_DEBUG(DIRECTX12_LOG, "Resource Descriptor Heap Size: {0}", globalBufferHeapSize);
+	LITEFX_DEBUG(DIRECTX12_LOG, "Sampler Descriptor Heap Size: {0}", globalSamplerHeapSize);
 	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
 }
 

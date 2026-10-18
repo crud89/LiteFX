@@ -4978,7 +4978,7 @@ namespace LiteFX::Rendering {
         ///
         /// @param heapType The type of the descriptor heap for which to obtain the heap allocation.
         /// @return The allocation for the descriptor set in the global descriptor heap.
-        virtual DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept = 0;
+        virtual DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const = 0;
 
         /// @brief Binds a resource directly to a descriptor heap and returns the index that can be used to access it.
         ///

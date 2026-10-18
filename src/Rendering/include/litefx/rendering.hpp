@@ -1672,7 +1672,7 @@ namespace LiteFX::Rendering {
         virtual void bindGlobalDescriptorHeaps(const command_buffer_type& commandBuffer) const noexcept = 0;
 
         /// @copydoc IGraphicsDevice::updateGlobalDescriptors(const IDescriptorSet&, UInt32, UInt32, UInt32)
-        virtual void updateGlobalDescriptors(const descriptor_set_type& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const {
+        void updateGlobalDescriptors(const descriptor_set_type& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const {
             // Obtain the allocation range.
             auto range = descriptorSet.layout().allocationLayout().range(binding);
 
@@ -1689,7 +1689,7 @@ namespace LiteFX::Rendering {
         }
 
         /// @copydoc IGraphicsDevice::bindDescriptorSet(const ICommandBuffer&, const IDescriptorSet&, const IPipeline&)
-        virtual void bindDescriptorSet(const command_buffer_type& commandBuffer, const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const {
+        void bindDescriptorSet(const command_buffer_type& commandBuffer, const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const {
             const auto& layout = descriptorSet.layout();
 
             for (auto heap : { DescriptorHeapType::Resource, DescriptorHeapType::Sampler })

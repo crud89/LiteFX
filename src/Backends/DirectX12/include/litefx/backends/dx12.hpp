@@ -637,7 +637,7 @@ namespace LiteFX::Rendering::Backends {
         UInt32 capacity(UInt32 binding) const noexcept override;
 
         /// @copydoc IDescriptorSet::globalHeapAllocation
-        DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept override;
+        DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const override;
 
         /// @copydoc DescriptorSet::bindToHeap(DescriptorType, UInt32, const buffer_type&, UInt32, UInt32, Format) const
         UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const override;

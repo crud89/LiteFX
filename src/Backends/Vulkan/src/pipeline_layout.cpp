@@ -16,86 +16,108 @@ private:
     SharedPtr<const VulkanDevice> m_device;
     UniquePtr<VulkanPushConstantsLayout> m_pushConstantsLayout;
     Array<SharedPtr<const VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
+    Array<VkDescriptorSetAndBindingMappingEXT> m_mappings;
+    Dictionary<UInt32, UInt32> m_setPushOffsets; // Maps the descriptor set space to the offset of the resource or sampler index.
+    VkShaderDescriptorSetAndBindingMappingInfoEXT m_mappingInfo{ .sType = VK_STRUCTURE_TYPE_SHADER_DESCRIPTOR_SET_AND_BINDING_MAPPING_INFO_EXT };
 
 public:
     VulkanPipelineLayoutImpl(const VulkanDevice& device) :
         m_device(device.shared_from_this())
     {
     }
+    
+    VulkanPipelineLayoutImpl(const VulkanPipelineLayoutImpl&) = delete;
+    VulkanPipelineLayoutImpl(VulkanPipelineLayoutImpl&&) noexcept = default;
+    VulkanPipelineLayoutImpl& operator=(const VulkanPipelineLayoutImpl&) = delete;
+    VulkanPipelineLayoutImpl& operator=(VulkanPipelineLayoutImpl&&) noexcept = default;
 
 public:
-    VkPipelineLayout initialize([[maybe_unused]] const VulkanPipelineLayout& pipelineLayout, Array<SharedPtr<VulkanDescriptorSetLayout>> descriptorLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout)
+    void createMappings()
     {
-        if (std::ranges::any_of(descriptorLayouts, [](const auto& layout) { return layout == nullptr; })) [[unlikely]]
-            throw ArgumentNotInitializedException("descriptorLayouts", "At least one of the provided descriptor layouts is not initialized.");
+        constexpr UInt32 resourceStride = VulkanDevice::RESOURCE_DESCRIPTOR_STRIDE, samplerStride = VulkanDevice::SAMPLER_DESCRIPTOR_STRIDE;
+        UInt32 offset = align(m_pushConstantsLayout == nullptr ? 0u : m_pushConstantsLayout->size(), 4u);
 
-        // Since Vulkan does not know spaces, descriptor sets are mapped to their indices based on the order they are defined. Hence we need to sort the descriptor set layouts accordingly.
-        std::ranges::sort(descriptorLayouts, [](const auto& a, const auto& b) { return a->space() < b->space(); });
-
-        // Find unused and duplicate descriptor sets. Initialize with all the set indices up until the first set index is reached.
-        Array<UInt32> emptySets;
-
-        if (!descriptorLayouts.empty())
-            emptySets.append_range(std::views::iota(0u, descriptorLayouts.front()->space()));
-
-        for (Tuple<UInt32, UInt32> spaces : descriptorLayouts |
-            std::views::transform([](const auto& layout) { return layout->space(); }) | 
-            std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
+        // Create a mapping for each descriptor set.
+        for (auto& layout : m_descriptorSetLayouts)
         {
-            auto [a, b] = spaces;
+            // Store the offset to the push constant for the descriptor set space.
+            auto space = layout->space();
+            auto pushOffset = offset;
+            m_setPushOffsets[space] = pushOffset;
+            offset += 2u * sizeof(UInt32);
 
-            if (a == b) [[unlikely]]
-                throw InvalidArgumentException("descriptorSetLayouts", "Two layouts defined for the same descriptor set {}. Each descriptor set must use it's own space.", a);
+            // Map each descriptor.
+            for (auto& descriptor : layout->descriptors())
+            {
+                VkDescriptorSetAndBindingMappingEXT mapping {
+                    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_AND_BINDING_MAPPING_EXT,
+                    .descriptorSet = space,
+                    .firstBinding = descriptor.binding(),
+                    .bindingCount = 1u,
+                    .resourceMask = VK_SPIRV_RESOURCE_TYPE_ALL_EXT
+                };
 
-            // Fill space until we reached the last descriptor set.
-            emptySets.append_range(std::views::iota(a + 1, b));
+                if (descriptor.descriptorType() == DescriptorType::ResourceDescriptorHeap)
+                {
+                    mapping.source = VK_DESCRIPTOR_MAPPING_SOURCE_HEAP_WITH_CONSTANT_OFFSET_EXT;
+                    mapping.sourceData.constantOffset = { .heapOffset = 0u, .heapArrayStride = resourceStride };
+                }
+                else if (descriptor.descriptorType() == DescriptorType::SamplerDescriptorHeap)
+                {
+                    mapping.source = VK_DESCRIPTOR_MAPPING_SOURCE_HEAP_WITH_CONSTANT_OFFSET_EXT;
+                    mapping.sourceData.constantOffset = { .heapOffset = 0u, .heapArrayStride = samplerStride };
+                }
+                else if (descriptor.staticSampler() != nullptr)
+                {
+                    mapping.source = VK_DESCRIPTOR_MAPPING_SOURCE_HEAP_WITH_CONSTANT_OFFSET_EXT;
+                    mapping.sourceData.constantOffset = { .pEmbeddedSampler = &descriptor.staticSampler()->createInfo() };
+                }
+                else
+                {
+                    auto range = layout->allocationLayout().range(descriptor.binding());
+                    auto isSampler = range->Heap == DescriptorHeapType::Sampler;
+                    auto stride = isSampler ? samplerStride : resourceStride;
+
+                    mapping.source = VK_DESCRIPTOR_MAPPING_SOURCE_HEAP_WITH_PUSH_INDEX_EXT;
+                    mapping.sourceData.pushIndex = {
+                        .heapOffset = range->RelativeOffset * stride,
+                        .pushOffset = pushOffset + (isSampler ? 4u : 0u),
+                        .heapIndexStride = stride,
+                        .heapArrayStride = stride 
+                    };
+                }
+
+                m_mappings.push_back(mapping);
+            }
         }
 
-        // Add empty sets.
-        if (!emptySets.empty())
-        {
-            for (auto s : emptySets)
-                descriptorLayouts.push_back(VulkanDescriptorSetLayout::create(*m_device, { }, s, ShaderStage::Any)); // No descriptor can ever be allocated from an empty descriptor set.
+        if (offset > m_device->maxPushDataSize()) [[unlikely]]
+            throw RuntimeException("The pipeline layout requires {0} bytes of push data, but the device only supports {1} bytes.", offset, m_device->maxPushDataSize());
 
-            // Re-order them.
-            std::ranges::sort(descriptorLayouts, [](const auto& a, const auto& b) { return a->space() < b->space(); });
-        }
+        m_mappingInfo.mappingCount = static_cast<UInt32>(m_mappings.size());
+        m_mappingInfo.pMappings = m_mappings.data();
+    }
 
-        // Query for the descriptor set layout handles.
-        auto descriptorSetLayouts = descriptorLayouts |
-            std::views::transform([](const SharedPtr<VulkanDescriptorSetLayout>& layout) { return std::as_const(*layout.get()).handle(); }) |
-            std::ranges::to<Array<VkDescriptorSetLayout>>();
+    void initialize([[maybe_unused]] const VulkanPipelineLayout& pipelineLayout, Array<SharedPtr<VulkanDescriptorSetLayout>> descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout)
+    {
+        if (std::ranges::any_of(descriptorSetLayouts, [](const auto& layout) { return layout == nullptr; })) [[unlikely]]
+            throw ArgumentNotInitializedException("descriptorSetLayouts", "At least one of the provided descriptor layouts is not initialized.");
 
-        // Query for push constant ranges.
-        Array<VkPushConstantRange> rangeHandles {};
+        // Sort the descriptor sets by space, to allow for duplicate detection and stable push constant offsets.
+        std::ranges::sort(descriptorSetLayouts, [](const auto& a, const auto& b) { return a->space() < b->space(); });
 
-        if (pushConstantsLayout != nullptr)
-        {
-            rangeHandles = pushConstantsLayout->ranges()
-                | std::views::transform([](const auto& range) -> VkPushConstantRange {
-                        return { .stageFlags = static_cast<VkShaderStageFlags>(std::to_underlying(range->stageMask())), .offset = range->offset(), .size = range->size() };
-                    })
-                | std::ranges::to<Array<VkPushConstantRange>>();
-        }
+        // Check if there are descriptor sets occupying the same space.
+        if (auto duplicate = std::ranges::adjacent_find(descriptorSetLayouts, {}, [](const auto& layout) { return layout->space(); }); duplicate != descriptorSetLayouts.end()) [[unlikely]]
+            throw InvalidArgumentException("descriptorSetLayouts", "Two layouts defined for the same descriptor set {}. Each descriptor set must use it's own space.", (*duplicate)->space());
 
-        // Create the pipeline layout.
-        LITEFX_TRACE(VULKAN_LOG, "Creating pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", static_cast<const void*>(&pipelineLayout), descriptorSetLayouts.size(), rangeHandles.size());
-
-        VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
-        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = static_cast<UInt32>(descriptorSetLayouts.size());
-        pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
-        pipelineLayoutInfo.pushConstantRangeCount = static_cast<UInt32>(rangeHandles.size());
-        pipelineLayoutInfo.pPushConstantRanges = rangeHandles.data();
-
-        VkPipelineLayout layout{};
-        raiseIfFailed(::vkCreatePipelineLayout(m_device->handle(), &pipelineLayoutInfo, nullptr, &layout), "Unable to create pipeline layout.");
+        LITEFX_TRACE(VULKAN_LOG, "Creating pipeline layout {0} {{ Descriptor Sets: {1}, Push Constants: {2} bytes }}...", static_cast<const void*>(&pipelineLayout), descriptorSetLayouts.size(), pushConstantsLayout == nullptr ? 0u : pushConstantsLayout->size());
 
         // Store the layouts.
         m_pushConstantsLayout = std::move(pushConstantsLayout);
-        m_descriptorSetLayouts.append_range(std::move(descriptorLayouts));
+        m_descriptorSetLayouts.append_range(std::move(descriptorSetLayouts));
 
-        return layout;
+        // Map the descriptor bindings onto the global descriptor heaps.
+        this->createMappings();
     }
 };
 
@@ -104,19 +126,27 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, const Enumerable<SharedPtr<VulkanDescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
-    Resource<VkPipelineLayout>(VK_NULL_HANDLE), m_impl(device)
+    m_impl(device)
 {
-    this->handle() = m_impl->initialize(*this, descriptorSetLayouts | std::ranges::to<std::vector>(), std::move(pushConstantsLayout));
+    m_impl->initialize(*this, descriptorSetLayouts | std::ranges::to<std::vector>(), std::move(pushConstantsLayout));
 }
 
 VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device) noexcept : // NOLINT(bugprone-exception-escape)
-    Resource<VkPipelineLayout>(VK_NULL_HANDLE), m_impl(device)
+    m_impl(device)
 {
 }
 
-VulkanPipelineLayout::~VulkanPipelineLayout() noexcept
+const VkShaderDescriptorSetAndBindingMappingInfoEXT& VulkanPipelineLayout::mappingInfo() const noexcept
 {
-    ::vkDestroyPipelineLayout(m_impl->m_device->handle(), this->handle(), nullptr);
+    return m_impl->m_mappingInfo;
+}
+
+Optional<UInt32> VulkanPipelineLayout::pushDataOffset(UInt32 space, DescriptorHeapType heap) const
+{
+    if (auto match = m_impl->m_setPushOffsets.find(space); match != m_impl->m_setPushOffsets.end())
+        return match->second + (heap == DescriptorHeapType::Sampler ? 4u : 0u);
+
+    return std::nullopt;
 }
 
 const VulkanDevice& VulkanPipelineLayout::device() const noexcept
@@ -175,7 +205,7 @@ VulkanPipelineLayoutBuilder::~VulkanPipelineLayoutBuilder() noexcept = default;
 void VulkanPipelineLayoutBuilder::build()
 {
     auto instance = this->instance();
-    instance->handle() = instance->m_impl->initialize(*instance, std::move(this->state().descriptorSetLayouts), std::move(this->state().pushConstantsLayout));
+    instance->m_impl->initialize(*instance, std::move(this->state().descriptorSetLayouts), std::move(this->state().pushConstantsLayout));
 }
 
 VulkanDescriptorSetLayoutBuilder VulkanPipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages)

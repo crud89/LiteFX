@@ -65,7 +65,7 @@ public:
 		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", static_cast<const void*>(m_program.get()), modules.size());
 
 		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules 
-			| std::views::transform([](const auto& shaderModule) { return shaderModule->shaderStageDefinition(); }) 
+			| std::views::transform([this](const auto& shaderModule) { return shaderModule->shaderStageDefinition(&m_layout->mappingInfo()); }) 
 			| std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
 		// Associate each shader module with an index for faster lookup when building the shader binding table (SBT).
@@ -120,16 +120,21 @@ public:
 		//};
 
 		// Setup pipeline.
+		VkPipelineCreateFlags2CreateInfo pipelineFlags {
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO,
+			.flags = VK_PIPELINE_CREATE_2_DESCRIPTOR_HEAP_BIT_EXT
+		};
+
 		VkRayTracingPipelineCreateInfoKHR pipelineInfo = {
 			.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR,
-			.flags = VK_PIPELINE_CREATE_DESCRIPTOR_BUFFER_BIT_EXT,
+			.pNext = &pipelineFlags,
 			.stageCount = static_cast<UInt32>(shaderStages.size()),
 			.pStages = shaderStages.data(),
 			.groupCount = static_cast<UInt32>(shaderGroups.size()),
 			.pGroups = shaderGroups.data(),
 			.maxPipelineRayRecursionDepth = m_maxRecursionDepth,
 			//.pDynamicState = &dynamicState,
-			.layout = std::as_const(*m_layout.get()).handle()
+			.layout = VK_NULL_HANDLE
 		};
 
 		VkPipeline pipeline{};
