@@ -65,15 +65,20 @@ private:
 private:    
     static VKAPI_ATTR VkBool32 VKAPI_CALL onDebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* callbackData, [[maybe_unused]] void* userData)
     {
-        String t = "";
+        using namespace std::string_view_literals;
 
-        switch (type)
-        {
-        case VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT: t = "GENERAL"; break;
-        case VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT: t = "VALIDATION"; break;
-        case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT: t = "PERFORMANCE"; break;
-        default: break;
-        }
+        auto parseType = [](VkDebugUtilsMessageTypeFlagsEXT type) static -> Generator<String> {
+            if ((type & VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT) != 0)
+                co_yield "GENERAL";
+
+            if ((type & VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT) != 0)
+                co_yield "VALIDATION";
+
+            if ((type & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT) != 0)
+                co_yield "PERFORMANCE";
+        };
+
+        String t = parseType(type) | std::views::join_with(" | "sv) | std::ranges::to<String>();
 
         switch (severity)
         {
@@ -150,7 +155,7 @@ public:
         VkDebugUtilsMessengerCreateInfoEXT debugMessageCallbackInfo{
             .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
             .pNext = instanceExtensionObjects,
-            .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+            .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
             .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
             .pfnUserCallback = &onDebugMessage
         };
