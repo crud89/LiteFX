@@ -309,15 +309,12 @@ public:
         }
         case D3D_SIT_TBUFFER:   // Exotic mixture between constant buffer and structured buffer. We'll map it to StructuredBuffer for now.
         case D3D_SIT_STRUCTURED:
-        case D3D_SIT_UAV_CONSUME_STRUCTURED:
         {
             elementSize = inputDesc.NumSamples;
             type = DescriptorType::StructuredBuffer;
             break;
         }
         case D3D_SIT_UAV_RWSTRUCTURED:
-        case D3D_SIT_UAV_APPEND_STRUCTURED:
-        case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
         {
             elementSize = inputDesc.NumSamples;
             type = DescriptorType::RWStructuredBuffer;
@@ -333,10 +330,25 @@ public:
             type = inputDesc.Dimension == D3D_SRV_DIMENSION_BUFFER ? DescriptorType::RWBuffer : DescriptorType::RWTexture;
             break;
         }
-        case D3D_SIT_SAMPLER:                 type = DescriptorType::Sampler; break;
-        case D3D_SIT_RTACCELERATIONSTRUCTURE: type = DescriptorType::AccelerationStructure; break;
-        case D3D_SIT_UAV_FEEDBACKTEXTURE: throw RuntimeException("The shader exposes an unsupported resource of type {1} at binding point {0} (space {2}).", inputDesc.BindPoint, inputDesc.Type, inputDesc.Space);
-        default: throw RuntimeException("The shader exposes an unknown resource type in binding {0} (space {1}).", inputDesc.BindPoint, inputDesc.Space);
+        case D3D_SIT_SAMPLER:
+        {
+            type = DescriptorType::Sampler;
+            break;
+        }
+        case D3D_SIT_RTACCELERATIONSTRUCTURE:
+        {
+            type = DescriptorType::AccelerationStructure; 
+            break;
+        }
+        case D3D_SIT_UAV_CONSUME_STRUCTURED:
+        case D3D_SIT_UAV_APPEND_STRUCTURED:
+        case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
+            // Counters are effectively implemented the same way under the hood, so supporting those types gains nothing. See indirect rendering sample for an example on how to do this.
+            throw RuntimeException("The shader uses a UAV counter on \"{0}\" at binding point {1} (space {2}), which is not supported. Use a separate globallycoherent RWByteAddressBuffer and InterlockedAdd instead.", inputDesc.Name, inputDesc.BindPoint, inputDesc.Space);
+        case D3D_SIT_UAV_FEEDBACKTEXTURE: 
+            throw RuntimeException("The shader exposes an unsupported resource of type {1} at binding point {0} (space {2}).", inputDesc.BindPoint, inputDesc.Type, inputDesc.Space);
+        default: 
+            throw RuntimeException("The shader exposes an unknown resource type in binding {0} (space {1}).", inputDesc.BindPoint, inputDesc.Space);
         }
 
         DescriptorInfo descriptor = {
