@@ -36,17 +36,20 @@ public:
         // Allocate the host descriptor buffers.
         auto& allocationLayout = layout.allocationLayout();
 
-        m_resourceDescriptors.resize(static_cast<size_t>(allocationLayout.descriptorCount(DescriptorHeapType::Resource, m_unboundedArraySize)) * VulkanDevice::RESOURCE_DESCRIPTOR_STRIDE, 0_b);
-        m_samplerDescriptors.resize(static_cast<size_t>(allocationLayout.descriptorCount(DescriptorHeapType::Sampler, m_unboundedArraySize)) * VulkanDevice::SAMPLER_DESCRIPTOR_STRIDE, 0_b);
+        m_resourceDescriptors.resize(static_cast<size_t>(allocationLayout.descriptorCount(DescriptorHeapType::Resource, m_unboundedArraySize)) * m_layout->device().descriptorStride(DescriptorHeapType::Resource), 0_b);
+        m_samplerDescriptors.resize(static_cast<size_t>(allocationLayout.descriptorCount(DescriptorHeapType::Sampler, m_unboundedArraySize)) * m_layout->device().descriptorStride(DescriptorHeapType::Sampler), 0_b);
     }
 
 public:
-    VkHostAddressRangeEXT targetAddressRange(DescriptorHeapType heap, UInt32 slot) noexcept
+    VkHostAddressRangeEXT targetAddressRange(DescriptorHeapType heap, UInt32 slot)
     {
         auto& storage = heap == DescriptorHeapType::Sampler ? m_samplerDescriptors : m_resourceDescriptors;
-        size_t stride = heap == DescriptorHeapType::Sampler ? VulkanDevice::SAMPLER_DESCRIPTOR_STRIDE : VulkanDevice::RESOURCE_DESCRIPTOR_STRIDE;
+        size_t stride = m_layout->device().descriptorStride(heap);
 
-        return { .address = std::next(storage.data(), slot * stride), .size = stride };
+        return { 
+            .address = std::next(storage.data(), slot * stride), 
+            .size = stride
+        };
     }
 
     UInt32 updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 firstDescriptor, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat)

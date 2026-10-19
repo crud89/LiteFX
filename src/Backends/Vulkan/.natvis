@@ -727,6 +727,8 @@
 					<Item Name="Sampler Heap">impl()->m_globalSamplerHeap</Item>
 					<Item Name="Resource Reserved Range">impl()->m_resourceReservedSize</Item>
 					<Item Name="Sampler Reserved Range">impl()->m_samplerReservedSize</Item>
+					<Item Name="Resource Descriptor Stride">impl()->m_resourceDescriptorStride</Item>
+					<Item Name="Sampler Descriptor Stride">impl()->m_samplerDescriptorStride</Item>
 					<Item Name="Heap Properties">impl()->m_descriptorHeapProperties</Item>
 				</Expand>
 			</Synthetic>

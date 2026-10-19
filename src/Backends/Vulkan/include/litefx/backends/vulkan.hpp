@@ -2413,16 +2413,6 @@ namespace LiteFX::Rendering::Backends {
         /// @brief The default size for the global sampler descriptor heap. Matches the required maximum in D3D12.
         static constexpr UInt32 DEFAULT_SAMPLER_HEAP_SIZE = 2048;
 
-        /// @brief Equals the maximum descriptor size for buffers and images (`max(128, 64)`) from the VK_EXT_descriptor_heap proposal.
-        ///
-        /// Note that acceleration structures aren't guaranteed to be at maximum 128 bytes wide. DXC accepts strides up to 256 bytes, but without any rationale on how this limit was chosen. In practice,
-        /// only acceleration structures could reach such high descriptor widths, because the other descriptor's maxima are well-defined. However, acceleration structure descriptors are device addresses,
-        /// which rarely exceeds 16 bytes anyway, so 128 remains a sensible choice here. Acceleration structure strides are validated during startup.
-        static constexpr UInt32 RESOURCE_DESCRIPTOR_STRIDE = 128u;
-
-        /// @brief Equals the maximum descriptor size for samplers from the VK_EXT_descriptor_heap proposal.
-        static constexpr UInt32 SAMPLER_DESCRIPTOR_STRIDE = 32u;
-
     private:
         /// @brief Creates a new device instance.
         ///
@@ -2542,6 +2532,12 @@ namespace LiteFX::Rendering::Backends {
         /// @param type The type of the descriptor.
         /// @return The size of the descriptor.
         UInt32 descriptorSize(DescriptorType type) const;
+
+        /// @brief Returns the width required for a descriptor on @p heapType.
+        /// 
+        /// @param heapType The heap type to query.
+        /// @return The stride between individual descriptors on the heap.
+        UInt32 descriptorStride(DescriptorHeapType heapType) const;
 
         /// @brief Returns the maximum push data size supported by the device.
         UInt32 maxPushDataSize() const noexcept;

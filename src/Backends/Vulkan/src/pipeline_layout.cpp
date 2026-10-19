@@ -34,7 +34,7 @@ public:
 public:
     void createMappings()
     {
-        constexpr UInt32 resourceStride = VulkanDevice::RESOURCE_DESCRIPTOR_STRIDE, samplerStride = VulkanDevice::SAMPLER_DESCRIPTOR_STRIDE;
+        UInt32 resourceStride = m_device->descriptorStride(DescriptorHeapType::Resource), samplerStride = m_device->descriptorStride(DescriptorHeapType::Sampler);
         UInt32 offset = align(m_pushConstantsLayout == nullptr ? 0u : m_pushConstantsLayout->size(), 4u);
 
         // Create a mapping for each descriptor set.

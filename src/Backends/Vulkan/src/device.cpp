@@ -139,6 +139,7 @@ private:
     UniquePtr<GlobalDescriptorHeaps> m_descriptorHeaps;
     VkDeviceSize m_resourceReservedSize{ 0 }, m_samplerReservedSize{ 0 };
     UInt32 m_globalResourceHeapSize{}, m_globalSamplerHeapSize{};
+    UInt32 m_resourceDescriptorStride{}, m_samplerDescriptorStride{};
 
 public:
     VulkanDeviceImpl(const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const GraphicsDeviceFeatures& features, Span<String> extensions, UInt32 globalResourceHeapSize, UInt32 globalSamplerHeapSize) :
@@ -575,14 +576,7 @@ public:
 
     inline void initializeResourceHeaps(const GraphicsDeviceFeatures& features)
     {
-        // Descriptor sizes on conforming devices must be aligned with regards to the heap. This helper validates alignment.
-        auto validateDescriptorSize = [](VkDeviceSize size, VkDeviceSize alignment, UInt32 stride, StringView type) static -> void {
-            if (size > stride || stride % alignment != 0) [[unlikely]]
-                throw RuntimeException("The device's {0} descriptors (size: {1}, alignment: {2}) do not fit the fixed descriptor stride of {3} bytes.", type, size, alignment, stride);
-        };
-
-        // Devices may only support the full requested descriptor heap size with narrower descriptor sizes. This would require the shaders to be re-compiled accordingly, so instead we
-        // clamp the heap sizes.
+        // Devices may only support the full requested descriptor heap size with narrower descriptor sizes. We log a warning if the requested heap size is not available.
         auto clampDescriptorSize = [](UInt32 requested, VkDeviceSize maxHeapSize, VkDeviceSize reservedSize, UInt32 stride, StringView heap) static -> UInt32 {
             const auto available = maxHeapSize > reservedSize ? (maxHeapSize - reservedSize) / stride : 0u;
 
@@ -601,11 +595,10 @@ public:
         VkPhysicalDeviceProperties2 properties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2, .pNext = &m_descriptorHeapProperties };
         ::vkGetPhysicalDeviceProperties2(m_adapter->handle(), &properties);
         
-        // Validate the descriptor sizes.
-        validateDescriptorSize(m_descriptorHeapProperties.bufferDescriptorSize,  m_descriptorHeapProperties.bufferDescriptorAlignment,  VulkanDevice::RESOURCE_DESCRIPTOR_STRIDE, "buffer" );
-        validateDescriptorSize(m_descriptorHeapProperties.imageDescriptorSize,   m_descriptorHeapProperties.imageDescriptorAlignment,   VulkanDevice::RESOURCE_DESCRIPTOR_STRIDE, "image"  );
-        validateDescriptorSize(m_descriptorHeapProperties.samplerDescriptorSize, m_descriptorHeapProperties.samplerDescriptorAlignment, VulkanDevice::SAMPLER_DESCRIPTOR_STRIDE,  "sampler");
-        
+        // Compute the descriptor sizes.
+        auto samplerDescriptorSize = align(m_descriptorHeapProperties.samplerDescriptorSize, m_descriptorHeapProperties.samplerDescriptorAlignment);
+        auto resourceDescriptorSize = std::max(m_descriptorHeapProperties.bufferDescriptorSize, m_descriptorHeapProperties.imageDescriptorSize);
+
         // Acceleration structure descriptors are not part of the heap properties and must be queried and validated separately.
         if (features.RayTracing || features.RayQueries) 
         {
@@ -614,28 +607,50 @@ public:
 
             auto descriptorSize = vkGetPhysicalDeviceDescriptorSize(m_adapter->handle(), VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR);
 
-            if (descriptorSize > VulkanDevice::RESOURCE_DESCRIPTOR_STRIDE) [[unlikely]]
-                throw RuntimeException("The device's acceleration structure descriptors (size: {0}) do not fit the fixed descriptor stride of {1} bytes.", descriptorSize, VulkanDevice::RESOURCE_DESCRIPTOR_STRIDE);
+            // The default behavior of the compiler (without explicit strides) emits `OpConstantSizeOfEXT`, which resolves to `max(bufferDescriptorSize, imageDescriptorSize)`
+            // during pipeline creation, fetching buffer and image descriptor sizes from the device. If acceleration structure descriptors exceed this limit, this breaks. In 
+            // this case, the strides must be manually extended. However, this is very unlikely since the AS descriptors are essentially addresses in practice.
+            if (descriptorSize > resourceDescriptorSize) [[unlikely]] {
+                LITEFX_WARNING(VULKAN_LOG, "The acceleration structure descriptor size {0} exceeds the resource descriptor size {1}. All shaders must be compiled with an explicit stride for resource (image/buffers) descriptor stride of {0} bytes!", descriptorSize, resourceDescriptorSize);
+                resourceDescriptorSize = descriptorSize;
+            }
+        }
+
+        // Align the resource descriptor size to both, image and buffer descriptor alignments.
+        if (auto aligned = align(resourceDescriptorSize, m_descriptorHeapProperties.bufferDescriptorAlignment); aligned != resourceDescriptorSize) [[unlikely]] 
+        {
+            LITEFX_WARNING(VULKAN_LOG, "The resource descriptor size {0} is not aligned to the buffer descriptor alignment {2} and has been raised to {1} bytes. Shaders using native descriptor heap access must be compiled with an explicit stride of {1} bytes.", resourceDescriptorSize, aligned, m_descriptorHeapProperties.bufferDescriptorAlignment);
+            resourceDescriptorSize = aligned;
+        }
+
+        if (auto aligned = align(resourceDescriptorSize, m_descriptorHeapProperties.imageDescriptorAlignment); aligned != resourceDescriptorSize) [[unlikely]]
+        {
+            LITEFX_WARNING(VULKAN_LOG, "The resource descriptor size {0} is not aligned to the image descriptor alignment {2} and has been raised to {1} bytes. Shaders using native descriptor heap access must be compiled with an explicit stride of {1} bytes.", resourceDescriptorSize, aligned, m_descriptorHeapProperties.imageDescriptorAlignment);
+            resourceDescriptorSize = aligned;
         }
 
         // Get the reserved heap sizes.
-        m_resourceReservedSize = align(m_descriptorHeapProperties.minResourceHeapReservedRange, static_cast<VkDeviceSize>(VulkanDevice::RESOURCE_DESCRIPTOR_STRIDE));
-        m_samplerReservedSize  = align(m_descriptorHeapProperties.minSamplerHeapReservedRangeWithEmbedded, static_cast<VkDeviceSize>(VulkanDevice::SAMPLER_DESCRIPTOR_STRIDE));
+        m_resourceReservedSize = align(m_descriptorHeapProperties.minResourceHeapReservedRange, resourceDescriptorSize);
+        m_samplerReservedSize  = align(m_descriptorHeapProperties.minSamplerHeapReservedRangeWithEmbedded, samplerDescriptorSize);
 
         // Compute the descriptor heap sizes.
-        auto resourceDescriptors = clampDescriptorSize(m_globalResourceHeapSize, m_descriptorHeapProperties.maxResourceHeapSize, m_resourceReservedSize, VulkanDevice::RESOURCE_DESCRIPTOR_STRIDE, "resource");
-        auto samplerDescriptors  = clampDescriptorSize(m_globalSamplerHeapSize,  m_descriptorHeapProperties.maxSamplerHeapSize,  m_samplerReservedSize,  VulkanDevice::SAMPLER_DESCRIPTOR_STRIDE,  "sampler" );
-        auto resourceHeapSize = static_cast<VkDeviceSize>(resourceDescriptors) * VulkanDevice::RESOURCE_DESCRIPTOR_STRIDE + m_resourceReservedSize;
-        auto samplerHeapSize  = static_cast<VkDeviceSize>(samplerDescriptors)  * VulkanDevice::SAMPLER_DESCRIPTOR_STRIDE  + m_samplerReservedSize;
+        auto resourceDescriptors = clampDescriptorSize(m_globalResourceHeapSize, m_descriptorHeapProperties.maxResourceHeapSize, m_resourceReservedSize, static_cast<UInt32>(resourceDescriptorSize), "resource");
+        auto samplerDescriptors  = clampDescriptorSize(m_globalSamplerHeapSize,  m_descriptorHeapProperties.maxSamplerHeapSize,  m_samplerReservedSize,  static_cast<UInt32>(samplerDescriptorSize),  "sampler" );
+        auto resourceHeapSize = static_cast<VkDeviceSize>(resourceDescriptors) * resourceDescriptorSize + m_resourceReservedSize;
+        auto samplerHeapSize  = static_cast<VkDeviceSize>(samplerDescriptors)  * samplerDescriptorSize  + m_samplerReservedSize;
 
         // Allocate the global descriptor heaps.
         m_descriptorHeaps = GlobalDescriptorHeaps::create<VulkanBackend>(resourceDescriptors, samplerDescriptors);
         m_globalResourceHeap = m_factory->createDescriptorHeap("Global Resource Heap", static_cast<size_t>(resourceHeapSize));
         m_globalSamplerHeap  = m_factory->createDescriptorHeap("Global Sampler Heap",  static_cast<size_t>(samplerHeapSize));
 
+        // Store the descriptor sizes.
+        m_resourceDescriptorStride = static_cast<UInt32>(resourceDescriptorSize);
+        m_samplerDescriptorStride  = static_cast<UInt32>(samplerDescriptorSize);
+
         // Descriptor heaps must be aligned.
         assert(m_globalResourceHeap->virtualAddress() % m_descriptorHeapProperties.resourceHeapAlignment == 0);
-        assert(m_globalSamplerHeap->virtualAddress()  % m_descriptorHeapProperties.samplerHeapAlignment == 0);
+        assert(m_globalSamplerHeap->virtualAddress()  % m_descriptorHeapProperties.samplerHeapAlignment  == 0);
     }
 
 public:
@@ -766,12 +781,25 @@ UInt32 VulkanDevice::descriptorSize(DescriptorType type) const
     case DescriptorType::RWStructuredBuffer:
     case DescriptorType::Texture:
     case DescriptorType::ResourceDescriptorHeap:
-        return VulkanDevice::RESOURCE_DESCRIPTOR_STRIDE;
+        return this->descriptorStride(DescriptorHeapType::Resource);
     case DescriptorType::Sampler:
     case DescriptorType::SamplerDescriptorHeap:
-        return VulkanDevice::SAMPLER_DESCRIPTOR_STRIDE;
+        return this->descriptorStride(DescriptorHeapType::Sampler);
     default:
         throw InvalidArgumentException("type", "The provided descriptor type cannot be mapped to a descriptor heap.");
+    }
+}
+
+UInt32 VulkanDevice::descriptorStride(DescriptorHeapType heapType) const
+{
+    switch (heapType)
+    {
+    case DescriptorHeapType::Resource:
+        return m_impl->m_resourceDescriptorStride;
+    case DescriptorHeapType::Sampler:
+        return m_impl->m_samplerDescriptorStride;
+    default:
+        throw InvalidArgumentException("heapType", "The descriptor heap type must be one of the following: {{ `Resource`, `Sampler` }}, but it was: `{0}`.", heapType);
     }
 }
 
@@ -787,7 +815,7 @@ const GlobalDescriptorHeaps& VulkanDevice::descriptorHeaps() const noexcept
 
 void VulkanDevice::copyDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32 targetIndex, UInt32 sourceIndex, UInt32 descriptors) const
 {
-    size_t stride = heapType == DescriptorHeapType::Sampler ? SAMPLER_DESCRIPTOR_STRIDE : RESOURCE_DESCRIPTOR_STRIDE;
+    size_t stride = this->descriptorStride(heapType);
     auto localHeap = descriptorSet.descriptorBuffer(heapType).subspan(sourceIndex * stride, descriptors * stride);
     auto& heap = heapType == DescriptorHeapType::Sampler ? m_impl->m_globalSamplerHeap : m_impl->m_globalResourceHeap;
     heap->write(localHeap.data(), localHeap.size(), targetIndex * stride);
@@ -811,8 +839,7 @@ void VulkanDevice::bindDescriptors(const VulkanCommandBuffer& commandBuffer, con
 
 DescriptorHeapAllocation VulkanDevice::allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType) const
 {
-    return m_impl->m_descriptorHeaps->allocate(heapType, static_cast<UInt32>(descriptorSet.descriptorBuffer(heapType).size() /
-        (heapType == DescriptorHeapType::Sampler ? VulkanDevice::SAMPLER_DESCRIPTOR_STRIDE : VulkanDevice::RESOURCE_DESCRIPTOR_STRIDE)));
+    return m_impl->m_descriptorHeaps->allocate(heapType, static_cast<UInt32>(descriptorSet.descriptorBuffer(heapType).size() / this->descriptorStride(heapType)));
 }
 
 void VulkanDevice::releaseGlobalDescriptors(const VulkanDescriptorSet& descriptorSet) const
@@ -826,14 +853,14 @@ void VulkanDevice::bindGlobalDescriptorHeaps(const VulkanCommandBuffer& commandB
     VkBindHeapInfoEXT resourceHeap {
         .sType = VK_STRUCTURE_TYPE_BIND_HEAP_INFO_EXT,
         .heapRange = { .address = m_impl->m_globalResourceHeap->virtualAddress(), .size = m_impl->m_globalResourceHeap->size() },
-        .reservedRangeOffset = static_cast<VkDeviceSize>(m_impl->m_descriptorHeaps->capacity(DescriptorHeapType::Resource)) * RESOURCE_DESCRIPTOR_STRIDE,
+        .reservedRangeOffset = static_cast<VkDeviceSize>(m_impl->m_descriptorHeaps->capacity(DescriptorHeapType::Resource)) * this->descriptorStride(DescriptorHeapType::Resource),
         .reservedRangeSize = m_impl->m_resourceReservedSize 
     };
 
     VkBindHeapInfoEXT samplerHeap {
         .sType = VK_STRUCTURE_TYPE_BIND_HEAP_INFO_EXT,
         .heapRange = { .address = m_impl->m_globalSamplerHeap->virtualAddress(), .size = m_impl->m_globalSamplerHeap->size() },
-        .reservedRangeOffset = static_cast<VkDeviceSize>(m_impl->m_descriptorHeaps->capacity(DescriptorHeapType::Sampler)) * SAMPLER_DESCRIPTOR_STRIDE,
+        .reservedRangeOffset = static_cast<VkDeviceSize>(m_impl->m_descriptorHeaps->capacity(DescriptorHeapType::Sampler)) * this->descriptorStride(DescriptorHeapType::Sampler),
         .reservedRangeSize = m_impl->m_samplerReservedSize 
     };
 
