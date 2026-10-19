@@ -126,8 +126,8 @@ public:
         // Update the invalidated range on the global descriptor heap.
         device.updateGlobalDescriptors(parent, descriptorLayout.binding(), firstDescriptor, elementCount);
 
-        // Return the first descriptor index directly, as we can't index into global descriptor memory in Vulkan.
-        return firstDescriptor;
+        // Return the offset of the descriptor in the global descriptor heap allocation.
+        return static_cast<UInt32>(parent.globalHeapAllocation(DescriptorHeapType::Resource).Allocation.Offset + m_layout->getDescriptorOffset(descriptorLayout.binding(), firstDescriptor));
     }
 
     UInt32 updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 descriptor, const IVulkanImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers)
@@ -208,14 +208,15 @@ public:
         }
 
         // Write the descriptor.
-        auto addressRange = this->targetAddressRange(DescriptorHeapType::Resource, m_layout->getDescriptorOffset(binding, descriptor));
+        auto descriptorOffset = m_layout->getDescriptorOffset(binding, descriptor);
+        auto addressRange = this->targetAddressRange(DescriptorHeapType::Resource, descriptorOffset);
         raiseIfFailed(vkWriteResourceDescriptors(device.handle(), 1u, &info, &addressRange), "Unable to write image descriptor.");
 
         // Update the invalidated range on the global descriptor heap.
         device.updateGlobalDescriptors(parent, binding, descriptor, 1u);
 
-        // Return the descriptor index directly, as we can't index into global descriptor memory in Vulkan.
-        return descriptor;
+        // Return the offset of the descriptor in the global descriptor heap allocation.
+        return static_cast<UInt32>(parent.globalHeapAllocation(DescriptorHeapType::Resource).Allocation.Offset + descriptorOffset);
     }
 
     UInt32 updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, UInt32 descriptor, const IVulkanSampler& sampler)
@@ -234,15 +235,16 @@ public:
 
         // Write the sampler descriptor.
         auto& device = m_layout->device();
+        auto descriptorOffset = m_layout->getDescriptorOffset(descriptorLayout.binding(), descriptor);
+        auto addressRange = this->targetAddressRange(DescriptorHeapType::Sampler, descriptorOffset);
 
-        auto addressRange = this->targetAddressRange(DescriptorHeapType::Sampler, m_layout->getDescriptorOffset(descriptorLayout.binding(), descriptor));
         raiseIfFailed(vkWriteSamplerDescriptors(device.handle(), 1u, &sampler.createInfo(), &addressRange), "Unable to write sampler descriptor.");
 
         // Update the invalidated range on the global descriptor heap.
         device.updateGlobalDescriptors(parent, descriptorLayout.binding(), descriptor, 1u);
 
-        // Return the descriptor index directly, as we can't index into global descriptor memory in Vulkan.
-        return descriptor;
+        // Return the offset of the descriptor in the global descriptor heap allocation.
+        return static_cast<UInt32>(parent.globalHeapAllocation(DescriptorHeapType::Sampler).Allocation.Offset + descriptorOffset);
     }
 };
 
