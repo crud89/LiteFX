@@ -609,6 +609,9 @@ public:
         // Acceleration structure descriptors are not part of the heap properties and must be queried and validated separately.
         if (features.RayTracing || features.RayQueries) 
         {
+            if (vkGetPhysicalDeviceDescriptorSize == nullptr) [[unlikely]]
+                throw RuntimeException("Unable to validate acceleration structure descriptor sizes, as \"vkGetPhysicalDeviceDescriptorSizeEXT\" is not available.");
+
             auto descriptorSize = vkGetPhysicalDeviceDescriptorSize(m_adapter->handle(), VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR);
 
             if (descriptorSize > VulkanDevice::RESOURCE_DESCRIPTOR_STRIDE) [[unlikely]]
