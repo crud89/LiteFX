@@ -245,7 +245,7 @@ public:
                 Array<DescriptorInfo> descriptors(descriptorSet->binding_count);
 
                 std::ranges::generate(descriptors, [&descriptorSet, i = 0]() mutable {
-                    // We reject UAV counters as unsupported. Instead use a globallycoherent RWByteAddressBuffer for the counter and increment it using InterlockedAdd. This is effectively the way
+                    // We reject UAV counters as unsupported. Instead use a RWByteAddressBuffer for the counter and increment it using InterlockedAdd. This is effectively the way
                     // those counters work under the hood anyway. Refer to the indirect rendering sample for an example on how to implement this.
                     // NOTE: This check only works for DXC with debug names, so it may get skipped for other compilers or if debug names are stripped, in which case you will encounter an error
                     //       further down the line.
@@ -263,7 +263,7 @@ public:
                     
                     // Reject UAV counters (see above).
                     if (isUavCounter(descriptor))
-                        throw RuntimeException("The shader uses a UAV counter at binding {0} (space {1}), which is not supported. Use a separate globallycoherent RWByteAddressBuffer and InterlockedAdd instead.", descriptor->binding, descriptor->set);
+                        throw RuntimeException("The shader uses a UAV counter at binding {0} (space {1}), which is not supported. Use a separate RWByteAddressBuffer and InterlockedAdd instead.", descriptor->binding, descriptor->set);
 
                     // Filter the descriptor type.
                     DescriptorType type{ DescriptorType::ConstantBuffer };

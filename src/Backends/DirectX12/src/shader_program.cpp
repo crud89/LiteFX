@@ -344,7 +344,7 @@ public:
         case D3D_SIT_UAV_APPEND_STRUCTURED:
         case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
             // Counters are effectively implemented the same way under the hood, so supporting those types gains nothing. See indirect rendering sample for an example on how to do this.
-            throw RuntimeException("The shader uses a UAV counter on \"{0}\" at binding point {1} (space {2}), which is not supported. Use a separate globallycoherent RWByteAddressBuffer and InterlockedAdd instead.", inputDesc.Name, inputDesc.BindPoint, inputDesc.Space);
+            throw RuntimeException("The shader uses a UAV counter on \"{0}\" at binding point {1} (space {2}), which is not supported. Use a separate RWByteAddressBuffer and InterlockedAdd instead.", inputDesc.Name, inputDesc.BindPoint, inputDesc.Space);
         case D3D_SIT_UAV_FEEDBACKTEXTURE: 
             throw RuntimeException("The shader exposes an unsupported resource of type {1} at binding point {0} (space {2}).", inputDesc.BindPoint, inputDesc.Type, inputDesc.Space);
         default: 
