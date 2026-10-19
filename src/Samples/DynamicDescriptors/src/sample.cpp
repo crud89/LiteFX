@@ -126,7 +126,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
             .cullOrder(CullOrder::ClockWise)
             .lineWidth(1.f)
             .depthState(DepthStencilState::DepthState{ .Operation = CompareOperation::LessEqual }))
-        .layout(shaderProgram->reflectPipelineLayout(std::array{ PipelineBindingHint::resourceHeap(0u, 0u, NUM_INSTANCES) }))
+        .layout(shaderProgram->reflectPipelineLayout())
         .shaderProgram(shaderProgram);
 
     // Add the resources to the device state.
@@ -167,18 +167,17 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
         { {.binding = 0, .resource = *drawDataBuffer, .firstElement = 2, .elements = 1 } },
     }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 
-    // Next, we create the descriptor set for the instance buffer. The shader uses direct heap indexing, so we need to bind the resources using the proxy descriptor set
-    // created at the binding we specified using the hint during shader reflection.
-    auto& instanceBindingLayout = geometryPipeline.layout()->descriptorSet(0u);
+    // The shader indexes the resource heap directly, so we allocate a descriptor range for the instance buffers.
+    m_instanceDescriptors = m_device->allocateGlobalDescriptors(DescriptorHeapType::Resource, NUM_INSTANCES);
 
-    // Since we are using an unstructured storage buffer, we need to specify the element size manually. To be able to use dynamic descriptors, we need to call `bindToHeap`
-    // instead of `update`. Note that we also cannot supply the bindings directly to the `allocate`.
-    auto instanceBuffer = m_device->factory().createBuffer("Instance Buffer", instanceBindingLayout, 0, ResourceHeap::Resource, sizeof(InstanceBuffer), NUM_INSTANCES);
-    auto instanceBinding = instanceBindingLayout.allocate();
+    // Since we are using an unstructured storage buffer, we need to specify the element size manually. Binding the buffer to the descriptor range works similar to 
+    // descriptor sets.
+    auto instanceBuffer = m_device->factory().createBuffer("Instance Buffer", BufferType::Storage, ResourceHeap::Resource, sizeof(InstanceBuffer), NUM_INSTANCES);
+    m_instanceDescriptors->update(0u, DescriptorType::StructuredBuffer, *instanceBuffer, 0u, NUM_INSTANCES);
 
     // We store the base index of the first instance buffer here and supply it later as a base offset for the draw call. This way, we do not need to pass the resource 
     // index by other means (e.g., a push constant or buffer).
-    m_instanceBaseIndex = instanceBinding->bindToHeap(DescriptorType::StructuredBuffer, 0u, *instanceBuffer, 0u, NUM_INSTANCES);
+    m_instanceBaseIndex = m_instanceDescriptors->globalIndex();
     commandBuffer->transfer(static_cast<const void*>(&instanceData), sizeof(instanceData), *instanceBuffer, 0, NUM_INSTANCES);
 
     // End and submit the command buffer.
@@ -192,7 +191,6 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     m_device->state().add(std::move(instanceBuffer));
     m_device->state().add("Camera Bindings", std::move(cameraBindings));
     std::ranges::for_each(drawDataBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(std::format("Draw Data Bindings {0}", i++), std::move(binding)); });
-    m_device->state().add("Instance Bindings", std::move(instanceBinding));
 }
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
@@ -268,7 +266,8 @@ void SampleApp::onInit()
         return true;
     };
 
-    auto stopCallback = []<typename TBackend>(TBackend* backend) {
+    auto stopCallback = [this]<typename TBackend>(TBackend* backend) {
+        m_instanceDescriptors.reset();
         backend->releaseDevice("Default");
     };
 
@@ -425,7 +424,6 @@ void SampleApp::drawFrame()
     auto& drawDataBuffer = m_device->state().buffer("Draw Data");
     auto& drawDataBindings = m_device->state().descriptorSet(std::format("Draw Data Bindings {0}", backBuffer));
     auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
-    auto& instanceBindings = m_device->state().descriptorSet("Instance Bindings");
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
@@ -448,8 +446,8 @@ void SampleApp::drawFrame()
     drawData.Speed = glm::radians(42.0f); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     drawDataBuffer.map(static_cast<const void*>(&drawData), sizeof(drawData), backBuffer);
 
-    // Bind all descriptor sets to the pipeline.
-    commandBuffer->bind({ &cameraBindings, &instanceBindings, &drawDataBindings });
+    // Bind all descriptor sets to the pipeline. Note that we don't bind the instance descriptors here, as they are written to the global descriptor heap directly.
+    commandBuffer->bind({ &cameraBindings, &drawDataBindings });
 
     // Bind the vertex and index buffers.
     commandBuffer->bind(vertexBuffer);

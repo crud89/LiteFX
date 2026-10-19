@@ -689,15 +689,6 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc IDescriptorSet::globalHeapAllocation
         DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const override;
 
-        /// @copydoc DescriptorSet::bindToHeap(DescriptorType, UInt32, const buffer_type&, UInt32, UInt32, Format) const
-        UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const override;
-
-        /// @copydoc DescriptorSet::bindToHeap(DescriptorType, UInt32, const image_type&, UInt32, UInt32, UInt32, UInt32) const
-        UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanImage& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const override;
-
-        /// @copydoc DescriptorSet::bindToHeap(UInt32, const sampler_type&) const
-        UInt32 bindToHeap(UInt32 descriptor, const IVulkanSampler& sampler) const override;
-
         /// @copydoc DescriptorSet::update(UInt32, const buffer_type&, UInt32, UInt32, UInt32, Format) const
         void update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None) const override;
 
@@ -1073,13 +1064,21 @@ namespace LiteFX::Rendering::Backends {
         LITEFX_BUILDER(VulkanPipelineLayoutBuilder);
         friend struct SharedObject::Allocator<VulkanPipelineLayout>;
 
+    public:
+        // TODO: Remove those once DXC's native descriptor heap lowering is used.
+        static constexpr UInt32 DESCRIPTOR_HEAP_SPACE = 31u;
+        static constexpr UInt32 RESOURCE_HEAP_BINDING = 0u;
+        static constexpr UInt32 SAMPLER_HEAP_BINDING = 1u;
+
     private:
         /// @brief Initializes a new Vulkan render pipeline layout.
         ///
         /// @param device The parent device, the layout is created from.
         /// @param descriptorSetLayouts The descriptor set layouts used by the pipeline.
         /// @param pushConstantsLayout The push constants layout used by the pipeline.
-        explicit VulkanPipelineLayout(const VulkanDevice& device, const Enumerable<SharedPtr<VulkanDescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout);
+        /// @param directResourceHeapAccess Indicates if the pipeline uses direct access to the global resource descriptor heap (`ResourceDescriptorHeap`).
+        /// @param directSamplerHeapAccess Indicates if the pipeline uses direct access to the global sampler descriptor heap (`SamplerDescriptorHeap`).
+        explicit VulkanPipelineLayout(const VulkanDevice& device, const Enumerable<SharedPtr<VulkanDescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout, bool directResourceHeapAccess = false, bool directSamplerHeapAccess = false);
 
         /// @brief Initializes a new Vulkan render pipeline layout.
         ///
@@ -1101,9 +1100,11 @@ namespace LiteFX::Rendering::Backends {
         /// @param device The parent device, the layout is created from.
         /// @param descriptorSetLayouts The descriptor set layouts used by the pipeline.
         /// @param pushConstantsLayout The push constants layout used by the pipeline.
+        /// @param directResourceHeapAccess Indicates if the pipeline uses direct access to the global resource descriptor heap (`ResourceDescriptorHeap`).
+        /// @param directSamplerHeapAccess Indicates if the pipeline uses direct access to the global sampler descriptor heap (`SamplerDescriptorHeap`).
         /// @return A shared pointer to the newly created pipeline layout instance.
-        static inline auto create(const VulkanDevice& device, const Enumerable<SharedPtr<VulkanDescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) {
-            return SharedObject::create<VulkanPipelineLayout>(device, descriptorSetLayouts, std::move(pushConstantsLayout));
+        static inline auto create(const VulkanDevice& device, const Enumerable<SharedPtr<VulkanDescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout, bool directResourceHeapAccess = false, bool directSamplerHeapAccess = false) {
+            return SharedObject::create<VulkanPipelineLayout>(device, descriptorSetLayouts, std::move(pushConstantsLayout), directResourceHeapAccess, directSamplerHeapAccess);
         }
 
     private:

@@ -93,8 +93,8 @@ public:
         if (descriptor >= parent.capacity(binding)) [[unlikely]]
             throw InvalidArgumentException("descriptor", "The descriptor array at binding {1} of descriptor set {0} does only contain {2} descriptors, but the descriptor {3} has been specified for binding.", m_layout->space(), binding, parent.capacity(binding), descriptor);
 
-        if (descriptorLayout.descriptorType() != DescriptorType::Sampler && descriptorLayout.descriptorType() != DescriptorType::SamplerDescriptorHeap) [[unlikely]]
-            throw InvalidArgumentException("descriptorLayout", "Invalid descriptor type. The binding {0} does not bind a sampler or sampler heap, but rather a {1}.", binding, descriptorLayout.descriptorType());
+        if (descriptorLayout.descriptorType() != DescriptorType::Sampler) [[unlikely]]
+            throw InvalidArgumentException("descriptorLayout", "Invalid descriptor type. The binding {0} does not bind a sampler, but rather a {1}.", binding, descriptorLayout.descriptorType());
 
         if (descriptorLayout.staticSampler() != nullptr) [[unlikely]]
             throw InvalidArgumentException("descriptorLayout", "The provided binding does bind a sampler, but also defines a static sampler, which makes binding to it invalid.");
@@ -152,45 +152,6 @@ DescriptorHeapAllocation DirectX12DescriptorSet::globalHeapAllocation(Descriptor
     return m_impl->globalHeapAllocation(heapType);
 }
 
-UInt32 DirectX12DescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const
-{
-    // Find the resource descriptor heap.
-    auto descriptors = m_impl->m_layout->descriptors();
-    auto descriptorLayout = std::ranges::find_if(descriptors, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ResourceDescriptorHeap; });
-
-    if (descriptorLayout == descriptors.end()) [[unlikely]]
-        throw RuntimeException("The descriptor set does not contain a resource heap descriptor.");
-
-    // Update the binding.
-    return m_impl->updateBinding(*this, (*descriptorLayout), bindingType, descriptor, buffer, bufferElement, elements, texelFormat);
-}
-
-UInt32 DirectX12DescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IDirectX12Image& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
-{
-    // Find the resource descriptor heap.
-    auto descriptors = m_impl->m_layout->descriptors();
-    auto descriptorLayout = std::ranges::find_if(descriptors, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ResourceDescriptorHeap; });
-
-    if (descriptorLayout == descriptors.end()) [[unlikely]]
-        throw RuntimeException("The descriptor set does not contain a resource heap descriptor.");
-
-    // Update the binding.
-    return m_impl->updateBinding(*this, (*descriptorLayout), bindingType, descriptor, image, firstLevel, levels, firstLayer, layers);
-}
-
-UInt32 DirectX12DescriptorSet::bindToHeap(UInt32 descriptor, const IDirectX12Sampler& sampler) const
-{
-    // Find the sampler descriptor heap.
-    auto descriptors = m_impl->m_layout->descriptors();
-    auto descriptorLayout = std::ranges::find_if(descriptors, [](const auto& layout) { return layout.descriptorType() == DescriptorType::SamplerDescriptorHeap; });
-
-    if (descriptorLayout == descriptors.end()) [[unlikely]]
-        throw RuntimeException("The descriptor set does not contain a sampler heap descriptor.");
-
-    // Update the binding.
-    return m_impl->updateBinding(*this, (*descriptorLayout), descriptor, sampler);
-}
-
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat) const
 {
     // Find the descriptor.
@@ -202,9 +163,6 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
         LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
         return;
     }
-
-    if (match->descriptorType() == DescriptorType::ResourceDescriptorHeap || match->descriptorType() == DescriptorType::SamplerDescriptorHeap) [[unlikely]]
-        throw InvalidArgumentException("binding", "Resources that are bound to descriptor heaps directly must use `bindToHeap`.");
 
     // Update the binding.
     m_impl->updateBinding(*this, (*match), match->descriptorType(), firstDescriptor, buffer, bufferElement, elements, texelFormat);
@@ -223,9 +181,6 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
         return;
     }
 
-    if (match->descriptorType() == DescriptorType::ResourceDescriptorHeap || match->descriptorType() == DescriptorType::SamplerDescriptorHeap) [[unlikely]]
-        throw InvalidArgumentException("binding", "Resources that are bound to descriptor heaps directly must use `bindToHeap`.");
-
     // Update the binding.
     m_impl->updateBinding(*this, (*match), match->descriptorType(),descriptor, texture, firstLevel, levels, firstLayer, layers);
 }
@@ -241,9 +196,6 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sam
         LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
         return;
     }
-
-    if (match->descriptorType() == DescriptorType::ResourceDescriptorHeap || match->descriptorType() == DescriptorType::SamplerDescriptorHeap) [[unlikely]]
-        throw InvalidArgumentException("binding", "Resources that are bound to descriptor heaps directly must use `bindToHeap`.");
 
     // Update the binding.
     m_impl->updateBinding(*this, (*match), descriptor, sampler);

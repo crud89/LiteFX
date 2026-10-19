@@ -69,6 +69,9 @@ private:
 	/// `drawInstanced` call.
 	UInt32 m_instanceBaseIndex = 0;
 
+	/// @brief Stores the descriptor range that binds the per-instance buffers.
+	UniquePtr<IDescriptorRange> m_instanceDescriptors;
+
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) : 
 		App(), m_window(std::move(window)), m_adapterId(adapterId)

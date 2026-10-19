@@ -1349,6 +1349,12 @@ namespace LiteFX::Rendering {
 
             /// @brief The push constant layout of the pipeline state.
             UniquePtr<push_constants_layout_type> pushConstantsLayout{ };
+
+            /// @brief `true`, if shaders index the global resource heap directly (`ResourceDescriptorHeap`).
+            bool directResourceHeapAccess{ false };
+
+            /// @brief `true`, if shaders index the global sampler heap directly (`SamplerDescriptorHeap`).
+            bool directSamplerHeapAccess{ false };
         } m_state;
 
     protected:
@@ -1377,6 +1383,17 @@ namespace LiteFX::Rendering {
         template <typename TSelf>
         constexpr auto use(this TSelf&& self, UniquePtr<push_constants_layout_type>&& layout) -> TSelf&& {
             self.m_state.pushConstantsLayout = std::move(layout);
+            return std::forward<TSelf>(self);
+        }
+
+        /// @brief Enables direct access to the global descriptor heaps from shaders using this pipeline layout.
+        /// 
+        /// @param resources If set to `true`, the pipeline uses direct heap access to the global resource descriptor heap.
+        /// @param samplers If set to `true`, the pipeline uses direct heap access to the global sampler descriptor heap.
+        template <typename TSelf>
+        [[nodiscard]] constexpr auto withDirectHeapAccess(this TSelf&& self, bool resources = true, bool samplers = true) -> TSelf&& {
+            self.m_state.directResourceHeapAccess = resources;
+            self.m_state.directSamplerHeapAccess = samplers;
             return std::forward<TSelf>(self);
         }
     };

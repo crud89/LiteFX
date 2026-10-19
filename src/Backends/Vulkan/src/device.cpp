@@ -780,10 +780,8 @@ UInt32 VulkanDevice::descriptorSize(DescriptorType type) const
     case DescriptorType::StructuredBuffer:
     case DescriptorType::RWStructuredBuffer:
     case DescriptorType::Texture:
-    case DescriptorType::ResourceDescriptorHeap:
         return this->descriptorStride(DescriptorHeapType::Resource);
     case DescriptorType::Sampler:
-    case DescriptorType::SamplerDescriptorHeap:
         return this->descriptorStride(DescriptorHeapType::Sampler);
     default:
         throw InvalidArgumentException("type", "The provided descriptor type cannot be mapped to a descriptor heap.");

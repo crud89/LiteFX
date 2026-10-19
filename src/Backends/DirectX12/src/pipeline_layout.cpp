@@ -16,6 +16,7 @@ private:
     UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout{};
     Array<SharedPtr<const DirectX12DescriptorSetLayout>> m_descriptorSetLayouts{};
     SharedPtr<const DirectX12Device> m_device;
+    bool m_directResourceHeapAccess{}, m_directSamplerHeapAccess{};
 
     /// @brief The flags for a root parameter entry.
     enum class RootParameterFlags : UInt32 // NOLINT(performance-enum-size)
@@ -82,7 +83,7 @@ private:
     }
 
 public:
-    ComPtr<ID3D12RootSignature> initialize([[maybe_unused]] const DirectX12PipelineLayout& pipelineLayout, Array<SharedPtr<DirectX12DescriptorSetLayout>> descriptorLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout)
+    ComPtr<ID3D12RootSignature> initialize([[maybe_unused]] const DirectX12PipelineLayout& pipelineLayout, Array<SharedPtr<DirectX12DescriptorSetLayout>> descriptorLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout, bool directResourceHeapAccess, bool directSamplerHeapAccess)
     {
         if (std::ranges::any_of(descriptorLayouts, [](const auto& layout) { return layout == nullptr; })) [[unlikely]]
             throw ArgumentNotInitializedException("descriptorLayouts", "At least one of the provided descriptor layouts is not initialized.");
@@ -162,11 +163,7 @@ public:
             // create separate root descriptor tables, as described here: https://learn.microsoft.com/en-us/windows/win32/direct3d12/example-root-signatures#binding-descriptor-tables.
             auto layouts = layout->descriptors();
             Array<D3D12_DESCRIPTOR_RANGE1> resourceSet = layouts 
-                | std::views::filter([](auto& range) { 
-                    return !range.local() &&
-                        range.descriptorType() != DescriptorType::Sampler && 
-                        range.descriptorType() != DescriptorType::ResourceDescriptorHeap && 
-                        range.descriptorType() != DescriptorType::SamplerDescriptorHeap; })
+                | std::views::filter([](auto& range) { return !range.local() && range.descriptorType() != DescriptorType::Sampler; })
                 | std::views::transform([&](auto& range) {
                     CD3DX12_DESCRIPTOR_RANGE1 descriptorRange = {};
                     auto allocationRange = allocationLayout.range(range.binding());
@@ -263,10 +260,10 @@ public:
         // Setup root signature flags.
         D3D12_ROOT_SIGNATURE_FLAGS flags { D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT };
         
-        if (this->containsDescriptorOfType(descriptorLayouts, DescriptorType::ResourceDescriptorHeap))
+        if (directResourceHeapAccess)
             flags |= D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED;
 
-        if (this->containsDescriptorOfType(descriptorLayouts, DescriptorType::SamplerDescriptorHeap))
+        if (directSamplerHeapAccess)
             flags |= D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED;
 
         // Validate the root signature size.
@@ -304,17 +301,10 @@ public:
         // Store the layouts.
         m_pushConstantsLayout = std::move(pushConstantsLayout);
         m_descriptorSetLayouts.append_range(std::move(descriptorLayouts));
+        m_directResourceHeapAccess = directResourceHeapAccess;
+        m_directSamplerHeapAccess = directSamplerHeapAccess;
 
         return rootSignature;
-    }
-
-    inline bool containsDescriptorOfType(Enumerable<SharedPtr<const DirectX12DescriptorSetLayout>> descriptorSetLayouts, DescriptorType descriptorType) const {
-        // TODO: Check why we can't make this `noexcept`... because in my opinion it should be possible.
-        auto descriptorLayouts = descriptorSetLayouts
-            | std::views::transform([](const auto& layout) { return layout->descriptors(); })
-            | std::views::join;
-
-        return std::ranges::any_of(descriptorLayouts, [descriptorType](const auto& layout) { return layout.descriptorType() == descriptorType; });
     }
 };
 
@@ -322,10 +312,10 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, const Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
+DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, const Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout, bool directResourceHeapAccess, bool directSamplerHeapAccess) :
     ComResource<ID3D12RootSignature>(nullptr), m_impl(device)
 {
-    this->handle() = m_impl->initialize(*this, descriptorSetLayouts | std::ranges::to<std::vector>(), std::move(pushConstantsLayout));
+    this->handle() = m_impl->initialize(*this, descriptorSetLayouts | std::ranges::to<std::vector>(), std::move(pushConstantsLayout), directResourceHeapAccess, directSamplerHeapAccess);
 }
 
 DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device) :
@@ -381,12 +371,12 @@ Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12Push
 
 bool DirectX12PipelineLayout::dynamicResourceHeapAccess() const
 {
-    return m_impl->containsDescriptorOfType(m_impl->m_descriptorSetLayouts, DescriptorType::ResourceDescriptorHeap);
+    return m_impl->m_directResourceHeapAccess;
 }
 
 bool DirectX12PipelineLayout::dynamicSamplerHeapAccess() const
 {
-    return m_impl->containsDescriptorOfType(m_impl->m_descriptorSetLayouts, DescriptorType::SamplerDescriptorHeap);
+    return m_impl->m_directSamplerHeapAccess;
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
@@ -423,7 +413,7 @@ DirectX12PipelineLayoutBuilder::~DirectX12PipelineLayoutBuilder() noexcept = def
 void DirectX12PipelineLayoutBuilder::build()
 {
     auto instance = this->instance();
-    instance->handle() = instance->m_impl->initialize(*instance, std::move(this->state().descriptorSetLayouts), std::move(this->state().pushConstantsLayout));
+    instance->handle() = instance->m_impl->initialize(*instance, std::move(this->state().descriptorSetLayouts), std::move(this->state().pushConstantsLayout), this->state().directResourceHeapAccess, this->state().directSamplerHeapAccess);
 }
 
 DirectX12DescriptorSetLayoutBuilder DirectX12PipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages)

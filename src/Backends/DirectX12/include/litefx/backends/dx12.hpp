@@ -639,15 +639,6 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc IDescriptorSet::globalHeapAllocation
         DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const override;
 
-        /// @copydoc DescriptorSet::bindToHeap(DescriptorType, UInt32, const buffer_type&, UInt32, UInt32, Format) const
-        UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const override;
-
-        /// @copydoc DescriptorSet::bindToHeap(DescriptorType, UInt32, const image_type&, UInt32, UInt32, UInt32, UInt32) const
-        UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IDirectX12Image& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const override;
-
-        /// @copydoc DescriptorSet::bindToHeap(UInt32, const sampler_type&) const
-        UInt32 bindToHeap(UInt32 descriptor, const IDirectX12Sampler& sampler) const override;
-
         /// @copydoc DescriptorSet::update(UInt32, const buffer_type&, UInt32, UInt32, UInt32, Format) const
         void update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None) const override;
 
@@ -1039,7 +1030,9 @@ namespace LiteFX::Rendering::Backends {
         /// @param device The parent device, the layout is created from.
         /// @param descriptorSetLayouts The descriptor set layouts used by the pipeline.
         /// @param pushConstantsLayout The push constants layout used by the pipeline.
-        explicit DirectX12PipelineLayout(const DirectX12Device& device, const Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout);
+        /// @param directResourceHeapAccess Indicates if the pipeline uses direct access to the global resource descriptor heap (`ResourceDescriptorHeap`).
+        /// @param directSamplerHeapAccess Indicates if the pipeline uses direct access to the global sampler descriptor heap (`SamplerDescriptorHeap`).
+        explicit DirectX12PipelineLayout(const DirectX12Device& device, const Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout, bool directResourceHeapAccess = false, bool directSamplerHeapAccess = false);
 
         /// @brief Initializes a new DirectX 12 render pipeline layout.
         ///
@@ -1061,9 +1054,11 @@ namespace LiteFX::Rendering::Backends {
         /// @param device The parent device, the layout is created from.
         /// @param descriptorSetLayouts The descriptor set layouts used by the pipeline.
         /// @param pushConstantsLayout The push constants layout used by the pipeline.
+        /// @param directResourceHeapAccess Indicates if the pipeline uses direct access to the global resource descriptor heap (`ResourceDescriptorHeap`).
+        /// @param directSamplerHeapAccess Indicates if the pipeline uses direct access to the global sampler descriptor heap (`SamplerDescriptorHeap`).
         /// @return A shared pointer to the newly created pipeline layout instance.
-        static inline auto create(const DirectX12Device& device, const Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) {
-            return SharedObject::create<DirectX12PipelineLayout>(device, descriptorSetLayouts, std::move(pushConstantsLayout));
+        static inline auto create(const DirectX12Device& device, const Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout, bool directResourceHeapAccess = false, bool directSamplerHeapAccess = false) {
+            return SharedObject::create<DirectX12PipelineLayout>(device, descriptorSetLayouts, std::move(pushConstantsLayout), directResourceHeapAccess, directSamplerHeapAccess);
         }
 
     private:

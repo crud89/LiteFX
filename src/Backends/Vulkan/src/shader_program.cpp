@@ -209,6 +209,9 @@ public:
         Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts;
         Array<PushConstantRangeInfo> pushConstantRanges;
 
+        // Track if any shader indexes the global descriptor heaps directly. DXC emulates the heaps as bindings in a reserved descriptor set.
+        bool directlyAccessResourceHeap{ false }, directlyAccessSamplerHeap{ false };
+
         // Extract reflection data from all shader modules.
         std::ranges::for_each(m_modules, [&](auto& shaderModule) {
             // Read the file and initialize a reflection module.
@@ -241,15 +244,35 @@ public:
             // NOLINTEND(bugprone-assignment-in-if-condition)
             
             // Parse the descriptor sets.
-            std::ranges::for_each(descriptorSets, [&shaderModule, &descriptorSetLayouts](const SpvReflectDescriptorSet* descriptorSet) {
+            std::ranges::for_each(descriptorSets, [&shaderModule, &descriptorSetLayouts, &directlyAccessResourceHeap, &directlyAccessSamplerHeap](const SpvReflectDescriptorSet* descriptorSet) {
+                // The reserved heap set is mapped onto the global descriptor heaps and never becomes a descriptor set layout. DXC aliases all heap types on the same binding, so checking 
+                // the binding number is sufficient.
+                // TODO: Remove once DXC's native descriptor heap lowering is used, as heap accesses don't produce bindings anymore then.
+                if (descriptorSet->set == VulkanPipelineLayout::DESCRIPTOR_HEAP_SPACE)
+                {
+                    for (UInt32 b{ 0 }; b < descriptorSet->binding_count; ++b)
+                    {
+                        auto binding = descriptorSet->bindings[b]->binding; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+
+                        if (binding == VulkanPipelineLayout::RESOURCE_HEAP_BINDING)
+                            directlyAccessResourceHeap = true;
+                        else if (binding == VulkanPipelineLayout::SAMPLER_HEAP_BINDING)
+                            directlyAccessSamplerHeap = true;
+                        else [[unlikely]]
+                            throw RuntimeException("The shader declares a descriptor at binding {0} of the reserved descriptor heap set {1}. Note that UAV counters on heap resources are not supported.", binding, descriptorSet->set);
+                    }
+
+                    return;
+                }
+
                 // Get all descriptor layouts.
                 Array<DescriptorInfo> descriptors(descriptorSet->binding_count);
 
                 std::ranges::generate(descriptors, [&descriptorSet, &shaderModule, i = 0]() mutable {
                     // We reject UAV counters as unsupported. Instead use a RWByteAddressBuffer for the counter and increment it using InterlockedAdd. This is effectively the way
                     // those counters work under the hood anyway. Refer to the indirect rendering sample for an example on how to implement this.
-                    // NOTE: This check only works for DXC with debug names, so it may get skipped for other compilers or if debug names are stripped, in which case you will encounter an error
-                    //       further down the line.
+                    // NOTE: This check only works for DXC with debug names, so it may get skipped for other compilers or if debug names are stripped, in which case you will encounter 
+                    //       an error further down the line.
                     auto isUavCounter = [](const SpvReflectDescriptorBinding* binding) static noexcept -> bool {
                         auto typeName = binding->type_description != nullptr && binding->type_description->type_name != nullptr ? 
                             std::string_view { binding->type_description->type_name } : std::string_view {};
@@ -407,19 +430,6 @@ public:
                         descriptor.elements = hint.MaxDescriptors;
                 };
 
-                auto descriptorHeapHintCallback = [&](const PipelineBindingHint::DescriptorHeapHint& hint) {
-                    // DXC emits unbounded arrays to emulate mutable descriptor type bindings, but we force them to be fixed-size arrays, as multiple unbounded arrays in one 
-                    // descriptor set are not allowed anyway.
-                    // See: https://github.com/microsoft/DirectXShaderCompiler/blob/main/docs/SPIR-V.rst#resourcedescriptorheaps-samplerdescriptorheaps
-
-                    if (hint.Type != DescriptorHeapType::None)
-                    {
-                        descriptor.unbounded = false;
-                        descriptor.type = hint.Type == DescriptorHeapType::Resource ? DescriptorType::ResourceDescriptorHeap : DescriptorType::SamplerDescriptorHeap;
-                        descriptor.elements = hint.HeapSize;
-                    }
-                };
-
                 auto shaderStageHintCallback = [&](const PipelineBindingHint::ShaderStageHint& hint) {
                     // Simply mask in the stage into the parent descriptor set mask.
                     descriptorSet.stage |= hint.Stages;
@@ -428,7 +438,7 @@ public:
                 // If the descriptor binds a sampler and the hint is a static sampler, patch it.
                 std::visit(type_switch{
                     [](const std::monostate&) {}, // Default: don't patch anything
-                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback, descriptorHeapHintCallback, shaderStageHintCallback
+                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback, shaderStageHintCallback
                 }, hint);
             }
         });
@@ -533,7 +543,7 @@ public:
         auto pushConstantsLayout = makeUnique<VulkanPushConstantsLayout>(pushConstants | std::views::as_rvalue, overallSize);
 
         // Return the pipeline layout.
-        return VulkanPipelineLayout::create(*m_device, std::move(descriptorSets), std::move(pushConstantsLayout));
+        return VulkanPipelineLayout::create(*m_device, std::move(descriptorSets), std::move(pushConstantsLayout), directlyAccessResourceHeap, directlyAccessSamplerHeap);
     }
 };
 
