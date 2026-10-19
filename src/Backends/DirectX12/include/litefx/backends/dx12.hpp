@@ -668,6 +668,84 @@ namespace LiteFX::Rendering::Backends {
         const ComPtr<ID3D12DescriptorHeap> localHeap(DescriptorHeapType heapType) const noexcept;
     };
 
+    /// @brief Implements a DirectX12 @ref IDescriptorRange.
+    class LITEFX_DIRECTX12_API DirectX12DescriptorRange final : public IDescriptorRange {
+        LITEFX_IMPLEMENTATION(DirectX12DescriptorRangeImpl);
+
+    public:
+        friend class DirectX12Device;
+
+        using IDescriptorRange::update;
+
+    private:
+        /// @brief Creates a new descriptor range instance.
+        /// 
+        /// @param device The device from which descriptor range is allocated.
+        /// @param allocation The allocation of the descriptors.
+        explicit DirectX12DescriptorRange(const DirectX12Device& device, DescriptorHeapAllocation&& allocation);
+
+    public:
+        DirectX12DescriptorRange(const DirectX12DescriptorRange&) = delete;
+        DirectX12DescriptorRange(DirectX12DescriptorRange&&) noexcept = default;
+        DirectX12DescriptorRange& operator=(const DirectX12DescriptorRange&) = delete;
+        DirectX12DescriptorRange& operator=(DirectX12DescriptorRange&&) noexcept = default;
+
+        ~DirectX12DescriptorRange() override = default;
+
+    public:
+        /// @brief Returns the CPU handle of @p element in the shader-visible global descriptor heap.
+        ///
+        /// Views created at this handle are visible to shaders immediately. This is intended for interop with external libraries that create their own views. Descriptors 
+        /// written through @ref update use a staging heap instead.
+        /// 
+        /// @param element The descriptor for which to obtain the handle.
+        D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle(UInt32 element = 0) const;
+
+        /// @brief Returns the GPU handle of @p element in the shader-visible global descriptor heap.
+        ///
+        /// @param element The descriptor for which to obtain the handle.
+        D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle(UInt32 element = 0) const;
+
+    public:
+        /// @copydoc IDescriptorRange::heap
+        DescriptorHeapType heap() const noexcept override;
+
+        /// @copydoc IDescriptorRange::size
+        UInt32 size() const noexcept override;
+
+        /// @copydoc IDescriptorRange::globalIndex
+        UInt32 globalIndex(UInt32 element = 0) const override;
+
+        /// @copydoc IDescriptorRange::update(UInt32, DescriptorType, const IBuffer&, UInt32, UInt32, Format)
+        void update(UInt32 element, DescriptorType bindingType, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const;
+
+        /// @copydoc IDescriptorRange::update(UInt32, DescriptorType, const IImage&, UInt32, UInt32, UInt32, UInt32)
+        void update(UInt32 element, DescriptorType bindingType, const IDirectX12Image& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const;
+
+        /// @copydoc IDescriptorRange::update(UInt32, const ISampler&)
+        void update(UInt32 element, const IDirectX12Sampler& sampler) const;
+
+        /// @copydoc IDescriptorRange::update(UInt32, const IAccelerationStructure&)
+        void update(UInt32 element, const IDirectX12AccelerationStructure& accelerationStructure) const;
+
+    private:
+        inline void doUpdate(UInt32 element, DescriptorType bindingType, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const override {
+            return this->update(element, bindingType, dynamic_cast<const IDirectX12Buffer&>(buffer), bufferElement, elements, texelFormat);
+        }
+
+        inline void doUpdate(UInt32 element, DescriptorType bindingType, const IImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const override {
+            return this->update(element, bindingType, dynamic_cast<const IDirectX12Image&>(image), firstLevel, levels, firstLayer, layers);
+        }
+
+        inline void doUpdate(UInt32 element, const ISampler& sampler) const override {
+            return this->update(element, dynamic_cast<const IDirectX12Sampler&>(sampler));
+        }
+
+        inline void doUpdate(UInt32 element, const IAccelerationStructure& accelerationStructure) const override {
+            return this->update(element, dynamic_cast<const IDirectX12AccelerationStructure&>(accelerationStructure));
+        }
+    };
+
     /// @brief Implements a DirectX 12 @ref IDescriptorLayout
     ///
     /// @see @ref IDirectX12Buffer
@@ -2326,10 +2404,12 @@ namespace LiteFX::Rendering::Backends {
     };
 
     /// @brief Implements a DirectX 12 graphics device.
-    class LITEFX_DIRECTX12_API DirectX12Device final : public GraphicsDevice<DirectX12GraphicsFactory, DirectX12Surface, DirectX12GraphicsAdapter, DirectX12SwapChain, DirectX12Queue, DirectX12RenderPass, DirectX12RenderPipeline, DirectX12ComputePipeline, DirectX12RayTracingPipeline, DirectX12Barrier>, public ComResource<ID3D12Device10> {
+    class LITEFX_DIRECTX12_API DirectX12Device final : public GraphicsDevice<DirectX12GraphicsFactory, DirectX12Surface, DirectX12GraphicsAdapter, DirectX12SwapChain, DirectX12Queue, DirectX12RenderPass, DirectX12DescriptorRange, DirectX12RenderPipeline, DirectX12ComputePipeline, DirectX12RayTracingPipeline, DirectX12Barrier>, public ComResource<ID3D12Device10> {
         LITEFX_IMPLEMENTATION(DirectX12DeviceImpl);
         friend struct SharedObject::Allocator<DirectX12Device>;
         friend class DirectX12Backend;
+        friend class DirectX12DescriptorSet;
+        friend class DirectX12DescriptorRange;
 
     private:
         /// @brief Creates a new device instance.
@@ -2403,6 +2483,8 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc GraphicsDevice::bindDescriptors
         void bindDescriptors(const DirectX12CommandBuffer& commandBuffer, const DirectX12PipelineState& pipeline, const DirectX12DescriptorSet& descriptorSet, DescriptorHeapType heap, UInt32 baseIndex) const override;
 
+        void releaseGlobalDescriptors(DescriptorHeapAllocation&& allocation) const;
+
     public:
         /// @brief Returns the global descriptor heap.
         ///
@@ -2425,29 +2507,13 @@ namespace LiteFX::Rendering::Backends {
         /// @param drawIndexedSignature The command signature used to execute indirect indexed draw calls.
         void indirectDrawSignatures(ComPtr<ID3D12CommandSignature>& dispatchSignature, ComPtr<ID3D12CommandSignature>& dispatchMeshSignature, ComPtr<ID3D12CommandSignature>& drawSignature, ComPtr<ID3D12CommandSignature>& drawIndexedSignature) const noexcept;
 
-        /// @brief Allocates a @p descriptors on the descriptor heap indicated by <paramref name=heapType" /> for use with external clients.
-        ///
-        /// This call allocates a descriptor range on one of the global descriptor heaps, that can be used with external clients and libraries. Keep in mind that you have to release those descriptors manually by
-        /// calling the appropriate overload to @ref releaseGlobalDescriptors. The following example demonstrates how to use this function.
-        ///
-        /// @par Example
-        /// @code
-        /// auto allocation = d3dDevice.allocateGlobalDescriptors(1000, DescriptorHeapType::Resource); // Use the descriptors. d3dDevice.releaseGlobalDescriptors(std::move(allocation));
-        /// @endcode
-        ///
-        /// @param descriptors The number of descriptors to allocate.
-        /// @param heapType The heap type, indicating the descriptor heap to allocate the descriptors from.
-        /// @return The allocation for the requested descriptors in the descriptor heap indicated by @p heapType.
-        [[nodiscard]] DescriptorHeapAllocation allocateGlobalDescriptors(UInt32 descriptors, DescriptorHeapType heapType) const;
-
-        /// @brief Releases a manually allocated descriptor range from the descriptor heap indicated by @p heapType.
-        ///
-        /// Calling this method with an allocation that has not been allocated from the corresponding resource heap of the same device instance is undefined behavior.
-        ///
-        /// @param heapType The heap type, indicating the descriptor heap to release the descriptors from.
-        /// @param allocation The allocation to release.
-        /// @see @ref allocateGlobalDescriptors(descriptors, heapType)
-        void releaseGlobalDescriptors(DescriptorHeapAllocation&& allocation) const;
+        /// @brief Copies @p descriptors descriptors from a CPU-only heap, starting at @p source, into the global @p heapType heap at @p targetIndex.
+        /// 
+        /// @param heapType The type of the global descriptor heap to copy the descriptors into.
+        /// @param targetIndex The index of the first descriptor to copy into.
+        /// @param source The handle of the source descriptor.
+        /// @param descriptors The number of descriptors to copy.
+        void copyGlobalDescriptorHeap(DescriptorHeapType heapType, UInt32 targetIndex, D3D12_CPU_DESCRIPTOR_HANDLE source, UInt32 descriptors) const;
 
         // GraphicsDevice interface.
     public:
@@ -2504,11 +2570,11 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc GraphicsDevice::descriptorHeaps
         const GlobalDescriptorHeaps& descriptorHeaps() const noexcept override;
 
-        /// @copydoc GraphicsDevice::allocateGlobalDescriptors
+        /// @copydoc GraphicsDevice::allocateGlobalDescriptors(const IDescriptorSet&, DescriptorHeapType)
         [[nodiscard]] DescriptorHeapAllocation allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, DescriptorHeapType heapType) const override;
 
-        /// @copydoc GraphicsDevice::releaseGlobalDescriptors
-        void releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const override;
+        /// @copydoc GraphicsDevice::allocateGlobalDescriptors(DescriptorHeapType, UInt32)
+        [[nodiscard]] UniquePtr<DirectX12DescriptorRange> allocateGlobalDescriptors(DescriptorHeapType heapType, UInt32 descriptors) const override;
 
         /// @copydoc GraphicsDevice::bindGlobalDescriptorHeaps
         void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept override;

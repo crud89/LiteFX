@@ -30,6 +30,7 @@ namespace LiteFX::Rendering {
     class ITopLevelAccelerationStructure;
     class IBarrier;
     class IDescriptorSet;
+    class IDescriptorRange;
     class IDescriptorSetLayout;
     class IPushConstantsRange;
     class IPushConstantsLayout;
@@ -5473,6 +5474,85 @@ namespace LiteFX::Rendering {
         virtual Enumerable<const IPushConstantsRange&> getRanges() const = 0;
     };
 
+    /// @brief A contiguous range of descriptors on one of the global descriptor heaps, accessed directly by shaders through `ResourceDescriptorHeap` or `SamplerDescriptorHeap`.
+    ///
+    /// The range releases its descriptors when destroyed. The caller must ensure that the GPU no longer accesses the range at this point.
+    class LITEFX_RENDERING_API IDescriptorRange {
+    public:
+        virtual ~IDescriptorRange() noexcept = default;
+
+    public:
+        /// @brief Returns the underlying heap, the range is allocated from.
+        /// 
+        /// @return The underlying heap, the range is allocated from.
+        virtual DescriptorHeapType heap() const noexcept = 0;
+
+        /// @brief Returns the size of the descriptor range.
+        /// 
+        /// @return The number of descriptors allocated in the range.
+        virtual UInt32 size() const noexcept = 0;
+
+        /// @brief Returns the index of @p element within the global descriptor heap, i.e., the value a shader uses to index `ResourceDescriptorHeap` or `SamplerDescriptorHeap`.
+        ///
+        /// @return The index of @p element within the global descriptor heap underlying the range.
+        virtual UInt32 globalIndex(UInt32 element = 0) const = 0;
+
+        /// @brief Updates one or more buffer descriptors within the descriptor range.
+        /// 
+        /// @param element The index of the descriptor in the range to update.
+        /// @param bindingType The type of the resource to bind at @p element.
+        /// @param buffer The buffer to write to the descriptor set.
+        /// @param bufferElement The index of the first element in the buffer to bind to the descriptor set.
+        /// @param elements The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at @p bufferElement.
+        /// @param texelFormat The format used to read a texel buffer. Required if @p bindingType binds a texel buffer and ignored otherwise.
+        inline void update(UInt32 element, DescriptorType bindingType, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const {
+            this->doUpdate(element, bindingType, buffer, bufferElement, elements, texelFormat);
+        }
+
+        /// @brief Updates one or more texture descriptors within the current descriptor range.
+        ///
+        /// The exact representation of the level and layer parameters depends on the dimension of the provided texture, as well as the type of the descriptor identified by the @p bindingType parameter.
+        ///
+        /// If the texture itself is not an array (i.e. the number of layers equals `1`), the parameters @p firstLayer and @p layers are ignored.
+        ///
+        /// The descriptor type dictates, how mip-maps can be provided. If the descriptor type identifies a *writable texture*, the @p firstLevel parameter specifies the mip-map level to write to (or read from).
+        /// Multiple levels are not allowed in this case, so the @p levels parameter is ignored. Instead, you have to bind them to separate descriptors. Furthermore, the @p firstLayer and @p layers parameter can
+        /// be used to specify the number of depth or W-slices of a writable 3D texture or the side(s) of a cube map.
+        ///
+        /// @param element The index of the descriptor in the range to update.
+        /// @param bindingType The type of the resource to bind at @p element.
+        /// @param image The texture to write to the descriptor range.
+        /// @param firstLevel The index of the first mip-map level to bind.
+        /// @param levels The number of mip-map levels to bind. A value of `0` binds all available levels, starting at @p firstLevel.
+        /// @param firstLayer The index of the first layer to bind.
+        /// @param layers The number of layers to bind. A value of `0` binds all available layers, starting at @p firstLayer.
+        inline void update(UInt32 element, DescriptorType bindingType, const IImage& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const {
+            this->doUpdate(element, bindingType, image, firstLevel, levels, firstLayer, layers);
+        }
+
+        /// @brief Updates a sampler descriptor within the current descriptor range.
+        ///
+        /// @param element The index of the descriptor in the range to update.
+        /// @param sampler The sampler to write to the descriptor range.
+        inline void update(UInt32 element, const ISampler& sampler) const {
+            this->doUpdate(element, sampler);
+        }
+
+        /// @brief Updates an acceleration structure descriptor within the current descriptor range.
+        /// 
+        /// @param element The index of the descriptor in the range to update.
+        /// @param accelerationStructure The acceleration structure to write to the descriptor range.
+        inline void update(UInt32 element, const IAccelerationStructure& accelerationStructure) const {
+            this->doUpdate(element, accelerationStructure);
+        }
+
+    private:
+        virtual void doUpdate(UInt32 element, DescriptorType bindingType, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const = 0;
+        virtual void doUpdate(UInt32 element, DescriptorType bindingType, const IImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
+        virtual void doUpdate(UInt32 element, const ISampler& sampler) const = 0;
+        virtual void doUpdate(UInt32 element, const IAccelerationStructure& accelerationStructure) const = 0;
+    };
+
     /// @brief Describes a record within a shader binding table.
     ///
     /// A shader record contains a shader group, that is either a single shader of type @ref ShaderStage::RayGeneration, @ref ShaderStage::Intersection, @ref ShaderStage::Miss or @ref ShaderStage::Callable,
@@ -9415,22 +9495,27 @@ namespace LiteFX::Rendering {
         /// @return A reference to the global descriptor heaps container.
         virtual const GlobalDescriptorHeaps& descriptorHeaps() const noexcept = 0;
 
-        /// @brief Allocates a range of descriptors in the global descriptor heaps for the provided @p descriptorSet.
+        /// @brief Allocates a range of descriptors in the global descriptor heap indicated by @p heapType for the provided @p descriptorSet.
         ///
         /// @param descriptorSet The descriptor set containing the descriptors to update.
         /// @param heapType The type of the descriptor heap to allocate descriptors on.
         /// @return The allocation for the descriptor set at the descriptor heap indicated by @p heapType.
+        /// @see allocateGlobalDescriptors(DescriptorHeapType, UInt32)
         [[nodiscard]] inline DescriptorHeapAllocation allocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const {
             return this->doAllocateGlobalDescriptors(descriptorSet, heapType);
         }
 
-        /// @brief Releases a range of descriptors from the global descriptor heaps.
-        ///
-        /// This is done, if a descriptor set layout is destroyed, of a descriptor set, which contains an unbounded array is freed. It will cause the global descriptor heaps to fragment, which may result in
-        /// inefficient future descriptor allocations and should be avoided. Consider caching descriptor sets with unbounded arrays instead. Also avoid relying on creating and releasing pipeline layouts during
-        /// runtime. Instead, it may be more efficient to write shaders that support multiple pipeline variations, that can be kept alive for the lifetime of the whole application.
-        inline void releaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const {
-            this->doReleaseGlobalDescriptors(descriptorSet);
+        /// @brief Allocates a descriptor range with a capacity of @p descriptors from the global descriptor heap indicated by @p heapType.
+        /// 
+        /// This overload allocates a raw descriptor range from a global descriptor heap. It is intended for interop purposes, where external libraries need to bind resources, as well as bindless rendering using
+        /// SM 6.6 dynamic resources (`ResourceDescriptorHeap`/`SamplerDescriptorHeap`).
+        /// 
+        /// @param heapType The global descriptor heap from which to allocate the descriptor range.
+        /// @param descriptors The number of descriptors to allocate from the descriptor range.
+        /// @return A pointer to the descriptor range.
+        /// @see allocateGlobalDescriptors(const IDescriptorSet&, DescriptorHeapType)
+        [[nodiscard]] inline UniquePtr<IDescriptorRange> allocateGlobalDescriptors(DescriptorHeapType heapType, UInt32 descriptors) const {
+            return this->getDescriptorRange(heapType, descriptors);
         }
 
         /// @brief Updates a range of descriptors in the global buffer descriptor heap with the descriptors from @p descriptorSet.
@@ -9466,7 +9551,7 @@ namespace LiteFX::Rendering {
         virtual void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
         virtual void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
         virtual DescriptorHeapAllocation doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const = 0;
-        virtual void doReleaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const = 0;
+        virtual UniquePtr<IDescriptorRange> getDescriptorRange(DescriptorHeapType heapType, UInt32 descriptors) const = 0;
         virtual void doUpdateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const = 0;
         virtual void doBindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const = 0;
         virtual void doBindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept = 0;

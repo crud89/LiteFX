@@ -287,16 +287,13 @@ const GlobalDescriptorHeaps& DirectX12Device::descriptorHeaps() const noexcept
 	return *m_impl->m_descriptorHeaps;
 }
 
-void DirectX12Device::copyDescriptors(const DirectX12DescriptorSet& descriptorSet, DescriptorHeapType heap, UInt32 targetIndex, UInt32 sourceIndex, UInt32 descriptors) const
+void DirectX12Device::copyDescriptors(const DirectX12DescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32 targetIndex, UInt32 sourceIndex, UInt32 descriptors) const
 {
-	bool samplers = heap == DescriptorHeapType::Sampler;
+	bool samplers = heapType == DescriptorHeapType::Sampler;
 	auto increment = samplers ? m_impl->m_samplerDescriptorAlignment : m_impl->m_resourceDescriptorAlignment;
-	auto* globalHeap = samplers ? m_impl->m_globalSamplerHeap.Get() : m_impl->m_globalBufferHeap.Get();
 
-	CD3DX12_CPU_DESCRIPTOR_HANDLE targetHandle(globalHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(targetIndex), increment);
-	CD3DX12_CPU_DESCRIPTOR_HANDLE sourceHandle(descriptorSet.localHeap(heap)->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(sourceIndex), increment);
-
-	this->handle()->CopyDescriptorsSimple(descriptors, targetHandle, sourceHandle, samplers ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	CD3DX12_CPU_DESCRIPTOR_HANDLE sourceHandle(descriptorSet.localHeap(heapType)->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(sourceIndex), increment);
+	this->copyGlobalDescriptorHeap(heapType, targetIndex, sourceHandle, descriptors);
 }
 
 void DirectX12Device::bindDescriptors(const DirectX12CommandBuffer& commandBuffer, const DirectX12PipelineState& pipeline, const DirectX12DescriptorSet& descriptorSet, DescriptorHeapType heap, UInt32 baseIndex) const
@@ -324,19 +321,12 @@ void DirectX12Device::bindDescriptors(const DirectX12CommandBuffer& commandBuffe
 
 DescriptorHeapAllocation DirectX12Device::allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, DescriptorHeapType heapType) const
 {
-	return this->allocateGlobalDescriptors(descriptorSet.localHeap(heapType)->GetDesc().NumDescriptors, heapType);
+	return m_impl->m_descriptorHeaps->allocate(heapType, descriptorSet.localHeap(heapType)->GetDesc().NumDescriptors);
 }
 
-DescriptorHeapAllocation DirectX12Device::allocateGlobalDescriptors(UInt32 descriptors, DescriptorHeapType heapType) const
+UniquePtr<DirectX12DescriptorRange> DirectX12Device::allocateGlobalDescriptors(DescriptorHeapType heapType, UInt32 descriptors) const
 {
-	return m_impl->m_descriptorHeaps->allocate(heapType, descriptors);
-}
-
-void DirectX12Device::releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const
-{
-	// Release resources from both heaps. Empty allocations are ignored, so we don't need to check if the descriptor set binds the individual heaps here.
-	this->releaseGlobalDescriptors(descriptorSet.globalHeapAllocation(DescriptorHeapType::Resource));
-	this->releaseGlobalDescriptors(descriptorSet.globalHeapAllocation(DescriptorHeapType::Sampler));
+	return UniquePtr<DirectX12DescriptorRange>(new DirectX12DescriptorRange(*this, m_impl->m_descriptorHeaps->allocate(heapType, descriptors)));
 }
 
 void DirectX12Device::releaseGlobalDescriptors(DescriptorHeapAllocation&& allocation) const
@@ -356,6 +346,16 @@ void DirectX12Device::indirectDrawSignatures(ComPtr<ID3D12CommandSignature>& dis
 	dispatchMeshSignature = m_impl->m_dispatchMeshSignature;
 	drawSignature = m_impl->m_drawSignature;
 	drawIndexedSignature = m_impl->m_drawIndexedSignature;
+}
+
+void DirectX12Device::copyGlobalDescriptorHeap(DescriptorHeapType heapType, UInt32 targetIndex, D3D12_CPU_DESCRIPTOR_HANDLE source, UInt32 descriptors) const
+{
+	bool samplers = heapType == DescriptorHeapType::Sampler;
+	auto increment = samplers ? m_impl->m_samplerDescriptorAlignment : m_impl->m_resourceDescriptorAlignment;
+	auto* globalHeap = samplers ? m_impl->m_globalSamplerHeap.Get() : m_impl->m_globalBufferHeap.Get();
+
+	CD3DX12_CPU_DESCRIPTOR_HANDLE targetHandle(globalHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(targetIndex), increment);
+	this->handle()->CopyDescriptorsSimple(descriptors, targetHandle, source, samplers ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

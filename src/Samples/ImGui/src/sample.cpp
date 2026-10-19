@@ -57,35 +57,24 @@ void SampleApp::allocImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* cont
     auto& device = dynamic_cast<const DirectX12Device&>(*app->m_device);
 
     // Allocate an externally managed descriptor.
-    auto allocation = device.allocateGlobalDescriptors(1u, DescriptorHeapType::Resource).Allocation;
+    auto descriptorRange = device.allocateGlobalDescriptors(DescriptorHeapType::Resource, 1u);
 
     // Initialize the CPU and GPU handles.
-    auto descriptorHandleIncrement = device.handle().Get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-    CD3DX12_CPU_DESCRIPTOR_HANDLE targetHandle(device.globalBufferHeap()->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(allocation.Offset), descriptorHandleIncrement);
-    CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(device.globalBufferHeap()->GetGPUDescriptorHandleForHeapStart(), static_cast<INT>(allocation.Offset), descriptorHandleIncrement);
-    cpu_handle->ptr = targetHandle.ptr;
-    gpu_handle->ptr = targetGpuHandle.ptr;
+    *cpu_handle = descriptorRange->cpuHandle();
+    *gpu_handle = descriptorRange->gpuHandle();
 
     // Store the descriptor range, so we can properly release it later.
-    app->m_d3dDescriptorAllocations.emplace(targetHandle.ptr, allocation);
+    app->m_d3dDescriptorAllocations.emplace(cpu_handle->ptr, std::move(descriptorRange));
 }
 
 void SampleApp::releaseImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* context, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE /*gpu_handle*/)
 {
     // Get the app and device reference.
     auto app = static_cast<SampleApp*>(context->UserData);
-    auto& device = dynamic_cast<const DirectX12Device&>(*app->m_device);
 
-    // Lookup the descriptor range.
-    auto match = app->m_d3dDescriptorAllocations.find(cpu_handle.ptr);
-
-    if (match != app->m_d3dDescriptorAllocations.end())
-    {
-        // Release the descriptor range.
-        device.releaseGlobalDescriptors({ DescriptorHeapType::Resource, std::move(match->second) }); // NOLINT(performance-move-const-arg)
+    // Remove the descriptor range, which will automatically release the descriptor allocation.
+    if (auto match = app->m_d3dDescriptorAllocations.find(cpu_handle.ptr); match != app->m_d3dDescriptorAllocations.end())
         app->m_d3dDescriptorAllocations.erase(cpu_handle.ptr);
-    }
 }
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 

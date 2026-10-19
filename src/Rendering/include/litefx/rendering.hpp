@@ -1521,11 +1521,12 @@ namespace LiteFX::Rendering {
     /// @tparam TSwapChain The type of the swap chain. Must implement @ref SwapChain.
     /// @tparam TCommandQueue The type of the command queue. Must implement @ref CommandQueue.
     /// @tparam TRenderPass The type of the render pass. Must implement @ref RenderPass.
+    /// @tparam TDescriptorRange The type of the descriptor range. Must implement @ref IDescriptorRange.
     /// @tparam TRenderPipeline The type of the render pipeline. Must implement @ref RenderPipeline.
     /// @tparam TComputePipeline The type of the compute pipeline. Must implement @ref ComputePipeline.
     /// @tparam TRayTracingPipeline The type of the ray-tracing pipeline. Must implement @ref RayTracingPipeline.
     /// @tparam TBarrier The type of the memory barrier. Must implement @ref Barrier.
-    template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TRenderPipeline, typename TComputePipeline, typename TRayTracingPipeline, typename TBarrier> requires
+    template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TDescriptorRange, typename TRenderPipeline, typename TComputePipeline, typename TRayTracingPipeline, typename TBarrier> requires
         meta::implements<TSurface, ISurface> &&
         meta::implements<TGraphicsAdapter, IGraphicsAdapter> &&
         meta::implements<TSwapChain, SwapChain<typename TFactory::image_type>> &&
@@ -1535,7 +1536,8 @@ namespace LiteFX::Rendering {
         meta::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>> &&
         meta::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>> &&
         meta::implements<TRayTracingPipeline, RayTracingPipeline<typename TRayTracingPipeline::pipeline_layout_type, typename TRayTracingPipeline::shader_program_type>> &&
-        meta::implements<TBarrier, Barrier<typename TFactory::buffer_type, typename TFactory::image_type>>
+        meta::implements<TBarrier, Barrier<typename TFactory::buffer_type, typename TFactory::image_type>> &&
+        meta::implements<TDescriptorRange, IDescriptorRange>
     class GraphicsDevice : public IGraphicsDevice {
     public:
         using surface_type = TSurface;
@@ -1564,6 +1566,7 @@ namespace LiteFX::Rendering {
         using shader_program_type = render_pipeline_type::shader_program_type;
         using input_assembler_type = render_pipeline_type::input_assembler_type;
         using rasterizer_type = render_pipeline_type::rasterizer_type;
+        using descriptor_range_type = TDescriptorRange;
 
     protected:
         GraphicsDevice() noexcept = default;
@@ -1665,8 +1668,8 @@ namespace LiteFX::Rendering {
         /// @copydoc IGraphicsDevice::allocateGlobalDescriptors(const IDescriptorSet&, DescriptorHeapType)
         [[nodiscard]] virtual DescriptorHeapAllocation allocateGlobalDescriptors(const descriptor_set_type& descriptorSet, DescriptorHeapType heapType) const = 0;
 
-        /// @copydoc IGraphicsDevice::releaseGlobalDescriptors(const IDescriptorSet&)
-        virtual void releaseGlobalDescriptors(const descriptor_set_type& descriptorSet) const = 0;
+        /// @copydoc IGraphicsDevice::allocateGlobalDescriptors(DescriptorHeapType, UInt32)
+        [[nodiscard]] virtual UniquePtr<descriptor_range_type> allocateGlobalDescriptors(DescriptorHeapType heapType, UInt32 descriptors) const = 0;
 
         /// @copydoc IGraphicsDevice::bindGlobalDescriptorHeaps(const ICommandBuffer&)
         virtual void bindGlobalDescriptorHeaps(const command_buffer_type& commandBuffer) const noexcept = 0;
@@ -1710,8 +1713,8 @@ namespace LiteFX::Rendering {
             return this->allocateGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet), heapType);
         }
 
-        inline void doReleaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const override {
-            this->releaseGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet));
+        inline UniquePtr<IDescriptorRange> getDescriptorRange(DescriptorHeapType heapType, UInt32 descriptors) const override {
+            return this->allocateGlobalDescriptors(heapType, descriptors);
         }
 
         inline void doUpdateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const override {
@@ -1817,7 +1820,7 @@ namespace LiteFX::Rendering {
     ///
     /// @tparam TGraphicsDevice The type of the graphics device. Must implement @ref GraphicsDevice.
     template <typename TGraphicsDevice> requires
-        meta::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::render_pipeline_type, typename TGraphicsDevice::compute_pipeline_type, typename TGraphicsDevice::ray_tracing_pipeline_type, typename TGraphicsDevice::barrier_type>>
+        meta::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::descriptor_range_type, typename TGraphicsDevice::render_pipeline_type, typename TGraphicsDevice::compute_pipeline_type, typename TGraphicsDevice::ray_tracing_pipeline_type, typename TGraphicsDevice::barrier_type>>
     class RenderBackend : public IRenderBackend {
     public:
         using device_type = TGraphicsDevice;

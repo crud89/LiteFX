@@ -816,9 +816,8 @@ const GlobalDescriptorHeaps& VulkanDevice::descriptorHeaps() const noexcept
 void VulkanDevice::copyDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32 targetIndex, UInt32 sourceIndex, UInt32 descriptors) const
 {
     size_t stride = this->descriptorStride(heapType);
-    auto localHeap = descriptorSet.descriptorBuffer(heapType).subspan(sourceIndex * stride, descriptors * stride);
-    auto& heap = heapType == DescriptorHeapType::Sampler ? m_impl->m_globalSamplerHeap : m_impl->m_globalResourceHeap;
-    heap->write(localHeap.data(), localHeap.size(), targetIndex * stride);
+
+    this->writeGlobalDescriptorHeap(heapType, targetIndex, descriptorSet.descriptorBuffer(heapType).subspan(sourceIndex * stride, descriptors * stride));
 }
 
 void VulkanDevice::bindDescriptors(const VulkanCommandBuffer& commandBuffer, const VulkanPipelineState& pipeline, const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32 baseIndex) const
@@ -842,10 +841,22 @@ DescriptorHeapAllocation VulkanDevice::allocateGlobalDescriptors(const VulkanDes
     return m_impl->m_descriptorHeaps->allocate(heapType, static_cast<UInt32>(descriptorSet.descriptorBuffer(heapType).size() / this->descriptorStride(heapType)));
 }
 
-void VulkanDevice::releaseGlobalDescriptors(const VulkanDescriptorSet& descriptorSet) const
+UniquePtr<VulkanDescriptorRange> VulkanDevice::allocateGlobalDescriptors(DescriptorHeapType heapType, UInt32 descriptors) const
 {
-    m_impl->m_descriptorHeaps->release(descriptorSet.globalHeapAllocation(DescriptorHeapType::Resource));
-    m_impl->m_descriptorHeaps->release(descriptorSet.globalHeapAllocation(DescriptorHeapType::Sampler));
+    return UniquePtr<VulkanDescriptorRange>(new VulkanDescriptorRange(*this, m_impl->m_descriptorHeaps->allocate(heapType, descriptors)));
+}
+
+void VulkanDevice::writeGlobalDescriptorHeap(DescriptorHeapType heapType, UInt32 targetIndex, Span<const Byte> descriptors) const
+{
+    const size_t stride = this->descriptorStride(heapType);
+    auto& heap = heapType == DescriptorHeapType::Sampler ? m_impl->m_globalSamplerHeap : m_impl->m_globalResourceHeap;
+
+    heap->write(descriptors.data(), descriptors.size(), static_cast<size_t>(targetIndex) * stride);
+}
+
+void VulkanDevice::releaseGlobalDescriptors(DescriptorHeapAllocation&& allocation) const
+{
+    m_impl->m_descriptorHeaps->release(std::move(allocation));
 }
 
 void VulkanDevice::bindGlobalDescriptorHeaps(const VulkanCommandBuffer& commandBuffer) const noexcept
