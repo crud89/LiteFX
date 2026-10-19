@@ -376,6 +376,24 @@
 		</Expand>
 	</Type>
 
+	<!-- Descriptor Range -->
+	<Type Name="LiteFX::Rendering::Backends::DirectX12DescriptorRange">
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12DescriptorRange {{ Heap = { impl()->m_allocation.Heap,en }, Global Index = { impl()->m_allocation.Allocation.Offset }, Descriptors = { impl()->m_size } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Heap">impl()->m_allocation.Heap,en</Item>
+			<Item Name="Global Index">impl()->m_allocation.Allocation.Offset</Item>
+			<Item Name="Descriptors">impl()->m_size</Item>
+			<Item Name="Descriptor Increment">impl()->m_increment</Item>
+			<Item Name="Staging Heap">impl()->m_staging</Item>
+			<Item Name="Allocation">impl()->m_allocation</Item>
+			<Item Name="Parent Device">impl()->m_device</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
 	<!-- Descriptor Layout -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12DescriptorLayout">
 		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
@@ -459,6 +477,8 @@
 					<ExpandedItem>impl()->m_rootParameterIndices._List,view(DictionaryHelper)</ExpandedItem>
 				</Expand>
 			</Synthetic>
+			<Item Name="Direct Resource Heap Access">impl()->m_directResourceHeapAccess</Item>
+			<Item Name="Direct Sampler Heap Access">impl()->m_directSamplerHeapAccess</Item>
 			<Item Name="Parent Device">impl()->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
