@@ -269,6 +269,22 @@ public:
         if (this->containsDescriptorOfType(descriptorLayouts, DescriptorType::SamplerDescriptorHeap))
             flags |= D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED;
 
+        // Validate the root signature size.
+        auto rootSignatureSize = std::ranges::fold_left(descriptorParameters | std::views::transform([](const D3D12_ROOT_PARAMETER1& parameter) -> UInt32 {
+            switch (parameter.ParameterType)
+            {
+            case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:  return parameter.Constants.Num32BitValues;
+            case D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE: return 1u; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            case D3D12_ROOT_PARAMETER_TYPE_CBV:
+            case D3D12_ROOT_PARAMETER_TYPE_SRV:
+            case D3D12_ROOT_PARAMETER_TYPE_UAV:              return 2u; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            default: std::unreachable();
+            }
+        }), 0u, std::plus{});
+
+        if (rootSignatureSize > D3D12_MAX_ROOT_COST) [[unlikely]]
+            throw RuntimeException("The pipeline layout requires a root signature of {0} DWORDs, but only {1} DWORDs are supported. Reduce the size of the push constants or the number of descriptor sets.", rootSignatureSize, D3D12_MAX_ROOT_COST);
+
         // Create root signature descriptor.
         ComPtr<ID3DBlob> signature, error;
         String errorString = "";

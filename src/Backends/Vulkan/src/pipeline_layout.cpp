@@ -35,16 +35,29 @@ public:
     void createMappings()
     {
         UInt32 resourceStride = m_device->descriptorStride(DescriptorHeapType::Resource), samplerStride = m_device->descriptorStride(DescriptorHeapType::Sampler);
-        UInt32 offset = align(m_pushConstantsLayout == nullptr ? 0u : m_pushConstantsLayout->size(), 4u);
+        UInt32 rootSignatureEndOffset{ 0u }, pushConstantsEndOffset{ 0u };
+
+        // First, compute the offset of the end of the push constants range.
+        if (m_pushConstantsLayout != nullptr)
+        {
+            pushConstantsEndOffset = m_pushConstantsLayout->size();
+
+            for (auto& range : m_pushConstantsLayout->ranges())
+                pushConstantsEndOffset = std::max(pushConstantsEndOffset, range->offset() + range->size());
+        }
+
+        rootSignatureEndOffset = align(pushConstantsEndOffset, 4u);
 
         // Create a mapping for each descriptor set.
         for (auto& layout : m_descriptorSetLayouts)
         {
             // Store the offset to the push constant for the descriptor set space.
             auto space = layout->space();
-            auto pushOffset = offset;
+            auto pushOffset = rootSignatureEndOffset;
             m_setPushOffsets[space] = pushOffset;
-            offset += 2u * sizeof(UInt32);
+
+            // Increase the end offset.
+            rootSignatureEndOffset += 2u * sizeof(UInt32); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
             // Map each descriptor.
             for (auto& descriptor : layout->descriptors())
@@ -91,8 +104,8 @@ public:
             }
         }
 
-        if (offset > m_device->maxPushDataSize()) [[unlikely]]
-            throw RuntimeException("The pipeline layout requires {0} bytes of push data, but the device only supports {1} bytes.", offset, m_device->maxPushDataSize());
+        if (rootSignatureEndOffset > m_device->maxPushDataSize()) [[unlikely]]
+            throw RuntimeException("The pipeline layout requires {0} bytes of push data, but the device only supports {1} bytes.", rootSignatureEndOffset, m_device->maxPushDataSize());
 
         m_mappingInfo.mappingCount = static_cast<UInt32>(m_mappings.size());
         m_mappingInfo.pMappings = m_mappings.data();

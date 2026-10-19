@@ -18,13 +18,8 @@ private:
 
 public:
     VulkanPushConstantsLayoutImpl(UInt32 size) :
-        m_size(size % 4 == 0 ? (size + 4 - 1) & ~(size - 1) : size) // Align the size to 4 bytes.
+        m_size(align(size, static_cast<UInt32>(sizeof(UInt32))))
     {
-        constexpr UInt32 MAX_GUARANTEED_RANGE_SIZE = 128;
-
-        // Issue a warning, if the size is too large.
-        if (m_size > MAX_GUARANTEED_RANGE_SIZE)
-            LITEFX_WARNING(VULKAN_LOG, "The push constant layout backing memory is defined with a size greater than 128 bytes. Blocks larger than 128 bytes are not forbidden, but also not guaranteed to be supported on all hardware.");
     }
 
 private:
