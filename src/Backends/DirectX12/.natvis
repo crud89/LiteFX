@@ -2,34 +2,35 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 	<!-- Graphics Adapter -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12GraphicsAdapter">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12GraphicsAdapter {{ Name = { m_impl.m_ptr._Mypair._Myval2->m_properties.Description,sub } (Device ID = { m_impl.m_ptr._Mypair._Myval2->m_properties.DeviceId }, LUID = { (uint64_t)(m_impl.m_ptr._Mypair._Myval2->m_properties.AdapterLuid.HighPart &lt;&lt; 0x20) | (uint64_t)(m_impl.m_ptr._Mypair._Myval2->m_properties.AdapterLuid.LowPart) }) }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12GraphicsAdapter {{ Name = { impl()->m_properties.Description,sub } (Device ID = { impl()->m_properties.DeviceId }, LUID = { (uint64_t)(impl()->m_properties.AdapterLuid.HighPart &lt;&lt; 0x20) | (uint64_t)(impl()->m_properties.AdapterLuid.LowPart) }) }}</DisplayString>
 
 		<Expand>
-			<Item Name="Name">m_impl.m_ptr._Mypair._Myval2->m_properties.Description,sub </Item>
+			<Item Name="Name">impl()->m_properties.Description,sub </Item>
 			<Synthetic Name="Memory">
-				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_properties.DedicatedVideoMemory / 1048576 } Mb</DisplayString>
+				<DisplayString>{ impl()->m_properties.DedicatedVideoMemory / 1048576 } Mb</DisplayString>
 			</Synthetic>
 			<Synthetic Name="Type">
-				<DisplayString>{ ((m_impl.m_ptr._Mypair._Myval2->m_properties.Flags &amp; DXGI_ADAPTER_FLAG3_SOFTWARE) ? LiteFX::Rendering::GraphicsAdapterType::CPU : LiteFX::Rendering::GraphicsAdapterType::GPU),en }</DisplayString>
+				<DisplayString>{ ((impl()->m_properties.Flags &amp; DXGI_ADAPTER_FLAG3_SOFTWARE) ? LiteFX::Rendering::GraphicsAdapterType::CPU : LiteFX::Rendering::GraphicsAdapterType::GPU),en }</DisplayString>
 			</Synthetic>
 			<Synthetic Name="Luid">
-				<DisplayString>{ (uint64_t)(m_impl.m_ptr._Mypair._Myval2->m_properties.AdapterLuid.HighPart &lt;&lt; 0x20) | (uint64_t)(m_impl.m_ptr._Mypair._Myval2->m_properties.AdapterLuid.LowPart),nvoXb }</DisplayString>
+				<DisplayString>{ (uint64_t)(impl()->m_properties.AdapterLuid.HighPart &lt;&lt; 0x20) | (uint64_t)(impl()->m_properties.AdapterLuid.LowPart),nvoXb }</DisplayString>
 			</Synthetic>
 			<Synthetic Name="Vendor ID">
-				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId == 0x1002">AMD (0x{ m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId,nvoXb })</DisplayString>
-				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId == 0x1010">ImgTec (0x{ m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId,nvoXb })</DisplayString>
-				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId == 0x10DE">NVidia (0x{ m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId,nvoXb })</DisplayString>
-				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId == 0x13B5">ARM (0x{ m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId,nvoXb })</DisplayString>
-				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId == 0x5143">Qualcom (0x{ m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId,nvoXb })</DisplayString>
-				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId == 0x8086">Intel (0x{ m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId,nvoXb })</DisplayString>
-				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId != 0x1002 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId != 0x1010 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId != 0x10DE &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId != 0x13B5 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId != 0x5143 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId != 0x8086">Other (0x{ m_impl.m_ptr._Mypair._Myval2->m_properties.VendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="impl()->m_properties.VendorId == 0x1002">AMD (0x{ impl()->m_properties.VendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="impl()->m_properties.VendorId == 0x1010">ImgTec (0x{ impl()->m_properties.VendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="impl()->m_properties.VendorId == 0x10DE">NVidia (0x{ impl()->m_properties.VendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="impl()->m_properties.VendorId == 0x13B5">ARM (0x{ impl()->m_properties.VendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="impl()->m_properties.VendorId == 0x5143">Qualcom (0x{ impl()->m_properties.VendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="impl()->m_properties.VendorId == 0x8086">Intel (0x{ impl()->m_properties.VendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="impl()->m_properties.VendorId != 0x1002 &amp;&amp; impl()->m_properties.VendorId != 0x1010 &amp;&amp; impl()->m_properties.VendorId != 0x10DE &amp;&amp; impl()->m_properties.VendorId != 0x13B5 &amp;&amp; impl()->m_properties.VendorId != 0x5143 &amp;&amp; impl()->m_properties.VendorId != 0x8086">Other (0x{ impl()->m_properties.VendorId,nvoXb })</DisplayString>
 			</Synthetic>
-			<Item Name="Device ID">m_impl.m_ptr._Mypair._Myval2->m_properties.DeviceId</Item>
+			<Item Name="Device ID">impl()->m_properties.DeviceId</Item>
 			<Synthetic Name="Driver Version">
-				<DisplayString>{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &amp; 0xFFFF000000000000) &gt;&gt; 0x30 }.{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &amp; 0x0000FFFF00000000) &gt;&gt; 0x20 }.{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &amp; 0x00000000FFFF0000) &gt;&gt; 0x10 }.{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &amp; 0x000000000000FFFF) &gt;&gt; 0x00 }</DisplayString>
+				<DisplayString>{ (impl()->m_driverVersion &amp; 0xFFFF000000000000) &gt;&gt; 0x30 }.{ (impl()->m_driverVersion &amp; 0x0000FFFF00000000) &gt;&gt; 0x20 }.{ (impl()->m_driverVersion &amp; 0x00000000FFFF0000) &gt;&gt; 0x10 }.{ (impl()->m_driverVersion &amp; 0x000000000000FFFF) &gt;&gt; 0x00 }</DisplayString>
 			</Synthetic>
-			<Item Name="API Version">m_impl.m_ptr._Mypair._Myval2->m_apiVersion</Item>
+			<Item Name="API Version">impl()->m_apiVersion</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
@@ -46,29 +47,28 @@
 	
 	<!-- Vertex Buffer Layout -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12VertexBufferLayout">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12VertexBufferLayout {{ Binding = { m_impl.m_ptr._Mypair._Myval2->m_binding }, Size = { m_impl.m_ptr._Mypair._Myval2->m_vertexSize } ({ m_impl.m_ptr._Mypair._Myval2->m_attributes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_attributes._Mypair._Myval2._Myfirst } Attributes) }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12VertexBufferLayout {{ Binding = { impl()->m_binding }, Size = { impl()->m_vertexSize } ({ impl()->m_attributes._Mypair._Myval2._Mylast - impl()->m_attributes._Mypair._Myval2._Myfirst } Attributes) }}</DisplayString>
 
 		<Expand>
-			<Item Name="Binding">m_impl.m_ptr._Mypair._Myval2->m_binding</Item>
-			<Item Name="Buffer Type">m_impl.m_ptr._Mypair._Myval2->m_bufferType,en</Item>
-			<Item Name="Vertex Size">m_impl.m_ptr._Mypair._Myval2->m_vertexSize</Item>
-			<Item Name="Attributes">m_impl.m_ptr._Mypair._Myval2->m_attributes,view(simple)</Item>
+			<Item Name="Binding">impl()->m_binding</Item>
+			<Item Name="Vertex Size">impl()->m_vertexSize</Item>
+			<Item Name="Attributes">impl()->m_attributes,view(simple)</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Index Buffer Layout -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12IndexBufferLayout">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12IndexBufferLayout {{ Binding = { m_impl.m_ptr._Mypair._Myval2->m_binding }, Index Type = { m_impl.m_ptr._Mypair._Myval2->m_indexType,en } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12IndexBufferLayout {{ Index Type = { impl()->m_indexType,en } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Binding">m_impl.m_ptr._Mypair._Myval2->m_binding</Item>
-			<Item Name="Buffer Type">m_impl.m_ptr._Mypair._Myval2->m_bufferType,en</Item>
-			<Item Name="Index Type">m_impl.m_ptr._Mypair._Myval2->m_indexType,en</Item>
+			<Item Name="Index Type">impl()->m_indexType,en</Item>
 			<Synthetic Name="Element Size">
-				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_indexType &gt;&gt; 3 } Bytes</DisplayString>
+				<DisplayString>{ impl()->m_indexType &gt;&gt; 3 } Bytes</DisplayString>
 			</Synthetic>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
@@ -76,18 +76,19 @@
 	
 	<!-- Input assembler -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12InputAssembler">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12InputAssembler {{ Topology = { m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology,en }, Index Type = { m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout._Mypair._Myval2->m_impl.m_ptr._Mypair._Myval2->m_indexType,en } ({ m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts) }}</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout._Mypair._Myval2 == 0">DirectX12InputAssembler {{ Topology = { m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology,en }, Index Type = None ({ m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts) }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12InputAssembler {{ Topology = { impl()->m_primitiveTopology,en }, Index Type = { impl()->m_indexBufferLayout._Ptr->m_impl.m_ptr._Ptr->m_indexType,en } ({ impl()->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts) }}</DisplayString>
+		<DisplayString Condition="impl() != 0 &amp;&amp; impl()->m_indexBufferLayout._Ptr == 0">DirectX12InputAssembler {{ Topology = { impl()->m_primitiveTopology,en }, Index Type = None ({ impl()->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts) }}</DisplayString>
 
 		<Expand>
-			<Item Name="Primitive Topology">m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology,en</Item>
-			<Item Name="Index Buffer Layout">m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout</Item>
+			<Item Name="Primitive Topology">impl()->m_primitiveTopology,en</Item>
+			<Item Name="Index Buffer Layout">impl()->m_indexBufferLayout</Item>
 			<Synthetic Name="Vertex Buffer Layouts">
-				<DisplayString>{{ Elements = { m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } }}</DisplayString>
+				<DisplayString>{{ Elements = { impl()->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } }}</DisplayString>
 
 				<Expand>
-					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List,view(DictionaryHelper)</ExpandedItem>
+					<ExpandedItem>impl()->m_vertexBufferLayouts._List,view(DictionaryHelper)</ExpandedItem>
 				</Expand>
 			</Synthetic>
 			<Item Name="[m_impl]">m_impl</Item>
@@ -96,27 +97,29 @@
 
 	<!-- Buffer -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12Buffer">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12Buffer {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, Type = { m_impl.m_ptr._Mypair._Myval2->m_type,en }, Total Size = { (m_impl.m_ptr._Mypair._Myval2->m_alignment == 0 ? m_impl.m_ptr._Mypair._Myval2->m_elementSize : (m_impl.m_ptr._Mypair._Myval2->m_elementSize + m_impl.m_ptr._Mypair._Myval2->m_alignment - 1) &amp; ~(m_impl.m_ptr._Mypair._Myval2->m_alignment - 1)) * m_impl.m_ptr._Mypair._Myval2->m_elements } Bytes ({ m_impl.m_ptr._Mypair._Myval2->m_elements } Elements), Usage = { m_impl.m_ptr._Mypair._Myval2->m_usage,en } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<Intrinsic Name="name" Expression="((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Ptr->m_name" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12Buffer {{ Name = { name() }, Type = { impl()->m_type,en }, Total Size = { (impl()->m_alignment == 0 ? impl()->m_elementSize : (impl()->m_elementSize + impl()->m_alignment - 1) &amp; ~(impl()->m_alignment - 1)) * impl()->m_elements } Bytes ({ impl()->m_elements } Elements), Usage = { impl()->m_usage,en } }}</DisplayString>
 
 		<Expand>
 			<ExpandedItem>(LiteFX::Rendering::Backends::IDirectX12Buffer*)this,nd</ExpandedItem>
-			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
-			<Item Name="Type">m_impl.m_ptr._Mypair._Myval2->m_type,en</Item>
-			<Item Name="Layout" Condition="m_impl.m_ptr._Mypair._Myval2->m_type == LiteFX::Rendering::BufferType::Vertex">((LiteFX::Rendering::Backends::DirectX12VertexBuffer*)this)->m_impl.m_ptr._Mypair._Myval2->m_layout</Item>
-			<Item Name="Layout" Condition="m_impl.m_ptr._Mypair._Myval2->m_type == LiteFX::Rendering::BufferType::Index">((LiteFX::Rendering::Backends::DirectX12IndexBuffer*)this)->m_impl.m_ptr._Mypair._Myval2->m_layout</Item>
-			<Item Name="Usage">m_impl.m_ptr._Mypair._Myval2->m_usage,en</Item>
-			<Item Name="Element Size">m_impl.m_ptr._Mypair._Myval2->m_elementSize</Item>
-			<Item Name="Elements">m_impl.m_ptr._Mypair._Myval2->m_elements</Item>
-			<Item Name="Alignment">m_impl.m_ptr._Mypair._Myval2->m_alignment</Item>
+			<Item Name="Name">name()</Item>
+			<Item Name="Type">impl()->m_type,en</Item>
+			<Item Name="Layout" Condition="impl()->m_type == LiteFX::Rendering::BufferType::Vertex">((LiteFX::Rendering::Backends::DirectX12VertexBuffer*)this)->m_impl.m_ptr._Ptr->m_layout</Item>
+			<Item Name="Layout" Condition="impl()->m_type == LiteFX::Rendering::BufferType::Index">((LiteFX::Rendering::Backends::DirectX12IndexBuffer*)this)->m_impl.m_ptr._Ptr->m_layout</Item>
+			<Item Name="Usage">impl()->m_usage,en</Item>
+			<Item Name="Element Size">impl()->m_elementSize</Item>
+			<Item Name="Elements">impl()->m_elements</Item>
+			<Item Name="Alignment">impl()->m_alignment</Item>
 			<Synthetic Name="Aligned Element Size">
-				<DisplayString>{ (m_impl.m_ptr._Mypair._Myval2->m_alignment == 0 ? m_impl.m_ptr._Mypair._Myval2->m_elementSize : (m_impl.m_ptr._Mypair._Myval2->m_elementSize + m_impl.m_ptr._Mypair._Myval2->m_alignment - 1) &amp; ~(m_impl.m_ptr._Mypair._Myval2->m_alignment - 1)) }</DisplayString>
+				<DisplayString>{ (impl()->m_alignment == 0 ? impl()->m_elementSize : (impl()->m_elementSize + impl()->m_alignment - 1) &amp; ~(impl()->m_alignment - 1)) }</DisplayString>
 			</Synthetic>
 			<Synthetic Name="Total Size Size">
-				<DisplayString>{ (m_impl.m_ptr._Mypair._Myval2->m_alignment == 0 ? m_impl.m_ptr._Mypair._Myval2->m_elementSize : (m_impl.m_ptr._Mypair._Myval2->m_elementSize + m_impl.m_ptr._Mypair._Myval2->m_alignment - 1) &amp; ~(m_impl.m_ptr._Mypair._Myval2->m_alignment - 1)) * m_impl.m_ptr._Mypair._Myval2->m_elements }</DisplayString>
+				<DisplayString>{ (impl()->m_alignment == 0 ? impl()->m_elementSize : (impl()->m_elementSize + impl()->m_alignment - 1) &amp; ~(impl()->m_alignment - 1)) * impl()->m_elements }</DisplayString>
 			</Synthetic>
-			<Item Name="Allocator">m_impl.m_ptr._Mypair._Myval2->m_allocator</Item>
-			<Item Name="Allocation">m_impl.m_ptr._Mypair._Myval2->m_allocation</Item>
+			<Item Name="Allocator">impl()->m_allocator</Item>
+			<Item Name="Allocation">impl()->m_allocation</Item>
 			<!--<Item Name="[Resource]">(LiteFX::Resource&lt;Microsoft::WRL::ComPtr&lt;ID3D12Resource&gt;&gt;*)this</Item>-->
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
@@ -124,80 +127,84 @@
 
 	<!-- Image -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12Image">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_dimensions == LiteFX::Rendering::ImageDimensions::DIM_1">DirectX12Image {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_extent.m_elements[0] } Px, Format = { m_impl.m_ptr._Mypair._Myval2->m_format }, Elements = { m_impl.m_ptr._Mypair._Myval2->m_elements } (Layers: { m_impl.m_ptr._Mypair._Myval2->m_layers }, Levels: { m_impl.m_ptr._Mypair._Myval2->m_levels }, Planes: { m_impl.m_ptr._Mypair._Myval2->m_planes }), Usage = { m_impl.m_ptr._Mypair._Myval2->m_usage } }}</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_dimensions == LiteFX::Rendering::ImageDimensions::DIM_2">DirectX12Image {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_extent.m_elements[0] }x{ m_impl.m_ptr._Mypair._Myval2->m_extent.m_elements[1] } Px, Format = { m_impl.m_ptr._Mypair._Myval2->m_format }, Elements = { m_impl.m_ptr._Mypair._Myval2->m_elements } (Layers: { m_impl.m_ptr._Mypair._Myval2->m_layers }, Levels: { m_impl.m_ptr._Mypair._Myval2->m_levels }, Planes: { m_impl.m_ptr._Mypair._Myval2->m_planes }), Usage = { m_impl.m_ptr._Mypair._Myval2->m_usage } }}</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_dimensions == LiteFX::Rendering::ImageDimensions::DIM_3">DirectX12Image {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_extent.m_elements[0] }x{ m_impl.m_ptr._Mypair._Myval2->m_extent.m_elements[1] }x{ m_impl.m_ptr._Mypair._Myval2->m_extent.m_elements[2] } Px, Format = { m_impl.m_ptr._Mypair._Myval2->m_format }, Elements = { m_impl.m_ptr._Mypair._Myval2->m_elements } (Layers: { m_impl.m_ptr._Mypair._Myval2->m_layers }, Levels: { m_impl.m_ptr._Mypair._Myval2->m_levels }, Planes: { m_impl.m_ptr._Mypair._Myval2->m_planes }), Usage = { m_impl.m_ptr._Mypair._Myval2->m_usage } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<Intrinsic Name="name" Expression="((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Ptr->m_name" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0 &amp;&amp; impl()->m_dimensions == LiteFX::Rendering::ImageDimensions::DIM_1">DirectX12Image {{ Name = { name() }, { impl()->m_extent.m_elements[0] } Px, Format = { impl()->m_format }, Elements = { impl()->m_elements } (Layers: { impl()->m_layers }, Levels: { impl()->m_levels }, Planes: { impl()->m_planes }), Usage = { impl()->m_usage } }}</DisplayString>
+		<DisplayString Condition="impl() != 0 &amp;&amp; impl()->m_dimensions == LiteFX::Rendering::ImageDimensions::DIM_2">DirectX12Image {{ Name = { name() }, { impl()->m_extent.m_elements[0] }x{ impl()->m_extent.m_elements[1] } Px, Format = { impl()->m_format }, Elements = { impl()->m_elements } (Layers: { impl()->m_layers }, Levels: { impl()->m_levels }, Planes: { impl()->m_planes }), Usage = { impl()->m_usage } }}</DisplayString>
+		<DisplayString Condition="impl() != 0 &amp;&amp; impl()->m_dimensions == LiteFX::Rendering::ImageDimensions::DIM_3">DirectX12Image {{ Name = { name() }, { impl()->m_extent.m_elements[0] }x{ impl()->m_extent.m_elements[1] }x{ impl()->m_extent.m_elements[2] } Px, Format = { impl()->m_format }, Elements = { impl()->m_elements } (Layers: { impl()->m_layers }, Levels: { impl()->m_levels }, Planes: { impl()->m_planes }), Usage = { impl()->m_usage } }}</DisplayString>
 
 		<Expand>
 			<ExpandedItem>(LiteFX::Rendering::Backends::IDirectX12Image*)this,nd</ExpandedItem>
-			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
-			<Item Name="Format">m_impl.m_ptr._Mypair._Myval2->m_format</Item>
-			<Item Name="Samples">m_impl.m_ptr._Mypair._Myval2->m_samples</Item>
-			<Item Name="Dimensions">m_impl.m_ptr._Mypair._Myval2->m_dimensions</Item>
-			<Item Name="Extent">m_impl.m_ptr._Mypair._Myval2->m_extent,view(simple)</Item>
-			<Item Name="Layers">m_impl.m_ptr._Mypair._Myval2->m_layers</Item>
-			<Item Name="Levels">m_impl.m_ptr._Mypair._Myval2->m_levels</Item>
-			<Item Name="Planes">m_impl.m_ptr._Mypair._Myval2->m_planes</Item>
-			<Item Name="Usage">m_impl.m_ptr._Mypair._Myval2->m_usage</Item>
-			<Item Name="Allocator">m_impl.m_ptr._Mypair._Myval2->m_allocator</Item>
-			<Item Name="Allocation">m_impl.m_ptr._Mypair._Myval2->m_allocation</Item>
-			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Name">name()</Item>
+			<Item Name="Format">impl()->m_format</Item>
+			<Item Name="Samples">impl()->m_samples</Item>
+			<Item Name="Dimensions">impl()->m_dimensions</Item>
+			<Item Name="Extent">impl()->m_extent,view(simple)</Item>
+			<Item Name="Layers">impl()->m_layers</Item>
+			<Item Name="Levels">impl()->m_levels</Item>
+			<Item Name="Planes">impl()->m_planes</Item>
+			<Item Name="Usage">impl()->m_usage</Item>
+			<Item Name="Allocator">impl()->m_allocator</Item>
+			<Item Name="Allocation">impl()->m_allocation</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Sampler -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12Sampler">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12Sampler {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, Filter = { m_impl.m_ptr._Mypair._Myval2->m_magFilter,en } | { m_impl.m_ptr._Mypair._Myval2->m_minFilter,en }, MipMapping = { m_impl.m_ptr._Mypair._Myval2->m_mipMapMode,en }, Anisotropy = { m_impl.m_ptr._Mypair._Myval2->m_anisotropy,g } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<Intrinsic Name="name" Expression="((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Ptr->m_name" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12Sampler {{ Name = { name() }, Filter = { impl()->m_magFilter,en } | { impl()->m_minFilter,en }, MipMapping = { impl()->m_mipMapMode,en }, Anisotropy = { impl()->m_anisotropy,g } }}</DisplayString>
 
 		<Expand>
 			<ExpandedItem>(LiteFX::Rendering::Backends::IDirectX12Sampler*)this,nd</ExpandedItem>
-			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
-			<Item Name="Mag Filter">m_impl.m_ptr._Mypair._Myval2->m_magFilter</Item>
-			<Item Name="Min Filter">m_impl.m_ptr._Mypair._Myval2->m_minFilter</Item>
-			<Item Name="MipMap Mode">m_impl.m_ptr._Mypair._Myval2->m_mipMapMode</Item>
-			<Item Name="MipMap Bias">m_impl.m_ptr._Mypair._Myval2->m_mipMapBias,g</Item>
-			<Item Name="Min LOD">m_impl.m_ptr._Mypair._Myval2->m_minLod,g</Item>
-			<Item Name="Max LOD">m_impl.m_ptr._Mypair._Myval2->m_maxLod,g</Item>
-			<Item Name="Anisotropy">m_impl.m_ptr._Mypair._Myval2->m_anisotropy,g</Item>
-			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Name">name()</Item>
+			<Item Name="Mag Filter">impl()->m_magFilter</Item>
+			<Item Name="Min Filter">impl()->m_minFilter</Item>
+			<Item Name="MipMap Mode">impl()->m_mipMapMode</Item>
+			<Item Name="MipMap Bias">impl()->m_mipMapBias,g</Item>
+			<Item Name="Min LOD">impl()->m_minLod,g</Item>
+			<Item Name="Max LOD">impl()->m_maxLod,g</Item>
+			<Item Name="Anisotropy">impl()->m_anisotropy,g</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 	
 	<!-- BLAS -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12BottomLevelAccelerationStructure">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12BottomLevelAccelerationStructure {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, empty, Size = { m_impl.m_ptr._Mypair._Myval2->m_size }, Flags = { m_impl.m_ptr._Mypair._Myval2->m_flags,en } }}</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Myfirst != m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Mylast">DirectX12BottomLevelAccelerationStructure {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Myfirst } Triangle Meshes, Size = { m_impl.m_ptr._Mypair._Myval2->m_size }, Flags = { m_impl.m_ptr._Mypair._Myval2->m_flags,en } }}</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Myfirst == m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Mylast">DirectX12BottomLevelAccelerationStructure {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Myfirst } Bounding Boxes, Size = { m_impl.m_ptr._Mypair._Myval2->m_size }, Flags = { m_impl.m_ptr._Mypair._Myval2->m_flags,en } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<Intrinsic Name="name" Expression="((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Ptr->m_name" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12BottomLevelAccelerationStructure {{ Name = { name() }, empty, Size = { impl()->m_size }, Flags = { impl()->m_flags,en } }}</DisplayString>
+		<DisplayString Condition="impl() != 0 &amp;&amp; impl()->m_triangleMeshes._Mypair._Myval2._Myfirst != impl()->m_triangleMeshes._Mypair._Myval2._Mylast">DirectX12BottomLevelAccelerationStructure {{ Name = { name() }, { impl()->m_triangleMeshes._Mypair._Myval2._Mylast - impl()->m_triangleMeshes._Mypair._Myval2._Myfirst } Triangle Meshes, Size = { impl()->m_size }, Flags = { impl()->m_flags,en } }}</DisplayString>
+		<DisplayString Condition="impl() != 0 &amp;&amp; impl()->m_boundingBoxes._Mypair._Myval2._Myfirst == impl()->m_boundingBoxes._Mypair._Myval2._Mylast">DirectX12BottomLevelAccelerationStructure {{ Name = { name() }, { impl()->m_boundingBoxes._Mypair._Myval2._Mylast - impl()->m_boundingBoxes._Mypair._Myval2._Myfirst } Bounding Boxes, Size = { impl()->m_size }, Flags = { impl()->m_flags,en } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
-			<Synthetic Name="Triangle Meshes" Condition="m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Myfirst != m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Mylast">
-				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Myfirst } Triangle Meshes</DisplayString>
+			<Item Name="Name">name()</Item>
+			<Synthetic Name="Triangle Meshes" Condition="impl()->m_triangleMeshes._Mypair._Myval2._Myfirst != impl()->m_triangleMeshes._Mypair._Myval2._Mylast">
+				<DisplayString>{ impl()->m_triangleMeshes._Mypair._Myval2._Mylast - impl()->m_triangleMeshes._Mypair._Myval2._Myfirst } Triangle Meshes</DisplayString>
 
 				<Expand>
-					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes,view(simple)</ExpandedItem>
+					<ExpandedItem>impl()->m_triangleMeshes,view(simple)</ExpandedItem>
 				</Expand>
 			</Synthetic>
-			<Synthetic Name="Bounding Boxes" Condition="m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Myfirst != m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Mylast">
-				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Myfirst } Bounding Boxes</DisplayString>
+			<Synthetic Name="Bounding Boxes" Condition="impl()->m_boundingBoxes._Mypair._Myval2._Myfirst != impl()->m_boundingBoxes._Mypair._Myval2._Mylast">
+				<DisplayString>{ impl()->m_boundingBoxes._Mypair._Myval2._Mylast - impl()->m_boundingBoxes._Mypair._Myval2._Myfirst } Bounding Boxes</DisplayString>
 
 				<Expand>
-					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes,view(simple)</ExpandedItem>
+					<ExpandedItem>impl()->m_boundingBoxes,view(simple)</ExpandedItem>
 				</Expand>
 			</Synthetic>
-			<Item Name="Flags">m_impl.m_ptr._Mypair._Myval2->m_flags,en</Item>
+			<Item Name="Flags">impl()->m_flags,en</Item>
 			<Synthetic Name="GPU Buffer">
-				<DisplayString>{{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_size } Bytes at offset { m_impl.m_ptr._Mypair._Myval2->m_offset,X } }}</DisplayString>
+				<DisplayString>{{ Name = { name() }, { impl()->m_size } Bytes at offset { impl()->m_offset,X } }}</DisplayString>
 
 				<Expand>
-					<Item Name="Buffer">m_impl.m_ptr._Mypair._Myval2->m_buffer</Item>
-					<Item Name="Offset">m_impl.m_ptr._Mypair._Myval2->m_offset,X</Item>
-					<Item Name="Size">m_impl.m_ptr._Mypair._Myval2->m_size</Item>
+					<Item Name="Buffer">impl()->m_buffer</Item>
+					<Item Name="Offset">impl()->m_offset,X</Item>
+					<Item Name="Size">impl()->m_size</Item>
 				</Expand>
 			</Synthetic>
 			<Item Name="[m_impl]">m_impl</Item>
@@ -206,27 +213,29 @@
 
 	<!-- TLAS -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12TopLevelAccelerationStructure">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12TopLevelAccelerationStructure {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, empty, Size = { m_impl.m_ptr._Mypair._Myval2->m_size }, Flags = { m_impl.m_ptr._Mypair._Myval2->m_flags,en } }}</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Myfirst != m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Mylast">DirectX12TopLevelAccelerationStructure {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Myfirst } Instances, Size = { m_impl.m_ptr._Mypair._Myval2->m_size }, Flags = { m_impl.m_ptr._Mypair._Myval2->m_flags,en } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<Intrinsic Name="name" Expression="((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Ptr->m_name" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12TopLevelAccelerationStructure {{ Name = { name() }, empty, Size = { impl()->m_size }, Flags = { impl()->m_flags,en } }}</DisplayString>
+		<DisplayString Condition="impl() != 0 &amp;&amp; impl()->m_instances._Mypair._Myval2._Myfirst != impl()->m_instances._Mypair._Myval2._Mylast">DirectX12TopLevelAccelerationStructure {{ Name = { name() }, { impl()->m_instances._Mypair._Myval2._Mylast - impl()->m_instances._Mypair._Myval2._Myfirst } Instances, Size = { impl()->m_size }, Flags = { impl()->m_flags,en } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Item Name="Name">name()</Item>
 			<Synthetic Name="Instances">
-				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Myfirst } Instances</DisplayString>
+				<DisplayString>{ impl()->m_instances._Mypair._Myval2._Mylast - impl()->m_instances._Mypair._Myval2._Myfirst } Instances</DisplayString>
 
 				<Expand>
-					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_instances,view(simple)</ExpandedItem>
+					<ExpandedItem>impl()->m_instances,view(simple)</ExpandedItem>
 				</Expand>
 			</Synthetic>
-			<Item Name="Flags">m_impl.m_ptr._Mypair._Myval2->m_flags,en</Item>
+			<Item Name="Flags">impl()->m_flags,en</Item>
 			<Synthetic Name="GPU Buffer">
-				<DisplayString>{{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_size } Bytes at offset { m_impl.m_ptr._Mypair._Myval2->m_offset,X } }}</DisplayString>
+				<DisplayString>{{ Name = { name() }, { impl()->m_size } Bytes at offset { impl()->m_offset,X } }}</DisplayString>
 
 				<Expand>
-					<Item Name="Buffer">m_impl.m_ptr._Mypair._Myval2->m_buffer</Item>
-					<Item Name="Offset">m_impl.m_ptr._Mypair._Myval2->m_offset,X</Item>
-					<Item Name="Size">m_impl.m_ptr._Mypair._Myval2->m_size</Item>
+					<Item Name="Buffer">impl()->m_buffer</Item>
+					<Item Name="Offset">impl()->m_offset,X</Item>
+					<Item Name="Size">impl()->m_size</Item>
 				</Expand>
 			</Synthetic>
 			<Item Name="[m_impl]">m_impl</Item>
@@ -281,39 +290,40 @@
 	</Type>
 
 	<Type Name="LiteFX::Rendering::Backends::DirectX12Barrier">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12Barrier {{ Sync Before = { m_impl.m_ptr._Mypair._Myval2->m_syncBefore,en }, Sync After = { m_impl.m_ptr._Mypair._Myval2->m_syncAfter,en } ({ m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Myfirst } Global Barriers, { m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Myfirst } Buffer Barriers, { m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Myfirst } Image Barriers) }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12Barrier {{ Sync Before = { impl()->m_syncBefore,en }, Sync After = { impl()->m_syncAfter,en } ({ impl()->m_globalBarriers._Mypair._Myval2._Mylast - impl()->m_globalBarriers._Mypair._Myval2._Myfirst } Global Barriers, { impl()->m_bufferBarriers._Mypair._Myval2._Mylast - impl()->m_bufferBarriers._Mypair._Myval2._Myfirst } Buffer Barriers, { impl()->m_imageBarriers._Mypair._Myval2._Mylast - impl()->m_imageBarriers._Mypair._Myval2._Myfirst } Image Barriers) }}</DisplayString>
 
 		<Expand>
-			<Item Name="Sync Before">m_impl.m_ptr._Mypair._Myval2->m_syncBefore,en</Item>
-			<Item Name="Sync After">m_impl.m_ptr._Mypair._Myval2->m_syncAfter,en</Item>
+			<Item Name="Sync Before">impl()->m_syncBefore,en</Item>
+			<Item Name="Sync After">impl()->m_syncAfter,en</Item>
 			<Synthetic Name="Global Barriers">
-				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Myfirst } Elements</DisplayString>
+				<DisplayString>{ impl()->m_globalBarriers._Mypair._Myval2._Mylast - impl()->m_globalBarriers._Mypair._Myval2._Myfirst } Elements</DisplayString>
 
 				<Expand>
 					<IndexListItems>
-						<Size>m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Myfirst</Size>
-						<ValueNode>m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Myfirst,view(GlobalBarrier)</ValueNode>
+						<Size>impl()->m_globalBarriers._Mypair._Myval2._Mylast - impl()->m_globalBarriers._Mypair._Myval2._Myfirst</Size>
+						<ValueNode>impl()->m_globalBarriers._Mypair._Myval2._Myfirst,view(GlobalBarrier)</ValueNode>
 					</IndexListItems>
 				</Expand>
 			</Synthetic>
 			<Synthetic Name="Buffer Barriers">
-				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Myfirst } Elements</DisplayString>
+				<DisplayString>{ impl()->m_bufferBarriers._Mypair._Myval2._Mylast - impl()->m_bufferBarriers._Mypair._Myval2._Myfirst } Elements</DisplayString>
 
 				<Expand>
 					<IndexListItems>
-						<Size>m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Myfirst</Size>
-						<ValueNode>m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Myfirst,view(BufferBarrier)</ValueNode>
+						<Size>impl()->m_bufferBarriers._Mypair._Myval2._Mylast - impl()->m_bufferBarriers._Mypair._Myval2._Myfirst</Size>
+						<ValueNode>impl()->m_bufferBarriers._Mypair._Myval2._Myfirst,view(BufferBarrier)</ValueNode>
 					</IndexListItems>
 				</Expand>
 			</Synthetic>
 			<Synthetic Name="Image Barriers">
-				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Myfirst } Elements</DisplayString>
+				<DisplayString>{ impl()->m_imageBarriers._Mypair._Myval2._Mylast - impl()->m_imageBarriers._Mypair._Myval2._Myfirst } Elements</DisplayString>
 
 				<Expand>
 					<IndexListItems>
-						<Size>m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Myfirst</Size>
-						<ValueNode>m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Myfirst,view(ImageBarrier)</ValueNode>
+						<Size>impl()->m_imageBarriers._Mypair._Myval2._Mylast - impl()->m_imageBarriers._Mypair._Myval2._Myfirst</Size>
+						<ValueNode>impl()->m_imageBarriers._Mypair._Myval2._Myfirst,view(ImageBarrier)</ValueNode>
 					</IndexListItems>
 				</Expand>
 			</Synthetic>
@@ -323,322 +333,361 @@
 
 	<!-- Shader Module -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12ShaderModule">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12ShaderModule {{ Type = { m_impl.m_ptr._Mypair._Myval2->m_type,en }, File Name = { m_impl.m_ptr._Mypair._Myval2->m_fileName }, Entry Point = { m_impl.m_ptr._Mypair._Myval2->m_entryPoint } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12ShaderModule {{ Type = { impl()->m_type,en }, File Name = { impl()->m_fileName }, Entry Point = { impl()->m_entryPoint } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Type">m_impl.m_ptr._Mypair._Myval2->m_type,en</Item>
-			<Item Name="File Name">m_impl.m_ptr._Mypair._Myval2->m_fileName</Item>
-			<Item Name="Entry Point">m_impl.m_ptr._Mypair._Myval2->m_entryPoint</Item>
-			<Item Name="Shader Local Descriptor">m_impl.m_ptr._Mypair._Myval2->m_shaderLocalDescriptor</Item>
-			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Type">impl()->m_type,en</Item>
+			<Item Name="File Name">impl()->m_fileName</Item>
+			<Item Name="Entry Point">impl()->m_entryPoint</Item>
+			<Item Name="Shader Local Descriptor">impl()->m_shaderLocalDescriptor</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Shader Program -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12ShaderProgram">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12ShaderProgram {{ Modules = { m_impl.m_ptr._Mypair._Myval2->m_modules._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_modules._Mypair._Myval2._Myfirst } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12ShaderProgram {{ Modules = { impl()->m_modules._Mypair._Myval2._Mylast - impl()->m_modules._Mypair._Myval2._Myfirst } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Modules">m_impl.m_ptr._Mypair._Myval2->m_modules,view(simple)</Item>
-			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Modules">impl()->m_modules,view(simple)</Item>
+			<Item Name="Parent Device">impl()->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Descriptor Set -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12DescriptorSet">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12DescriptorSet {{ Buffer Offset = { m_impl.m_ptr._Mypair._Myval2->m_bufferOffset,X }, Sampler Offset = { m_impl.m_ptr._Mypair._Myval2->m_samplerOffset,X } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12DescriptorSet {{ Resource Heap Offset = { impl()->m_resourceHeap.Allocation.Allocation.Offset }, Sampler Heap Offset = { impl()->m_samplerHeap.Allocation.Allocation.Offset } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Buffer Heap Offset">m_impl.m_ptr._Mypair._Myval2->m_bufferOffset,X</Item>
-			<Item Name="Sampler Heap Offset">m_impl.m_ptr._Mypair._Myval2->m_samplerOffset,X</Item>
-			<Item Name="Layout">m_impl.m_ptr._Mypair._Myval2->m_layout</Item>
+			<Item Name="Resource Heap Allocation">impl()->m_resourceHeap.Allocation</Item>
+			<Item Name="Sampler Heap Allocation">impl()->m_samplerHeap.Allocation</Item>
+			<Item Name="Local Resource Heap">impl()->m_resourceHeap.Heap</Item>
+			<Item Name="Local Sampler Heap">impl()->m_samplerHeap.Heap</Item>
+			<Item Name="Unbounded Array Capacity">impl()->m_unboundedArrayCapacity</Item>
+			<Item Name="Layout">impl()->m_layout</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Descriptor Layout -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12DescriptorLayout">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12DescriptorLayout {{ Type = { m_impl.m_ptr._Mypair._Myval2->m_descriptorType,en }, Binding = { m_impl.m_ptr._Mypair._Myval2->m_binding }, Descriptors = { m_impl.m_ptr._Mypair._Myval2->m_descriptors } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12DescriptorLayout {{ Type = { impl()->m_descriptorType,en }, Binding = { impl()->m_binding }, Descriptors = { impl()->m_descriptors } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Type">m_impl.m_ptr._Mypair._Myval2->m_descriptorType,en</Item>
-			<Item Name="Binding">m_impl.m_ptr._Mypair._Myval2->m_binding</Item>
-			<Item Name="Descriptors">m_impl.m_ptr._Mypair._Myval2->m_descriptors</Item>
-			<Item Name="Buffer Type">m_impl.m_ptr._Mypair._Myval2->m_bufferType,en</Item>
-			<Item Name="Element Size">m_impl.m_ptr._Mypair._Myval2->m_elementSize</Item>
-			<Item Name="Static Sampler">m_impl.m_ptr._Mypair._Myval2->m_staticSampler</Item>
-			<Item Name="Local">m_impl.m_ptr._Mypair._Myval2->m_local</Item>
+			<Item Name="Type">impl()->m_descriptorType,en</Item>
+			<Item Name="Binding">impl()->m_binding</Item>
+			<Item Name="Descriptors">impl()->m_descriptors</Item>
+			<Item Name="Buffer Type">impl()->m_bufferType,en</Item>
+			<Item Name="Element Size">impl()->m_elementSize</Item>
+			<Item Name="Static Sampler">impl()->m_staticSampler</Item>
+			<Item Name="Local">impl()->m_local</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Descriptor Set Layout -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12DescriptorSetLayout {{ Space = { m_impl.m_ptr._Mypair._Myval2->m_space }, Descriptors = { m_impl.m_ptr._Mypair._Myval2->m_layouts._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_layouts._Mypair._Myval2._Myfirst }, Stages = { m_impl.m_ptr._Mypair._Myval2->m_stages,en } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12DescriptorSetLayout {{ Space = { impl()->m_space }, Descriptors = { impl()->m_layouts._Mypair._Myval2._Mylast - impl()->m_layouts._Mypair._Myval2._Myfirst }, Stages = { impl()->m_stages,en } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Descriptor Layouts">m_impl.m_ptr._Mypair._Myval2->m_layouts,view(simple)</Item>
-			<Item Name="Space">m_impl.m_ptr._Mypair._Myval2->m_space</Item>
-			<Item Name="Stages">m_impl.m_ptr._Mypair._Myval2->m_stages,en</Item>
-			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
-			<Item Name="Descriptor Indexing">m_impl.m_ptr._Mypair._Myval2->m_isRuntimeArray</Item>
+			<Item Name="Descriptor Layouts">impl()->m_layouts,view(simple)</Item>
+			<Item Name="Space">impl()->m_space</Item>
+			<Item Name="Stages">impl()->m_stages,en</Item>
+			<Item Name="Parent Device">impl()->m_device</Item>
+			<Item Name="Allocation Layout">impl()->m_allocationLayout</Item>
+			<Item Name="Cached Resource Heaps">impl()->m_cachedResourceSets.c,view(simple)</Item>
+			<Item Name="Cached Sampler Heaps">impl()->m_cachedSamplerSets.c,view(simple)</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Push Constants Range -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12PushConstantsRange">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12PushConstantsRange {{ Stage = { m_impl.m_ptr._Mypair._Myval2->m_stage,en }, Binding = { m_impl.m_ptr._Mypair._Myval2->m_binding }, Space = { m_impl.m_ptr._Mypair._Myval2->m_space } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12PushConstantsRange {{ Stage = { impl()->m_stageMask,en }, Binding = { impl()->m_binding }, Space = { impl()->m_space } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Stage">m_impl.m_ptr._Mypair._Myval2->m_stage,en</Item>
-			<Item Name="Space">m_impl.m_ptr._Mypair._Myval2->m_space</Item>
-			<Item Name="Binding">m_impl.m_ptr._Mypair._Myval2->m_binding</Item>
-			<Item Name="Size">m_impl.m_ptr._Mypair._Myval2->m_size</Item>
-			<Item Name="Offset">m_impl.m_ptr._Mypair._Myval2->m_offset,X</Item>
+			<Item Name="Stage">impl()->m_stageMask,en</Item>
+			<Item Name="Space">impl()->m_space</Item>
+			<Item Name="Binding">impl()->m_binding</Item>
+			<Item Name="Size">impl()->m_size</Item>
+			<Item Name="Offset">impl()->m_offset,X</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Push Constants Layout -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12PushConstantsLayout">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12PushConstantsLayout {{ Ranges = { m_impl.m_ptr._Mypair._Myval2->m_ranges._List._Mypair._Myval2._Mysize }, Size = { m_impl.m_ptr._Mypair._Myval2->m_size } Bytes }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12PushConstantsLayout {{ Ranges = { impl()->m_rangePointers._Mypair._Myval2._Mylast - impl()->m_rangePointers._Mypair._Myval2._Myfirst }, Size = { impl()->m_size } Bytes }}</DisplayString>
 
 		<Expand>
-			<Item Name="Size">m_impl.m_ptr._Mypair._Myval2->m_size</Item>
-			<Synthetic Name="Ranges">
-				<DisplayString>{{ Elements = { m_impl.m_ptr._Mypair._Myval2->m_ranges._List._Mypair._Myval2._Mysize } }}</DisplayString>
-
-				<Expand>
-					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_ranges._List,view(DictionaryHelper)</ExpandedItem>
-				</Expand>
-			</Synthetic>
+			<Item Name="Size">impl()->m_size</Item>
+			<Item Name="Ranges">impl()->m_rangePointers,view(simple)</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Pipeline Layout -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12PipelineLayout">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; (m_impl.m_ptr._Mypair._Myval2->m_pushConstantsLayout._Mypair._Myval2 == nullptr || m_impl.m_ptr._Mypair._Myval2->m_pushConstantsLayout._Mypair._Myval2->m_impl.m_ptr._Mypair._Myval2->m_ranges._List._Mypair._Myval2._Mysize == 0)">DirectX12PipelineLayout {{ { m_impl.m_ptr._Mypair._Myval2->m_descriptorSetLayouts._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_descriptorSetLayouts._Mypair._Myval2._Myfirst } Descriptor Sets }}</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_pushConstantsLayout._Mypair._Myval2 != nullptr">DirectX12PipelineLayout {{ { m_impl.m_ptr._Mypair._Myval2->m_descriptorSetLayouts._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_descriptorSetLayouts._Mypair._Myval2._Myfirst } Descriptor Sets + Push Constants }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0 &amp;&amp; (impl()->m_pushConstantsLayout._Mypair._Myval2 == nullptr || (impl()->m_pushConstantsLayout._Mypair._Myval2->m_impl.m_ptr._Ptr->m_rangePointers._Mypair._Myval2._Mylast - impl()->m_pushConstantsLayout._Mypair._Myval2->m_impl.m_ptr._Ptr->m_rangePointers._Mypair._Myval2._Myfirst) == 0)">DirectX12PipelineLayout {{ { impl()->m_descriptorSetLayouts._Mypair._Myval2._Mylast - impl()->m_descriptorSetLayouts._Mypair._Myval2._Myfirst } Descriptor Sets }}</DisplayString>
+		<DisplayString Condition="impl() != 0 &amp;&amp; impl()->m_pushConstantsLayout._Mypair._Myval2 != nullptr">DirectX12PipelineLayout {{ { impl()->m_descriptorSetLayouts._Mypair._Myval2._Mylast - impl()->m_descriptorSetLayouts._Mypair._Myval2._Myfirst } Descriptor Sets + Push Constants }}</DisplayString>
 
 		<Expand>
-			<Item Name="Descriptor Set Layouts">m_impl.m_ptr._Mypair._Myval2->m_descriptorSetLayouts,view(simple)</Item>
-			<Item Name="Push Constant Layout">m_impl.m_ptr._Mypair._Myval2->m_pushConstantsLayout</Item>
-			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Descriptor Set Layouts">impl()->m_descriptorSetLayouts,view(simple)</Item>
+			<Item Name="Push Constant Layout">impl()->m_pushConstantsLayout</Item>
+			<Synthetic Name="Root Parameter Indices">
+				<DisplayString>{{ Elements = { impl()->m_rootParameterIndices._List._Mypair._Myval2._Mysize } }}</DisplayString>
+
+				<Expand>
+					<ExpandedItem>impl()->m_rootParameterIndices._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="Parent Device">impl()->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 	
 	<!-- Render Pipeline -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12RenderPipeline">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12RenderPipeline {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<Intrinsic Name="name" Expression="((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Ptr->m_name" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12RenderPipeline {{ Name = { name() } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
-			<Item Name="Layout">m_impl.m_ptr._Mypair._Myval2->m_layout</Item>
-			<Item Name="Shader Program">m_impl.m_ptr._Mypair._Myval2->m_program</Item>
-			<Item Name="Input Assembler State">m_impl.m_ptr._Mypair._Myval2->m_inputAssembler</Item>
-			<Item Name="Rasterizer State">m_impl.m_ptr._Mypair._Myval2->m_rasterizer</Item>
-			<Item Name="Render Pass">m_impl.m_ptr._Mypair._Myval2->m_renderPass</Item>
+			<Item Name="Name">name()</Item>
+			<Item Name="Layout">impl()->m_layout</Item>
+			<Item Name="Shader Program">impl()->m_program</Item>
+			<Item Name="Input Assembler State">impl()->m_inputAssembler</Item>
+			<Item Name="Rasterizer State">impl()->m_rasterizer</Item>
+			<Item Name="Render Pass">impl()->m_renderPass</Item>
 			<Synthetic Name="Input Attachment Bindings">
-				<DisplayString>{{ Elements = { m_impl.m_ptr._Mypair._Myval2->m_inputAttachmentBindings._List._Mypair._Myval2._Mysize } }}</DisplayString>
+				<DisplayString>{{ Elements = { impl()->m_inputAttachmentBindings._List._Mypair._Myval2._Mysize } }}</DisplayString>
 
 				<Expand>
-					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_inputAttachmentBindings._List,view(DictionaryHelper)</ExpandedItem>
+					<ExpandedItem>impl()->m_inputAttachmentBindings._List,view(DictionaryHelper)</ExpandedItem>
 				</Expand>
 			</Synthetic>
-			<Item Name="Input Attachment Sampler State">m_impl.m_ptr._Mypair._Myval2->m_inputAttachmentSampler</Item>
-			<Item Name="Alpha To Coverage">m_impl.m_ptr._Mypair._Myval2->m_alphaToCoverage</Item>
-			<Item Name="Samples">m_impl.m_ptr._Mypair._Myval2->m_samples,en</Item>
-			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_renderPass.m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Input Attachment Sampler State">impl()->m_inputAttachmentSampler</Item>
+			<Item Name="Alpha To Coverage">impl()->m_alphaToCoverage</Item>
+			<Item Name="Samples">impl()->m_samples,en</Item>
+			<Item Name="Parent Device">impl()->m_renderPass._Ptr->m_impl.m_ptr._Ptr->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Compute Pipeline -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12ComputePipeline">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12ComputePipeline {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<Intrinsic Name="name" Expression="((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Ptr->m_name" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12ComputePipeline {{ Name = { name() } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
-			<Item Name="Layout">m_impl.m_ptr._Mypair._Myval2->m_layout</Item>
-			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Name">name()</Item>
+			<Item Name="Layout">impl()->m_layout</Item>
+			<Item Name="Parent Device">impl()->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Ray Tracing Pipeline -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12RayTracingPipeline">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12RayTracingPipeline {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<Intrinsic Name="name" Expression="((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Ptr->m_name" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12RayTracingPipeline {{ Name = { name() } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
-			<Item Name="Layout">m_impl.m_ptr._Mypair._Myval2->m_layout</Item>
-			<Item Name="Shader Records">m_impl.m_ptr._Mypair._Myval2->m_shaderRecordCollection</Item>
-			<Item Name="Maximum Recursion Depth">m_impl.m_ptr._Mypair._Myval2->m_maxRecursionDepth</Item>
-			<Item Name="Maximum Payload Size">m_impl.m_ptr._Mypair._Myval2->m_maxPayloadSize</Item>
-			<Item Name="Maximum Attribute Size">m_impl.m_ptr._Mypair._Myval2->m_maxAttributeSize</Item>
-			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Name">name()</Item>
+			<Item Name="Layout">impl()->m_layout</Item>
+			<Item Name="Shader Records">impl()->m_shaderRecordCollection</Item>
+			<Item Name="Maximum Recursion Depth">impl()->m_maxRecursionDepth</Item>
+			<Item Name="Maximum Payload Size">impl()->m_maxPayloadSize</Item>
+			<Item Name="Maximum Attribute Size">impl()->m_maxAttributeSize</Item>
+			<Item Name="Parent Device">impl()->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Command Buffer -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12CommandBuffer">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12CommandBuffer {{ Recording = { m_impl.m_ptr._Mypair._Myval2->m_recording }, Secondary = { m_impl.m_ptr._Mypair._Myval2->m_secondary } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12CommandBuffer {{ Recording = { impl()->m_recording }, Secondary = { impl()->m_secondary } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Queue">m_impl.m_ptr._Mypair._Myval2->m_queue</Item>
-			<Item Name="Recording">m_impl.m_ptr._Mypair._Myval2->m_recording</Item>
-			<Item Name="Secondary">m_impl.m_ptr._Mypair._Myval2->m_secondary</Item>
-			<Item Name="Shared Resources">m_impl.m_ptr._Mypair._Myval2->m_sharedResources,view(simple)</Item>
-			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_queue.m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Queue">impl()->m_queue</Item>
+			<Item Name="Recording">impl()->m_recording</Item>
+			<Item Name="Secondary">impl()->m_secondary</Item>
+			<Item Name="Shared Resources">impl()->m_sharedResources,view(simple)</Item>
+			<Item Name="Parent Device">impl()->m_queue._Ptr->m_impl.m_ptr._Ptr->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Command Queue -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12Queue">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12Queue {{ Type = { m_impl.m_ptr._Mypair._Myval2->m_type,en }, Priority = { m_impl.m_ptr._Mypair._Myval2->m_priority,en } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12Queue {{ Type = { impl()->m_type,en }, Priority = { impl()->m_priority,en } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Type">m_impl.m_ptr._Mypair._Myval2->m_type,en</Item>
-			<Item Name="Priority">m_impl.m_ptr._Mypair._Myval2->m_priority,en</Item>
-			<Item Name="Last Fence">m_impl.m_ptr._Mypair._Myval2->m_fenceValue</Item>
-			<Item Name="Submitted Command Buffers">m_impl.m_ptr._Mypair._Myval2->m_submittedCommandBuffers,view(simple)</Item>
-			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Type">impl()->m_type,en</Item>
+			<Item Name="Priority">impl()->m_priority,en</Item>
+			<Item Name="Last Fence">impl()->m_fenceValue</Item>
+			<Item Name="Submitted Command Buffers">impl()->m_submittedCommandBuffers,view(simple)</Item>
+			<Item Name="Parent Device">impl()->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Frame Buffer -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12FrameBuffer">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12FrameBuffer {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_images._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_images._Mypair._Myval2._Myfirst } Render Targets, Size = { m_impl.m_ptr._Mypair._Myval2->m_size,view(simple) } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<Intrinsic Name="name" Expression="((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Ptr->m_name" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12FrameBuffer {{ Name = { name() }, { impl()->m_images._Mypair._Myval2._Mylast - impl()->m_images._Mypair._Myval2._Myfirst } Render Targets, Size = { impl()->m_size,view(simple) } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
-			<Item Name="Images">m_impl.m_ptr._Mypair._Myval2->m_images,view(simple)</Item>
+			<Item Name="Name">name()</Item>
+			<Item Name="Images">impl()->m_images,view(simple)</Item>
 			<Synthetic Name="Mapped Render Targets">
-				<DisplayString>{{ { m_impl.m_ptr._Mypair._Myval2->m_mappedRenderTargets._List._Mypair._Myval2._Mysize } Render Targets }}</DisplayString>
+				<DisplayString>{{ { impl()->m_mappedRenderTargets._List._Mypair._Myval2._Mysize } Render Targets }}</DisplayString>
 
 				<Expand>
-					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_mappedRenderTargets._List,view(DictionaryHelper)</ExpandedItem>
+					<ExpandedItem>impl()->m_mappedRenderTargets._List,view(DictionaryHelper)</ExpandedItem>
 				</Expand>
 			</Synthetic>
-			<Item Name="Size">m_impl.m_ptr._Mypair._Myval2->m_size,view(simple)</Item>
-			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Size">impl()->m_size,view(simple)</Item>
+			<Item Name="Parent Device">impl()->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Render Pass -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12RenderPass">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12RenderPass {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_renderTargets._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_renderTargets._Mypair._Myval2._Myfirst } Render Targets }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<Intrinsic Name="name" Expression="((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Ptr->m_name" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12RenderPass {{ Name = { name() }, { impl()->m_renderTargets._Mypair._Myval2._Mylast - impl()->m_renderTargets._Mypair._Myval2._Myfirst } Render Targets }}</DisplayString>
 
 		<Expand>
-			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
-			<Item Name="Render Targets">m_impl.m_ptr._Mypair._Myval2->m_renderTargets,view(simple)</Item>
-			<Item Name="Input Attachments">m_impl.m_ptr._Mypair._Myval2->m_inputAttachments,view(simple)</Item>
-			<Item Name="Input Attachments Sampler Binding">m_impl.m_ptr._Mypair._Myval2->m_inputAttachmentSamplerBinding</Item>
-			<Item Name="Active Frame Buffer">m_impl.m_ptr._Mypair._Myval2->m_activeFrameBuffer</Item>
-			<Item Name="Present Target">m_impl.m_ptr._Mypair._Myval2->m_presentTarget</Item>
-			<Item Name="Depth/Stencil Target">m_impl.m_ptr._Mypair._Myval2->m_depthStencilTarget</Item>
-			<Item Name="Secondary Command Buffers">m_impl.m_ptr._Mypair._Myval2->m_secondaryCommandBufferCount</Item>
-			<Item Name="Command Queue">m_impl.m_ptr._Mypair._Myval2->m_queue</Item>
-			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Name">name()</Item>
+			<Item Name="Render Targets">impl()->m_renderTargets,view(simple)</Item>
+			<Item Name="Input Attachments">impl()->m_inputAttachments,view(simple)</Item>
+			<Item Name="Input Attachments Sampler Binding">impl()->m_inputAttachmentSamplerBinding</Item>
+			<Item Name="Active Frame Buffer">impl()->m_activeFrameBuffer</Item>
+			<Item Name="Present Target">impl()->m_presentTarget</Item>
+			<Item Name="Depth/Stencil Target">impl()->m_depthStencilTarget</Item>
+			<Item Name="Secondary Command Buffers">impl()->m_secondaryCommandBufferCount</Item>
+			<Item Name="Command Queue">impl()->m_queue</Item>
+			<Item Name="Parent Device">impl()->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Swap Chain -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12SwapChain">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12SwapChain {{ Back Buffers = { m_impl.m_ptr._Mypair._Myval2->m_buffers }, Format = { m_impl.m_ptr._Mypair._Myval2->m_format,en }, Render Area = { m_impl.m_ptr._Mypair._Myval2->m_renderArea,view(simple) } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12SwapChain {{ Back Buffers = { impl()->m_buffers }, Format = { impl()->m_format,en }, Render Area = { impl()->m_renderArea,view(simple) } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Back Buffers">m_impl.m_ptr._Mypair._Myval2->m_buffers</Item>
-			<Item Name="Images">m_impl.m_ptr._Mypair._Myval2->m_presentImages,view(simple)</Item>
-			<Item Name="Format">m_impl.m_ptr._Mypair._Myval2->m_format,en</Item>
-			<Item Name="Render Area">m_impl.m_ptr._Mypair._Myval2->m_renderArea,view(simple)</Item>
-			<Item Name="Vertical Sync">m_impl.m_ptr._Mypair._Myval2->m_vsync</Item>
-			<Item Name="Current Image">m_impl.m_ptr._Mypair._Myval2->m_currentImage</Item>
-			<Item Name="Supports Variable Refresh Rate">m_impl.m_ptr._Mypair._Myval2->m_supportsVariableRefreshRates</Item>
-			<Item Name="Timing Events">m_impl.m_ptr._Mypair._Myval2->m_timingEvents,view(simple)</Item>
-			<Item Name="Timestamps">m_impl.m_ptr._Mypair._Myval2->m_timestamps,view(simple)</Item>
-			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Back Buffers">impl()->m_buffers</Item>
+			<Item Name="Images">impl()->m_presentImages,view(simple)</Item>
+			<Item Name="Format">impl()->m_format,en</Item>
+			<Item Name="Render Area">impl()->m_renderArea,view(simple)</Item>
+			<Item Name="Vertical Sync">impl()->m_vsync</Item>
+			<Item Name="Current Image">impl()->m_currentImage</Item>
+			<Item Name="Supports Variable Refresh Rate">impl()->m_supportsVariableRefreshRates</Item>
+			<Item Name="Timing Events">impl()->m_timingEvents,view(simple)</Item>
+			<Item Name="Timestamps">impl()->m_timestamps,view(simple)</Item>
+			<Item Name="Parent Device">impl()->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Graphics Factory -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12GraphicsFactory">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12GraphicsFactory {{ }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12GraphicsFactory {{ }}</DisplayString>
 
 		<Expand>
-			<Item Name="Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
-			<Item Name="Allocator">m_impl.m_ptr._Mypair._Myval2->m_allocator</Item>
+			<Item Name="Device">impl()->m_device</Item>
+			<Item Name="Allocator">impl()->m_allocator</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Device -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12Device">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12Device {{ Adapter = { m_impl.m_ptr._Mypair._Myval2->m_adapter.m_impl.m_ptr._Mypair._Myval2->m_properties.Description,sub } }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12Device {{ Adapter = { impl()->m_adapter._Ptr->m_impl.m_ptr._Ptr->m_properties.Description,sub } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Device State">m_impl.m_ptr._Mypair._Myval2->m_deviceState</Item>
-			<Item Name="Swap Chain">m_impl.m_ptr._Mypair._Myval2->m_swapChain</Item>
-			<Item Name="Adapter">m_impl.m_ptr._Mypair._Myval2->m_adapter</Item>
-			<Item Name="Surface">m_impl.m_ptr._Mypair._Myval2->m_surface</Item>
+			<Item Name="Device State">impl()->m_deviceState</Item>
+			<Item Name="Swap Chain">impl()->m_swapChain</Item>
+			<Item Name="Adapter">impl()->m_adapter</Item>
+			<Item Name="Surface">impl()->m_surface</Item>
 			<Synthetic Name="Default Queues">
 				<DisplayString>3 Elements</DisplayString>
 
 				<Expand>
-					<Item Name="Graphics Queue">m_impl.m_ptr._Mypair._Myval2->m_graphicsQueue</Item>
-					<Item Name="Transfer Queue">m_impl.m_ptr._Mypair._Myval2->m_transferQueue</Item>
-					<Item Name="Compute Queue">m_impl.m_ptr._Mypair._Myval2->m_computeQueue</Item>
+					<Item Name="Graphics Queue">impl()->m_graphicsQueue</Item>
+					<Item Name="Transfer Queue">impl()->m_transferQueue</Item>
+					<Item Name="Compute Queue">impl()->m_computeQueue</Item>
 				</Expand>
 			</Synthetic>
-			<Item Name="Factory">m_impl.m_ptr._Mypair._Myval2->m_factory</Item>
+			<Synthetic Name="Global Descriptor Heaps">
+				<DisplayString>2 Elements</DisplayString>
+
+				<Expand>
+					<Item Name="Bookkeeping">impl()->m_descriptorHeaps</Item>
+					<Item Name="Resource Heap">impl()->m_globalBufferHeap</Item>
+					<Item Name="Sampler Heap">impl()->m_globalSamplerHeap</Item>
+					<Item Name="Resource Descriptor Size">impl()->m_resourceDescriptorAlignment</Item>
+					<Item Name="Sampler Descriptor Size">impl()->m_samplerDescriptorAlignment</Item>
+				</Expand>
+			</Synthetic>
+			<Item Name="Factory">impl()->m_factory</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
 	<!-- Backend -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12Backend">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DirectX12Backend {{ { m_impl.m_ptr._Mypair._Myval2->m_devices._List._Mypair._Myval2._Mysize } Devices, { m_impl.m_ptr._Mypair._Myval2->m_adapters._Mypair._Myval2._Mylast -  m_impl.m_ptr._Mypair._Myval2->m_adapters._Mypair._Myval2._Myfirst } Adapters }}</DisplayString>
+		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
+		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
+		<DisplayString Condition="impl() != 0">DirectX12Backend {{ { impl()->m_devices._List._Mypair._Myval2._Mysize } Devices, { impl()->m_adapters._Mypair._Myval2._Mylast -  impl()->m_adapters._Mypair._Myval2._Myfirst } Adapters }}</DisplayString>
 
 		<Expand>
 			<Synthetic Name="Devices">
-				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_devices._List._Mypair._Myval2._Mysize } Elements</DisplayString>
+				<DisplayString>{ impl()->m_devices._List._Mypair._Myval2._Mysize } Elements</DisplayString>
 
 				<Expand>
-					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_devices._List,view(DictionaryHelper)</ExpandedItem>
+					<ExpandedItem>impl()->m_devices._List,view(DictionaryHelper)</ExpandedItem>
 				</Expand>
 			</Synthetic>
-			<Item Name="Adapters">m_impl.m_ptr._Mypair._Myval2->m_adapters,view(simple)</Item>
-			<Item Name="App">m_impl.m_ptr._Mypair._Myval2->m_app</Item>
+			<Item Name="Adapters">impl()->m_adapters,view(simple)</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
