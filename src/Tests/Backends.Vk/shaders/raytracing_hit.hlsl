@@ -16,8 +16,6 @@ struct MaterialData
 
 RaytracingAccelerationStructure scene           : register(t1, space0);
 StructuredBuffer<MaterialData> materials[]      : register(t0, space2);
-
-[[vk::shader_record_ext]]
 ConstantBuffer<GeometryData> geometryProperties : register(b0, space3);
 
 // NOTE: Since our geometry is always the same we can use pre-computed normals here. In a real-world scenario, you might want to pass the normals in a 
