@@ -702,15 +702,6 @@ namespace LiteFX::Rendering::Backends {
         DirectX12DescriptorLayout& operator=(const DirectX12DescriptorLayout&);
         ~DirectX12DescriptorLayout() noexcept override;
 
-        // DirectX 12 descriptor layout.
-    public:
-        /// @brief Returns `true`, if the descriptor belongs to the local root signature of a ray-tracing pipeline or `false` otherwise.
-        ///
-        /// Note that this value must not be set to `true` for descriptors that are bound outside of ray-tracing shaders.
-        ///
-        /// @return `true`, if the descriptor belongs to the local root signature of a ray-tracing pipeline or `false` otherwise.
-        bool local() const noexcept;
-
         // IDescriptorLayout interface.
     public:
         /// @copydoc IDescriptorLayout::descriptorType
@@ -724,6 +715,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// @copydoc IDescriptorLayout::staticSampler
         const IDirectX12Sampler* staticSampler() const noexcept override;
+
+        /// @copydoc IDescriptorLayout::local 
+        bool local() const noexcept override;
 
         // IBufferLayout interface.
     public:

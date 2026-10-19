@@ -390,6 +390,7 @@
 			<Item Name="Element Size">impl()->m_elementSize</Item>
 			<Item Name="Static Sampler">impl()->m_staticSampler</Item>
 			<Item Name="Local">impl()->m_local</Item>
+			<Item Name="Unbounded">impl()->m_unbounded</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>

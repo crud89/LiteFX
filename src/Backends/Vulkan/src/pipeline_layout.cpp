@@ -17,8 +17,10 @@ private:
     UniquePtr<VulkanPushConstantsLayout> m_pushConstantsLayout;
     Array<SharedPtr<const VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
     Array<VkDescriptorSetAndBindingMappingEXT> m_mappings;
-    Dictionary<UInt32, UInt32> m_setPushOffsets; // Maps the descriptor set space to the offset of the resource or sampler index.
     VkShaderDescriptorSetAndBindingMappingInfoEXT m_mappingInfo{ .sType = VK_STRUCTURE_TYPE_SHADER_DESCRIPTOR_SET_AND_BINDING_MAPPING_INFO_EXT };
+    
+    // TODO: Make those indices optional, which saves space in the push data signature if a descriptor set only binds to a single heap.
+    Dictionary<UInt32, UInt32> m_setPushOffsets; // Maps the descriptor set space to the offset of the resource or sampler index. 
 
 public:
     VulkanPipelineLayoutImpl(const VulkanDevice& device) :
@@ -34,35 +36,43 @@ public:
 public:
     void createMappings()
     {
-        UInt32 resourceStride = m_device->descriptorStride(DescriptorHeapType::Resource), samplerStride = m_device->descriptorStride(DescriptorHeapType::Sampler);
-        UInt32 rootSignatureEndOffset{ 0u }, pushConstantsEndOffset{ 0u };
+        UInt32 resourceStride = m_device->descriptorStride(DescriptorHeapType::Resource), samplerStride = m_device->descriptorStride(DescriptorHeapType::Sampler), pushDataEndOffset{ 0u };
 
-        // First, compute the offset of the end of the push constants range.
+        // Each descriptor set binding a heap receives two heap indices in push data: one for the resource heap and one for the sampler heap.
+        constexpr UInt32 SET_PUSH_DATA_SIZE = 2u * sizeof(UInt32); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        constexpr UInt32 SAMPLER_INDEX_OFFSET = sizeof(UInt32);
+
+        // First, compute the offset of the end of the push constants range. Push constants are always at the beginning of push data.
         if (m_pushConstantsLayout != nullptr)
         {
-            pushConstantsEndOffset = m_pushConstantsLayout->size();
+            pushDataEndOffset = m_pushConstantsLayout->size();
 
             for (auto& range : m_pushConstantsLayout->ranges())
-                pushConstantsEndOffset = std::max(pushConstantsEndOffset, range->offset() + range->size());
+                pushDataEndOffset = std::max(pushDataEndOffset, range->offset() + range->size());
         }
 
-        rootSignatureEndOffset = align(pushConstantsEndOffset, 4u);
+        pushDataEndOffset = align(pushDataEndOffset, 4u);
 
         // Create a mapping for each descriptor set.
         for (auto& layout : m_descriptorSetLayouts)
         {
-            // Store the offset to the push constant for the descriptor set space.
             auto space = layout->space();
-            auto pushOffset = rootSignatureEndOffset;
-            m_setPushOffsets[space] = pushOffset;
+            auto& allocationLayout = layout->allocationLayout();
 
-            // Increase the end offset.
-            rootSignatureEndOffset += 2u * sizeof(UInt32); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            // Descriptor sets that only contain shader-local descriptors or static samplers are never bound and don't need indices in the push data mapping.
+            UInt32 pushOffset{ 0u };
+
+            if (allocationLayout.binds(DescriptorHeapType::Resource) || allocationLayout.binds(DescriptorHeapType::Sampler))
+            {
+                pushOffset = pushDataEndOffset;
+                m_setPushOffsets[space] = pushOffset;
+                pushDataEndOffset += SET_PUSH_DATA_SIZE;
+            }
 
             // Map each descriptor.
             for (auto& descriptor : layout->descriptors())
             {
-                VkDescriptorSetAndBindingMappingEXT mapping {
+                VkDescriptorSetAndBindingMappingEXT mapping{
                     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_AND_BINDING_MAPPING_EXT,
                     .descriptorSet = space,
                     .firstBinding = descriptor.binding(),
@@ -70,7 +80,16 @@ public:
                     .resourceMask = VK_SPIRV_RESOURCE_TYPE_ALL_EXT
                 };
 
-                if (descriptor.descriptorType() == DescriptorType::ResourceDescriptorHeap)
+                if (descriptor.local())
+                {
+                    // Shader-local data is stored inline in the shader record, matching local root constants in D3D12.
+                    if (descriptor.descriptorType() != DescriptorType::ConstantBuffer) [[unlikely]]
+                        throw RuntimeException("The shader-local descriptor at binding {0} (space {1}) must be a constant buffer.", descriptor.binding(), space);
+
+                    mapping.source = VK_DESCRIPTOR_MAPPING_SOURCE_SHADER_RECORD_DATA_EXT;
+                    mapping.sourceData.shaderRecordDataOffset = 0u;
+                }
+                else if (descriptor.descriptorType() == DescriptorType::ResourceDescriptorHeap)
                 {
                     mapping.source = VK_DESCRIPTOR_MAPPING_SOURCE_HEAP_WITH_CONSTANT_OFFSET_EXT;
                     mapping.sourceData.constantOffset = { .heapOffset = 0u, .heapArrayStride = resourceStride };
@@ -87,16 +106,20 @@ public:
                 }
                 else
                 {
-                    auto range = layout->allocationLayout().range(descriptor.binding());
+                    auto range = allocationLayout.range(descriptor.binding());
+
+                    if (!range.has_value()) [[unlikely]]
+                        throw RuntimeException("The descriptor at binding {0} (space {1}) has no heap range in its descriptor set layout.", descriptor.binding(), space);
+
                     auto isSampler = range->Heap == DescriptorHeapType::Sampler;
                     auto stride = isSampler ? samplerStride : resourceStride;
 
                     mapping.source = VK_DESCRIPTOR_MAPPING_SOURCE_HEAP_WITH_PUSH_INDEX_EXT;
                     mapping.sourceData.pushIndex = {
                         .heapOffset = range->RelativeOffset * stride,
-                        .pushOffset = pushOffset + (isSampler ? 4u : 0u),
+                        .pushOffset = pushOffset + (isSampler ? SAMPLER_INDEX_OFFSET : 0u),
                         .heapIndexStride = stride,
-                        .heapArrayStride = stride 
+                        .heapArrayStride = stride
                     };
                 }
 
@@ -104,8 +127,8 @@ public:
             }
         }
 
-        if (rootSignatureEndOffset > m_device->maxPushDataSize()) [[unlikely]]
-            throw RuntimeException("The pipeline layout requires {0} bytes of push data, but the device only supports {1} bytes.", rootSignatureEndOffset, m_device->maxPushDataSize());
+        if (pushDataEndOffset > m_device->maxPushDataSize()) [[unlikely]]
+            throw RuntimeException("The pipeline layout requires {0} bytes of push data, but the device only supports {1} bytes.", pushDataEndOffset, m_device->maxPushDataSize());
 
         m_mappingInfo.mappingCount = static_cast<UInt32>(m_mappings.size());
         m_mappingInfo.pMappings = m_mappings.data();

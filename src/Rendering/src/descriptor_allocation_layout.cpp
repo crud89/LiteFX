@@ -25,7 +25,7 @@ DescriptorAllocationLayout::DescriptorAllocationLayout(Enumerable<const IDescrip
     auto getHeap = [](DescriptorType type) static noexcept { return type == DescriptorType::Sampler ? DescriptorHeapType::Sampler : DescriptorHeapType::Resource; };
 
     m_impl->m_ranges = descriptors
-        | std::views::filter([](const IDescriptorLayout& descriptor) { return descriptor.staticSampler() == nullptr; })
+        | std::views::filter([](const IDescriptorLayout& descriptor) { return descriptor.staticSampler() == nullptr || !descriptor.local(); })
         | std::views::transform([&](const IDescriptorLayout& descriptor) -> DescriptorAllocationRange { 
             return { getHeap(descriptor.descriptorType()), descriptor.binding(), 0u, descriptor.unbounded() ? 0u : descriptor.descriptors(), descriptor.unbounded() }; })
         | std::ranges::to<Array<DescriptorAllocationRange>>();

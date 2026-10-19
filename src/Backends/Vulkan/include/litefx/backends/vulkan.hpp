@@ -729,14 +729,16 @@ namespace LiteFX::Rendering::Backends {
         /// @param elementSize The size of the descriptor.
         /// @param descriptors The number of descriptors in the descriptor array. If @p unbounded is set, this value sets the upper limit for the array size.
         /// @param unbounded If set to `true`, the descriptor will be defined as a runtime-allocated, unbounded array.
+        /// @param local Determines if the descriptor is part of the local or global root signature for ray-tracing shaders.
         /// @see @ref descriptors
-        VulkanDescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1, bool unbounded = false);
+        VulkanDescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1, bool unbounded = false, bool local = false);
 
         /// @brief Initializes a new Vulkan descriptor layout for a static sampler.
         ///
         /// @param staticSampler The static sampler to initialize the state with.
         /// @param binding The binding point for the descriptor.
-        VulkanDescriptorLayout(const IVulkanSampler& staticSampler, UInt32 binding);
+        /// @param local Determines if the descriptor is part of the local or global root signature for ray-tracing shaders.
+        VulkanDescriptorLayout(const IVulkanSampler& staticSampler, UInt32 binding, bool local = false);
 
         /// @brief Initializes a new Vulkan descriptor layout for an input attachment.
         ///
@@ -763,6 +765,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// @copydoc IDescriptorLayout::staticSampler
         const IVulkanSampler* staticSampler() const noexcept override;
+
+        /// @copydoc IDescriptorLayout::local 
+        bool local() const noexcept override;
 
         // IBufferLayout interface.
     public:

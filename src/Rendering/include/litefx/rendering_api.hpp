@@ -3770,6 +3770,13 @@ namespace LiteFX::Rendering {
         ///
         /// @return The state of the static sampler, or `nullptr`, if the descriptor is not a static sampler.
         virtual const ISampler* staticSampler() const noexcept = 0;
+
+        /// @brief Returns `true`, if the descriptor belongs to the local root signature of a ray-tracing pipeline or `false` otherwise.
+        ///
+        /// Note that this value must not be set to `true` for descriptors that are bound outside of ray-tracing shaders.
+        ///
+        /// @return `true`, if the descriptor belongs to the local root signature of a ray-tracing pipeline or `false` otherwise.
+        virtual bool local() const noexcept = 0;
     };
 
     /// @brief Allows for data to be mapped into the object.

@@ -67,7 +67,7 @@ private:
         UInt32 inputAttachmentIndex{};
         DescriptorType type{ DescriptorType::ConstantBuffer };
         SharedPtr<IVulkanSampler> staticSampler{};
-        bool unbounded{false};
+        bool unbounded{ false }, local{ false };
 
         bool equals(const DescriptorInfo& rhs)
         {
@@ -76,7 +76,8 @@ private:
                 this->elements == rhs.elements &&
                 this->elementSize == rhs.elementSize &&
                 this->type == rhs.type &&
-                this->unbounded == rhs.unbounded;
+                this->unbounded == rhs.unbounded &&
+                this->local == rhs.local;
         }
     };
 
@@ -244,7 +245,7 @@ public:
                 // Get all descriptor layouts.
                 Array<DescriptorInfo> descriptors(descriptorSet->binding_count);
 
-                std::ranges::generate(descriptors, [&descriptorSet, i = 0]() mutable {
+                std::ranges::generate(descriptors, [&descriptorSet, &shaderModule, i = 0]() mutable {
                     // We reject UAV counters as unsupported. Instead use a RWByteAddressBuffer for the counter and increment it using InterlockedAdd. This is effectively the way
                     // those counters work under the hood anyway. Refer to the indirect rendering sample for an example on how to implement this.
                     // NOTE: This check only works for DXC with debug names, so it may get skipped for other compilers or if debug names are stripped, in which case you will encounter an error
@@ -317,8 +318,18 @@ public:
                         for (UInt32 d(0); d < descriptor->array.dims_count; ++d)
                             descriptors *= descriptor->array.dims[d];
 
+                    // Mark the descriptor as local if the module declares its binding point as local.
+                    auto& localBinding = shaderModule->shaderLocalDescriptor();
+
                     // Create the descriptor layout.
-                    return DescriptorInfo { .location = descriptor->binding, .elementSize = descriptor->block.padded_size, .elements = descriptors, .inputAttachmentIndex = inputAttachmentIndex, .type = type, .unbounded = descriptor->type_description->op == SpvOp::SpvOpTypeRuntimeArray };
+                    return DescriptorInfo { 
+                        .location = descriptor->binding, 
+                        .elementSize = descriptor->block.padded_size, 
+                        .elements = descriptors, 
+                        .inputAttachmentIndex = inputAttachmentIndex, 
+                        .type = type, 
+                        .unbounded = descriptor->type_description->op == SpvOp::SpvOpTypeRuntimeArray, 
+                        .local = localBinding.has_value() && localBinding->Register == descriptor->binding && localBinding->Space == descriptor->set };
                 });
 
                 if (!descriptorSetLayouts.contains(descriptorSet->set))
@@ -434,7 +445,7 @@ public:
                         else if (descriptor.type == DescriptorType::InputAttachment)
                             return { descriptor.type, descriptor.location, descriptor.inputAttachmentIndex };
                         else [[likely]]
-                            return { descriptor.type, descriptor.location, descriptor.elementSize, descriptor.elements, descriptor.unbounded };
+                            return { descriptor.type, descriptor.location, descriptor.elementSize, descriptor.elements, descriptor.unbounded, descriptor.local };
                     }) | std::ranges::to<std::vector>();
 
                 co_yield VulkanDescriptorSetLayout::create(*device, descriptorLayouts, space, stage);
