@@ -25,7 +25,7 @@ uses [CMake](https://cmake.org/) and [vcpkg](https://vcpkg.io/) to manage depend
     ---
 
     LiteFX supports many state-of-the-art features of modern graphics APIs, such as **mesh shaders**, **ray tracing** and **indirect draw**.
-    It utilizes features and extensions from the *DirectX 12 Agility SDK* and *Vulkan 1.3* for a better user experience, such as
+    It utilizes features and extensions from the *DirectX 12 Agility SDK* and *Vulkan 1.4* for a better user experience, such as
     **enhanced barriers** and **dynamic rendering**.
 
 -   :material-cogs:{ .lg .middle } __Streamlined API__

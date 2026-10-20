@@ -25,6 +25,7 @@ namespace LiteFX::Rendering::Backends {
     class VulkanDescriptorLayout;
     class VulkanDescriptorSetLayout;
     class VulkanDescriptorSet;
+    class VulkanDescriptorRange;
     class VulkanPushConstantsRange;
     class VulkanPushConstantsLayout;
     class VulkanPipelineLayout;

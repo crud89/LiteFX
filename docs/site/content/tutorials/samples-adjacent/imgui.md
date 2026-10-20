@@ -21,7 +21,7 @@ ImGui is set up when a backend starts, and shut down when it stops. Both backend
     initInfo.PhysicalDevice = device->adapter().handle();
     initInfo.Device = device->handle();
     initInfo.Queue = device->defaultQueue(QueueType::Graphics).handle();
-    initInfo.DescriptorPoolSize = 10u;
+    initInfo.DescriptorPoolSize = IMGUI_IMPL_VULKAN_MINIMUM_SAMPLED_IMAGE_POOL_SIZE;
     initInfo.MinImageCount = device->swapChain().buffers();
     initInfo.ImageCount = device->swapChain().buffers();
     initInfo.UseDynamicRendering = true;
@@ -51,37 +51,38 @@ In both cases, the platform backend is initialized as well: `ImGui_ImplGlfw_Init
 ## Descriptors in DirectX 12
 
 DirectX 12 keeps all descriptors in global heaps, which the device manages. ImGui needs descriptors of its own, for example for the font
-texture, and asks for them through the two callbacks above. The engine can hand out ranges from its global heaps:
+texture, and asks for them through the two callbacks above. The engine hands out *descriptor ranges* from its global heaps, which already
+provide the CPU and GPU handles ImGui expects:
 
 ```cpp
 void SampleApp::allocImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* context, D3D12_CPU_DESCRIPTOR_HANDLE* cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE* gpu_handle)
 {
-    auto allocation = device.allocateGlobalDescriptors(1u, DescriptorHeapType::Resource);
-    auto descriptorHandleIncrement = device.handle().Get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    auto app = static_cast<SampleApp*>(context->UserData);
+    auto& device = dynamic_cast<const DirectX12Device&>(*app->m_device);
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE targetHandle(device.globalBufferHeap()->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(allocation.Offset), descriptorHandleIncrement);
-    CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(device.globalBufferHeap()->GetGPUDescriptorHandleForHeapStart(), static_cast<INT>(allocation.Offset), descriptorHandleIncrement);
+    auto descriptorRange = device.allocateGlobalDescriptors(DescriptorHeapType::Resource, 1u);
+    *cpu_handle = descriptorRange->cpuHandle();
+    *gpu_handle = descriptorRange->gpuHandle();
 
-    app->m_d3dDescriptorAllocations.emplace(targetHandle.ptr, allocation);
-    *cpu_handle = targetHandle;
-    *gpu_handle = targetGpuHandle;
+    // Store the descriptor range, so we can properly release it later.
+    app->m_d3dDescriptorAllocations.emplace(cpu_handle->ptr, std::move(descriptorRange));
 }
 ```
 
-The allocation is kept in a map, so that the matching range can be released when ImGui frees the descriptor:
+A descriptor range owns its descriptors and releases them when it is destroyed. The sample keeps the ranges in a map, keyed by their CPU
+handle, so freeing a descriptor only means removing its range:
 
 ```cpp
-auto match = app->m_d3dDescriptorAllocations.find(cpu_handle.ptr);
-
-if (match != app->m_d3dDescriptorAllocations.end())
+void SampleApp::releaseImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* context, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE /*gpu_handle*/)
 {
-    device.releaseGlobalDescriptors(DescriptorHeapType::Resource, std::move(match->second));
+    auto app = static_cast<SampleApp*>(context->UserData);
     app->m_d3dDescriptorAllocations.erase(cpu_handle.ptr);
 }
 ```
 
-Before this feature, applications had to create a dummy descriptor set to get at the heap. With `allocateGlobalDescriptors` and
-`releaseGlobalDescriptors`, any library that manages its own descriptors can be integrated this way.
+When the backend stops, the sample clears the map after shutting ImGui down, which releases all remaining ranges before the device goes
+away. The same `allocateGlobalDescriptors` call is used by the [dynamic descriptors](../samples-advanced/dynamic-descriptors.md) sample, so
+any library that manages its own descriptors can be integrated this way.
 
 ## Drawing the interface
 
@@ -107,6 +108,13 @@ renderPass.end();
 
 ImGui records into the engine's command buffer, which it reaches through the backend-specific handle. The Vulkan backend works the same way,
 with `ImGui_ImplVulkan_RenderDrawData` and the Vulkan command buffer handle.
+
+!!! warning "Draw the interface last"
+
+    ImGui binds its own descriptors: descriptor heaps under DirectX 12, classic descriptor sets and push constants under Vulkan. This replaces
+    the engine's global descriptor heaps for the rest of the command buffer. Since the interface is the last thing the sample draws, that is
+    harmless. If you draw anything after it, bind the global heaps again with `m_device->bindGlobalDescriptorHeaps(commandBuffer)` first.
+    That call is expensive, so prefer drawing everything else before the interface.
 
 ## Switching backends
 

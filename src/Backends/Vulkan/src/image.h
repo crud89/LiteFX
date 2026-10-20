@@ -175,6 +175,11 @@ namespace LiteFX::Rendering::Backends {
 		/// @copydoc ISampler::getMinLOD()
 		Float getMinLOD() const noexcept override;
 
+		// IVulkanSampler interface.
+	public:
+		/// @copydoc IVulkanSampler::createInfo 
+		const VkSamplerCreateInfo& createInfo() const noexcept override;
+
 	public:
 		static inline SharedPtr<VulkanSampler> copy(const IVulkanSampler& sampler) {
 			return allocate(dynamic_cast<const VulkanSampler&>(sampler).device(), sampler.getMagnifyingFilter(), sampler.getMinifyingFilter(), sampler.getBorderModeU(), sampler.getBorderModeV(), sampler.getBorderModeW(), sampler.getMipMapMode(), sampler.getMipMapBias(), sampler.getMinLOD(), sampler.getMaxLOD(), sampler.getAnisotropy(), sampler.name());

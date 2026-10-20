@@ -92,7 +92,7 @@ private:
 	void updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const;
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
-	Dictionary<SIZE_T, VirtualAllocator::Allocation> m_d3dDescriptorAllocations;
+	Dictionary<SIZE_T, UniquePtr<DirectX12DescriptorRange>> m_d3dDescriptorAllocations;
 	static void allocImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* context, D3D12_CPU_DESCRIPTOR_HANDLE* cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE* gpu_handle);
 	static void releaseImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* context, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle);
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND

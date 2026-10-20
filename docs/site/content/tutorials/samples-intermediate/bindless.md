@@ -39,15 +39,16 @@ VertexData main(in VertexInput input, uint id : SV_InstanceID)
 `NonUniformResourceIndex` tells the GPU that neighboring threads may read different elements, which it must know to access the array
 correctly.
 
-Since the size is missing from the shader, reflection cannot determine it either, so the pipeline layout is given a hint:
+The pipeline layout is reflected from the shader as usual. The array's size is not part of the layout; it is only decided when a descriptor
+set for it is allocated:
 
 ```cpp
-.layout(shaderProgram->reflectPipelineLayout(std::array { PipelineBindingHint::runtimeArray(DescriptorSets::InstanceData, 0u, NUM_INSTANCES) }))
+.layout(shaderProgram->reflectPipelineLayout())
 ```
 
 ## One descriptor for everything
 
-The buffer holds all instances, and a single descriptor set covers the whole array:
+The buffer holds all instances, and a single descriptor set covers the whole array. Its size is the first argument of `allocate`:
 
 ```cpp
 auto& instanceBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::InstanceData);
@@ -55,6 +56,10 @@ auto instanceBuffer = m_device->factory().createBuffer("Instance Buffer", instan
 auto instanceBinding = instanceBindingLayout.allocate(NUM_INSTANCES, { { 0, *instanceBuffer } });
 commandBuffer->transfer(static_cast<const void*>(&instanceData), sizeof(instanceData), *instanceBuffer, 0, NUM_INSTANCES);
 ```
+
+The array occupies a contiguous range of the global descriptor heap, so its size is only limited by the heap's capacity. The set is allocated
+once and bound to every command buffer, because the instance buffer never changes. If it did, the sample would either need one set per frame
+in flight, like the other samples, or contain each instance buffer once per frame in flight and select the current one in the shader.
 
 ## Instanced drawing
 

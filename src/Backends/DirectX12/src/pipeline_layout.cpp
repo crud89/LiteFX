@@ -16,6 +16,7 @@ private:
     UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout{};
     Array<SharedPtr<const DirectX12DescriptorSetLayout>> m_descriptorSetLayouts{};
     SharedPtr<const DirectX12Device> m_device;
+    bool m_directResourceHeapAccess{}, m_directSamplerHeapAccess{};
 
     /// @brief The flags for a root parameter entry.
     enum class RootParameterFlags : UInt32 // NOLINT(performance-enum-size)
@@ -82,7 +83,7 @@ private:
     }
 
 public:
-    ComPtr<ID3D12RootSignature> initialize([[maybe_unused]] const DirectX12PipelineLayout& pipelineLayout, Array<SharedPtr<DirectX12DescriptorSetLayout>> descriptorLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout)
+    ComPtr<ID3D12RootSignature> initialize([[maybe_unused]] const DirectX12PipelineLayout& pipelineLayout, Array<SharedPtr<DirectX12DescriptorSetLayout>> descriptorLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout, bool directResourceHeapAccess, bool directSamplerHeapAccess)
     {
         if (std::ranges::any_of(descriptorLayouts, [](const auto& layout) { return layout == nullptr; })) [[unlikely]]
             throw ArgumentNotInitializedException("descriptorLayouts", "At least one of the provided descriptor layouts is not initialized.");
@@ -142,6 +143,7 @@ public:
             // Parse the shader stage descriptor.
             D3D12_SHADER_VISIBILITY shaderStages = D3D12_SHADER_VISIBILITY_ALL;
             auto stages = layout->shaderStages();
+            auto& allocationLayout = layout->allocationLayout();
             UInt32 space = layout->space();
 
             switch (stages)
@@ -161,27 +163,25 @@ public:
             // create separate root descriptor tables, as described here: https://learn.microsoft.com/en-us/windows/win32/direct3d12/example-root-signatures#binding-descriptor-tables.
             auto layouts = layout->descriptors();
             Array<D3D12_DESCRIPTOR_RANGE1> resourceSet = layouts 
-                | std::views::filter([](auto& range) { 
-                    return !range.local() &&
-                        range.descriptorType() != DescriptorType::Sampler && 
-                        range.descriptorType() != DescriptorType::ResourceDescriptorHeap && 
-                        range.descriptorType() != DescriptorType::SamplerDescriptorHeap; })
+                | std::views::filter([](auto& range) { return !range.local() && range.descriptorType() != DescriptorType::Sampler; })
                 | std::views::transform([&](auto& range) {
                     CD3DX12_DESCRIPTOR_RANGE1 descriptorRange = {};
+                    auto allocationRange = allocationLayout.range(range.binding());
+                    auto descriptors = allocationRange->Unbounded ? UINT_MAX : allocationRange->DescriptorCount;
 
                     switch(range.descriptorType()) 
                     { 
-                    case DescriptorType::ConstantBuffer:    descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, range.descriptors(), range.binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
+                    case DescriptorType::ConstantBuffer:    descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, descriptors, allocationRange->Binding, space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE, allocationRange->RelativeOffset); break;
                     case DescriptorType::InputAttachment:   hasInputAttachments = true; [[fallthrough]];
                     case DescriptorType::AccelerationStructure:
                     case DescriptorType::Buffer:
                     case DescriptorType::StructuredBuffer:
                     case DescriptorType::ByteAddressBuffer:
-                    case DescriptorType::Texture:           descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, range.descriptors(), range.binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
+                    case DescriptorType::Texture:           descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, descriptors, allocationRange->Binding, space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE, allocationRange->RelativeOffset); break;
                     case DescriptorType::RWBuffer:
                     case DescriptorType::RWStructuredBuffer:
                     case DescriptorType::RWByteAddressBuffer:
-                    case DescriptorType::RWTexture:         descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, range.descriptors(), range.binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
+                    case DescriptorType::RWTexture:         descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, descriptors, allocationRange->Binding, space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE, allocationRange->RelativeOffset); break;
                     default: throw InvalidArgumentException("descriptorSetLayouts", "Invalid descriptor type: {0}.", range.descriptorType());
                     }
 
@@ -194,8 +194,10 @@ public:
                     return !range.local() && 
                         range.descriptorType() == DescriptorType::Sampler && 
                         range.staticSampler() == nullptr; })
-                | std::views::transform([&](auto& range) { 
-                    return CD3DX12_DESCRIPTOR_RANGE1(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, range.descriptors(), range.binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); }) 
+                | std::views::transform([&](auto& range) {
+                    auto allocationRange = allocationLayout.range(range.binding());
+                    auto descriptors = allocationRange->Unbounded ? UINT_MAX : allocationRange->DescriptorCount;
+                    return CD3DX12_DESCRIPTOR_RANGE1(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, descriptors, allocationRange->Binding, space, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, allocationRange->RelativeOffset); })
                 | std::ranges::to<Array<D3D12_DESCRIPTOR_RANGE1>>();
 
             // Define the static samplers. Those do not occur within the descriptor table and instead are part of the pipeline state object, so we handle them separately.
@@ -258,11 +260,27 @@ public:
         // Setup root signature flags.
         D3D12_ROOT_SIGNATURE_FLAGS flags { D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT };
         
-        if (this->containsDescriptorOfType(descriptorLayouts, DescriptorType::ResourceDescriptorHeap))
+        if (directResourceHeapAccess)
             flags |= D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED;
 
-        if (this->containsDescriptorOfType(descriptorLayouts, DescriptorType::SamplerDescriptorHeap))
+        if (directSamplerHeapAccess)
             flags |= D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED;
+
+        // Validate the root signature size.
+        auto rootSignatureSize = std::ranges::fold_left(descriptorParameters | std::views::transform([](const D3D12_ROOT_PARAMETER1& parameter) -> UInt32 {
+            switch (parameter.ParameterType)
+            {
+            case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:  return parameter.Constants.Num32BitValues; // NOLINT(cppcoreguidelines-pro-type-union-access)
+            case D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE: return 1u; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            case D3D12_ROOT_PARAMETER_TYPE_CBV:
+            case D3D12_ROOT_PARAMETER_TYPE_SRV:
+            case D3D12_ROOT_PARAMETER_TYPE_UAV:              return 2u; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            default: std::unreachable();
+            }
+        }), 0u, std::plus{});
+
+        if (rootSignatureSize > D3D12_MAX_ROOT_COST) [[unlikely]]
+            throw RuntimeException("The pipeline layout requires a root signature of {0} DWORDs, but only {1} DWORDs are supported. Reduce the size of the push constants or the number of descriptor sets.", rootSignatureSize, D3D12_MAX_ROOT_COST);
 
         // Create root signature descriptor.
         ComPtr<ID3DBlob> signature, error;
@@ -283,17 +301,10 @@ public:
         // Store the layouts.
         m_pushConstantsLayout = std::move(pushConstantsLayout);
         m_descriptorSetLayouts.append_range(std::move(descriptorLayouts));
+        m_directResourceHeapAccess = directResourceHeapAccess;
+        m_directSamplerHeapAccess = directSamplerHeapAccess;
 
         return rootSignature;
-    }
-
-    inline bool containsDescriptorOfType(Enumerable<SharedPtr<const DirectX12DescriptorSetLayout>> descriptorSetLayouts, DescriptorType descriptorType) const {
-        // TODO: Check why we can't make this `noexcept`... because in my opinion it should be possible.
-        auto descriptorLayouts = descriptorSetLayouts
-            | std::views::transform([](const auto& layout) { return layout->descriptors(); })
-            | std::views::join;
-
-        return std::ranges::any_of(descriptorLayouts, [descriptorType](const auto& layout) { return layout.descriptorType() == descriptorType; });
     }
 };
 
@@ -301,10 +312,10 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, const Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
+DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, const Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout, bool directResourceHeapAccess, bool directSamplerHeapAccess) :
     ComResource<ID3D12RootSignature>(nullptr), m_impl(device)
 {
-    this->handle() = m_impl->initialize(*this, descriptorSetLayouts | std::ranges::to<std::vector>(), std::move(pushConstantsLayout));
+    this->handle() = m_impl->initialize(*this, descriptorSetLayouts | std::ranges::to<std::vector>(), std::move(pushConstantsLayout), directResourceHeapAccess, directSamplerHeapAccess);
 }
 
 DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device) :
@@ -360,12 +371,12 @@ Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12Push
 
 bool DirectX12PipelineLayout::dynamicResourceHeapAccess() const
 {
-    return m_impl->containsDescriptorOfType(m_impl->m_descriptorSetLayouts, DescriptorType::ResourceDescriptorHeap);
+    return m_impl->m_directResourceHeapAccess;
 }
 
 bool DirectX12PipelineLayout::dynamicSamplerHeapAccess() const
 {
-    return m_impl->containsDescriptorOfType(m_impl->m_descriptorSetLayouts, DescriptorType::SamplerDescriptorHeap);
+    return m_impl->m_directSamplerHeapAccess;
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
@@ -402,7 +413,7 @@ DirectX12PipelineLayoutBuilder::~DirectX12PipelineLayoutBuilder() noexcept = def
 void DirectX12PipelineLayoutBuilder::build()
 {
     auto instance = this->instance();
-    instance->handle() = instance->m_impl->initialize(*instance, std::move(this->state().descriptorSetLayouts), std::move(this->state().pushConstantsLayout));
+    instance->handle() = instance->m_impl->initialize(*instance, std::move(this->state().descriptorSetLayouts), std::move(this->state().pushConstantsLayout), this->state().directResourceHeapAccess, this->state().directSamplerHeapAccess);
 }
 
 DirectX12DescriptorSetLayoutBuilder DirectX12PipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages)

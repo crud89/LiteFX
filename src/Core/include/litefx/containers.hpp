@@ -183,13 +183,14 @@ namespace LiteFX {
 	template <typename T, typename TVal = void>
 	using Generator = std::generator<T, TVal>;
 
-	/// @brief Evaluates if a type @p TCovariant behaves covariant to a value type @p TValue. In this context, covariance is expressed as the type @p TCovariant can be assigned a value of type @p TValue or
-	/// can be constructed from a value of @p TValue.
+	/// @brief Evaluates, if a value of type @p TValue can be returned as @p TCovariant.
+	/// 
+	/// If @p TCovariant is a reference, @p TValue must be a reference as well, as returning a temporary as a reference would dangle.
 	///
 	/// @tparam TValue The type of the value.
 	/// @tparam TCovariant The covariant type to check against @p TValue.
 	template <typename TValue, typename TCovariant>
-	concept is_covariant = std::is_assignable_v<TCovariant, TValue> || std::is_constructible_v<TCovariant, TValue>;
+	concept is_covariant = std::convertible_to<TValue, TCovariant> && (!std::is_reference_v<TCovariant> || std::is_reference_v<TValue>);
 
 	/// @brief Evaluates, if an iterator of type @p TIterator iterates values that are covariant to @p TValue.
 	///
@@ -197,6 +198,13 @@ namespace LiteFX {
 	/// @tparam TValue The type that the iterated values should be covariant to.
 	template <typename TIterator, typename TValue>
 	concept covariant_forward_iterator = std::forward_iterator<TIterator> && is_covariant<decltype(*std::declval<TIterator>()), TValue>;
+
+	/// @brief Evaluates, if @p TView can be iterated as `const` with iterators that yield values covariant to @p TValue.
+	/// 
+	/// @tparam TView The view to evaluate.
+	/// @tparam TValue The type that the iterated values should be covariant to.
+	template <typename TView, typename TValue>
+	concept covariant_const_range = std::ranges::range<const TView> && covariant_forward_iterator<std::ranges::iterator_t<const TView>, TValue>;
 
 	/// @brief Wraps an iterator and returns covariants of type @p T of the iterated value.
 	///
@@ -212,8 +220,14 @@ namespace LiteFX {
 		/// @brief The type of the value that is iterated.
 		using value_type = std::remove_cvref_t<T>;
 
+		/// @brief The concept of the iterator.
+		using iterator_concept = std::forward_iterator_tag;
+
 		/// @brief The category of the iterator.
-		using iterator_category = std::forward_iterator_tag;
+		using iterator_category = std::conditional_t<std::is_lvalue_reference_v<T>, std::forward_iterator_tag, std::input_iterator_tag>;
+
+		/// @brief The reference type returned by the iterator.
+		using reference = T;
 
 		/// @brief The type that expresses the difference between two iterators.
 		using difference_type = std::ptrdiff_t;
@@ -235,9 +249,8 @@ namespace LiteFX {
 
 			virtual T operator*() const = 0;
 			virtual iterator_base& operator++() = 0;
-			virtual std::unique_ptr<iterator_base> operator++(int) = 0;
-			virtual bool operator==(const iterator_base& _other) const noexcept = 0;
 			virtual std::unique_ptr<iterator_base> copy() const = 0;
+			virtual bool equals(const iterator_base& _other) const noexcept = 0;
 		};
 
 		template <covariant_forward_iterator<T> TIterator>
@@ -264,41 +277,27 @@ namespace LiteFX {
 			};
 
 			inline iterator_base& operator++() override {
-				++_it;
+				++_it; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 				return *this;
-			}
-
-			inline std::unique_ptr<iterator_base> operator++(int) override {
-				return std::make_unique<wrapped_iterator>(_it++);
-			}
-
-			inline bool operator==(const iterator_base& _other) const noexcept override {
-				// NOTE: This is only safe if the other iterator is of the same type as the current iterator, which is enforced by the `CovariantIterator` class.
-				return this->_it == static_cast<const wrapped_iterator&>(_other)._it;
 			}
 
 			inline std::unique_ptr<iterator_base> copy() const override {
 				return std::make_unique<wrapped_iterator>(_it);
 			}
+
+			inline bool equals(const iterator_base& _other) const noexcept override {
+				if (typeid(_other) != typeid(*this))
+					return false;
+
+				return _it == static_cast<const wrapped_iterator&>(_other)._it;
+			}
 		};
 
 		std::unique_ptr<iterator_base> _iterator{ nullptr }; // NOTE: Starting with C++26 there may be a way to express this with a value-semantic unique_ptr.
-		std::type_index _iterator_type{ typeid(iterator_base) };
-
-	private:
-		CovariantIterator(std::unique_ptr<iterator_base>&& iterator, std::type_index iterator_type) :
-			_iterator(std::move(iterator)), _iterator_type(iterator_type) 
-		{ }
 
 	public:
-		/// @brief Initializes a new iterator instance. Always throws a @ref RuntimeException.
-		///
-		/// This constructor is only defined to satisfy the `std::ranges::range` constraint for ranges that return this iterator. Attempting to default-initialize a `CovariantInterator` will result in a runtime
-		/// error.
-		explicit CovariantIterator() {
-			// Calling this constructor is not supported. It is only publicly available, to make sure the iterator is `std::semiregular`, which is implicitly required by the `std::ranges::range` concept.
-			throw RuntimeException("Default-initializing `CovariantIterator` is not supported!");
-		}
+		/// @brief Initializes a new iterator instance.
+		CovariantIterator() noexcept = default;
 
 		/// @brief Initializes a new iterator instance.
 		///
@@ -306,14 +305,14 @@ namespace LiteFX {
 		/// @param it The iterator to wrap within the iterator instance.
 		template <typename TIterator>
 		inline CovariantIterator(const TIterator& it) :
-			_iterator(std::make_unique<wrapped_iterator<TIterator>>(it)), _iterator_type(typeid(TIterator))
+			_iterator(std::make_unique<wrapped_iterator<TIterator>>(it))
 		{ }
 
 		/// @brief Copies another iterator instance.
 		///
 		/// @param _other The iterator to copy.
 		inline CovariantIterator(const CovariantIterator& _other) :
-			_iterator(_other._iterator->copy()), _iterator_type(_other._iterator_type)
+			_iterator(_other._iterator ? _other._iterator->copy() : nullptr)
 		{ }
 
 		/// @brief Takes ownership over another iterator instances.
@@ -326,8 +325,7 @@ namespace LiteFX {
 		/// @param _other
 		/// @return
 		inline CovariantIterator& operator=(const CovariantIterator& _other) {
-			_iterator = _other._iterator->copy();
-			_iterator_type = _other._iterator_type;
+			_iterator = _other._iterator ? _other._iterator->copy() : nullptr;
 			return *this;
 		}
 
@@ -352,8 +350,8 @@ namespace LiteFX {
 		/// This operator is only available, if the iterated type is a lvalue reference.
 		///
 		/// @return A pointer to the value at the current iterator position.
-		inline pointer operator->() requires std::is_lvalue_reference_v<T> {
-			return &this->operator*();
+		inline pointer operator->() const requires std::is_lvalue_reference_v<T> {
+			return std::addressof(**this);
 		}
 
 		/// @brief Increments the iterator position by one.
@@ -367,8 +365,10 @@ namespace LiteFX {
 		/// @brief Increments the iterator position by one and returns the previous iterator.
 		///
 		/// @return A copy of the previous iterator.
-		inline CovariantIterator operator++(int) {
-			return { (*_iterator)++, _iterator_type };
+		inline CovariantIterator operator++(int) { 
+			auto previous = *this; 
+			++*this; 
+			return previous; 
 		}
 
 		/// @brief Checks if two iterators are equal, i.e. they are pointing to the same value.
@@ -376,10 +376,10 @@ namespace LiteFX {
 		/// @param _other The iterator to check against.
 		/// @return `true`, if the iterators are pointing to the same value.
 		inline bool operator==(const CovariantIterator& _other) const {
-			if (this->_iterator_type != _other._iterator_type)
-				return false;
+			if (_iterator == nullptr || _other._iterator == nullptr)
+				return _iterator == _other._iterator;
 
-			return _iterator->operator==(*_other._iterator);
+			return _iterator->equals(*_other._iterator);
 		}
 	};
 
@@ -490,7 +490,7 @@ namespace LiteFX {
 		using iterator = CovariantIterator<T>;
 
 		/// @brief The type of the iterator used to iterate constant elements of the `Enumerable`.
-		using const_iterator = CovariantIterator<const std::remove_const_t<T>>;
+		using const_iterator = CovariantIterator<std::conditional_t<std::is_reference_v<T>, const std::remove_reference_t<T>&, const T>>;
 
 	private:
 		struct range_holder_base {
@@ -504,16 +504,20 @@ namespace LiteFX {
 		public:
 			virtual ~range_holder_base() noexcept = default;
 
-			virtual iterator begin() noexcept = 0;
-			virtual iterator end() noexcept = 0;
-			virtual const_iterator cbegin() noexcept = 0;
-			virtual const_iterator cend() noexcept = 0;
+			virtual iterator begin() const = 0;
+			virtual iterator end() const = 0;
+			virtual const_iterator cbegin() const = 0;
+			virtual const_iterator cend() const = 0;
 		};
 
-		template <std::ranges::viewable_range TRange>
+		template <typename TView>
 		struct range_holder final : public range_holder_base {
 		private:
-			TRange _stored_range;
+			static constexpr bool use_const_view = covariant_const_range<TView, T>;
+			using cache_type = std::conditional_t<use_const_view, std::monostate, std::pair<std::ranges::iterator_t<TView>, std::ranges::iterator_t<TView>>>;
+
+			TView _view;
+			cache_type _cache{};
 
 		private:
 			range_holder() = default;
@@ -523,26 +527,45 @@ namespace LiteFX {
 			range_holder& operator=(const range_holder&) = delete;
 
 		public:
-			inline range_holder(TRange&& range) :
-				_stored_range(std::move(range))
-			{ }
-
-			inline ~range_holder() noexcept override = default;
-
-			inline iterator begin() noexcept override {
-				return { std::ranges::begin(_stored_range) };
+			explicit range_holder(TView&& view) : 
+				_view(std::move(view)) 
+			{
+				if constexpr (!use_const_view)
+					_cache = { std::ranges::begin(_view), std::ranges::end(_view) };
 			}
 
-			inline iterator end() noexcept override {
-				return { std::ranges::end(_stored_range) };
+			~range_holder() noexcept override = default;
+
+			iterator begin() const override 
+			{
+				if constexpr (use_const_view) 
+					return { std::ranges::begin(_view) };
+				else 
+					return { _cache.first };
 			}
 
-			inline const_iterator cbegin() noexcept override {
-				return { std::ranges::begin(_stored_range) };
+			iterator end() const override 
+			{
+				if constexpr (use_const_view) 
+					return { std::ranges::end(_view) };
+				else 
+					return { _cache.second };
 			}
 
-			inline const_iterator cend() noexcept override {
-				return { std::ranges::end(_stored_range) };
+			const_iterator cbegin() const override 
+			{
+				if constexpr (use_const_view) 
+					return { std::ranges::begin(_view) };
+				else 
+					return { _cache.first };
+			}
+
+			const_iterator cend() const override 
+			{
+				if constexpr (use_const_view) 
+					return { std::ranges::end(_view) };
+				else 
+					return { _cache.second };
 			}
 		};
 
@@ -551,7 +574,7 @@ namespace LiteFX {
 	public:
 		/// @brief Creates an enumerable over an empty range.
 		inline Enumerable() :
-			Enumerable(std::array<T, 0> { })
+			Enumerable(std::views::empty<std::remove_reference_t<T>>)
 		{ }
 
 		inline Enumerable(const Enumerable& range) = default;
@@ -565,39 +588,57 @@ namespace LiteFX {
 		/// @tparam TRange The type of the underlying range.
 		/// @tparam enabled Disables the constructor, if @p TRange is equal to the current type, in which case the move constructor should be called.
 		/// @param range A reference of the underlying range.
-		template <typename TRange, typename enabled = std::enable_if_t<!std::is_same_v<TRange, Enumerable>>>
+		template <typename TRange, typename enabled = std::enable_if_t<!std::is_same_v<std::remove_cvref_t<TRange>, Enumerable>>>
 		inline Enumerable(TRange&& range) {
 			// NOTE: Concept evaluation may fail here, if we provide some other enumerable, in which case the evaluated type may be not complete yet, which is why have to
 			//       do a static assert here instead of providing the concept in the template.
 			static_assert(std::ranges::viewable_range<TRange>, "The source range does not satisfy std::ranges::viewable_range!");
-			_range = std::make_shared<range_holder<std::ranges::views::all_t<decltype(range)>>>(std::forward<TRange>(range)); // NOLINT(cppcoreguidelines-prefer-member-initializer)
+			static_assert(std::ranges::forward_range<TRange>, "The source range does not satisfy std::ranges::forward_range!");
+
+			// If the range is valid, also validate the value type.
+			if constexpr (std::ranges::viewable_range<TRange> && std::ranges::forward_range<TRange>)
+			{
+				using reference_t = std::ranges::range_reference_t<decltype(std::views::common(std::declval<TRange>()))>;
+				constexpr bool convertible = std::convertible_to<reference_t, T>;
+				constexpr bool dangling = std::is_reference_v<T> && !std::is_reference_v<reference_t>;
+
+				static_assert(convertible, "The elements of the source range cannot be converted to the enumerated type. If the enumerated type is a mutable reference, make sure the source range is not const.");
+				static_assert(!dangling, "The source range yields temporaries, which cannot be enumerated as references, as they would dangle. Enumerate values instead, or make sure the range yields references (e.g., a `std::views::transform` that returns a reference).");
+
+				// Only if the range and value is valid, continue with the construction of the type-erased iterator.
+				if constexpr (convertible && !dangling)
+				{
+					auto view = std::views::common(std::forward<TRange>(range));
+					_range = std::make_shared<range_holder<decltype(view)>>(std::move(view));
+				}
+			}
 		}
 
 		/// @brief Returns an iterator pointing to the start of the underlying range.
 		///
 		/// @return An iterator pointing to the start of the underlying range.
-		inline auto begin() const noexcept {
+		inline auto begin() const {
 			return _range->begin();
 		}
 
 		/// @brief Returns an iterator pointing to the end of the underlying range.
 		///
 		/// @return An iterator pointing to the end of the underlying range.
-		inline auto end() const noexcept {
+		inline auto end() const {
 			return _range->end();
 		}
 
 		/// @brief Returns a constant iterator pointing to the start of the underlying range.
 		///
 		/// @return A constant iterator pointing to the start of the underlying range.
-		inline auto cbegin() const noexcept {
+		inline auto cbegin() const {
 			return _range->cbegin();
 		}
 
 		/// @brief Returns a constant iterator pointing to the end of the underlying range.
 		///
 		/// @return A constant iterator pointing to the end of the underlying range.
-		inline auto cend() const noexcept {
+		inline auto cend() const {
 			return _range->cend();
 		}
 

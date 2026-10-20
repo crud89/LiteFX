@@ -30,6 +30,7 @@ namespace LiteFX::Rendering {
     class ITopLevelAccelerationStructure;
     class IBarrier;
     class IDescriptorSet;
+    class IDescriptorRange;
     class IDescriptorSetLayout;
     class IPushConstantsRange;
     class IPushConstantsLayout;
@@ -434,36 +435,7 @@ namespace LiteFX::Rendering {
         RWByteAddressBuffer = 0x00000017,
 
         /// @brief Represents a ray-tracing acceleration structure.
-        AccelerationStructure = 0x00000008,
-
-        /// @brief Special descriptor type, that can bind all resources besides constant buffers, acceleration structures and samplers, which then can be directly indexed from the global resource heap.
-        ///
-        /// This descriptor type does not directly map to an underlying resource type and instead denotes a descriptor binding, that accepts any resource descriptor besides constant buffers and acceleration
-        /// structures. Samplers are also disallowed, as they need to be bound to a descriptor of the @ref SamplerDescriptorHeap type. The existence of such a descriptor as a part of a descriptor set, indicates 
-        /// that the pipeline layout uses direct descriptor indexing. A descriptor set containing a descriptor of this type does not allocate any space on the respective global descriptor heap. Instead, it acts 
-        /// as a proxy set, that binds any of the aforementioned buffers. When binding to this descriptor, a single uncached descriptor address will be allocated for the resource on the global descriptor heap. 
-        /// On the shader side, this descriptor can be retrieved by calling the @ref IDescriptorSet::bindToHeap method.
-        ///
-        /// As there's no underlying descriptor set or binding when using this descriptor type, you should only ever have on descriptor of this type in a @ref IPipelineLayout. In the DirectX 12 backend, it is
-        /// sufficient to have a descriptor of this type in a pipeline to access any descriptor on the global resource heap. In Vulkan, this descriptor type creates a descriptor set containing an unbounded
-        /// runtime array to emulate this behavior. This array is special, as it uses the `VK_EXT_mutable_descriptor_type` extension to bind arbitrary resources to a descriptor. However, this is only allowed for
-        /// descriptors created this way, so indexing only works within the range of the proxy descriptor set. It is therefore good practice not to use indices obtained outside a binding created from the proxy
-        /// descriptor sets. Furthermore, the use of mutable descriptor types is considered less efficient than the traditional binding procedure, as it might prevent certain fast paths. For this reason, consider
-        /// alternative approaches, like multiple unbounded descriptor arrays first. Directly indexing into the global descriptor heap this way can be beneficial, if it allows you to re-use the same pipeline
-        /// state where you would otherwise have to switch between multiple states, however, especially in combination with indirect drawing.
-        ///
-        /// @see @ref DescriptorType::SamplerDescriptorHeap
-        /// @see @ref GraphicsDeviceFeatures::DynamicDescriptors
-        ResourceDescriptorHeap = 0x00000009,
-
-        /// @brief A special descriptor type that allows indexed access to the a portion of the global sampler heap.
-        ///
-        /// This descriptor type is equivalent to @ref DescriptorType::ResourceDescriptorHeap, except that it enables access to the global sampler heap instead. The same conceptual design as for the resource heap
-        /// applies here, with the same limitations, listed in the remarks for the `ResourceDescriptorHeap` descriptor type.
-        ///
-        /// @see @ref DescriptorType::ResourceDescriptorHeap
-        /// @see @ref GraphicsDeviceFeatures::DynamicDescriptors
-        SamplerDescriptorHeap = 0x0000000A
+        AccelerationStructure = 0x00000008
     };
 
     /// @brief The target heap type for a descriptor.
@@ -2499,6 +2471,17 @@ namespace LiteFX::Rendering {
         };
     };
 
+    /// @brief Represents an allocation from a global descriptor heap.
+    ///
+    /// @see GlobalDescriptorHeaps
+    struct LITEFX_RENDERING_API DescriptorHeapAllocation final {
+        /// @brief Stores the heap on which the allocation was made.
+        DescriptorHeapType Heap{};
+
+        /// @brief Stores the allocation.
+        VirtualAllocator::Allocation Allocation{};
+    };
+
     /// @brief Represents a physical graphics adapter.
     ///
     /// A graphics adapter can be seen as an actual physical device that can run graphics computations. Typically this resembles a GPU that is connected to the bus. However, it can also represent an emulated,
@@ -2612,6 +2595,78 @@ namespace LiteFX::Rendering {
         inline bool operator==(const DescriptorBindingPoint& other) const noexcept {
             return other.Space == this->Space && other.Register == this->Register;
         }
+    };
+
+    /// @brief Stores the relative location of a descriptor within a @ref DescriptorAllocationLayout in a descriptor heap.
+    ///
+    /// Using traditional @ref IDescriptorSet "IDescriptorSets", a descriptor allocation range stores the number of descriptors (for descriptor arrays), as well as the relative offset to the start of a 
+    /// descriptor set allocation. For a raw descriptor heap allocation, @ref DescriptorAllocationRange::RelativeOffset directly maps to the offset within the descriptor heap. Think about it as a relative 
+    /// offset to the start of the heap.
+    /// 
+    /// A descriptor allocation range does not refer to an actual allocation, but is rather part of a @ref DescriptorAllocationLayout that defines how an allocation on a heap looks like.
+    struct LITEFX_RENDERING_API DescriptorAllocationRange final {
+    public:
+        /// @brief The descriptor heap from which to allocate the descriptors.
+        DescriptorHeapType Heap{};
+
+        /// @brief Stores the binding point of the descriptor slot in a @ref IDescriptorSet.
+        UInt32 Binding{};
+
+        /// @brief The offset to the start of a @ref IDescriptorSet, or a descriptor heap.
+        UInt32 RelativeOffset{};
+
+        /// @brief The number of descriptors in an allocated descriptor array.
+        UInt32 DescriptorCount{};
+
+        /// @brief `true` if the descriptor is an unbounded runtime array, in which case (@ref DescriptorCount is `0`) and `false` otherwise.
+        bool Unbounded{};
+    };
+
+    /// @brief Stores the layout of a @see IDescriptorSet on a descriptor heap.
+    class LITEFX_RENDERING_API DescriptorAllocationLayout final {
+        LITEFX_IMPLEMENTATION(DescriptorAllocationLayoutImpl);
+
+    public:
+        /// @brief Creates a new descriptor allocation layout instance.
+        /// 
+        /// @param descriptors The individual descriptors from the descriptor set.
+        explicit DescriptorAllocationLayout(Enumerable<const IDescriptorLayout&> descriptors);
+
+        DescriptorAllocationLayout(const DescriptorAllocationLayout&) = delete;
+        DescriptorAllocationLayout(DescriptorAllocationLayout&&) noexcept = default;
+        DescriptorAllocationLayout& operator=(const DescriptorAllocationLayout&) = delete;
+        DescriptorAllocationLayout& operator=(DescriptorAllocationLayout&&) noexcept = default;
+        ~DescriptorAllocationLayout() = default;
+
+    public:
+        /// @brief Returns all descriptor allocation ranges of the layout.
+        /// 
+        /// @return An array that contains all descriptor allocation ranges of the layout.
+        const Array<DescriptorAllocationRange>& ranges() const noexcept;
+
+        /// @brief Returns the descriptor allocation range for a binding.
+        /// 
+        /// @param binding The binding for which to obtain the allocation range.
+        /// @return The allocation range layout or `std::nullopt`, if @p binding is not part of the layout.
+        Optional<DescriptorAllocationRange> range(UInt32 binding) const noexcept;
+
+        /// @brief returns the number of descriptors that must be allocated on @p heap.
+        /// 
+        /// @param heap The heap to check.
+        /// @param unboundedArrayElements The number of elements in the unbounded array range.
+        /// @return The number of descriptors that must be allocated for a descriptor set with this layout on @p heap.
+        UInt32 descriptorCount(DescriptorHeapType heap, UInt32 unboundedArrayElements = 0) const noexcept;
+
+        /// @brief Returns `true` if the layout contains an allocation range that binds to @p heap and `false` otherwise.
+        /// 
+        /// @param heap The heap to check.
+        /// @return `true` if the layout contains an allocation range that binds to @p heap and `false` otherwise.
+        bool binds(DescriptorHeapType heap) const noexcept;
+
+        /// @brief Returns the descriptor allocation range that describes the unbounded array binding, or `std::nullopt` if the layout does not contain an unbounded array binding.
+        /// 
+        /// @return The descriptor allocation range that describes the unbounded array binding, or `std::nullopt` if the layout does not contain an unbounded array binding.
+        Optional<DescriptorAllocationRange> unboundedArrayRange() const noexcept;
     };
 
     /// @brief Represents a single shader module, i.e. a part of a @ref IShaderProgram.
@@ -3668,7 +3723,8 @@ namespace LiteFX::Rendering {
 
         /// @brief Returns the number of descriptors in the descriptor array.
         ///
-        /// If @ref unbounded is set to `true`, the descriptor count defines the upper limit for the number of descriptors that can be allocated for in the array.
+        /// If @ref unbounded is set to `true`, the number of descriptors is not part of the layout. Instead, it is specified when allocating a descriptor set, and only limited by 
+        /// the capacity of the global descriptor heap.
         ///
         /// @return The number of descriptors in the descriptor array.
         /// @see @ref IDescriptorLayout
@@ -3687,6 +3743,13 @@ namespace LiteFX::Rendering {
         ///
         /// @return The state of the static sampler, or `nullptr`, if the descriptor is not a static sampler.
         virtual const ISampler* staticSampler() const noexcept = 0;
+
+        /// @brief Returns `true`, if the descriptor belongs to the local root signature of a ray-tracing pipeline or `false` otherwise.
+        ///
+        /// Note that this value must not be set to `true` for descriptors that are bound outside of ray-tracing shaders.
+        ///
+        /// @return `true`, if the descriptor belongs to the local root signature of a ray-tracing pipeline or `false` otherwise.
+        virtual bool local() const noexcept = 0;
     };
 
     /// @brief Allows for data to be mapped into the object.
@@ -4885,67 +4948,17 @@ namespace LiteFX::Rendering {
         virtual ~IDescriptorSet() noexcept = default;
 
     public:
+        /// @brief Returns the size of a descriptor array bound at @p binding.
+        /// 
+        /// @param binding The binding for which to obtain the descriptor count.
+        /// @return The size of the descriptor array bound at @p binding, or `0` if the descriptor set does not contain a binding at @p binding.
+        virtual UInt32 capacity(UInt32 binding) const noexcept = 0;
+
         /// @brief Returns the allocation information for the descriptor set in the global descriptor heap indicated by @p heapType.
         ///
         /// @param heapType The type of the descriptor heap for which to obtain the heap allocation.
         /// @return The allocation for the descriptor set in the global descriptor heap.
-        virtual VirtualAllocator::Allocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept = 0;
-
-        /// @brief Binds a resource directly to a descriptor heap and returns the index that can be used to access it.
-        ///
-        /// This method is used with the @ref GraphicsDeviceFeatures::DynamicDescriptors feature and allows to bind a descriptor to the underlying descriptor heap directly by providing the corresponding resource
-        /// type (indicated by @p bindingType) at bind time. The method directly returns the global heap index of the resource, that can be used by the shader to access it using the `ResourceDescriptorHeap`
-        /// syntax (in HLSL).
-        ///
-        /// If the descriptor set does not contain a descriptor of type @ref DescriptorType::ResourceDescriptorHeap, this method will throw an exception.
-        ///
-        /// @param bindingType The type of the descriptor used to bind @p buffer to the heap.
-        /// @param descriptor The index of the descriptor in the heap to bind @p buffer to.
-        /// @param buffer The buffer to bind.
-        /// @param bufferElement The index of an element inside @p buffer that should be bound.
-        /// @param elements The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at @p bufferElement.
-        /// @param texelFormat The format used to read a texel buffer. Required if @p binding binds a texel buffer and ignored otherwise.
-        /// @return The global heap index that can be used to access the resource from the shader.
-        /// @throws RuntimeException Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by @p bindingType.
-        inline UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const {
-            return this->doBind(bindingType, descriptor, buffer, bufferElement, elements, texelFormat);
-        }
-
-        /// @brief Binds a resource directly to a descriptor heap and returns the index that can be used to access it.
-        ///
-        /// This method is used with the @ref GraphicsDeviceFeatures::DynamicDescriptors feature and allows to bind a descriptor to the underlying descriptor heap directly by providing the corresponding resource
-        /// type (indicated by @p bindingType) at bind time. The method directly returns the global heap index of the resource, that can be used by the shader to access it using the `ResourceDescriptorHeap`
-        /// syntax (in HLSL).
-        ///
-        /// If the descriptor set does not contain a descriptor of type @ref DescriptorType::ResourceDescriptorHeap, this method will throw an exception.
-        ///
-        /// @param bindingType The type of the descriptor used to bind @p image to the heap.
-        /// @param descriptor The index of the descriptor in the heap to bind @p image to.
-        /// @param image The image to bind.
-        /// @param firstLevel The index of the first mip-map level to bind.
-        /// @param levels The number of mip-map levels to bind. A value of `0` binds all available levels, starting at @p firstLevel.
-        /// @param firstLayer The index of the first layer to bind.
-        /// @param layers The number of layers to bind. A value of `0` binds all available layers, starting at @p firstLayer.
-        /// @return The global heap index that can be used to access the resource from the shader.
-        /// @throws RuntimeException Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by @p bindingType.
-        inline UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IImage& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const {
-            return this->doBind(bindingType, descriptor, image, firstLevel, levels, firstLayer, layers);
-        }
-
-        /// @brief Binds a sampler directly to a descriptor heap and returns the index that can be used to access it.
-        ///
-        /// This method is used with the @ref GraphicsDeviceFeatures::DynamicDescriptors feature and allows to bind a descriptor to the underlying descriptor heap directly. The method returns the global heap index
-        /// of the sampler, that can be used by the shader to access it using the `SamplerDescriptorHeap` syntax (in HLSL).
-        ///
-        /// If the descriptor set does not contain a descriptor of type @ref DescriptorType::SamplerDescriptorHeap, this method will throw an exception.
-        ///
-        /// @param descriptor The index of the descriptor in the heap to bind @p sampler to.
-        /// @param sampler The sampler to bind.
-        /// @return The global heap index that can be used to access the sampler from the shader.
-        /// @throws RuntimeException Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by @p bindingType.
-        inline UInt32 bindToHeap(UInt32 descriptor, const ISampler& sampler) const {
-            return this->doBind(descriptor, sampler);
-        }
+        virtual DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const = 0;
 
         /// @brief Updates one or more buffer descriptors within the current descriptor set.
         ///
@@ -4999,9 +5012,6 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        virtual UInt32 doBind(DescriptorType bindingType, UInt32 descriptor, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const = 0;
-        virtual UInt32 doBind(DescriptorType bindingType, UInt32 descriptor, const IImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
-        virtual UInt32 doBind(UInt32 descriptor, const ISampler& sampler) const = 0;
         virtual void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat) const = 0;
         virtual void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
         virtual void doUpdate(UInt32 binding, const ISampler& sampler, UInt32 descriptor) const = 0;
@@ -5090,6 +5100,11 @@ namespace LiteFX::Rendering {
         /// @return The descriptor layout for the descriptor bound to the binding point provided with @p binding.
         virtual const IDescriptorLayout& descriptor(UInt32 binding) const = 0;
 
+        /// @brief Returns the allocation layout of the descriptor set on the global descriptor heaps.
+        /// 
+        /// @return A reference to the descriptor allocation layout.
+        virtual const DescriptorAllocationLayout& allocationLayout() const noexcept = 0;
+
         /// @brief Returns the space index of the descriptor set.
         ///
         /// The descriptor set space maps to the space index in HLSL and the set index in GLSL.
@@ -5166,22 +5181,13 @@ namespace LiteFX::Rendering {
     public:
         /// @brief Allocates a new descriptor set or returns an instance of an unused descriptor set.
         ///
-        /// Allocating a new descriptor set may be an expensive operation. To improve performance, and prevent fragmentation, the descriptor set layout keeps track of created descriptor sets. It does this by
-        /// never releasing them. Instead, when a @ref DescriptorSet instance gets destroyed, it should call @ref free in order to mark itself (i.e. its handle) as not being used any longer.
+        /// To reduce allocation overhead, the descriptor set layout keeps the local descriptor storage of freed descriptor sets and re-uses it for subsequent allocations. When 
+        /// a descriptor set is destroyed, it calls @ref free to return its storage to the layout. Each allocated set also reserves a range on the global descriptor heaps, which is 
+        /// released when the set is destroyed.
         ///
-        /// Before allocating a new descriptor set from a pool (which may even result in the creation of a new pool, if the existing pools are full), the layout tries to hand out descriptor sets that marked as
-        /// unused. Descriptor sets are only deleted, if the whole layout instance and therefore the descriptor pools are deleted.
-        ///
-        /// The above does not apply to unbounded descriptor arrays. A unbounded descriptor array is one, for which @ref IDescriptorLayout::descriptors returns `-1` (or `0xFFFFFFFF`). They must be allocated by
-        /// specifying the @p descriptors parameter. This parameter defines the number of descriptors to allocate in the array.
-        ///
-        /// Note that descriptor sets, that contain an unbounded descriptor array must only contain one single descriptor (the one that identifies this array). Such descriptor sets are never cached. Instead, they
-        /// are released when calling @ref free. It is a good practice to cache such descriptor sets as global descriptor tables once and never release them. They provide more flexibility than regular descriptor
-        /// arrays, since they may be updated, even after they have been bound to a command buffer or from different threads. However, you must ensure yourself not to overwrite any descriptors that are currently
-        /// in use. Because unbounded arrays are not cached, freeing and re-allocating such descriptor sets may leave the descriptor heap fragmented, which might cause the allocation to fail, if the heap is full.
-        ///
-        /// Note that providing bindings for descriptors of type @ref DescriptorType::ResourceDescriptorHeap or @ref DescriptorType::SamplerDescriptorHeap here is not supported and will cause an exception to be
-        /// thrown.
+        /// The above does not apply to descriptor sets containing an unbounded descriptor array (see @ref IDescriptorLayout::unbounded). Their size is defined by the 
+        /// @p descriptors parameter, so their storage is never cached. The unbounded array must be bound to the last binding of the descriptor set. Because such sets are not 
+        /// cached, freeing and re-allocating them may fragment the global descriptor heap, which can cause allocations to fail if the heap is full.
         ///
         /// @param bindings Optional default bindings for descriptors in the descriptor set.
         /// @return The instance of the descriptor set.
@@ -5202,28 +5208,28 @@ namespace LiteFX::Rendering {
 
         /// @brief Allocates a new descriptor set or returns an instance of an unused descriptor set.
         ///
-        /// @param descriptors The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
+        /// @param unboundedArraySize The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
         /// @param bindings Optional default bindings for descriptors in the descriptor set.
         /// @return The instance of the descriptor set.
         /// @see @ref IDescriptorLayout
         /// @see @ref allocate(std::initializer_list)
-        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const {
-            return this->getDescriptorSet(descriptors, bindings);
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 unboundedArraySize, std::initializer_list<DescriptorBinding> bindings) const {
+            return this->getDescriptorSet(unboundedArraySize, bindings);
         }
 
         /// @copydoc allocate(UInt32, std::initializer_list)
-        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, Span<DescriptorBinding> bindings) const {
-            return this->getDescriptorSet(descriptors, bindings);
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 unboundedArraySize, Span<DescriptorBinding> bindings) const {
+            return this->getDescriptorSet(unboundedArraySize, bindings);
         }
 
         /// @brief Allocates an array of descriptor sets.
         ///
-        /// @param descriptors The number of descriptor sets to allocate.
+        /// @param unboundedArraySize The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
         /// @param bindings A generator that generates the optional default bindings for descriptors in each descriptor set.
         /// @return The instance of the descriptor set.
         /// @see @ref allocate(std::initializer_list)
-        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, Generator<DescriptorBinding> bindings) const {
-            return this->getDescriptorSet(descriptors, std::move(bindings));
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 unboundedArraySize, Generator<DescriptorBinding> bindings) const {
+            return this->getDescriptorSet(unboundedArraySize, std::move(bindings));
         }
 
         /// @brief Allocates an array of descriptor sets.
@@ -5256,30 +5262,30 @@ namespace LiteFX::Rendering {
         /// @brief Allocates an array of descriptor sets.
         ///
         /// @param descriptorSets The number of descriptor sets to allocate.
-        /// @param descriptors The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
+        /// @param unboundedArraySize The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
         /// @param bindings Optional default bindings for descriptors in each descriptor set.
         /// @return A generator that produces the descriptor set instances.
         /// @see @ref allocate(std::initializer_list)
-        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
-            return this->getDescriptorSets(descriptorSets, descriptors, bindings);
+        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
+            return this->getDescriptorSets(descriptorSets, unboundedArraySize, bindings);
         }
 
 #ifdef __cpp_lib_mdspan
         /// @copydoc allocate(UInt32, UInt32, std::initializer_list)
-        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
-            return this->getDescriptorSets(descriptorSets, descriptors, bindings);
+        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
+            return this->getDescriptorSets(descriptorSets, unboundedArraySize, bindings);
         }
 #endif
 
         /// @brief Allocates an array of descriptor sets.
         ///
         /// @param descriptorSets The number of descriptor sets to allocate.
-        /// @param descriptors The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
+        /// @param unboundedArraySize The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.
         /// @param bindingFactory A factory function that is called for each descriptor set in order to provide the default bindings.
         /// @return A generator that produces the descriptor set instances.
         /// @see @ref allocate(std::initializer_list)
-        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const {
-            return this->getDescriptorSets(descriptorSets, descriptors, std::move(bindingFactory));
+        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const {
+            return this->getDescriptorSets(descriptorSets, unboundedArraySize, std::move(bindingFactory));
         }
 
         /// @brief Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.
@@ -5291,14 +5297,14 @@ namespace LiteFX::Rendering {
 
     private:
         virtual Enumerable<const IDescriptorLayout&> getDescriptors() const noexcept = 0;
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const = 0;
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Span<DescriptorBinding> bindings) const = 0;
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Generator<DescriptorBinding> bindings) const = 0;
-        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings) const = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, std::initializer_list<DescriptorBinding> bindings) const = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, Span<DescriptorBinding> bindings) const = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, Generator<DescriptorBinding> bindings) const = 0;
+        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings) const = 0;
 #ifdef __cpp_lib_mdspan
-        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const = 0;
+        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const = 0;
 #endif
-        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
+        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
         virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const = 0;
     };
 
@@ -5370,6 +5376,92 @@ namespace LiteFX::Rendering {
 
     private:
         virtual Enumerable<const IPushConstantsRange&> getRanges() const = 0;
+    };
+
+    /// @brief A contiguous range of descriptors on one of the global descriptor heaps, accessed directly by shaders through `ResourceDescriptorHeap` or `SamplerDescriptorHeap`.
+    ///
+    /// The range releases its descriptors when destroyed. The caller must ensure that the GPU no longer accesses the range at this point.
+    class LITEFX_RENDERING_API IDescriptorRange {
+    protected:
+        IDescriptorRange() = default;
+        IDescriptorRange(const IDescriptorRange&) = delete;
+        IDescriptorRange(IDescriptorRange&&) noexcept = default;
+        IDescriptorRange& operator=(const IDescriptorRange&) = delete;
+        IDescriptorRange& operator=(IDescriptorRange&&) noexcept = default;
+
+    public:
+        virtual ~IDescriptorRange() noexcept = default;
+
+    public:
+        /// @brief Returns the underlying heap, the range is allocated from.
+        /// 
+        /// @return The underlying heap, the range is allocated from.
+        virtual DescriptorHeapType heap() const noexcept = 0;
+
+        /// @brief Returns the size of the descriptor range.
+        /// 
+        /// @return The number of descriptors allocated in the range.
+        virtual UInt32 size() const noexcept = 0;
+
+        /// @brief Returns the index of @p element within the global descriptor heap, i.e., the value a shader uses to index `ResourceDescriptorHeap` or `SamplerDescriptorHeap`.
+        ///
+        /// @return The index of @p element within the global descriptor heap underlying the range.
+        virtual UInt32 globalIndex(UInt32 element = 0) const = 0;
+
+        /// @brief Updates one or more buffer descriptors within the descriptor range.
+        /// 
+        /// @param element The index of the descriptor in the range to update.
+        /// @param bindingType The type of the resource to bind at @p element.
+        /// @param buffer The buffer to write to the descriptor set.
+        /// @param bufferElement The index of the first element in the buffer to bind to the descriptor set.
+        /// @param elements The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at @p bufferElement.
+        /// @param texelFormat The format used to read a texel buffer. Required if @p bindingType binds a texel buffer and ignored otherwise.
+        inline void update(UInt32 element, DescriptorType bindingType, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const {
+            this->doUpdate(element, bindingType, buffer, bufferElement, elements, texelFormat);
+        }
+
+        /// @brief Updates one or more texture descriptors within the current descriptor range.
+        ///
+        /// The exact representation of the level and layer parameters depends on the dimension of the provided texture, as well as the type of the descriptor identified by the @p bindingType parameter.
+        ///
+        /// If the texture itself is not an array (i.e. the number of layers equals `1`), the parameters @p firstLayer and @p layers are ignored.
+        ///
+        /// The descriptor type dictates, how mip-maps can be provided. If the descriptor type identifies a *writable texture*, the @p firstLevel parameter specifies the mip-map level to write to (or read from).
+        /// Multiple levels are not allowed in this case, so the @p levels parameter is ignored. Instead, you have to bind them to separate descriptors. Furthermore, the @p firstLayer and @p layers parameter can
+        /// be used to specify the number of depth or W-slices of a writable 3D texture or the side(s) of a cube map.
+        ///
+        /// @param element The index of the descriptor in the range to update.
+        /// @param bindingType The type of the resource to bind at @p element.
+        /// @param image The texture to write to the descriptor range.
+        /// @param firstLevel The index of the first mip-map level to bind.
+        /// @param levels The number of mip-map levels to bind. A value of `0` binds all available levels, starting at @p firstLevel.
+        /// @param firstLayer The index of the first layer to bind.
+        /// @param layers The number of layers to bind. A value of `0` binds all available layers, starting at @p firstLayer.
+        inline void update(UInt32 element, DescriptorType bindingType, const IImage& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const {
+            this->doUpdate(element, bindingType, image, firstLevel, levels, firstLayer, layers);
+        }
+
+        /// @brief Updates a sampler descriptor within the current descriptor range.
+        ///
+        /// @param element The index of the descriptor in the range to update.
+        /// @param sampler The sampler to write to the descriptor range.
+        inline void update(UInt32 element, const ISampler& sampler) const {
+            this->doUpdate(element, sampler);
+        }
+
+        /// @brief Updates an acceleration structure descriptor within the current descriptor range.
+        /// 
+        /// @param element The index of the descriptor in the range to update.
+        /// @param accelerationStructure The acceleration structure to write to the descriptor range.
+        inline void update(UInt32 element, const IAccelerationStructure& accelerationStructure) const {
+            this->doUpdate(element, accelerationStructure);
+        }
+
+    private:
+        virtual void doUpdate(UInt32 element, DescriptorType bindingType, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const = 0;
+        virtual void doUpdate(UInt32 element, DescriptorType bindingType, const IImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
+        virtual void doUpdate(UInt32 element, const ISampler& sampler) const = 0;
+        virtual void doUpdate(UInt32 element, const IAccelerationStructure& accelerationStructure) const = 0;
     };
 
     /// @brief Describes a record within a shader binding table.
@@ -5828,13 +5920,6 @@ namespace LiteFX::Rendering {
     /// @see @ref IShaderProgram::reflectPipelineLayout
     struct LITEFX_RENDERING_API PipelineBindingHint {
 
-        /// @brief Defines a hint that is used to mark an unbounded descriptor array.
-        struct UnboundedArrayHint {
-            /// @brief If the binding point binds an array, this property can be used to turn it into an unbounded array and set the maximum number of descriptors that can be bound to the array. This is especially
-            /// useful to comply with Vulkan device limits.
-            UInt32 MaxDescriptors{ 0 };
-        };
-
         /// @brief Defines a hint that is used to mark a push constants range.
         struct PushConstantsHint {
             /// @brief If the binding point binds a constant or uniform buffer, setting this property to `true` will configure the binding point it as part of the root constants for the pipeline layout. If this
@@ -5846,23 +5931,6 @@ namespace LiteFX::Rendering {
         struct StaticSamplerHint {
             /// @brief If the binding point binds a sampler, setting this property will bind a static or constant sampler, if supported by the backend.
             SharedPtr<ISampler> StaticSampler{ nullptr };
-        };
-
-        /// @brief Defines a hint that is used to initialize a dynamic descriptor heap.
-        ///
-        /// This hint is special, as it must not be associated with an existing binding. Instead, dynamic descriptor heaps use a proxy descriptor set to bind resources to the global descriptor heaps, that can
-        /// later be directly indexed by the shader. In the DirectX 12 backend, this hint will cause a new descriptor set to be created, that is not part of the pipeline state. In Vulkan, this functionality is
-        /// emulated using the `VK_EXT_mutable_descriptor_type` extension and binds to an existing descriptor set. DXC emits this descriptor set automatically, if direct heap indexing is used from a shader.
-        ///
-        /// @see @ref GraphicsDeviceFeatures::DynamicDescriptors
-        /// @see @ref DescriptorType::ResourceDescriptorHeap
-        /// @see @ref DescriptorType::SamplerDescriptorHeap
-        struct DescriptorHeapHint {
-            /// @brief The desired type of the descriptor heap.
-            DescriptorHeapType Type{ DescriptorHeapType::None };
-
-            /// @brief The number of descriptors allocated for the heap.
-            UInt32 HeapSize{ 1u };
         };
 
         /// @brief Defines a hint that is used to mark additional a binding as used by certain shader stages.
@@ -5880,7 +5948,7 @@ namespace LiteFX::Rendering {
         };
 
         /// @brief Defines the type of the pipeline binding hint.
-        using hint_type = Variant<std::monostate, UnboundedArrayHint, PushConstantsHint, StaticSamplerHint, DescriptorHeapHint, ShaderStageHint>;
+        using hint_type = Variant<std::monostate, PushConstantsHint, StaticSamplerHint, ShaderStageHint>;
 
         /// @brief The binding point the hint applies to.
         DescriptorBindingPoint Binding{ };
@@ -5889,25 +5957,6 @@ namespace LiteFX::Rendering {
         hint_type Hint = std::monostate{ };
 
     public:
-        /// @brief Initializes a hint that binds an unbounded runtime array.
-        ///
-        /// @param at The binding point the hint applies to.
-        /// @param maxDescriptors The maximum number of descriptors that can be bound to the runtime array at the binding point.
-        /// @return The initialized pipeline binding hint.
-        static inline auto runtimeArray(DescriptorBindingPoint at, UInt32 maxDescriptors) noexcept -> PipelineBindingHint {
-            return { .Binding = at, .Hint = UnboundedArrayHint { maxDescriptors } };
-        }
-
-        /// @brief Initializes a hint that binds an unbounded runtime array.
-        ///
-        /// @param space The descriptor space of the binding point.
-        /// @param binding The register of the descriptor binding point.
-        /// @param maxDescriptors The maximum number of descriptors that can be bound to the runtime array at the binding point.
-        /// @return The initialized pipeline binding hint.
-        static inline auto runtimeArray(UInt32 space, UInt32 binding, UInt32 maxDescriptors) noexcept -> PipelineBindingHint {
-            return { .Binding = { .Register = binding, .Space = space }, .Hint = UnboundedArrayHint { maxDescriptors } };
-        }
-
         /// @brief Initializes a hint that binds push constants.
         ///
         /// @param at The binding point the hint applies to.
@@ -5942,48 +5991,6 @@ namespace LiteFX::Rendering {
         /// @return The initialized pipeline binding hint.
         static inline auto staticSampler(UInt32 space, UInt32 binding, SharedPtr<ISampler> sampler) noexcept -> PipelineBindingHint {
             return { .Binding = { .Register = binding, .Space = space }, .Hint = StaticSamplerHint { std::move(sampler) } };
-        }
-
-        /// @brief Initializes a hint that binds a proxy descriptor set to access the resource heap at the provided binding point.
-        ///
-        /// @param at The binding point the hint applies to.
-        /// @param heapSize The number of descriptors allocated for the heap when creating the descriptor set.
-        /// @return The initialized pipeline binding hint.
-        /// @see @ref GraphicsDeviceFeatures::DynamicDescriptors
-        static inline auto resourceHeap(DescriptorBindingPoint at, UInt32 heapSize) noexcept -> PipelineBindingHint {
-            return { .Binding = at, .Hint = DescriptorHeapHint { DescriptorHeapType::Resource, heapSize } };
-        }
-
-        /// @brief Initializes a hint that binds a proxy descriptor set to access the resource heap at the provided binding point.
-        ///
-        /// @param space The descriptor space of the binding point.
-        /// @param binding The register of the descriptor binding point.
-        /// @param heapSize The number of descriptors allocated for the heap when creating the descriptor set.
-        /// @return The initialized pipeline binding hint.
-        /// @see @ref GraphicsDeviceFeatures::DynamicDescriptors
-        static inline auto resourceHeap(UInt32 space, UInt32 binding, UInt32 heapSize) noexcept -> PipelineBindingHint {
-            return { .Binding = { .Register = binding, .Space = space }, .Hint = DescriptorHeapHint { DescriptorHeapType::Resource, heapSize } };
-        }
-
-        /// @brief Initializes a hint that binds a proxy descriptor set to access the sampler heap at the provided binding point.
-        ///
-        /// @param at The binding point the hint applies to.
-        /// @param heapSize The number of descriptors allocated for the heap when creating the descriptor set.
-        /// @return The initialized pipeline binding hint.
-        /// @see @ref GraphicsDeviceFeatures::DynamicDescriptors
-        static inline auto samplerHeap(DescriptorBindingPoint at, UInt32 heapSize) noexcept -> PipelineBindingHint {
-            return { .Binding = at, .Hint = DescriptorHeapHint { DescriptorHeapType::Sampler, heapSize } };
-        }
-
-        /// @brief Initializes a hint that binds a proxy descriptor set to access the sampler heap at the provided binding point.
-        ///
-        /// @param space The descriptor space of the binding point.
-        /// @param binding The register of the descriptor binding point.
-        /// @param heapSize The number of descriptors allocated for the heap when creating the descriptor set.
-        /// @return The initialized pipeline binding hint.
-        /// @see @ref GraphicsDeviceFeatures::DynamicDescriptors
-        static inline auto samplerHeap(UInt32 space, UInt32 binding, UInt32 heapSize) noexcept -> PipelineBindingHint {
-            return { .Binding = { .Register = binding, .Space = space }, .Hint = DescriptorHeapHint { DescriptorHeapType::Sampler, heapSize } };
         }
 
         /// @brief Initializes a hint provides additional shader stages, that may be not covered by shader reflection.
@@ -6086,7 +6093,7 @@ namespace LiteFX::Rendering {
         /// @see @ref PipelineBindingHint
         /// @see https://github.com/crud89/LiteFX/wiki/Shader-Development
         inline SharedPtr<IPipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints = {}) const {
-            return this->parsePipelineLayout(hints);
+            return this->parsePipelineLayout(std::move(hints));
         };
 
         /// @brief Builds a shader record collection based on the current shader program.
@@ -6137,14 +6144,14 @@ namespace LiteFX::Rendering {
         /// @return The push constants layout, or `nullptr`, if the pipeline does not use any push constants.
         virtual const IPushConstantsLayout* pushConstants() const noexcept = 0;
 
-        /// @brief Returns `true`, if the pipeline supports directly indexing into a resource heap and `false` otherwise.
+        /// @brief Returns `true`, if the pipeline uses direct indexing into the global resource heap and `false` otherwise.
         ///
-        /// @return `true`, if the pipeline supports directly indexing into a resource heap and `false` otherwise
+        /// @return `true`, if the pipeline uses direct indexing into the global resource heap and `false` otherwise.
         virtual bool dynamicResourceHeapAccess() const = 0;
 
-        /// @brief Returns `true`, if the pipeline supports directly indexing into a sampler heap and `false` otherwise.
+        /// @brief Returns `true`, if the pipeline uses direct indexing into the global sampler heap and `false` otherwise.
         ///
-        /// @return `true`, if the pipeline supports directly indexing into a sampler heap and `false` otherwise
+        /// @return `true`, if the pipeline uses direct indexing into the global sampler heap and `false` otherwise.
         virtual bool dynamicSamplerHeapAccess() const = 0;
 
     private:
@@ -8334,7 +8341,7 @@ namespace LiteFX::Rendering {
         /// invalidated. This means, that you might have to update descriptor bindings for the resource. You can subscribe to the @ref IDeviceMemory::moved event for this purpose. You might also want to issue a
         /// barrier to transition an image resource back into the required layout. Calling this method will leave the new resource in a @ref ImageLayout::Common state.
         ///
-        /// @returns The fence on the queue provided with @ref beginDefragmentation that marks the end of the defragmentation pass.
+        /// @return The fence on the queue provided with @ref beginDefragmentation that marks the end of the defragmentation pass.
         /// @throws RuntimeException Thrown, if no defragmentation process is currently active.
         /// @see @ref beginDefragmentation
         /// @see @ref endDefragmentationPass
@@ -8348,7 +8355,7 @@ namespace LiteFX::Rendering {
         /// This method waits for the fence issued by the last call to @ref beginDefragmentation before first invoking the @ref IDeviceMemory::moved event on all affected resources and finally destroying the
         /// moved-from resources.
         ///
-        /// @returns `true` if the defragmentation is complete and `false` otherwise.
+        /// @return `true` if the defragmentation is complete and `false` otherwise.
         /// @throws RuntimeException Thrown, if no defragmentation process is currently active.
         /// @see @ref beginDefragmentation
         /// @see @ref beginDefragmentationPass
@@ -9082,11 +9089,8 @@ namespace LiteFX::Rendering {
         /// @brief Enables or disables support for indirect draw.
         bool DrawIndirect { false };
 
-        /// @brief Enables or disables support for dynamic descriptor types ([SM 6.6 dynamic resources](https://microsoft.github.io/DirectX-Specs/d3d/HLSL_SM_6_6_DynamicResources.html) and
-        /// [VK_EXT_descriptor_heap](https://docs.vulkan.org/features/latest/features/proposals/VK_EXT_descriptor_heap.html)).
-        ///
-        /// Note that support for this feature is limited in the engine. It's purpose is to bind resources of different @ref DescriptorType "DescriptorTypes" within a single descriptor array. However, you still
-        /// have to allocate a @ref IDescriptorSet to be able to bind resources and retrieve resource indices by calling @ref IDescriptorSet::bindToHeap.
+        /// @brief Enables direct access to the global descriptor heaps from shaders ([SM 6.6 dynamic resources](https://microsoft.github.io/DirectX-Specs/d3d/HLSL_SM_6_6_DynamicResources.html) and
+        /// [VK_KHR_shader_untyped_pointers](https://docs.vulkan.org/features/latest/features/proposals/VK_KHR_shader_untyped_pointers.html)).
         bool DynamicDescriptors { false };
 
         /// @brief Enables support for enabling depth bounds test on @ref IRenderPipeline creation.
@@ -9106,6 +9110,63 @@ namespace LiteFX::Rendering {
         /// @see https://microsoft.github.io/DirectX-Specs/d3d/ViewInstancing.html#view-instance-masking
         /// @see https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_multiview.html
         bool ViewInstancing { false };
+    };
+
+    /// @brief Implements the book-keeping required for allocations on the global descriptor heaps used by a @ref IGraphicsDevice.
+    ///
+    /// @see IGraphicsDevice::descriptorHeaps
+    class LITEFX_RENDERING_API GlobalDescriptorHeaps final {
+        LITEFX_IMPLEMENTATION(GlobalDescriptorHeapsImpl);
+
+    private:
+        /// @brief Creates a new descriptor heaps instance.
+        /// 
+        /// @param resourceAllocator The allocator from which resource descriptors are allocated.
+        /// @param samplerAllocator The allocator from which sampler descriptors are allocated.
+        GlobalDescriptorHeaps(UniquePtr<VirtualAllocator>&& resourceAllocator, UniquePtr<VirtualAllocator>&& samplerAllocator);
+
+        GlobalDescriptorHeaps(const GlobalDescriptorHeaps&) = delete;
+        GlobalDescriptorHeaps(GlobalDescriptorHeaps&&) noexcept = delete;
+        GlobalDescriptorHeaps& operator=(const GlobalDescriptorHeaps&) = delete;
+        GlobalDescriptorHeaps& operator=(GlobalDescriptorHeaps&&) noexcept = delete;
+
+    public:
+        ~GlobalDescriptorHeaps() noexcept = default;
+
+    public:
+        /// @brief Creates a new descriptor heaps instance.
+        /// 
+        /// @tparam TBackend The type of the backend from which the global descriptor heaps are allocated.
+        /// @param resourceDescriptors The number of available resource descriptors.
+        /// @param samplerDescriptors The number of available sampler descriptors.
+        /// @return A pointer to the newly created descriptor heaps instance.
+        template <typename TBackend>
+        [[nodiscard]] static UniquePtr<GlobalDescriptorHeaps> create(UInt32 resourceDescriptors, UInt32 samplerDescriptors) {
+            auto resources = UniquePtr<VirtualAllocator>(new VirtualAllocator(VirtualAllocator::create<TBackend>(resourceDescriptors)));
+            auto samplers = UniquePtr<VirtualAllocator>(new VirtualAllocator(VirtualAllocator::create<TBackend>(samplerDescriptors)));
+
+            return UniquePtr<GlobalDescriptorHeaps>(new GlobalDescriptorHeaps(std::move(resources), std::move(samplers)));
+        }
+
+        /// @brief Allocates @p descriptors from @p heap.
+        /// 
+        /// @param heap The heap to allocate from.
+        /// @param descriptors The number of descriptors to allocate from @p heap.
+        /// @return The allocation for the descriptors.
+        /// @exception ArgumentOutOfRangeException Thrown if @p descriptors is `0`.
+        /// @exception RuntimeException Thrown if the descriptor heap is out of space.
+        [[nodiscard]] DescriptorHeapAllocation allocate(DescriptorHeapType heap, UInt32 descriptors);
+
+        /// @brief Releases a heap allocation.
+        /// 
+        /// @param allocation The allocation to release.
+        void release(DescriptorHeapAllocation&& allocation);
+
+        /// @brief Returns the total capacity on @p heap.
+        /// 
+        /// @param heap The heap for which to obtain the capacity.
+        /// @return The total capacity on @p heap.
+        UInt32 capacity(DescriptorHeapType heap) const;
     };
 
     /// @brief The interface for a graphics device that.
@@ -9255,22 +9316,32 @@ namespace LiteFX::Rendering {
             this->getAccelerationStructureSizes(tlas, bufferSize, scratchSize, forUpdate);
         }
 
-        /// @brief Allocates a range of descriptors in the global descriptor heaps for the provided @p descriptorSet.
+        /// @brief Returns the global descriptor heaps from which all descriptors in the device are allocated.
+        ///
+        /// @return A reference to the global descriptor heaps container.
+        virtual const GlobalDescriptorHeaps& descriptorHeaps() const noexcept = 0;
+
+        /// @brief Allocates a range of descriptors in the global descriptor heap indicated by @p heapType for the provided @p descriptorSet.
         ///
         /// @param descriptorSet The descriptor set containing the descriptors to update.
         /// @param heapType The type of the descriptor heap to allocate descriptors on.
         /// @return The allocation for the descriptor set at the descriptor heap indicated by @p heapType.
-        [[nodiscard]] inline VirtualAllocator::Allocation allocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const {
+        /// @see allocateGlobalDescriptors(DescriptorHeapType, UInt32)
+        [[nodiscard]] inline DescriptorHeapAllocation allocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const {
             return this->doAllocateGlobalDescriptors(descriptorSet, heapType);
         }
 
-        /// @brief Releases a range of descriptors from the global descriptor heaps.
-        ///
-        /// This is done, if a descriptor set layout is destroyed, of a descriptor set, which contains an unbounded array is freed. It will cause the global descriptor heaps to fragment, which may result in
-        /// inefficient future descriptor allocations and should be avoided. Consider caching descriptor sets with unbounded arrays instead. Also avoid relying on creating and releasing pipeline layouts during
-        /// runtime. Instead, it may be more efficient to write shaders that support multiple pipeline variations, that can be kept alive for the lifetime of the whole application.
-        inline void releaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const {
-            this->doReleaseGlobalDescriptors(descriptorSet);
+        /// @brief Allocates a descriptor range with a capacity of @p descriptors from the global descriptor heap indicated by @p heapType.
+        /// 
+        /// This overload allocates a raw descriptor range from a global descriptor heap. It is intended for interop purposes, where external libraries need to bind resources, as well as bindless rendering using
+        /// SM 6.6 dynamic resources (`ResourceDescriptorHeap`/`SamplerDescriptorHeap`).
+        /// 
+        /// @param heapType The global descriptor heap from which to allocate the descriptor range.
+        /// @param descriptors The number of descriptors to allocate from the descriptor range.
+        /// @return A pointer to the descriptor range.
+        /// @see allocateGlobalDescriptors(const IDescriptorSet&, DescriptorHeapType)
+        [[nodiscard]] inline UniquePtr<IDescriptorRange> allocateGlobalDescriptors(DescriptorHeapType heapType, UInt32 descriptors) const {
+            return this->getDescriptorRange(heapType, descriptors);
         }
 
         /// @brief Updates a range of descriptors in the global buffer descriptor heap with the descriptors from @p descriptorSet.
@@ -9285,8 +9356,8 @@ namespace LiteFX::Rendering {
 
         /// @brief Binds the descriptors of the descriptor set to the global descriptor heaps.
         ///
-        /// Note that after binding the descriptor set, the descriptors must not be updated anymore, unless they are elements on unbounded descriptor arrays, in which case you have to ensure manually to not
-        /// update them, as long as they may still be in use!
+        /// Descriptors can be updated after binding the descriptor set. However, updates are visible to all command buffers immediately, so you have to ensure manually that 
+        /// descriptors are not updated while they may still be in use by the GPU.
         ///
         /// @param commandBuffer The command buffer to bind the descriptor set on.
         /// @param descriptorSet The descriptor set to bind.
@@ -9298,18 +9369,18 @@ namespace LiteFX::Rendering {
         /// @brief Binds the global descriptor heap.
         ///
         /// @param commandBuffer The command buffer to issue the bind command on.
-        inline void bindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept {
+        inline void bindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const {
             this->doBindGlobalDescriptorHeaps(commandBuffer);
         }
 
     private:
         virtual void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
         virtual void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
-        virtual VirtualAllocator::Allocation doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const = 0;
-        virtual void doReleaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const = 0;
+        virtual DescriptorHeapAllocation doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const = 0;
+        virtual UniquePtr<IDescriptorRange> getDescriptorRange(DescriptorHeapType heapType, UInt32 descriptors) const = 0;
         virtual void doUpdateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const = 0;
         virtual void doBindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const = 0;
-        virtual void doBindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept = 0;
+        virtual void doBindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const = 0;
 
     public:
         /// @brief Waits until all queues allocated from the device have finished the work issued prior to this point.

@@ -21,13 +21,14 @@ PFN_vkCmdWriteAccelerationStructuresPropertiesKHR vkCmdWriteAccelerationStructur
 PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelines{ nullptr };
 PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandles{ nullptr };
 PFN_vkCmdTraceRaysKHR vkCmdTraceRays{ nullptr };
-PFN_vkGetDescriptorSetLayoutSizeEXT vkGetDescriptorSetLayoutSize{ nullptr };
-PFN_vkGetDescriptorSetLayoutBindingOffsetEXT vkGetDescriptorSetLayoutBindingOffset{ nullptr };
-PFN_vkGetDescriptorEXT vkGetDescriptor{ nullptr };
-PFN_vkCmdBindDescriptorBuffersEXT vkCmdBindDescriptorBuffers{ nullptr };
-PFN_vkCmdSetDescriptorBufferOffsetsEXT vkCmdSetDescriptorBufferOffsets{ nullptr };
 PFN_vkGetAccelerationStructureDeviceAddressKHR vkGetAccelerationStructureDeviceAddress{ nullptr };
+PFN_vkWriteResourceDescriptorsEXT vkWriteResourceDescriptors { nullptr };
+PFN_vkWriteSamplerDescriptorsEXT vkWriteSamplerDescriptors { nullptr };
+PFN_vkCmdBindResourceHeapEXT vkCmdBindResourceHeap { nullptr };
+PFN_vkCmdBindSamplerHeapEXT vkCmdBindSamplerHeap { nullptr };
+PFN_vkCmdPushDataEXT vkCmdPushData { nullptr };
 extern PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectName;
+extern PFN_vkGetPhysicalDeviceDescriptorSizeEXT vkGetPhysicalDeviceDescriptorSize;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
@@ -133,15 +134,16 @@ private:
     UniquePtr<VulkanSurface> m_surface;
     SharedPtr<VulkanGraphicsFactory> m_factory;
 
-    VkPhysicalDeviceDescriptorBufferPropertiesEXT m_descriptorBufferProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT };
-    SharedPtr<IVulkanBuffer> m_globalDescriptorHeap;
-    VirtualAllocator m_globalDescriptorHeapAllocator;
-    mutable std::mutex m_bufferBindMutex;
+    VkPhysicalDeviceDescriptorHeapPropertiesEXT m_descriptorHeapProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_HEAP_PROPERTIES_EXT };
+    SharedPtr<IVulkanBuffer> m_globalResourceHeap, m_globalSamplerHeap;
+    UniquePtr<GlobalDescriptorHeaps> m_descriptorHeaps;
+    VkDeviceSize m_resourceReservedSize{ 0 }, m_samplerReservedSize{ 0 };
+    UInt32 m_globalResourceHeapSize{}, m_globalSamplerHeapSize{};
+    UInt32 m_resourceDescriptorStride{}, m_samplerDescriptorStride{};
 
 public:
-    VulkanDeviceImpl(const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const GraphicsDeviceFeatures& features, Span<String> extensions, size_t globalDescriptorHeapSize) :
-        m_adapter(adapter.shared_from_this()), m_surface(std::move(surface)),
-        m_globalDescriptorHeapAllocator(VirtualAllocator::create<VulkanBackend>(globalDescriptorHeapSize))
+    VulkanDeviceImpl(const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const GraphicsDeviceFeatures& features, Span<String> extensions, UInt32 globalResourceHeapSize, UInt32 globalSamplerHeapSize) :
+        m_adapter(adapter.shared_from_this()), m_surface(std::move(surface)), m_globalResourceHeapSize(globalResourceHeapSize), m_globalSamplerHeapSize(globalSamplerHeapSize)
     {
         if (m_surface == nullptr)
             throw ArgumentNotInitializedException("surface", "The surface must be initialized.");
@@ -165,7 +167,10 @@ private:
         m_extensions.emplace_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
 
         // Required for improved descriptor management.
-        m_extensions.emplace_back(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
+        m_extensions.emplace_back(VK_EXT_DESCRIPTOR_HEAP_EXTENSION_NAME);
+
+        if (features.DynamicDescriptors)
+            m_extensions.emplace_back(VK_KHR_SHADER_UNTYPED_POINTERS_EXTENSION_NAME);
 
         // Improved compatibility between Vulkan and DirectX 12 backends
         m_extensions.emplace_back(VK_EXT_DEPTH_CLIP_ENABLE_EXTENSION_NAME);
@@ -189,9 +194,6 @@ private:
             m_extensions.emplace_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
             m_extensions.emplace_back(VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME);
         }
-
-        if (features.DynamicDescriptors)
-            m_extensions.emplace_back(VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME);
 
         if (features.ConservativeRasterization)
             m_extensions.emplace_back(VK_EXT_CONSERVATIVE_RASTERIZATION_EXTENSION_NAME);
@@ -276,6 +278,20 @@ public:
         return nullptr;
     }
 
+    template <typename T>
+    static T* defineExtension(void*& chain, VkStructureType type, T& storage, bool enabled = true) {
+        if (!enabled)
+            return nullptr;
+
+        if (auto existing = findExtension<T>(type, chain); existing != nullptr)
+            return existing;
+
+        storage = { .sType = type, .pNext = chain };
+        chain = &storage;
+
+        return &storage;
+    }
+
     VkDevice initialize(const GraphicsDeviceFeatures& features, void* deviceExtensionObjects)
     {
         if (!m_adapter->validateDeviceExtensions(m_extensions))
@@ -305,108 +321,55 @@ public:
         // Enable requested features. Look up if they are already provided in the extension chain and overwrite them if necessary. We only enable features for compatibility 
         // reasons. Only exceptions are GraphicsDeviceFeatures, which are provided by different means.
         // Start enabling ray-tracing features.
-        VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR, .pNext = deviceExtensionObjects };
-        auto pRayQueryFeatures = findExtension<VkPhysicalDeviceRayQueryFeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR, deviceExtensionObjects);
+        VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures{};
 
-        if (pRayQueryFeatures == nullptr) {
-            pRayQueryFeatures = &rayQueryFeatures;
-            deviceExtensionObjects = pRayQueryFeatures;
-        }
-
-        if (features.RayQueries) {
+        if (auto pRayQueryFeatures = defineExtension(deviceExtensionObjects, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR, rayQueryFeatures, features.RayQueries))
             pRayQueryFeatures->rayQuery = true;
-        }
 
-        VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR rayTracingMaintenanceFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MAINTENANCE_1_FEATURES_KHR, .pNext = deviceExtensionObjects };
-        auto pRayTracingMaintenanceFeatures = findExtension<VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MAINTENANCE_1_FEATURES_KHR, deviceExtensionObjects);
+        VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR rayTracingMaintenanceFeatures{};
 
-        if (pRayTracingMaintenanceFeatures == nullptr) {
-            pRayTracingMaintenanceFeatures = &rayTracingMaintenanceFeatures;
-            deviceExtensionObjects = pRayTracingMaintenanceFeatures;
-        }
-
-        if (features.RayTracing || features.RayQueries) {
+        if (auto pRayTracingMaintenanceFeatures = defineExtension(deviceExtensionObjects, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MAINTENANCE_1_FEATURES_KHR, rayTracingMaintenanceFeatures, features.RayTracing || features.RayQueries)) {
             pRayTracingMaintenanceFeatures->rayTracingMaintenance1 = true;
-            pRayTracingMaintenanceFeatures->rayTracingPipelineTraceRaysIndirect2 = features.RayQueries;
+            pRayTracingMaintenanceFeatures->rayTracingPipelineTraceRaysIndirect2 = true;
         }
 
-        VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR, .pNext = deviceExtensionObjects };
-        auto pAccelerationStructureFeatures = findExtension<VkPhysicalDeviceAccelerationStructureFeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR, deviceExtensionObjects);
+        VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures{};
 
-        if (pAccelerationStructureFeatures == nullptr) {
-            pAccelerationStructureFeatures = &accelerationStructureFeatures;
-            deviceExtensionObjects = pAccelerationStructureFeatures;
-        }
-
-        if (features.RayQueries || features.RayTracing) {
+        if (auto pAccelerationStructureFeatures = defineExtension(deviceExtensionObjects, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR, accelerationStructureFeatures, features.RayTracing || features.RayQueries)) {
             pAccelerationStructureFeatures->accelerationStructure = true;
-            pAccelerationStructureFeatures->descriptorBindingAccelerationStructureUpdateAfterBind = true;
         }
 
-        VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR, .pNext = deviceExtensionObjects };
-        auto pRayTracingPipelineFeatures = findExtension<VkPhysicalDeviceRayTracingPipelineFeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR, deviceExtensionObjects);
+        VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures{};
 
-        if (pRayTracingPipelineFeatures == nullptr) {
-            pRayTracingPipelineFeatures = &rayTracingPipelineFeatures;
-            deviceExtensionObjects = pRayTracingPipelineFeatures;
-        }
-
-        if (features.RayTracing) {
+        if (auto pRayTracingPipelineFeatures = defineExtension(deviceExtensionObjects, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR, rayTracingPipelineFeatures, features.RayTracing))
             pRayTracingPipelineFeatures->rayTracingPipeline = true;
-        }
 
-        VkPhysicalDeviceMeshShaderFeaturesEXT meshShaderFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT, .pNext = deviceExtensionObjects };
-        auto pMeshShaderFeatures = findExtension<VkPhysicalDeviceMeshShaderFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT, deviceExtensionObjects);
+        VkPhysicalDeviceMeshShaderFeaturesEXT meshShaderFeatures{};
 
-        if (pMeshShaderFeatures == nullptr) {
-            pMeshShaderFeatures = &meshShaderFeatures;
-            deviceExtensionObjects = pMeshShaderFeatures;
-        }
-
-        if (features.MeshShaders) {
+        if (auto pMeshShaderFeatures = defineExtension(deviceExtensionObjects, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT, meshShaderFeatures, features.MeshShaders)) {
             pMeshShaderFeatures->taskShader = true;
             pMeshShaderFeatures->meshShader = true;
         }
 
-        VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT mutableDescriptorTypeFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT, .pNext = deviceExtensionObjects };
-        auto pMutableDescriptorTypeFeatures = findExtension<VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT, deviceExtensionObjects);
+        VkPhysicalDeviceMaintenance5FeaturesKHR maintenance5Features{};
+        const bool maintenance5 = std::ranges::find_if(m_extensions, [](auto& ext) { return ext == VK_KHR_MAINTENANCE_5_EXTENSION_NAME; }) != m_extensions.end();
 
-        if (pMutableDescriptorTypeFeatures == nullptr) {
-            pMutableDescriptorTypeFeatures = &mutableDescriptorTypeFeatures;
-            deviceExtensionObjects = pMutableDescriptorTypeFeatures;
-        }
-
-        if (features.DynamicDescriptors) {
-            pMutableDescriptorTypeFeatures->mutableDescriptorType = true;
-        }
-
-        VkPhysicalDeviceMaintenance5FeaturesKHR maintenance5Features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES_KHR, .pNext = deviceExtensionObjects };
-        auto pMaintenance5Features = findExtension<VkPhysicalDeviceMaintenance5FeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES_KHR, deviceExtensionObjects);
-
-        if (pMaintenance5Features == nullptr) {
-            pMaintenance5Features = &maintenance5Features;
-            deviceExtensionObjects = pMaintenance5Features;
-        }
-
-        if (std::ranges::find_if(m_extensions, [](auto& ext) { return ext == VK_KHR_MAINTENANCE_5_EXTENSION_NAME; }) != m_extensions.end()) {
+        if (auto pMaintenance5Features = defineExtension(deviceExtensionObjects, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES_KHR, maintenance5Features, maintenance5))
             pMaintenance5Features->maintenance5 = true;
-        }
 
-        VkPhysicalDeviceUnifiedImageLayoutsFeaturesKHR unifiedImageLayoutsFeature { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFIED_IMAGE_LAYOUTS_FEATURES_KHR, .pNext = deviceExtensionObjects, .unifiedImageLayouts = VK_TRUE };
-        auto pUnifiedImageLayoutsFeature = findExtension<VkPhysicalDeviceUnifiedImageLayoutsFeaturesKHR>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFIED_IMAGE_LAYOUTS_FEATURES_KHR, deviceExtensionObjects);
+        VkPhysicalDeviceUnifiedImageLayoutsFeaturesKHR unifiedImageLayoutsFeatures{};
+        defineExtension(deviceExtensionObjects, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFIED_IMAGE_LAYOUTS_FEATURES_KHR, unifiedImageLayoutsFeatures)->unifiedImageLayouts = true;
 
-        if (pUnifiedImageLayoutsFeature == nullptr) {
-            pUnifiedImageLayoutsFeature = &unifiedImageLayoutsFeature;
-            deviceExtensionObjects = pUnifiedImageLayoutsFeature;
-        }
+        VkPhysicalDeviceDescriptorHeapFeaturesEXT descriptorHeapFeatures{};
+        defineExtension(deviceExtensionObjects, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_HEAP_FEATURES_EXT, descriptorHeapFeatures)->descriptorHeap = true;
 
-        VkPhysicalDeviceFeatures2 deviceFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = deviceExtensionObjects };
-        auto pDeviceFeatures = findExtension<VkPhysicalDeviceFeatures2>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, deviceExtensionObjects);
+        VkPhysicalDeviceShaderUntypedPointersFeaturesKHR untypedPointersFeatures{};
 
-        if (pDeviceFeatures == nullptr) {
-            pDeviceFeatures = &deviceFeatures;
-            deviceExtensionObjects = pDeviceFeatures;
-        }
+        if (auto pUntypedPointersFeatures = defineExtension(deviceExtensionObjects, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_UNTYPED_POINTERS_FEATURES_KHR, untypedPointersFeatures, features.DynamicDescriptors))
+            pUntypedPointersFeatures->shaderUntypedPointers = true;
+
+        VkPhysicalDeviceFeatures2 deviceFeatures{};
+        auto pDeviceFeatures = defineExtension(deviceExtensionObjects, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, deviceFeatures);
 
         pDeviceFeatures->features.fullDrawIndexUint32 = true;
         pDeviceFeatures->features.independentBlend = true;
@@ -426,47 +389,26 @@ public:
         pDeviceFeatures->features.shaderInt64 = true;
         pDeviceFeatures->features.shaderInt16 = true;
 
-        VkPhysicalDeviceVulkan13Features deviceFeatures13{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES, .pNext = deviceExtensionObjects };
-        auto pDeviceFeatures13 = findExtension<VkPhysicalDeviceVulkan13Features>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES, deviceExtensionObjects);
-
-        if (pDeviceFeatures13 == nullptr) {
-            pDeviceFeatures13 = &deviceFeatures13;
-            deviceExtensionObjects = pDeviceFeatures13;
-        }
+        VkPhysicalDeviceVulkan13Features deviceFeatures13{};
+        auto pDeviceFeatures13 = defineExtension(deviceExtensionObjects, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES, deviceFeatures13);
 
         pDeviceFeatures13->synchronization2 = true;
         pDeviceFeatures13->dynamicRendering = true;
         pDeviceFeatures13->maintenance4 = true;
 
-        VkPhysicalDeviceVulkan12Features deviceFeatures12{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, .pNext = deviceExtensionObjects };
-        auto pDeviceFeatures12 = findExtension<VkPhysicalDeviceVulkan12Features>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, deviceExtensionObjects);
-
-        if (pDeviceFeatures12 == nullptr) {
-            pDeviceFeatures12 = &deviceFeatures12;
-            deviceExtensionObjects = pDeviceFeatures12;
-        }
+        VkPhysicalDeviceVulkan12Features deviceFeatures12{};
+        auto pDeviceFeatures12 = defineExtension(deviceExtensionObjects, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, deviceFeatures12);
 
         pDeviceFeatures12->drawIndirectCount = features.DrawIndirect;
         pDeviceFeatures12->descriptorIndexing = true;
-        //deviceFeatures12.shaderInputAttachmentArrayDynamicIndexing = true; // Not supported by Intel ARC drivers and SwiftShader and since we're now using dynamic rendering anyway, this became (even) less important.
         pDeviceFeatures12->shaderUniformTexelBufferArrayDynamicIndexing = true;
         pDeviceFeatures12->shaderStorageTexelBufferArrayDynamicIndexing = true;
         pDeviceFeatures12->shaderUniformBufferArrayNonUniformIndexing = true;
         pDeviceFeatures12->shaderSampledImageArrayNonUniformIndexing = true;
         pDeviceFeatures12->shaderStorageBufferArrayNonUniformIndexing = true;
         pDeviceFeatures12->shaderStorageImageArrayNonUniformIndexing = true;
-        //deviceFeatures12.shaderInputAttachmentArrayNonUniformIndexing = true; // See above.
         pDeviceFeatures12->shaderUniformTexelBufferArrayNonUniformIndexing = true;
         pDeviceFeatures12->shaderStorageTexelBufferArrayNonUniformIndexing = true;
-        //deviceFeatures12.descriptorBindingUniformBufferUpdateAfterBind = true; // Not supported on NVidia Pascal and earlier, as well as SwiftShader.
-        pDeviceFeatures12->descriptorBindingSampledImageUpdateAfterBind = true;
-        pDeviceFeatures12->descriptorBindingStorageImageUpdateAfterBind = true;
-        pDeviceFeatures12->descriptorBindingStorageBufferUpdateAfterBind = true;
-        pDeviceFeatures12->descriptorBindingUniformTexelBufferUpdateAfterBind = true;
-        pDeviceFeatures12->descriptorBindingStorageTexelBufferUpdateAfterBind = true;
-        pDeviceFeatures12->descriptorBindingUpdateUnusedWhilePending = true;
-        pDeviceFeatures12->descriptorBindingPartiallyBound = true;
-        pDeviceFeatures12->descriptorBindingVariableDescriptorCount = true;
         pDeviceFeatures12->runtimeDescriptorArray = true;
         pDeviceFeatures12->separateDepthStencilLayouts = true;
         pDeviceFeatures12->hostQueryReset = true;
@@ -475,13 +417,8 @@ public:
         pDeviceFeatures12->shaderOutputViewportIndex = features.ViewInstancing;
         pDeviceFeatures12->shaderOutputLayer = features.ViewInstancing;
 
-        VkPhysicalDeviceVulkan11Features deviceFeatures11{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES, .pNext = deviceExtensionObjects };
-        auto pDeviceFeatures11 = findExtension<VkPhysicalDeviceVulkan11Features>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES, deviceExtensionObjects);
-
-        if (pDeviceFeatures11 == nullptr) {
-            pDeviceFeatures11 = &deviceFeatures11;
-            deviceExtensionObjects = pDeviceFeatures11;
-        }
+        VkPhysicalDeviceVulkan11Features deviceFeatures11{};
+        auto pDeviceFeatures11 = defineExtension(deviceExtensionObjects, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES, deviceFeatures11);
 
         pDeviceFeatures11->shaderDrawParameters = true;
 
@@ -493,35 +430,11 @@ public:
 #endif // LITEFX_BUILD_TESTS
         }
 
-        VkPhysicalDeviceDepthClipEnableFeaturesEXT depthClipEnableFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT, .pNext = deviceExtensionObjects };
-        auto pDepthClipEnableFeatures = findExtension<VkPhysicalDeviceDepthClipEnableFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT, deviceExtensionObjects);
+        VkPhysicalDeviceDepthClipEnableFeaturesEXT depthClipEnableFeatures{};
+        defineExtension(deviceExtensionObjects, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT, depthClipEnableFeatures)->depthClipEnable = true;
 
-        if (pDepthClipEnableFeatures == nullptr) {
-            pDepthClipEnableFeatures = &depthClipEnableFeatures;
-            deviceExtensionObjects = pDepthClipEnableFeatures;
-        }
-
-        pDepthClipEnableFeatures->depthClipEnable = true;
-
-        VkPhysicalDeviceExtendedDynamicStateFeaturesEXT extendedDynamicStateFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT, .pNext = deviceExtensionObjects };
-        auto pExtendedDynamicStateFeatures = findExtension<VkPhysicalDeviceExtendedDynamicStateFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT, deviceExtensionObjects);
-
-        if (pExtendedDynamicStateFeatures == nullptr) {
-            pExtendedDynamicStateFeatures = &extendedDynamicStateFeatures;
-            deviceExtensionObjects = pExtendedDynamicStateFeatures;
-        }
-
-        pExtendedDynamicStateFeatures->extendedDynamicState = true;
-
-        VkPhysicalDeviceDescriptorBufferFeaturesEXT descriptorBufferFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT, .pNext = deviceExtensionObjects };
-        auto pDescriptorBufferFeatures = findExtension<VkPhysicalDeviceDescriptorBufferFeaturesEXT>(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT, deviceExtensionObjects);
-
-        if (pDescriptorBufferFeatures == nullptr) {
-            pDescriptorBufferFeatures = &descriptorBufferFeatures;
-            deviceExtensionObjects = pDescriptorBufferFeatures;
-        }
-
-        pDescriptorBufferFeatures->descriptorBuffer = true;
+        VkPhysicalDeviceExtendedDynamicStateFeaturesEXT extendedDynamicStateFeatures{};
+        defineExtension(deviceExtensionObjects, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT, extendedDynamicStateFeatures)->extendedDynamicState = true;
 
         // Define the device itself.
         VkDeviceCreateInfo createInfo = {
@@ -603,23 +516,23 @@ public:
         }
 
         // Load required extension functions.
-        if (vkGetDescriptorSetLayoutSize == nullptr)
-            vkGetDescriptorSetLayoutSize = reinterpret_cast<PFN_vkGetDescriptorSetLayoutSizeEXT>(::vkGetDeviceProcAddr(device, "vkGetDescriptorSetLayoutSizeEXT"));
-
-        if (vkGetDescriptorSetLayoutBindingOffset == nullptr)
-            vkGetDescriptorSetLayoutBindingOffset = reinterpret_cast<PFN_vkGetDescriptorSetLayoutBindingOffsetEXT>(::vkGetDeviceProcAddr(device, "vkGetDescriptorSetLayoutBindingOffsetEXT"));
-
-        if (vkGetDescriptor == nullptr)
-            vkGetDescriptor = reinterpret_cast<PFN_vkGetDescriptorEXT>(::vkGetDeviceProcAddr(device, "vkGetDescriptorEXT"));
-
-        if (vkCmdBindDescriptorBuffers == nullptr)
-            vkCmdBindDescriptorBuffers = reinterpret_cast<PFN_vkCmdBindDescriptorBuffersEXT>(::vkGetDeviceProcAddr(device, "vkCmdBindDescriptorBuffersEXT"));
-
-        if (vkCmdSetDescriptorBufferOffsets == nullptr)
-            vkCmdSetDescriptorBufferOffsets = reinterpret_cast<PFN_vkCmdSetDescriptorBufferOffsetsEXT>(::vkGetDeviceProcAddr(device, "vkCmdSetDescriptorBufferOffsetsEXT"));
-
         if (vkGetAccelerationStructureDeviceAddress == nullptr)
             vkGetAccelerationStructureDeviceAddress = reinterpret_cast<PFN_vkGetAccelerationStructureDeviceAddressKHR>(::vkGetDeviceProcAddr(device, "vkGetAccelerationStructureDeviceAddressKHR"));
+
+        if (vkWriteResourceDescriptors == nullptr)
+            vkWriteResourceDescriptors = reinterpret_cast<PFN_vkWriteResourceDescriptorsEXT>(::vkGetDeviceProcAddr(device, "vkWriteResourceDescriptorsEXT"));
+
+        if (vkWriteSamplerDescriptors == nullptr)
+            vkWriteSamplerDescriptors = reinterpret_cast<PFN_vkWriteSamplerDescriptorsEXT>(::vkGetDeviceProcAddr(device, "vkWriteSamplerDescriptorsEXT"));
+
+        if (vkCmdBindResourceHeap == nullptr)
+            vkCmdBindResourceHeap = reinterpret_cast<PFN_vkCmdBindResourceHeapEXT>(::vkGetDeviceProcAddr(device, "vkCmdBindResourceHeapEXT"));
+
+        if (vkCmdBindSamplerHeap == nullptr)
+            vkCmdBindSamplerHeap = reinterpret_cast<PFN_vkCmdBindSamplerHeapEXT>(::vkGetDeviceProcAddr(device, "vkCmdBindSamplerHeapEXT"));
+
+        if (vkCmdPushData == nullptr)
+            vkCmdPushData = reinterpret_cast<PFN_vkCmdPushDataEXT>(::vkGetDeviceProcAddr(device, "vkCmdPushDataEXT"));
         // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
 
         // Return the device instance.
@@ -649,27 +562,83 @@ public:
         }
     }
 
-    inline void initializeResourceHeaps()
+    inline void initializeResourceHeaps(const GraphicsDeviceFeatures& features)
     {
-        // NOTE: Check the notes in `VulkanGraphicsFactory::createDescriptorHeap` for an explanation why we only use one descriptor heap in the Vulkan backend!
+        // Devices may only support the full requested descriptor heap size with narrower descriptor sizes. We log a warning if the requested heap size is not available.
+        auto clampDescriptorSize = [](UInt32 requested, VkDeviceSize maxHeapSize, VkDeviceSize reservedSize, UInt32 stride, StringView heap) static -> UInt32 {
+            const auto available = maxHeapSize > reservedSize ? (maxHeapSize - reservedSize) / stride : 0u;
 
-        // Initialize the global descriptor heaps. First, we need to request the physical device limits that we need later to bind descriptors within the descriptor buffer.
-        VkPhysicalDeviceProperties2 deviceProperties = {
-            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
-            .pNext = &m_descriptorBufferProperties
+            if (available == 0u) [[unlikely]]
+                throw RuntimeException("The device's maximum {0} heap size of {1} bytes does not leave room for any descriptors besides the reserved range.", heap, maxHeapSize);
+
+            if (static_cast<VkDeviceSize>(requested) <= available)
+                return requested;
+
+            LITEFX_WARNING(VULKAN_LOG, "The requested {0} heap capacity of {1} descriptors exceeds the device limit and has been reduced to {2} descriptors.", heap, requested, available);
+
+            return static_cast<UInt32>(available);
         };
 
-        ::vkGetPhysicalDeviceProperties2(m_adapter->handle(), &deviceProperties);
+        // Obtain the descriptor heap properties.
+        VkPhysicalDeviceProperties2 properties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2, .pNext = &m_descriptorHeapProperties };
+        ::vkGetPhysicalDeviceProperties2(m_adapter->handle(), &properties);
+        
+        // Compute the descriptor sizes.
+        auto samplerDescriptorSize = align(m_descriptorHeapProperties.samplerDescriptorSize, m_descriptorHeapProperties.samplerDescriptorAlignment);
+        auto resourceDescriptorSize = std::max(m_descriptorHeapProperties.bufferDescriptorSize, m_descriptorHeapProperties.imageDescriptorSize);
 
-        // Reduce the descriptor buffer size and warn about it, if the device properties exhibit a lower limit. Creation should then fail in factory, if 
-        // validation layers are enabled. Otherwise a more severe error could be encountered (probably VK_DEVICE_LOST).
-        auto alignedGlobalDescriptorHeapSize = align(static_cast<size_t>(m_globalDescriptorHeapAllocator.size()), static_cast<size_t>(m_descriptorBufferProperties.descriptorBufferOffsetAlignment));
+        // Acceleration structure descriptors are not part of the heap properties and must be queried and validated separately.
+        if (features.RayTracing || features.RayQueries) 
+        {
+            if (vkGetPhysicalDeviceDescriptorSize == nullptr) [[unlikely]]
+                throw RuntimeException("Unable to validate acceleration structure descriptor sizes, as \"vkGetPhysicalDeviceDescriptorSizeEXT\" is not available.");
 
-        if (static_cast<size_t>(m_descriptorBufferProperties.descriptorBufferAddressSpaceSize) < alignedGlobalDescriptorHeapSize)
-            LITEFX_WARNING(VULKAN_LOG, "Requested descriptor heap size was aligned to {0} bytes, but the device only supports descriptor buffers up to {1} bytes.", alignedGlobalDescriptorHeapSize, m_descriptorBufferProperties.descriptorBufferAddressSpaceSize);
+            auto descriptorSize = vkGetPhysicalDeviceDescriptorSize(m_adapter->handle(), VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR);
 
-        // Create the descriptor buffers for both heaps.
-        m_globalDescriptorHeap = m_factory->createDescriptorHeap("Global Descriptor Heap", alignedGlobalDescriptorHeapSize);
+            // The default behavior of the compiler (without explicit strides) emits `OpConstantSizeOfEXT`, which resolves to `max(bufferDescriptorSize, imageDescriptorSize)`
+            // during pipeline creation, fetching buffer and image descriptor sizes from the device. If acceleration structure descriptors exceed this limit, this breaks. In 
+            // this case, the strides must be manually extended. However, this is very unlikely since the AS descriptors are essentially addresses in practice.
+            if (descriptorSize > resourceDescriptorSize) [[unlikely]] {
+                LITEFX_WARNING(VULKAN_LOG, "The acceleration structure descriptor size {0} exceeds the resource descriptor size {1}. All shaders must be compiled with an explicit stride for resource (image/buffers) descriptor stride of {0} bytes!", descriptorSize, resourceDescriptorSize);
+                resourceDescriptorSize = descriptorSize;
+            }
+        }
+
+        // Align the resource descriptor size to both, image and buffer descriptor alignments.
+        if (auto aligned = align(resourceDescriptorSize, m_descriptorHeapProperties.bufferDescriptorAlignment); aligned != resourceDescriptorSize) [[unlikely]] 
+        {
+            LITEFX_WARNING(VULKAN_LOG, "The resource descriptor size {0} is not aligned to the buffer descriptor alignment {2} and has been raised to {1} bytes. Shaders using native descriptor heap access must be compiled with an explicit stride of {1} bytes.", resourceDescriptorSize, aligned, m_descriptorHeapProperties.bufferDescriptorAlignment);
+            resourceDescriptorSize = aligned;
+        }
+
+        if (auto aligned = align(resourceDescriptorSize, m_descriptorHeapProperties.imageDescriptorAlignment); aligned != resourceDescriptorSize) [[unlikely]]
+        {
+            LITEFX_WARNING(VULKAN_LOG, "The resource descriptor size {0} is not aligned to the image descriptor alignment {2} and has been raised to {1} bytes. Shaders using native descriptor heap access must be compiled with an explicit stride of {1} bytes.", resourceDescriptorSize, aligned, m_descriptorHeapProperties.imageDescriptorAlignment);
+            resourceDescriptorSize = aligned;
+        }
+
+        // Get the reserved heap sizes.
+        m_resourceReservedSize = align(m_descriptorHeapProperties.minResourceHeapReservedRange, resourceDescriptorSize);
+        m_samplerReservedSize  = align(m_descriptorHeapProperties.minSamplerHeapReservedRangeWithEmbedded, samplerDescriptorSize);
+
+        // Compute the descriptor heap sizes.
+        auto resourceDescriptors = clampDescriptorSize(m_globalResourceHeapSize, m_descriptorHeapProperties.maxResourceHeapSize, m_resourceReservedSize, static_cast<UInt32>(resourceDescriptorSize), "resource");
+        auto samplerDescriptors  = clampDescriptorSize(m_globalSamplerHeapSize,  m_descriptorHeapProperties.maxSamplerHeapSize,  m_samplerReservedSize,  static_cast<UInt32>(samplerDescriptorSize),  "sampler" );
+        auto resourceHeapSize = static_cast<VkDeviceSize>(resourceDescriptors) * resourceDescriptorSize + m_resourceReservedSize;
+        auto samplerHeapSize  = static_cast<VkDeviceSize>(samplerDescriptors)  * samplerDescriptorSize  + m_samplerReservedSize;
+
+        // Allocate the global descriptor heaps.
+        m_descriptorHeaps = GlobalDescriptorHeaps::create<VulkanBackend>(resourceDescriptors, samplerDescriptors);
+        m_globalResourceHeap = m_factory->createDescriptorHeap("Global Resource Heap", static_cast<size_t>(resourceHeapSize));
+        m_globalSamplerHeap  = m_factory->createDescriptorHeap("Global Sampler Heap",  static_cast<size_t>(samplerHeapSize));
+
+        // Store the descriptor sizes.
+        m_resourceDescriptorStride = static_cast<UInt32>(resourceDescriptorSize);
+        m_samplerDescriptorStride  = static_cast<UInt32>(samplerDescriptorSize);
+
+        // Descriptor heaps must be aligned.
+        assert(m_globalResourceHeap->virtualAddress() % m_descriptorHeapProperties.resourceHeapAlignment == 0);
+        assert(m_globalSamplerHeap->virtualAddress()  % m_descriptorHeapProperties.samplerHeapAlignment  == 0);
     }
 
 public:
@@ -700,8 +669,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features, Span<String> extensions, size_t globalDescriptorHeapSize) :
-    Resource<VkDevice>(nullptr), m_impl(adapter, std::move(surface), features, extensions, globalDescriptorHeapSize)
+VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features, Span<String> extensions, UInt32 globalResourceHeapSize, UInt32 globalSamplerHeapSize) :
+    Resource<VkDevice>(nullptr), m_impl(adapter, std::move(surface), features, extensions, globalResourceHeapSize, globalSamplerHeapSize)
 {
     LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", static_cast<void*>(m_impl->m_surface.get()), adapter.deviceId(), Join(this->enabledExtensions(), ", "));
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
@@ -709,6 +678,9 @@ VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphic
     LITEFX_DEBUG(VULKAN_LOG, "Driver Version: {0:#0x}", adapter.driverVersion());
     LITEFX_DEBUG(VULKAN_LOG, "API Version: {0:#0x}", adapter.apiVersion());
     LITEFX_DEBUG(VULKAN_LOG, "Dedicated Memory: {0} Bytes", adapter.dedicatedMemory());
+    LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
+    LITEFX_DEBUG(VULKAN_LOG, "Resource Descriptor Heap Size: {0}", globalResourceHeapSize);
+    LITEFX_DEBUG(VULKAN_LOG, "Sampler Descriptor Heap Size: {0}", globalSamplerHeapSize);
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
     LITEFX_DEBUG(VULKAN_LOG, "Available extensions: {0}", Join(adapter.getAvailableDeviceExtensions(), ", "));
     LITEFX_DEBUG(VULKAN_LOG, "Validation layers: {0}", Join(adapter.deviceValidationLayers(), ", "));
@@ -728,7 +700,7 @@ SharedPtr<VulkanDevice> VulkanDevice::initialize(Format format, const Size2d& re
     m_impl->initializeDefaultQueues(*this);
     m_impl->m_swapChain = UniquePtr<VulkanSwapChain>(new VulkanSwapChain(*this, format, renderArea, backBuffers, enableVsync));
     m_impl->m_factory = VulkanGraphicsFactory::create(*this);
-    m_impl->initializeResourceHeaps();
+    m_impl->initializeResourceHeaps(features);
 
     return this->shared_from_this();
 }
@@ -742,7 +714,8 @@ void VulkanDevice::release() noexcept
     m_impl->m_graphicsQueue.reset();
     m_impl->m_families.clear();
     m_impl->m_surface.reset();
-    m_impl->m_globalDescriptorHeap.reset();
+    m_impl->m_globalResourceHeap.reset();
+    m_impl->m_globalSamplerHeap.reset();
     m_impl->m_factory.reset();
 
     // Destroy the device.
@@ -785,102 +758,111 @@ UInt32 VulkanDevice::descriptorSize(DescriptorType type) const
     switch (type)
     {
     case DescriptorType::AccelerationStructure:
-        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.accelerationStructureDescriptorSize);
     case DescriptorType::Buffer:
-        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.uniformTexelBufferDescriptorSize);
     case DescriptorType::ConstantBuffer:
-        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.uniformBufferDescriptorSize);
     case DescriptorType::InputAttachment:
-        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.inputAttachmentDescriptorSize);
     case DescriptorType::RWBuffer:
-        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.storageTexelBufferDescriptorSize);
     case DescriptorType::RWTexture:
-        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.storageImageDescriptorSize);
-    case DescriptorType::Sampler:
-    case DescriptorType::SamplerDescriptorHeap:
-        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.samplerDescriptorSize);
     case DescriptorType::ByteAddressBuffer:
     case DescriptorType::RWByteAddressBuffer:
     case DescriptorType::StructuredBuffer:
     case DescriptorType::RWStructuredBuffer:
-        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.storageBufferDescriptorSize);
     case DescriptorType::Texture:
-        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.sampledImageDescriptorSize);
-    case DescriptorType::ResourceDescriptorHeap:
-        // We need to return the largest descriptor from all supported ones. Supported descriptor types are listed in `VulkanDescriptorSetLayoutImpl::initialize`.
-        // See: https://registry.khronos.org/vulkan/specs/latest/man/html/VkPhysicalDeviceDescriptorBufferPropertiesEXT.html#_description
-        return static_cast<UInt32>(std::max({
-                m_impl->m_descriptorBufferProperties.uniformBufferDescriptorSize,       // VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
-                m_impl->m_descriptorBufferProperties.uniformTexelBufferDescriptorSize,  // VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER
-                m_impl->m_descriptorBufferProperties.storageTexelBufferDescriptorSize,  // VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
-                m_impl->m_descriptorBufferProperties.sampledImageDescriptorSize,        // VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
-                m_impl->m_descriptorBufferProperties.storageImageDescriptorSize,        // VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
-                m_impl->m_descriptorBufferProperties.storageBufferDescriptorSize        // VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-            }));
+        return this->descriptorStride(DescriptorHeapType::Resource);
+    case DescriptorType::Sampler:
+        return this->descriptorStride(DescriptorHeapType::Sampler);
     default:
         throw InvalidArgumentException("type", "The provided descriptor type cannot be mapped to a descriptor heap.");
     }
 }
 
-VirtualAllocator::Allocation VulkanDevice::allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType /*heapType*/) const
+UInt32 VulkanDevice::descriptorStride(DescriptorHeapType heapType) const
 {
-    std::lock_guard<std::mutex> lock(m_impl->m_bufferBindMutex);
-    return m_impl->m_globalDescriptorHeapAllocator.allocate(
-        static_cast<UInt64>(descriptorSet.descriptorBuffer().size()), 
-        static_cast<UInt32>(m_impl->m_descriptorBufferProperties.descriptorBufferOffsetAlignment), 
-        AllocationStrategy::OptimizeTime);
-}
-
-void VulkanDevice::releaseGlobalDescriptors(const VulkanDescriptorSet& descriptorSet) const
-{
-    std::lock_guard<std::mutex> lock(m_impl->m_bufferBindMutex);
-    m_impl->m_globalDescriptorHeapAllocator.free(descriptorSet.globalHeapAllocation(DescriptorHeapType::Resource)); // NOTE: Heap type does not matter in Vulkan.
-}
-
-void VulkanDevice::updateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const
-{
-    // Bind the descriptor to the appropriate type. Note that static samplers aren't bound, so effectively this call is invalid. However we simply treat it as a no-op.
-    auto descriptorLayout = descriptorSet.layout().descriptor(binding);
-
-    // Compute the descriptor offset and binding range.
-    auto firstDescriptor = descriptorSet.layout().getDescriptorOffset(binding, offset);
-    auto descriptorBuffer = descriptorSet.descriptorBuffer();
-    auto descriptorOffset = std::next(descriptorBuffer.data(), firstDescriptor);
-    auto descriptorSize = this->descriptorSize(descriptorLayout.descriptorType());
-    auto mappedRange = static_cast<size_t>(descriptors) * descriptorSize;
-
-    // NOTE: We actually only need to check for a static sampler here, but in case we need to change this later, we'll keep it this way.
-    if (descriptorLayout.descriptorType() == DescriptorType::Sampler && descriptorLayout.staticSampler() == nullptr)
-        m_impl->m_globalDescriptorHeap->write(descriptorOffset, mappedRange, 
-            static_cast<size_t>(descriptorSet.globalHeapAllocation(DescriptorHeapType::Sampler).Offset) + firstDescriptor);
-    else if (descriptorLayout.descriptorType() != DescriptorType::Sampler)
-        m_impl->m_globalDescriptorHeap->write(descriptorOffset, mappedRange, 
-            static_cast<size_t>(descriptorSet.globalHeapAllocation(DescriptorHeapType::Resource).Offset) + firstDescriptor);
-}
-
-void VulkanDevice::bindDescriptorSet(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const
-{
-    // Copy the descriptors to the global heaps and set the root table parameters.
-    if (descriptorSet.layout().bindsResources() || descriptorSet.layout().bindsSamplers()) // Discard empty sets.
+    switch (heapType)
     {
-        const UInt32 bufferIndex{ 0u }; // See `bindGlobalDescriptorHeaps` below - the only heap is bound at index 0 there.
-        const auto bufferOffset = static_cast<VkDeviceSize>(descriptorSet.globalHeapAllocation(DescriptorHeapType::Resource).Offset); // NOTE: Heap type does not matter in Vulkan.
-
-        // Set the descriptor buffer offsets for the descriptor sets.
-        vkCmdSetDescriptorBufferOffsets(commandBuffer.handle(), pipeline.pipelineType(), pipeline.layout()->handle(), descriptorSet.layout().space(), 1u, &bufferIndex, &bufferOffset);
+    case DescriptorHeapType::Resource:
+        return m_impl->m_resourceDescriptorStride;
+    case DescriptorHeapType::Sampler:
+        return m_impl->m_samplerDescriptorStride;
+    default:
+        throw InvalidArgumentException("heapType", "The descriptor heap type must be one of the following: {{ `Resource`, `Sampler` }}, but it was: `{0}`.", heapType);
     }
 }
 
-void VulkanDevice::bindGlobalDescriptorHeaps(const VulkanCommandBuffer& commandBuffer) const noexcept
+UInt32 VulkanDevice::maxPushDataSize() const noexcept
 {
-    // Create the descriptor buffer binding infos.
-    // NOTE: The order is important here! If we change this, `bindDescriptorSet` must be updated as well.
-    auto descriptorHeaps = std::array {
-        VkDescriptorBufferBindingInfoEXT { .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_BUFFER_BINDING_INFO_EXT, .address = m_impl->m_globalDescriptorHeap->virtualAddress(), .usage = VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT },
+    return static_cast<UInt32>(m_impl->m_descriptorHeapProperties.maxPushDataSize);
+}
+
+const GlobalDescriptorHeaps& VulkanDevice::descriptorHeaps() const noexcept 
+{
+    return *m_impl->m_descriptorHeaps;
+}
+
+void VulkanDevice::copyDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32 targetIndex, UInt32 sourceIndex, UInt32 descriptors) const
+{
+    size_t stride = this->descriptorStride(heapType);
+
+    this->writeGlobalDescriptorHeap(heapType, targetIndex, descriptorSet.descriptorBuffer(heapType).subspan(sourceIndex * stride, descriptors * stride));
+}
+
+void VulkanDevice::bindDescriptors(const VulkanCommandBuffer& commandBuffer, const VulkanPipelineState& pipeline, const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32 baseIndex) const
+{
+    auto pushOffset = pipeline.layout()->pushDataOffset(descriptorSet.layout().space(), heapType);
+
+    if (!pushOffset.has_value()) [[unlikely]]
+    {
+        LITEFX_WARNING(VULKAN_LOG, "Unable to bind descriptor set at space {0}, as it is not part of the pipeline layout.", descriptorSet.layout().space());
+        return;
+    }
+    else
+    {
+        const VkPushDataInfoEXT pushData{ .sType = VK_STRUCTURE_TYPE_PUSH_DATA_INFO_EXT, .offset = *pushOffset, .data = { .address = &baseIndex, .size = sizeof(UInt32) } };
+        vkCmdPushData(commandBuffer.handle(), &pushData);
+    }
+}
+
+DescriptorHeapAllocation VulkanDevice::allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType) const
+{
+    return m_impl->m_descriptorHeaps->allocate(heapType, static_cast<UInt32>(descriptorSet.descriptorBuffer(heapType).size() / this->descriptorStride(heapType)));
+}
+
+UniquePtr<VulkanDescriptorRange> VulkanDevice::allocateGlobalDescriptors(DescriptorHeapType heapType, UInt32 descriptors) const
+{
+    return UniquePtr<VulkanDescriptorRange>(new VulkanDescriptorRange(*this, m_impl->m_descriptorHeaps->allocate(heapType, descriptors)));
+}
+
+void VulkanDevice::writeGlobalDescriptorHeap(DescriptorHeapType heapType, UInt32 targetIndex, Span<const Byte> descriptors) const
+{
+    const size_t stride = this->descriptorStride(heapType);
+    auto& heap = heapType == DescriptorHeapType::Sampler ? m_impl->m_globalSamplerHeap : m_impl->m_globalResourceHeap;
+
+    heap->write(descriptors.data(), descriptors.size(), static_cast<size_t>(targetIndex) * stride);
+}
+
+void VulkanDevice::releaseGlobalDescriptors(DescriptorHeapAllocation&& allocation) const
+{
+    m_impl->m_descriptorHeaps->release(std::move(allocation)); // NOLINT(performance-move-const-arg)
+}
+
+void VulkanDevice::bindGlobalDescriptorHeaps(const VulkanCommandBuffer& commandBuffer) const
+{
+    VkBindHeapInfoEXT resourceHeap {
+        .sType = VK_STRUCTURE_TYPE_BIND_HEAP_INFO_EXT,
+        .heapRange = { .address = m_impl->m_globalResourceHeap->virtualAddress(), .size = m_impl->m_globalResourceHeap->size() },
+        .reservedRangeOffset = static_cast<VkDeviceSize>(m_impl->m_descriptorHeaps->capacity(DescriptorHeapType::Resource)) * this->descriptorStride(DescriptorHeapType::Resource),
+        .reservedRangeSize = m_impl->m_resourceReservedSize 
     };
 
-    // Bind the descriptor buffers.
-    vkCmdBindDescriptorBuffers(commandBuffer.handle(), static_cast<UInt32>(descriptorHeaps.size()), descriptorHeaps.data());
+    VkBindHeapInfoEXT samplerHeap {
+        .sType = VK_STRUCTURE_TYPE_BIND_HEAP_INFO_EXT,
+        .heapRange = { .address = m_impl->m_globalSamplerHeap->virtualAddress(), .size = m_impl->m_globalSamplerHeap->size() },
+        .reservedRangeOffset = static_cast<VkDeviceSize>(m_impl->m_descriptorHeaps->capacity(DescriptorHeapType::Sampler)) * this->descriptorStride(DescriptorHeapType::Sampler),
+        .reservedRangeSize = m_impl->m_samplerReservedSize 
+    };
+
+    vkCmdBindResourceHeap(commandBuffer.handle(), &resourceHeap);
+    vkCmdBindSamplerHeap(commandBuffer.handle(), &samplerHeap);
 }
 
 VulkanSwapChain& VulkanDevice::swapChain() noexcept

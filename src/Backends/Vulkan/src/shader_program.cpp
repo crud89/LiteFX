@@ -67,7 +67,7 @@ private:
         UInt32 inputAttachmentIndex{};
         DescriptorType type{ DescriptorType::ConstantBuffer };
         SharedPtr<IVulkanSampler> staticSampler{};
-        bool unbounded{false};
+        bool unbounded{ false }, local{ false };
 
         bool equals(const DescriptorInfo& rhs)
         {
@@ -76,7 +76,8 @@ private:
                 this->elements == rhs.elements &&
                 this->elementSize == rhs.elementSize &&
                 this->type == rhs.type &&
-                this->unbounded == rhs.unbounded;
+                this->unbounded == rhs.unbounded &&
+                this->local == rhs.local;
         }
     };
 
@@ -208,6 +209,9 @@ public:
         Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts;
         Array<PushConstantRangeInfo> pushConstantRanges;
 
+        // Track if any shader indexes the global descriptor heaps directly. DXC emulates the heaps as bindings in a reserved descriptor set.
+        bool directlyAccessResourceHeap{ false }, directlyAccessSamplerHeap{ false };
+
         // Extract reflection data from all shader modules.
         std::ranges::for_each(m_modules, [&](auto& shaderModule) {
             // Read the file and initialize a reflection module.
@@ -240,12 +244,50 @@ public:
             // NOLINTEND(bugprone-assignment-in-if-condition)
             
             // Parse the descriptor sets.
-            std::ranges::for_each(descriptorSets, [&shaderModule, &descriptorSetLayouts](const SpvReflectDescriptorSet* descriptorSet) {
+            std::ranges::for_each(descriptorSets, [&shaderModule, &descriptorSetLayouts, &directlyAccessResourceHeap, &directlyAccessSamplerHeap](const SpvReflectDescriptorSet* descriptorSet) {
+                // The reserved heap set is mapped onto the global descriptor heaps and never becomes a descriptor set layout. DXC aliases all heap types on the same binding, so checking 
+                // the binding number is sufficient.
+                // TODO: Remove once DXC's native descriptor heap lowering is used, as heap accesses don't produce bindings anymore then.
+                if (descriptorSet->set == VulkanPipelineLayout::DESCRIPTOR_HEAP_SPACE)
+                {
+                    for (UInt32 b{ 0 }; b < descriptorSet->binding_count; ++b)
+                    {
+                        auto binding = descriptorSet->bindings[b]->binding; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+
+                        if (binding == VulkanPipelineLayout::RESOURCE_HEAP_BINDING)
+                            directlyAccessResourceHeap = true;
+                        else if (binding == VulkanPipelineLayout::SAMPLER_HEAP_BINDING)
+                            directlyAccessSamplerHeap = true;
+                        else [[unlikely]]
+                            throw RuntimeException("The shader declares a descriptor at binding {0} of the reserved descriptor heap set {1}. Note that UAV counters on heap resources are not supported.", binding, descriptorSet->set);
+                    }
+
+                    return;
+                }
+
                 // Get all descriptor layouts.
                 Array<DescriptorInfo> descriptors(descriptorSet->binding_count);
 
-                std::ranges::generate(descriptors, [&descriptorSet, i = 0]() mutable {
+                std::ranges::generate(descriptors, [&descriptorSet, &shaderModule, i = 0]() mutable {
+                    // We reject UAV counters as unsupported. Instead use a RWByteAddressBuffer for the counter and increment it using InterlockedAdd. This is effectively the way
+                    // those counters work under the hood anyway. Refer to the indirect rendering sample for an example on how to implement this.
+                    // NOTE: This check only works for DXC with debug names, so it may get skipped for other compilers or if debug names are stripped, in which case you will encounter 
+                    //       an error further down the line.
+                    auto isUavCounter = [](const SpvReflectDescriptorBinding* binding) static noexcept -> bool {
+                        auto typeName = binding->type_description != nullptr && binding->type_description->type_name != nullptr ? 
+                            std::string_view { binding->type_description->type_name } : std::string_view {};
+                        auto name = binding->name != nullptr ? 
+                            std::string_view { binding->name } : std::string_view {};
+
+                        return typeName == "type.ACSBuffer.counter" || name.starts_with("counter.var.");
+                    };
+
+                    // Get the descriptor.
                     auto descriptor = descriptorSet->bindings[i++]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+                    
+                    // Reject UAV counters (see above).
+                    if (isUavCounter(descriptor))
+                        throw RuntimeException("The shader uses a UAV counter at binding {0} (space {1}), which is not supported. Use a separate RWByteAddressBuffer and InterlockedAdd instead.", descriptor->binding, descriptor->set);
 
                     // Filter the descriptor type.
                     DescriptorType type{ DescriptorType::ConstantBuffer };
@@ -299,8 +341,18 @@ public:
                         for (UInt32 d(0); d < descriptor->array.dims_count; ++d)
                             descriptors *= descriptor->array.dims[d];
 
+                    // Mark the descriptor as local if the module declares its binding point as local.
+                    auto& localBinding = shaderModule->shaderLocalDescriptor();
+
                     // Create the descriptor layout.
-                    return DescriptorInfo { .location = descriptor->binding, .elementSize = descriptor->block.padded_size, .elements = descriptors, .inputAttachmentIndex = inputAttachmentIndex, .type = type, .unbounded = descriptor->type_description->op == SpvOp::SpvOpTypeRuntimeArray };
+                    return DescriptorInfo { 
+                        .location = descriptor->binding, 
+                        .elementSize = descriptor->block.padded_size, 
+                        .elements = descriptors, 
+                        .inputAttachmentIndex = inputAttachmentIndex, 
+                        .type = type, 
+                        .unbounded = descriptor->type_description->op == SpvOp::SpvOpTypeRuntimeArray, 
+                        .local = localBinding.has_value() && localBinding->Register == descriptor->binding && localBinding->Space == descriptor->set };
                 });
 
                 if (!descriptorSetLayouts.contains(descriptorSet->set))
@@ -365,32 +417,6 @@ public:
                         LITEFX_WARNING(VULKAN_LOG, "A hint for binding {0} at space {1} indicates a push constants range, but a standard descriptor was bound here. In Vulkan push constants do not bind to a descriptor set, but a hint for the descriptor set indicates that the binding should be reserved for one anyway, perhaps to preserve compatibility with other backends. The hint will be ignored.", descriptor.location, descriptorSet.space);
                 };
 
-                auto unboundedArrayHintCallback = [&](const PipelineBindingHint::UnboundedArrayHint& hint) {
-                    // In Vulkan, unbounded arrays are obtained through shader reflection, however, to comply with device limits, a descriptor count for the upper limit of 
-                    // descriptors in the pipeline layout must be set. Only few implementations actually support arbitrarily (i.e., max UInt32) large arrays. It's a good
-                    // practice to provide a reasonable guess using a hint. 
-                    // If the binding does not refer to a static array, we must not overwrite the descriptor count, so we issue a warning. The same holds true for scalar
-                    // descriptors.
-                    
-                    if (!descriptor.unbounded)
-                        LITEFX_WARNING(VULKAN_LOG, "A hint for binding {0} at space {1} indicates an unbounded array, but the bound descriptor is either a static array or a single descriptor. The hint will be ignored.", descriptor.location, descriptorSet.space);
-                    else
-                        descriptor.elements = hint.MaxDescriptors;
-                };
-
-                auto descriptorHeapHintCallback = [&](const PipelineBindingHint::DescriptorHeapHint& hint) {
-                    // DXC emits unbounded arrays to emulate mutable descriptor type bindings, but we force them to be fixed-size arrays, as multiple unbounded arrays in one 
-                    // descriptor set are not allowed anyway.
-                    // See: https://github.com/microsoft/DirectXShaderCompiler/blob/main/docs/SPIR-V.rst#resourcedescriptorheaps-samplerdescriptorheaps
-
-                    if (hint.Type != DescriptorHeapType::None)
-                    {
-                        descriptor.unbounded = false;
-                        descriptor.type = hint.Type == DescriptorHeapType::Resource ? DescriptorType::ResourceDescriptorHeap : DescriptorType::SamplerDescriptorHeap;
-                        descriptor.elements = hint.HeapSize;
-                    }
-                };
-
                 auto shaderStageHintCallback = [&](const PipelineBindingHint::ShaderStageHint& hint) {
                     // Simply mask in the stage into the parent descriptor set mask.
                     descriptorSet.stage |= hint.Stages;
@@ -399,7 +425,7 @@ public:
                 // If the descriptor binds a sampler and the hint is a static sampler, patch it.
                 std::visit(type_switch{
                     [](const std::monostate&) {}, // Default: don't patch anything
-                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback, descriptorHeapHintCallback, shaderStageHintCallback
+                    samplerHintCallback, pushConstantsHintCallback, shaderStageHintCallback
                 }, hint);
             }
         });
@@ -416,7 +442,7 @@ public:
                         else if (descriptor.type == DescriptorType::InputAttachment)
                             return { descriptor.type, descriptor.location, descriptor.inputAttachmentIndex };
                         else [[likely]]
-                            return { descriptor.type, descriptor.location, descriptor.elementSize, descriptor.elements, descriptor.unbounded };
+                            return { descriptor.type, descriptor.location, descriptor.elementSize, descriptor.elements, descriptor.unbounded, descriptor.local };
                     }) | std::ranges::to<std::vector>();
 
                 co_yield VulkanDescriptorSetLayout::create(*device, descriptorLayouts, space, stage);
@@ -504,7 +530,7 @@ public:
         auto pushConstantsLayout = makeUnique<VulkanPushConstantsLayout>(pushConstants | std::views::as_rvalue, overallSize);
 
         // Return the pipeline layout.
-        return VulkanPipelineLayout::create(*m_device, std::move(descriptorSets), std::move(pushConstantsLayout));
+        return VulkanPipelineLayout::create(*m_device, std::move(descriptorSets), std::move(pushConstantsLayout), directlyAccessResourceHeap, directlyAccessSamplerHeap);
     }
 };
 
@@ -532,7 +558,7 @@ const Array<UniquePtr<const VulkanShaderModule>>& VulkanShaderProgram::modules()
 
 SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout(Enumerable<PipelineBindingHint> hints) const
 {
-    return m_impl->reflectPipelineLayout(hints);
+    return m_impl->reflectPipelineLayout(std::move(hints));
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

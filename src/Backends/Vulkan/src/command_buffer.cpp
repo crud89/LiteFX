@@ -11,6 +11,7 @@ extern PFN_vkCmdTraceRaysKHR vkCmdTraceRays;
 extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks;
 extern PFN_vkCmdDrawMeshTasksIndirectEXT vkCmdDrawMeshTasksIndirect;
 extern PFN_vkCmdDrawMeshTasksIndirectCountEXT vkCmdDrawMeshTasksIndirectCount;
+extern PFN_vkCmdPushDataEXT vkCmdPushData;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
@@ -776,11 +777,14 @@ void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer& batchBuffer, 
 
 void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const
 {
-	if (!m_impl->m_lastPipeline) [[unlikely]]
-		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the push constants range.");
+	std::ranges::for_each(layout.ranges(), [&](const auto& range) {
+		VkPushDataInfoEXT pushData { 
+			.sType = VK_STRUCTURE_TYPE_PUSH_DATA_INFO_EXT, 
+			.offset = range->offset(), 
+			.data = { .address = memory, .size = range->size() } 
+		};
 
-	std::ranges::for_each(layout.ranges(), [&](const auto& range) { 
-		::vkCmdPushConstants(this->handle(), std::as_const(*m_impl->m_lastPipeline->layout()).handle(), static_cast<VkShaderStageFlags>(std::to_underlying(range->stageMask())), range->offset(), range->size(), memory);
+		vkCmdPushData(this->handle(), &pushData);
 	});
 }
 

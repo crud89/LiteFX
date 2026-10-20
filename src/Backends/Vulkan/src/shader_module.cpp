@@ -119,10 +119,11 @@ const Array<UInt32>& VulkanShaderModule::bytecode() const noexcept
 	return m_impl->m_bytecode;
 }
 
-VkPipelineShaderStageCreateInfo VulkanShaderModule::shaderStageDefinition() const
+VkPipelineShaderStageCreateInfo VulkanShaderModule::shaderStageDefinition(const void* pNext) const
 {
 	VkPipelineShaderStageCreateInfo shaderStageDefinition = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+		.pNext = pNext,
 		.stage = Vk::getShaderStage(this->type()),
 		.module = this->handle(),
 		.pName = this->entryPoint().c_str()

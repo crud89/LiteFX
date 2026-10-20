@@ -1,13 +1,7 @@
 #include <litefx/backends/vulkan.hpp>
+#include "descriptors.hpp"
 
 using namespace LiteFX::Rendering::Backends;
-
-// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
-extern PFN_vkGetDescriptorSetLayoutSizeEXT vkGetDescriptorSetLayoutSize;
-extern PFN_vkGetDescriptorSetLayoutBindingOffsetEXT vkGetDescriptorSetLayoutBindingOffset;
-extern PFN_vkGetDescriptorEXT vkGetDescriptor;
-extern PFN_vkGetAccelerationStructureDeviceAddressKHR vkGetAccelerationStructureDeviceAddress;
-// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -17,269 +11,92 @@ public:
     friend class VulkanDescriptorSet;
 
 private:
-    Dictionary<UInt32, VkImageView> m_imageViews{};
     SharedPtr<const VulkanDescriptorSetLayout> m_layout;
-    Array<Byte> m_descriptorBuffer{};
+    Array<Byte> m_resourceDescriptors{}, m_samplerDescriptors{};
+    DescriptorHeapAllocation m_resourceAllocation{}, m_samplerAllocation{};
     UInt32 m_unboundedArraySize;
-    VirtualAllocator::Allocation m_globalHeapAllocation{};
 
 public:
-    VulkanDescriptorSetImpl(const VulkanDescriptorSetLayout& layout, Array<Byte>&& buffer) :
-        m_layout(layout.shared_from_this()), m_descriptorBuffer(std::move(buffer)), m_unboundedArraySize(0)
+    VulkanDescriptorSetImpl(const VulkanDescriptorSetLayout& layout, Array<Byte>&& resourceHeap, Array<Byte>&& samplerHeap) :
+        m_layout(layout.shared_from_this()), m_resourceDescriptors(std::move(resourceHeap)), m_samplerDescriptors(std::move(samplerHeap)), m_unboundedArraySize(0)
     {
     }
 
     VulkanDescriptorSetImpl(const VulkanDescriptorSetLayout& layout, UInt32 unboundedArraySize) :
         m_layout(layout.shared_from_this()), m_unboundedArraySize(unboundedArraySize)
     {
-        // Allocate the descriptor set binding buffer.
-        VkDeviceSize descriptorSetSize{};
+        if (unboundedArraySize == std::numeric_limits<UInt32>::max())
+            m_unboundedArraySize = layout.maxUnboundedArraySize();
 
-        if (!layout.containsUnboundedArray())
-            vkGetDescriptorSetLayoutSize(m_layout->device().handle(), m_layout->handle(), &descriptorSetSize);
-        else
-        {
-            // If the unbounded descriptor array size is set to the maximum, use the device limit instead. Note that this could still conflict with other limits (such as the per stage resource 
-            // binding limit), so prefer to provide an explicit size here.
-            if (unboundedArraySize == std::numeric_limits<UInt32>::max())
-                m_unboundedArraySize = unboundedArraySize = layout.maxUnboundedArraySize();
-
-            // If the layout contains an unbounded array size, the actual required address space needs to be computed. We exploit the guarantee that unbounded arrays are always put last in 
-            // the descriptor set, so we compute the offset, descriptor size and from this the total amount of required memory.
-            // First, we need to lookup the binding for the unbounded array. If we cannot match any binding here, we've conceptually messed up somewhere earlier, in which case no error handling
-            // could save us, so we gently ignore the chance of not matching anything.
-            auto descriptorLayout = std::ranges::find_if(layout.descriptors(), [](auto& layout) { return layout.unbounded(); });
-            vkGetDescriptorSetLayoutBindingOffset(layout.device().handle(), layout.handle(), descriptorLayout->binding(), &descriptorSetSize);
-            descriptorSetSize += unboundedArraySize * static_cast<VkDeviceSize>(layout.device().descriptorSize(descriptorLayout->descriptorType()));
-        }
-
-        m_descriptorBuffer.resize(static_cast<size_t>(descriptorSetSize), 0_b);
+        auto& allocationLayout = layout.allocationLayout();
+        m_resourceDescriptors.resize(static_cast<size_t>(allocationLayout.descriptorCount(DescriptorHeapType::Resource, m_unboundedArraySize)) * m_layout->device().descriptorStride(DescriptorHeapType::Resource), 0_b);
+        m_samplerDescriptors.resize(static_cast<size_t>(allocationLayout.descriptorCount(DescriptorHeapType::Sampler, m_unboundedArraySize)) * m_layout->device().descriptorStride(DescriptorHeapType::Sampler), 0_b);
     }
 
 public:
+    VkHostAddressRangeEXT targetAddressRange(DescriptorHeapType heap, UInt32 slot)
+    {
+        auto& storage = heap == DescriptorHeapType::Sampler ? m_samplerDescriptors : m_resourceDescriptors;
+        size_t stride = m_layout->device().descriptorStride(heap);
+        auto descriptor = Span<Byte>{ storage }.subspan(static_cast<size_t>(slot) * stride, stride);
+
+        return { .address = descriptor.data(), .size = descriptor.size() };
+    }
+
     UInt32 updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 firstDescriptor, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat)
     {
-        // Validate the buffer element bounds.
-        UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;
+        auto binding = descriptorLayout.binding();
+        auto elementCount = bufferElements(buffer, bufferElement, elements);
 
-        if (bufferElement + elementCount > buffer.elements()) [[unlikely]]
-            throw InvalidArgumentException("bufferElement", "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), elementCount, bufferElement);
+        if (firstDescriptor + elementCount > parent.capacity(binding)) [[unlikely]]
+            throw InvalidArgumentException("firstDescriptor", "The descriptor array only has {0} elements, however there are {1} elements starting at descriptor {2} specified.", parent.capacity(binding), elementCount, firstDescriptor);
 
-        // Validate the descriptor index.
-        if (firstDescriptor + elementCount > descriptorLayout.descriptors()) [[unlikely]]
-            throw InvalidArgumentException("firstDescriptor", "The descriptor array only has {0} elements, however there are {1} elements starting at descriptor {2} specified.", descriptorLayout.descriptors(), elementCount, firstDescriptor);
+        auto targets = std::views::iota(firstDescriptor, firstDescriptor + elementCount)
+            | std::views::transform([&](UInt32 descriptor) { return this->targetAddressRange(DescriptorHeapType::Resource, m_layout->getDescriptorOffset(binding, descriptor)); })
+            | std::ranges::to<Array<VkHostAddressRangeEXT>>();
 
-        // Check if the descriptor type is valid for the requested operation.
-        if (bindingType != DescriptorType::Buffer &&
-            bindingType != DescriptorType::ConstantBuffer &&
-            bindingType != DescriptorType::RWBuffer &&
-            bindingType != DescriptorType::ByteAddressBuffer &&
-            bindingType != DescriptorType::RWByteAddressBuffer &&
-            bindingType != DescriptorType::StructuredBuffer &&
-            bindingType != DescriptorType::RWStructuredBuffer) [[unlikely]]
-            throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a buffer descriptor.", descriptorLayout.binding());
+        auto& device = m_layout->device();
+        writeBufferDescriptors(device, bindingType, buffer, bufferElement, texelFormat, targets);
+        device.updateGlobalDescriptors(parent, binding, firstDescriptor, elementCount);
 
-        // Offset to first array index. Arrays are tightly packed, so we simply add the descriptor size for each element.
-        size_t descriptorSize = m_layout->device().descriptorSize(bindingType);
-
-        // Update the descriptor each element.
-        for (UInt32 i{ 0 }; i < elementCount; ++i)
-        {
-            // Acquire the binding offset.
-            auto descriptorOffset = static_cast<VkDeviceSize>(m_layout->getDescriptorOffset(descriptorLayout.binding(), firstDescriptor + i));
-
-            // Create the address info object.
-            VkDescriptorAddressInfoEXT addressInfo = {
-                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT,
-                .address = buffer.virtualAddress() + (bufferElement + i) * buffer.alignedElementSize(),
-                .range = buffer.alignedElementSize(),
-                .format = VK_FORMAT_UNDEFINED
-            };
-
-            // Setup the descriptor info.
-            VkDescriptorGetInfoEXT descriptorInfo = { .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT };
-
-            switch (bindingType)
-            {
-            case DescriptorType::ConstantBuffer:
-                descriptorInfo.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                descriptorInfo.data.pUniformBuffer = &addressInfo;
-                break;
-            case DescriptorType::Buffer:
-                descriptorInfo.type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-                descriptorInfo.data.pUniformTexelBuffer = &addressInfo;
-                addressInfo.format = Vk::getFormat(texelFormat);
-                break;
-            case DescriptorType::RWBuffer:
-                descriptorInfo.type = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
-                descriptorInfo.data.pStorageTexelBuffer = &addressInfo;
-                addressInfo.format = Vk::getFormat(texelFormat);
-                break;
-            case DescriptorType::ByteAddressBuffer:
-            case DescriptorType::RWByteAddressBuffer:
-            case DescriptorType::StructuredBuffer:
-            case DescriptorType::RWStructuredBuffer:
-                descriptorInfo.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-                descriptorInfo.data.pStorageBuffer = &addressInfo;
-                break;
-            default:
-                std::unreachable();
-            }
-
-            // Create the descriptor in the descriptor buffer.
-            vkGetDescriptor(m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_descriptorBuffer.data(), static_cast<size_t>(descriptorOffset))); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
-        }
-
-        // Update the invalidated range on the global descriptor heap.
-        m_layout->device().updateGlobalDescriptors(parent, descriptorLayout.binding(), firstDescriptor, elementCount);
-
-        // Return the first descriptor index directly, as we can't index into global descriptor memory in Vulkan.
-        return firstDescriptor;
+        return static_cast<UInt32>(parent.globalHeapAllocation(DescriptorHeapType::Resource).Allocation.Offset + m_layout->getDescriptorOffset(binding, firstDescriptor));
     }
 
     UInt32 updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 descriptor, const IVulkanImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers)
     {
-        // Validate the descriptor index.
-        if (descriptor >= descriptorLayout.descriptors()) [[unlikely]]
-            throw InvalidArgumentException("descriptor", "The descriptor index {0} was out of bounds. The resource descriptor heap only contains {1} descriptors.", descriptor, descriptorLayout.descriptors());
-
-        // Check if the descriptor type is valid for the requested operation.
-        if (bindingType != DescriptorType::Texture &&
-            bindingType != DescriptorType::RWTexture &&
-            bindingType != DescriptorType::InputAttachment) [[unlikely]]
-            throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an image descriptor.", descriptorLayout.binding());
-
-        // Remove the image view, if there is one bound to the current descriptor.
         auto binding = descriptorLayout.binding();
+
+        if (descriptor >= parent.capacity(binding)) [[unlikely]]
+            throw InvalidArgumentException("descriptor", "The descriptor index {0} was out of bounds. The descriptor array at binding {1} only contains {2} descriptors.", descriptor, binding, parent.capacity(binding));
+
         auto& device = m_layout->device();
-
-        if (m_imageViews.contains(binding))
-        {
-            ::vkDestroyImageView(device.handle(), m_imageViews[binding], nullptr);
-            m_imageViews.erase(binding);
-        }
-
-        // Create a new image view.
-        const UInt32 numLevels = levels == 0 ? image.levels() - firstLevel : levels;
-        const UInt32 numLayers = layers == 0 ? image.layers() - firstLayer : layers;
-
-        VkImageViewCreateInfo imageViewDesc = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .pNext = nullptr,
-            .image = image.handle(),
-            .viewType = Vk::getImageViewType(image.dimensions(), numLayers), // TODO: What if we want to bind an array with one layer only, though?!... `DescriptorLayout` should get an "isArray" property.
-            .format = Vk::getFormat(image.format()),
-            .components = VkComponentMapping {
-                .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-                .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-                .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-                .a = VK_COMPONENT_SWIZZLE_IDENTITY
-            },
-            .subresourceRange = VkImageSubresourceRange {
-                .baseMipLevel = firstLevel,
-                .levelCount = numLevels,
-                .baseArrayLayer = firstLayer,
-                .layerCount = numLayers
-            }
-        };
-
-        if (!::hasDepth(image.format()) && !::hasStencil(image.format()))
-            imageViewDesc.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        else
-        {
-            // TODO: This probably wont work, instead we need separate views here. Maybe we could add a "plane" parameter that addresses the depth/stencil view.
-            if (::hasDepth(image.format()))
-                imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
-
-            if (::hasStencil(image.format()))
-                imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
-        }
-
-        VkImageView imageView{};
-        raiseIfFailed(::vkCreateImageView(device.handle(), &imageViewDesc, nullptr, &imageView), "Unable to create image view.");
-        m_imageViews[binding] = imageView;
-
-        // Acquire the binding offset.
-        auto descriptorOffset = static_cast<VkDeviceSize>(m_layout->getDescriptorOffset(binding, descriptor));
-
-        // Offset to first array index. Arrays are tightly packed, so we simply add the descriptor size for each element.
-        size_t descriptorSize = device.descriptorSize(bindingType);
-
-        // Create the image info object.
-        VkDescriptorImageInfo imageInfo = {
-            .imageView = imageView,
-            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL // NOTE: We do have to change this for RWimage.
-        };
-
-        // Setup the descriptor info.
-        VkDescriptorGetInfoEXT descriptorInfo = { .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT };
-
-        // TODO: Texel buffers need a format, which is currently not supported.
-        switch (bindingType)
-        {
-        case DescriptorType::Texture:
-            descriptorInfo.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-            descriptorInfo.data.pSampledImage = &imageInfo;
-            break;
-        case DescriptorType::RWTexture:
-            imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-            descriptorInfo.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            descriptorInfo.data.pStorageImage = &imageInfo;
-            break;
-        case DescriptorType::InputAttachment:
-            descriptorInfo.type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-            descriptorInfo.data.pInputAttachmentImage = &imageInfo;
-            break;
-        default:
-            std::unreachable();
-        }
-
-        // Create the descriptor in the descriptor buffer.
-        vkGetDescriptor(device.handle(), &descriptorInfo, descriptorSize, std::next(m_descriptorBuffer.data(), static_cast<size_t>(descriptorOffset))); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
-
-        // Update the invalidated range on the global descriptor heap.
+        auto descriptorOffset = m_layout->getDescriptorOffset(binding, descriptor);
+        writeImageDescriptor(device, bindingType, image, firstLevel, levels, firstLayer, layers, this->targetAddressRange(DescriptorHeapType::Resource, descriptorOffset));
         device.updateGlobalDescriptors(parent, binding, descriptor, 1u);
 
-        // Return the descriptor index directly, as we can't index into global descriptor memory in Vulkan.
-        return descriptor;
+        return static_cast<UInt32>(parent.globalHeapAllocation(DescriptorHeapType::Resource).Allocation.Offset + descriptorOffset);
     }
 
     UInt32 updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, UInt32 descriptor, const IVulkanSampler& sampler)
     {
-        // Validate the descriptor index.
-        if (descriptor >= descriptorLayout.descriptors()) [[unlikely]]
-            throw InvalidArgumentException("descriptor", "The descriptor array at binding {1} of descriptor set {0} does only contain {2} descriptors, but the descriptor {3} has been specified for binding.", m_layout->space(), descriptorLayout.binding(), descriptorLayout.descriptors(), descriptor);
+        auto binding = descriptorLayout.binding();
 
-        // Validate the descriptor type.
-        if (descriptorLayout.descriptorType() != DescriptorType::Sampler && descriptorLayout.descriptorType() != DescriptorType::SamplerDescriptorHeap) [[unlikely]]
-            throw InvalidArgumentException("descriptorLayout", "Invalid descriptor type. The binding {0} does not bind a sampler or sampler heap, but rather a {1}.", descriptorLayout.binding(), descriptorLayout.descriptorType());
+        if (descriptor >= parent.capacity(binding)) [[unlikely]]
+            throw InvalidArgumentException("descriptor", "The descriptor array at binding {1} of descriptor set {0} does only contain {2} descriptors, but the descriptor {3} has been specified for binding.", m_layout->space(), binding, parent.capacity(binding), descriptor);
 
-        // Validate the static sampler state.
-        if (descriptorLayout.descriptorType() == DescriptorType::Sampler && descriptorLayout.staticSampler() != nullptr)
+        if (descriptorLayout.descriptorType() != DescriptorType::Sampler) [[unlikely]]
+            throw InvalidArgumentException("descriptorLayout", "Invalid descriptor type. The binding {0} does not bind a sampler, but rather a {1}.", binding, descriptorLayout.descriptorType());
+
+        if (descriptorLayout.staticSampler() != nullptr) [[unlikely]]
             throw InvalidArgumentException("descriptorLayout", "The provided binding does bind a sampler, but also defines a static sampler, which makes binding to it invalid.");
 
-        // Acquire the binding offset.
-        auto descriptorOffset = static_cast<VkDeviceSize>(m_layout->getDescriptorOffset(descriptorLayout.binding(), descriptor));
         auto& device = m_layout->device();
+        auto descriptorOffset = m_layout->getDescriptorOffset(binding, descriptor);
 
-        // Offset to first array index. Arrays are tightly packed, so we simply add the descriptor size for each element.
-        size_t descriptorSize = device.descriptorSize(descriptorLayout.descriptorType());
+        writeSamplerDescriptor(device, sampler, this->targetAddressRange(DescriptorHeapType::Sampler, descriptorOffset));
+        device.updateGlobalDescriptors(parent, binding, descriptor, 1u);
 
-        // Setup the descriptor info.
-        VkDescriptorGetInfoEXT descriptorInfo = {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT,
-            .type = VK_DESCRIPTOR_TYPE_SAMPLER,
-            .data = { .pSampler = &sampler.handle() }
-        };
-
-        // Create the descriptor in the descriptor buffer.
-        vkGetDescriptor(device.handle(), &descriptorInfo, descriptorSize, std::next(m_descriptorBuffer.data(), static_cast<size_t>(descriptorOffset))); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
-
-        // Update the invalidated range on the global descriptor heap.
-        device.updateGlobalDescriptors(parent, descriptorLayout.binding(), descriptor, 1u);
-
-        // Return the descriptor index directly, as we can't index into global descriptor memory in Vulkan.
-        return descriptor;
+        return static_cast<UInt32>(parent.globalHeapAllocation(DescriptorHeapType::Sampler).Allocation.Offset + descriptorOffset);
     }
 };
 
@@ -287,26 +104,34 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, Array<Byte>&& buffer) :
-    m_impl(layout, std::move(buffer))
+VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, Array<Byte>&& resourceHeap, Array<Byte>&& samplerHeap) :
+    m_impl(layout, std::move(resourceHeap), std::move(samplerHeap))
 {
-    m_impl->m_globalHeapAllocation = layout.device().allocateGlobalDescriptors(*this, DescriptorHeapType::Resource); // NOTE: Heap type does not matter for Vulkan backend.
+    if (!m_impl->m_resourceDescriptors.empty())
+        m_impl->m_resourceAllocation = layout.device().allocateGlobalDescriptors(*this, DescriptorHeapType::Resource);
+
+    if (!m_impl->m_samplerDescriptors.empty())
+        m_impl->m_samplerAllocation = layout.device().allocateGlobalDescriptors(*this, DescriptorHeapType::Sampler);
 }
 
 VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, UInt32 unboundedArraySize) :
     m_impl(layout, unboundedArraySize)
 {
-    m_impl->m_globalHeapAllocation = layout.device().allocateGlobalDescriptors(*this, DescriptorHeapType::Resource); // NOTE: Heap type does not matter for Vulkan backend.
+    if (!m_impl->m_resourceDescriptors.empty())
+        m_impl->m_resourceAllocation = layout.device().allocateGlobalDescriptors(*this, DescriptorHeapType::Resource);
+
+    if (!m_impl->m_samplerDescriptors.empty())
+        m_impl->m_samplerAllocation = layout.device().allocateGlobalDescriptors(*this, DescriptorHeapType::Sampler);
 }
 
 VulkanDescriptorSet::~VulkanDescriptorSet() noexcept
 {
     const auto& device = m_impl->m_layout->device();
-    device.releaseGlobalDescriptors(*this);
-
-    for (auto& imageView : m_impl->m_imageViews)
-        ::vkDestroyImageView(device.handle(), imageView.second, nullptr);
-
+    
+    // NOLINTBEGIN(performance-move-const-arg)
+    device.releaseGlobalDescriptors(std::move(m_impl->m_resourceAllocation));
+    device.releaseGlobalDescriptors(std::move(m_impl->m_samplerAllocation));
+    // NOLINTEND(performance-move-const-arg)
     m_impl->m_layout->free(*this);
 }
 
@@ -315,58 +140,53 @@ const VulkanDescriptorSetLayout& VulkanDescriptorSet::layout() const noexcept
     return *m_impl->m_layout;
 }
 
-Array<Byte>&& VulkanDescriptorSet::releaseBuffer() const noexcept
+Array<Byte>&& VulkanDescriptorSet::releaseBuffer(DescriptorHeapType heapType) const
 {
-    return std::move(m_impl->m_descriptorBuffer);
+    switch (heapType)
+    {
+    case DescriptorHeapType::Resource:
+        return std::move(m_impl->m_resourceDescriptors);
+    case DescriptorHeapType::Sampler:
+        return std::move(m_impl->m_samplerDescriptors);
+    default:
+        throw InvalidArgumentException("heapType", "The heap type must refer to a valid descriptor heap.");
+    }
 }
 
-Span<const Byte> VulkanDescriptorSet::descriptorBuffer() const noexcept
+Span<const Byte> VulkanDescriptorSet::descriptorBuffer(DescriptorHeapType heapType) const
 {
-    return m_impl->m_descriptorBuffer;
+    switch (heapType)
+    {
+    case DescriptorHeapType::Resource:
+        return m_impl->m_resourceDescriptors;
+    case DescriptorHeapType::Sampler:
+        return m_impl->m_samplerDescriptors;
+    default:
+        throw InvalidArgumentException("heapType", "The heap type must refer to a valid descriptor heap.");
+    }
 }
 
-VirtualAllocator::Allocation VulkanDescriptorSet::globalHeapAllocation(DescriptorHeapType /*heapType*/) const noexcept
+UInt32 VulkanDescriptorSet::capacity(UInt32 binding) const noexcept
 {
-    return m_impl->m_globalHeapAllocation;
+    auto range = m_impl->m_layout->allocationLayout().range(binding);
+
+    if (!range.has_value())
+        return 0u;
+
+    return range->Unbounded ? m_impl->m_unboundedArraySize : range->DescriptorCount;
 }
 
-UInt32 VulkanDescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const
+DescriptorHeapAllocation VulkanDescriptorSet::globalHeapAllocation(DescriptorHeapType heapType) const
 {
-    // Find the resource descriptor heap.
-    auto descriptors = m_impl->m_layout->descriptors();
-    auto descriptorLayout = std::ranges::find_if(descriptors, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ResourceDescriptorHeap; });
-
-    if (descriptorLayout == descriptors.end()) [[unlikely]]
-        throw RuntimeException("The descriptor set does not contain a resource heap descriptor.");
-
-    // Update the binding.
-    return m_impl->updateBinding(*this, (*descriptorLayout), bindingType, descriptor, buffer, bufferElement, elements, texelFormat);
-}
-
-UInt32 VulkanDescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
-{
-    // Find the resource descriptor heap.
-    auto descriptors = m_impl->m_layout->descriptors();
-    auto descriptorLayout = std::ranges::find_if(descriptors, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ResourceDescriptorHeap; });
-
-    if (descriptorLayout == descriptors.end()) [[unlikely]]
-        throw RuntimeException("The descriptor set does not contain a resource heap descriptor.");
-
-    // Update the binding.
-    return m_impl->updateBinding(*this, (*descriptorLayout), bindingType, descriptor, image, firstLevel, levels, firstLayer, layers);
-}
-
-UInt32 VulkanDescriptorSet::bindToHeap(UInt32 descriptor, const IVulkanSampler& sampler) const
-{
-    // Find the sampler descriptor heap.
-    auto descriptors = m_impl->m_layout->descriptors();
-    auto descriptorLayout = std::ranges::find_if(descriptors, [](const auto& layout) { return layout.descriptorType() == DescriptorType::SamplerDescriptorHeap; });
-
-    if (descriptorLayout == descriptors.end()) [[unlikely]]
-        throw RuntimeException("The descriptor set does not contain a sampler heap descriptor.");
-
-    // Update the binding.
-    return m_impl->updateBinding(*this, (*descriptorLayout), descriptor, sampler);
+    switch (heapType)
+    {
+    case DescriptorHeapType::Resource:
+        return m_impl->m_resourceAllocation;
+    case DescriptorHeapType::Sampler:
+        return m_impl->m_samplerAllocation;
+    default:
+        throw InvalidArgumentException("heapType", "The heap type must refer to a valid descriptor heap.");
+    }
 }
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat) const
@@ -419,10 +239,6 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, 
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStructure& accelerationStructure, UInt32 descriptor) const
 {
-    // Check if the acceleration structure has been initialized.
-    if (accelerationStructure.buffer() == nullptr || accelerationStructure.handle() == VK_NULL_HANDLE) [[unlikely]]
-        throw InvalidArgumentException("accelerationStructure", "The acceleration structure buffer has not yet been allocated.");
-
     auto layout = m_impl->m_layout;
     auto& device = layout->device();
 
@@ -441,29 +257,12 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStruct
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.", binding);
 
     // Check if all elements can be bound to a bounded array.
-    if (descriptorLayout->descriptors() <= descriptor) [[unlikely]]
-        throw ArgumentOutOfRangeException("descriptor", "The descriptor layout can only bind up to {0} descriptors at binding {3}, however the request was to bind {1} descriptors starting at {2}.", descriptorLayout->descriptors(), 1, descriptor, binding);
-
-    // Acquire the binding offset.
-    auto descriptorOffset = static_cast<VkDeviceSize>(layout->getDescriptorOffset(binding, descriptor));
-
-    // Offset to first array index. Arrays are tightly packed, so we simply add the descriptor size for each element.
-    size_t descriptorSize = device.descriptorSize(descriptorLayout->descriptorType());
+    if (descriptor >= this->capacity(binding)) [[unlikely]]
+        throw ArgumentOutOfRangeException("descriptor", "The descriptor layout can only bind up to {0} descriptors at binding {3}, however the request was to bind {1} descriptors starting at {2}.", this->capacity(binding), 1, descriptor, binding);
 
     // Setup the descriptor info.
-    VkAccelerationStructureDeviceAddressInfoKHR info {
-        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR,
-        .accelerationStructure = accelerationStructure.handle()
-    };
-
-    VkDescriptorGetInfoEXT descriptorInfo = { 
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT,
-        .type = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
-        .data = { .accelerationStructure = ::vkGetAccelerationStructureDeviceAddress(device.handle(), &info) }
-    };
-
-    // Create the descriptor in the descriptor buffer.
-    ::vkGetDescriptor(device.handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), static_cast<size_t>(descriptorOffset))); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
+    auto addressRange = m_impl->targetAddressRange(DescriptorHeapType::Resource, layout->getDescriptorOffset(binding, descriptor));
+    writeAccelerationStructureDescriptor(device, accelerationStructure, addressRange);
 
     // Update the invalidated range on the global descriptor heap.
     device.updateGlobalDescriptors(*this, binding, descriptor, 1u);

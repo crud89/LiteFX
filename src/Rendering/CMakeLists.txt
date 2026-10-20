@@ -18,6 +18,8 @@ SET(RENDERING_HEADERS
 SET(RENDERING_SOURCES
     "src/buffer_attribute.cpp"
     "src/depth_stencil_state.cpp"
+    "src/descriptor_allocation_layout.cpp"
+    "src/global_descriptor_heaps.cpp"
     "src/rasterizer.cpp"
     "src/viewport.cpp"
     "src/scissor.cpp"

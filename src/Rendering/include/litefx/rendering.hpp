@@ -113,7 +113,6 @@ namespace LiteFX::Rendering {
         std::derived_from<TAccelerationStructure, IAccelerationStructure>
     class DescriptorSet : public IDescriptorSet {
     public:
-        using IDescriptorSet::bindToHeap;
         using IDescriptorSet::update;
 
         using buffer_type = TBuffer;
@@ -132,15 +131,6 @@ namespace LiteFX::Rendering {
         ~DescriptorSet() noexcept override = default;
 
     public:
-        /// @copydoc IDescriptorSet::bindToHeap(DescriptorType, UInt32, const IBuffer&, UInt32, UInt32, Format)
-        virtual UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const buffer_type& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const = 0;
-
-        /// @copydoc IDescriptorSet::bindToHeap(DescriptorType, UInt32, const IImage&, UInt32, UInt32, Format)
-        virtual UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const image_type& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const = 0;
-
-        /// @copydoc IDescriptorSet::bindToHeap(UInt32, const ISampler&)
-        virtual UInt32 bindToHeap(UInt32 descriptor, const sampler_type& sampler) const = 0;
-
         /// @copydoc IDescriptorSet::update(UInt32, const IBuffer&, UInt32, UInt32, UInt32, Format)
         virtual void update(UInt32 binding, const buffer_type& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None) const = 0;
 
@@ -154,18 +144,6 @@ namespace LiteFX::Rendering {
         virtual void update(UInt32 binding, const acceleration_structure_type& accelerationStructure, UInt32 descriptor = 0) const = 0;
 
     private:
-        UInt32 doBind(DescriptorType bindingType, UInt32 descriptor, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const override {
-            return this->bindToHeap(bindingType, descriptor, dynamic_cast<const buffer_type&>(buffer), bufferElement, elements, texelFormat);
-        }
-
-        UInt32 doBind(DescriptorType bindingType, UInt32 descriptor, const IImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const override {
-            return this->bindToHeap(bindingType, descriptor, dynamic_cast<const image_type&>(image), firstLevel, levels, firstLayer, layers);
-        }
-
-        UInt32 doBind(UInt32 descriptor, const ISampler& sampler) const override {
-            return this->bindToHeap(descriptor, dynamic_cast<const sampler_type&>(sampler));
-        }
-
         void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat) const override {
             this->update(binding, dynamic_cast<const buffer_type&>(buffer), bufferElement, elements, firstDescriptor, texelFormat);
         }
@@ -221,89 +199,151 @@ namespace LiteFX::Rendering {
         const descriptor_layout_type& descriptor(UInt32 binding) const override = 0;
 
         /// @copydoc IDescriptorSetLayout::allocate(std::initializer_list<DescriptorBinding>)
-        virtual inline UniquePtr<descriptor_set_type> allocate(std::initializer_list<DescriptorBinding> bindings = { }) const {
+        inline UniquePtr<descriptor_set_type> allocate(std::initializer_list<DescriptorBinding> bindings = { }) const {
             return this->allocate(0, bindings);
         }
 
         /// @copydoc IDescriptorSetLayout::allocate(Span<DescriptorBinding>)
-        virtual inline UniquePtr<descriptor_set_type> allocate(Span<DescriptorBinding> bindings) const {
+        inline UniquePtr<descriptor_set_type> allocate(Span<DescriptorBinding> bindings) const {
             return this->allocate(0, bindings);
         }
 
         /// @copydoc IDescriptorSetLayout::allocate(Generator<DescriptorBinding>)
-        virtual inline UniquePtr<descriptor_set_type> allocate(Generator<DescriptorBinding> bindings) const {
+        inline UniquePtr<descriptor_set_type> allocate(Generator<DescriptorBinding> bindings) const {
             return this->allocate(0, std::move(bindings));
         }
 
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, std::initializer_list<DescriptorBinding>)
-        virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const = 0;
+        inline UniquePtr<descriptor_set_type> allocate(UInt32 unboundedArraySize, std::initializer_list<DescriptorBinding> bindings) const {
+            return this->allocateWithBindings(unboundedArraySize, bindings);
+        }
 
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, Span<DescriptorBinding>)
-        virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, Span<DescriptorBinding> bindings) const = 0;
+        inline UniquePtr<descriptor_set_type> allocate(UInt32 unboundedArraySize, Span<DescriptorBinding> bindings) const {
+            return this->allocateWithBindings(unboundedArraySize, bindings);
+        }
 
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, Generator<DescriptorBinding>)
-        virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, Generator<DescriptorBinding> bindings) const = 0;
+        inline UniquePtr<descriptor_set_type> allocate(UInt32 unboundedArraySize, Generator<DescriptorBinding> bindings) const {
+            return this->allocateWithBindings(unboundedArraySize, std::move(bindings));
+        }
 
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, std::initializer_list<std::initializer_list<DescriptorBinding>>)
-        virtual inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
+        inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
             return this->allocate(descriptorSets, 0, bindings);
         }
 
 #ifdef __cpp_lib_mdspan
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>>)
-        virtual inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
+        inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
             return this->allocate(descriptorSets, 0, bindings);
         }
 #endif
 
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, std::function<Generator<DescriptorBinding>(UInt32)>)
-        virtual inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::function<Generator<DescriptorBinding>(UInt32)> bindings) const {
+        inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::function<Generator<DescriptorBinding>(UInt32)> bindings) const {
             return this->allocate(descriptorSets, 0, std::move(bindings));
         }
 
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, UInt32, std::initializer_list<std::initializer_list<DescriptorBinding>>)
-        virtual Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const = 0;
+        inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
+            return this->allocateSets(descriptorSets, unboundedArraySize, bindings
+                | std::views::transform([](const auto& setBindings) { return Array<DescriptorBinding>(setBindings); })
+                | std::ranges::to<Array<Array<DescriptorBinding>>>());
+        }
 
 #ifdef __cpp_lib_mdspan
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, UInt32, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>>)
-        virtual Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const = 0;
+        Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
+            auto self = this->shared_from_this();
+
+            // TODO: With C++26 we can use submdspan here. Rows are contiguous, since `layout_right` is the default layout of the mdspan.
+            for (size_t i{ 0 }; i < static_cast<size_t>(descriptorSets); ++i)
+                co_yield i < bindings.extent(0) ?
+                this->allocateWithBindings(unboundedArraySize, Span<DescriptorBinding>{ bindings.data_handle() + i * bindings.extent(1), bindings.extent(1) }) : // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+                this->allocateDescriptorSet(unboundedArraySize);
+        }
 #endif
 
         /// @copydoc IDescriptorSetLayout::allocate(UInt32, UInt32, std::function<Generator<DescriptorBinding>(UInt32)>)
-        virtual Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
+        Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const {
+            auto self = this->shared_from_this();
+
+            for (UInt32 i{ 0 }; i < descriptorSets; ++i)
+                co_yield this->allocateWithBindings(unboundedArraySize, bindingFactory(i));
+        }
 
         /// @copydoc IDescriptorSetLayout::free(const IDescriptorSet&)
         virtual void free(const descriptor_set_type& descriptorSet) const = 0;
 
     private:
+        /// @brief Allocates a descriptor set from the layout. The implementation must be thread-safe.
+        ///
+        /// @param unboundedArraySize The number of descriptors in the unbounded array, if the layout contains one.
+        virtual UniquePtr<descriptor_set_type> allocateDescriptorSet(UInt32 unboundedArraySize) const = 0;
+
+        template <typename TBindings>
+        inline UniquePtr<descriptor_set_type> allocateWithBindings(UInt32 unboundedArraySize, TBindings&& bindings) const {
+            auto descriptorSet = this->allocateDescriptorSet(unboundedArraySize);
+
+            for (UInt32 i{ 0 }; const DescriptorBinding& binding : std::forward<TBindings>(bindings))
+            {
+                std::visit(type_switch {
+                    [](const std::monostate&) {}, // Default: don't bind anything.
+                    [&](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
+                    [&](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
+                    [&](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
+                    [&](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
+                }, binding.resource);
+
+                ++i;
+            }
+
+            return descriptorSet;
+        }
+
+        Generator<UniquePtr<descriptor_set_type>> allocateSets(UInt32 descriptorSets, UInt32 unboundedArraySize, Array<Array<DescriptorBinding>> bindings) const {
+            auto self = this->shared_from_this();
+
+            for (size_t i{ 0 }; i < static_cast<size_t>(descriptorSets); ++i)
+                co_yield i < bindings.size() ? this->allocateWithBindings(unboundedArraySize, bindings[i]) : this->allocateDescriptorSet(unboundedArraySize); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+        }
+
+    private:
+        /// @brief Upcasts a range of descriptor set pointers to @ref IDescriptorSet.
+        static constexpr auto upcast = [](Generator<UniquePtr<descriptor_set_type>> descriptorSets) static -> Generator<UniquePtr<IDescriptorSet>> {
+            for (auto&& descriptorSet : descriptorSets)
+                co_yield std::move(descriptorSet);
+        };
+
         inline Enumerable<const IDescriptorLayout&> getDescriptors() const noexcept override {
             return this->descriptors();
         }
 
-        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const override {
-            return this->allocate(descriptors, bindings);
+        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, std::initializer_list<DescriptorBinding> bindings) const override {
+            return this->allocate(unboundedArraySize, bindings);
         }
 
-        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Span<DescriptorBinding> bindings) const override {
-            return this->allocate(descriptors, bindings);
+        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, Span<DescriptorBinding> bindings) const override {
+            return this->allocate(unboundedArraySize, bindings);
         }
 
-        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Generator<DescriptorBinding> bindings) const override {
-            return this->allocate(descriptors, std::move(bindings));
+        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, Generator<DescriptorBinding> bindings) const override {
+            return this->allocate(unboundedArraySize, std::move(bindings));
         }
 
-        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings) const override {
-            co_yield std::ranges::elements_of(this->allocate(descriptorSets, descriptors, bindings) | std::views::transform([](auto set) -> UniquePtr<IDescriptorSet> { return set; }));
+        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings) const override {
+            return upcast(this->allocate(descriptorSets, unboundedArraySize, bindings));
         }
 
 #ifdef __cpp_lib_mdspan
-        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const override {
-            co_yield std::ranges::elements_of(this->allocate(descriptorSets, descriptors, bindings) | std::views::transform([](auto set) -> UniquePtr<IDescriptorSet> { return set; }));
+        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const override {
+            return upcast(this->allocate(descriptorSets, unboundedArraySize, bindings));
         }
 #endif
 
-        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const override {
-            co_yield std::ranges::elements_of(this->allocate(descriptorSets, descriptors, std::move(bindingFactory)) | std::views::transform([](auto set) -> UniquePtr<IDescriptorSet> { return set; }));
+        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const override {
+            return upcast(this->allocate(descriptorSets, unboundedArraySize, std::move(bindingFactory)));
         }
 
         inline void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const override {
@@ -1459,11 +1499,12 @@ namespace LiteFX::Rendering {
     /// @tparam TSwapChain The type of the swap chain. Must implement @ref SwapChain.
     /// @tparam TCommandQueue The type of the command queue. Must implement @ref CommandQueue.
     /// @tparam TRenderPass The type of the render pass. Must implement @ref RenderPass.
+    /// @tparam TDescriptorRange The type of the descriptor range. Must implement @ref IDescriptorRange.
     /// @tparam TRenderPipeline The type of the render pipeline. Must implement @ref RenderPipeline.
     /// @tparam TComputePipeline The type of the compute pipeline. Must implement @ref ComputePipeline.
     /// @tparam TRayTracingPipeline The type of the ray-tracing pipeline. Must implement @ref RayTracingPipeline.
     /// @tparam TBarrier The type of the memory barrier. Must implement @ref Barrier.
-    template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TRenderPipeline, typename TComputePipeline, typename TRayTracingPipeline, typename TBarrier> requires
+    template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TDescriptorRange, typename TRenderPipeline, typename TComputePipeline, typename TRayTracingPipeline, typename TBarrier> requires
         meta::implements<TSurface, ISurface> &&
         meta::implements<TGraphicsAdapter, IGraphicsAdapter> &&
         meta::implements<TSwapChain, SwapChain<typename TFactory::image_type>> &&
@@ -1473,7 +1514,8 @@ namespace LiteFX::Rendering {
         meta::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>> &&
         meta::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>> &&
         meta::implements<TRayTracingPipeline, RayTracingPipeline<typename TRayTracingPipeline::pipeline_layout_type, typename TRayTracingPipeline::shader_program_type>> &&
-        meta::implements<TBarrier, Barrier<typename TFactory::buffer_type, typename TFactory::image_type>>
+        meta::implements<TBarrier, Barrier<typename TFactory::buffer_type, typename TFactory::image_type>> &&
+        meta::implements<TDescriptorRange, IDescriptorRange>
     class GraphicsDevice : public IGraphicsDevice {
     public:
         using surface_type = TSurface;
@@ -1502,6 +1544,7 @@ namespace LiteFX::Rendering {
         using shader_program_type = render_pipeline_type::shader_program_type;
         using input_assembler_type = render_pipeline_type::input_assembler_type;
         using rasterizer_type = render_pipeline_type::rasterizer_type;
+        using descriptor_range_type = TDescriptorRange;
 
     protected:
         GraphicsDevice() noexcept = default;
@@ -1575,6 +1618,24 @@ namespace LiteFX::Rendering {
             return std::static_pointer_cast<const ICommandQueue>(this->createQueue(type, priority));
         }
 
+        /// @brief Copies the local descriptors of @p descriptorSet into the global descriptor heap @p heap.
+        /// 
+        /// @param descriptorSet The descriptor set for which to copy the descriptors.
+        /// @param heap The heap that receives the descriptors.
+        /// @param targetIndex The index of the first descriptor on the global descriptor heap.
+        /// @param sourceIndex The index of the first descriptor in the descriptor set's local descriptor heap.
+        /// @param descriptors The number of descriptors to copy.
+        virtual void copyDescriptors(const descriptor_set_type& descriptorSet, DescriptorHeapType heap, UInt32 targetIndex, UInt32 sourceIndex, UInt32 descriptors) const = 0;
+
+        /// @brief Makes the descriptors contained by @p descriptorSet on @p heap available to @p pipeline
+        /// 
+        /// @param commandBuffer The command buffer on which @p pipeline is bound.
+        /// @param pipeline The pipeline for which to make the descriptors available.
+        /// @param descriptorSet The descriptor set that should be bound.
+        /// @param heap The heap that binds the descriptors.
+        /// @param baseIndex The index of the first descriptor to bind.
+        virtual void bindDescriptors(const command_buffer_type& commandBuffer, const pipeline_type& pipeline, const descriptor_set_type& descriptorSet, DescriptorHeapType heap, UInt32 baseIndex) const = 0;
+
     public:
         /// @copydoc IGraphicsDevice::computeAccelerationStructureSizes(const IBottomLevelAccelerationStructure&, UInt64&, UInt64&, bool)
         virtual void computeAccelerationStructureSizes(const bottom_level_acceleration_structure_type& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const = 0;
@@ -1583,19 +1644,39 @@ namespace LiteFX::Rendering {
         virtual void computeAccelerationStructureSizes(const top_level_acceleration_structure_type& tlas, UInt64 & bufferSize, UInt64 & scratchSize, bool forUpdate = false) const = 0;
 
         /// @copydoc IGraphicsDevice::allocateGlobalDescriptors(const IDescriptorSet&, DescriptorHeapType)
-        [[nodiscard]] virtual VirtualAllocator::Allocation allocateGlobalDescriptors(const descriptor_set_type& descriptorSet, DescriptorHeapType heapType) const = 0;
+        [[nodiscard]] virtual DescriptorHeapAllocation allocateGlobalDescriptors(const descriptor_set_type& descriptorSet, DescriptorHeapType heapType) const = 0;
 
-        /// @copydoc IGraphicsDevice::releaseGlobalDescriptors(const IDescriptorSet&)
-        virtual void releaseGlobalDescriptors(const descriptor_set_type& descriptorSet) const = 0;
-
-        /// @copydoc IGraphicsDevice::updateGlobalDescriptors(const IDescriptorSet&, UInt32, UInt32, UInt32)
-        virtual void updateGlobalDescriptors(const descriptor_set_type& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const = 0;
-
-        /// @copydoc IGraphicsDevice::bindDescriptorSet(const ICommandBuffer&, const IDescriptorSet&, const IPipeline&)
-        virtual void bindDescriptorSet(const command_buffer_type& commandBuffer, const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const = 0;
+        /// @copydoc IGraphicsDevice::allocateGlobalDescriptors(DescriptorHeapType, UInt32)
+        [[nodiscard]] virtual UniquePtr<descriptor_range_type> allocateGlobalDescriptors(DescriptorHeapType heapType, UInt32 descriptors) const = 0;
 
         /// @copydoc IGraphicsDevice::bindGlobalDescriptorHeaps(const ICommandBuffer&)
-        virtual void bindGlobalDescriptorHeaps(const command_buffer_type& commandBuffer) const noexcept = 0;
+        virtual void bindGlobalDescriptorHeaps(const command_buffer_type& commandBuffer) const = 0;
+
+        /// @copydoc IGraphicsDevice::updateGlobalDescriptors(const IDescriptorSet&, UInt32, UInt32, UInt32)
+        void updateGlobalDescriptors(const descriptor_set_type& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const {
+            // Obtain the allocation range.
+            auto range = descriptorSet.layout().allocationLayout().range(binding);
+
+            // Check if a range exists for the binding. If it doesn't, it's not a failure, since it could very well refer to a static sampler.
+            if (!range.has_value())
+                return;
+
+            // Obtain the source and target descriptor indices.
+            const auto sourceIndex = range->RelativeOffset + offset;
+            const auto targetIndex = static_cast<UInt32>(descriptorSet.globalHeapAllocation(range->Heap).Allocation.Offset) + sourceIndex;
+
+            // Copy the descriptors.
+            this->copyDescriptors(descriptorSet, range->Heap, targetIndex, sourceIndex, descriptors);
+        }
+
+        /// @copydoc IGraphicsDevice::bindDescriptorSet(const ICommandBuffer&, const IDescriptorSet&, const IPipeline&)
+        void bindDescriptorSet(const command_buffer_type& commandBuffer, const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const {
+            const auto& layout = descriptorSet.layout();
+
+            for (auto heap : { DescriptorHeapType::Resource, DescriptorHeapType::Sampler })
+                if (layout.allocationLayout().binds(heap))
+                    this->bindDescriptors(commandBuffer, pipeline, descriptorSet, heap, static_cast<UInt32>(descriptorSet.globalHeapAllocation(heap).Allocation.Offset));
+        }
 
     private:
         inline void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const override {
@@ -1606,12 +1687,12 @@ namespace LiteFX::Rendering {
             this->computeAccelerationStructureSizes(dynamic_cast<const top_level_acceleration_structure_type&>(tlas), bufferSize, scratchSize, forUpdate);
         }
         
-        inline VirtualAllocator::Allocation doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const override {
+        inline DescriptorHeapAllocation doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const override {
             return this->allocateGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet), heapType);
         }
 
-        inline void doReleaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const override {
-            this->releaseGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet));
+        inline UniquePtr<IDescriptorRange> getDescriptorRange(DescriptorHeapType heapType, UInt32 descriptors) const override {
+            return this->allocateGlobalDescriptors(heapType, descriptors);
         }
 
         inline void doUpdateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const override {
@@ -1622,7 +1703,7 @@ namespace LiteFX::Rendering {
             this->bindDescriptorSet(dynamic_cast<const command_buffer_type&>(commandBuffer), dynamic_cast<const descriptor_set_type&>(descriptorSet), dynamic_cast<const pipeline_type&>(pipeline));
         }
 
-        inline void doBindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept override {
+        inline void doBindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const override {
             this->bindGlobalDescriptorHeaps(dynamic_cast<const command_buffer_type&>(commandBuffer));
         }
 
@@ -1717,7 +1798,7 @@ namespace LiteFX::Rendering {
     ///
     /// @tparam TGraphicsDevice The type of the graphics device. Must implement @ref GraphicsDevice.
     template <typename TGraphicsDevice> requires
-        meta::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::render_pipeline_type, typename TGraphicsDevice::compute_pipeline_type, typename TGraphicsDevice::ray_tracing_pipeline_type, typename TGraphicsDevice::barrier_type>>
+        meta::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::descriptor_range_type, typename TGraphicsDevice::render_pipeline_type, typename TGraphicsDevice::compute_pipeline_type, typename TGraphicsDevice::ray_tracing_pipeline_type, typename TGraphicsDevice::barrier_type>>
     class RenderBackend : public IRenderBackend {
     public:
         using device_type = TGraphicsDevice;

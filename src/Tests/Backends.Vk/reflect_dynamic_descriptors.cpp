@@ -62,7 +62,7 @@ void TestApp::onInit()
         UniquePtr<VulkanRenderPipeline> renderPipeline = _device->buildRenderPipeline(*renderPass, "Geometry")
             .inputAssembler(inputAssembler)
             .rasterizer(rasterizer)
-            .layout(shaderProgram->reflectPipelineLayout(std::array{ PipelineBindingHint::resourceHeap(0u, 0u, 10'000u), PipelineBindingHint::samplerHeap(0u, 1u, 1'000u) }))
+            .layout(shaderProgram->reflectPipelineLayout())
             .shaderProgram(shaderProgram);
 
         // Validate render pipeline.
@@ -80,50 +80,22 @@ void TestApp::onInit()
         if (layout->pushConstants() != nullptr && layout->pushConstants()->size() != 0)
             LITEFX_TEST_FAIL("layout->pushConstants() != nullptr && layout->pushConstants()->size() != 0");
 
+        if (!layout->dynamicResourceHeapAccess())
+            LITEFX_TEST_FAIL("!layout->dynamicResourceHeapAccess()");
+
+        if (!layout->dynamicSamplerHeapAccess())
+            LITEFX_TEST_FAIL("!layout->dynamicSamplerHeapAccess()");
+
         auto descriptorSets = layout->descriptorSets() | std::ranges::to<std::vector>();
 
-        if (descriptorSets.size() != 3)
-            LITEFX_TEST_FAIL("descriptorSets.size() != 3");
+        if (descriptorSets.size() != 2)
+            LITEFX_TEST_FAIL("descriptorSets.size() != 2");
 
         {
-            if (descriptorSets[0]->space() != 0)
-                LITEFX_TEST_FAIL("descriptorSets[0]->space() != 0");
-
-            if (!descriptorSets[0]->bindsSamplers())
-                LITEFX_TEST_FAIL("!descriptorSets[0]->bindsSamplers()");
-
-            if (!descriptorSets[0]->bindsResources())
-                LITEFX_TEST_FAIL("!descriptorSets[0]->bindsResources()");
+            if (descriptorSets[0]->space() != 1)
+                LITEFX_TEST_FAIL("descriptorSets[0]->space() != 1");
 
             auto descriptors = descriptorSets[0]->descriptors() | std::ranges::to<std::vector>();
-
-            if (descriptors.size() != 2)
-                LITEFX_TEST_FAIL("descriptors.size() != 2");
-
-            if (descriptors[0].binding() != 0)
-                LITEFX_TEST_FAIL("descriptors[0]->binding() != 0");
-
-            if (descriptors[0].descriptorType() != DescriptorType::ResourceDescriptorHeap)
-                LITEFX_TEST_FAIL("descriptors[0]->descriptorType() != DescriptorType::ResourceDescriptorHeap");
-
-            if (descriptors[0].descriptors() != 10'000u)
-                LITEFX_TEST_FAIL("descriptors[0].descriptors() != 10'000u");
-
-            if (descriptors[1].binding() != 1)
-                LITEFX_TEST_FAIL("descriptors[1]->binding() != 1");
-
-            if (descriptors[1].descriptorType() != DescriptorType::SamplerDescriptorHeap)
-                LITEFX_TEST_FAIL("descriptors[1]->descriptorType() != DescriptorType::SamplerDescriptorHeap");
-
-            if (descriptors[1].descriptors() != 1'000u)
-                LITEFX_TEST_FAIL("descriptors[1].descriptors() != 1'000u");
-        }
-
-        {
-            if (descriptorSets[1]->space() != 1)
-                LITEFX_TEST_FAIL("descriptorSets[1]->space() != 1");
-
-            auto descriptors = descriptorSets[1]->descriptors() | std::ranges::to<std::vector>();
 
             if (descriptors.size() != 1)
                 LITEFX_TEST_FAIL("descriptors.size() != 1");
@@ -136,10 +108,10 @@ void TestApp::onInit()
         }
 
         {
-            if (descriptorSets[2]->space() != 2)
-                LITEFX_TEST_FAIL("descriptorSets[2]->space() != 2");
+            if (descriptorSets[1]->space() != 2)
+                LITEFX_TEST_FAIL("descriptorSets[1]->space() != 2");
 
-            auto descriptors = descriptorSets[2]->descriptors() | std::ranges::to<std::vector>();
+            auto descriptors = descriptorSets[1]->descriptors() | std::ranges::to<std::vector>();
 
             if (descriptors.size() != 1)
                 LITEFX_TEST_FAIL("descriptors.size() != 1");

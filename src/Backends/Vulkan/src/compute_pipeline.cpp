@@ -41,15 +41,20 @@ public:
 			throw RuntimeException("Only one shader module must be bound to a compute pipeline.");
 
 		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules 
-			| std::views::transform([](const auto& shaderModule) { return shaderModule->shaderStageDefinition(); }) 
+			| std::views::transform([this](const auto& shaderModule) { return shaderModule->shaderStageDefinition(&m_layout->mappingInfo()); }) 
 			| std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
 		// Setup pipeline state.
+		VkPipelineCreateFlags2CreateInfo pipelineFlags {
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO,
+			.flags = VK_PIPELINE_CREATE_2_DESCRIPTOR_HEAP_BIT_EXT
+		};
+
 		VkComputePipelineCreateInfo pipelineInfo = {
 			.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
-			.flags = VK_PIPELINE_CREATE_DESCRIPTOR_BUFFER_BIT_EXT,
+			.pNext = &pipelineFlags,
 			.stage = shaderStages.front(),
-			.layout = std::as_const(*m_layout.get()).handle()
+			.layout = VK_NULL_HANDLE
 		};
 
 		VkPipeline pipeline{};

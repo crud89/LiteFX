@@ -57,8 +57,10 @@ To build applications with LiteFX, you need:
 - **Windows 10 or 11** (64-bit).
 - **A C++23 compiler:** Visual C++ from Visual Studio 2022 or newer, or Clang/clang-cl.
 - **CMake 3.23 or newer** and **vcpkg**. Both are part of the *Desktop development with C++* workload of Visual Studio.
-- **A GPU with driver support** for Vulkan 1.3 and/or DirectX 12.
-- **The [Vulkan SDK](https://vulkan.lunarg.com/sdk/home)** (only required to target Vulkan).
+- **A GPU with driver support** for Vulkan 1.4 and/or DirectX 12. The Vulkan backend also requires the `VK_EXT_descriptor_heap` and
+  `VK_KHR_unified_image_layouts` extensions, which need recent drivers.
+- **A recent [Vulkan SDK](https://vulkan.lunarg.com/sdk/home)** (only required to target Vulkan), whose validation layers support the
+  extensions above.
 
 ## Starting points
 
