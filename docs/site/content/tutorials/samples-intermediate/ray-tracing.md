@@ -73,6 +73,22 @@ SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
     .withMissShaderModule("shaders/raytracing_miss." + FileExtensions<TRenderBackend>::SHADER);
 ```
 
+The second argument of `withClosestHitShaderModule` marks one binding of the hit shader as *shader-local*. Its data does not come from a
+descriptor set, but from the shader record of the geometry that was hit. In the shader, it is declared like any other constant buffer, at
+the binding point passed above:
+
+```hlsl
+struct GeometryData
+{
+    uint Index;
+    uint Reflective;
+};
+
+ConstantBuffer<GeometryData> geometryProperties : register(b0, space3);
+```
+
+No backend-specific attribute is needed: the engine maps the binding to the shader record data in both backends.
+
 Which shader runs for which geometry is decided by the *shader record collection*. Each record can carry its own data, which is how the two
 instances get different properties without a buffer:
 

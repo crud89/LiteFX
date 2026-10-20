@@ -38,7 +38,7 @@ against them and appends the surviving ones to the command buffer:
 ```hlsl
 ConstantBuffer<Camera>                  camera       : register(b0, space0);
 StructuredBuffer<Object>                objects      : register(t0, space1);
-globallycoherent RWByteAddressBuffer    drawCounter  : register(u0, space2);
+RWByteAddressBuffer                     drawCounter  : register(u0, space2);
 RWStructuredBuffer<IndirectDrawCommand> drawCommands : register(u1, space2);
 
 [numthreads(128, 1, 1)]
@@ -54,7 +54,7 @@ void main(uint3 id : SV_DispatchThreadID)
     if (!culled)
     {
         uint index;
-        drawCounter.InterlockedAdd(0, 1, index);
+        drawCounter.InterlockedAdd(0, 1, index); // Atomic accesses are implicitly globally coherent.
 
         drawCommands[index].IndexCount = object.IndexCount;
         drawCommands[index].InstanceCount = 1;
@@ -65,7 +65,8 @@ void main(uint3 id : SV_DispatchThreadID)
 ```
 
 `InterlockedAdd` reserves a slot in the buffer for each visible object. It is what makes the append work even though thousands of threads run
-at the same time, and `globallycoherent` makes the counter visible across all thread groups.
+at the same time. Atomic operations are always visible across all thread groups, so the counter does not need to be declared
+`globallycoherent`.
 
 The pass is dispatched like any other compute workload, with one thread per object:
 
