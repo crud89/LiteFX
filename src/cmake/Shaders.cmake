@@ -308,7 +308,7 @@ FUNCTION(ADD_SHADER_MODULE module_name)
 
       # Keep in sync with `VulkanPipelineLayout::DESCRIPTOR_HEAP_SPACE`.
       # TODO: Remove once DXC's native descriptor heap lowering (-fspv-use-descriptor-heap) is used.
-      LIST(APPEND command -fvk-bind-resource-heap 0 31 -fvk-bind-sampler-heap 1 31)
+      LIST(APPEND command -fvk-bind-resource-heap 0 31 -fvk-bind-sampler-heap 1 31 -fvk-bind-counter-heap 2 31)
 
       IF(invert_y)
         LIST(APPEND command -fvk-invert-y)
