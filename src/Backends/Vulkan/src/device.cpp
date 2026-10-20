@@ -842,10 +842,10 @@ void VulkanDevice::writeGlobalDescriptorHeap(DescriptorHeapType heapType, UInt32
 
 void VulkanDevice::releaseGlobalDescriptors(DescriptorHeapAllocation&& allocation) const
 {
-    m_impl->m_descriptorHeaps->release(std::move(allocation));
+    m_impl->m_descriptorHeaps->release(std::move(allocation)); // NOLINT(performance-move-const-arg)
 }
 
-void VulkanDevice::bindGlobalDescriptorHeaps(const VulkanCommandBuffer& commandBuffer) const noexcept
+void VulkanDevice::bindGlobalDescriptorHeaps(const VulkanCommandBuffer& commandBuffer) const
 {
     VkBindHeapInfoEXT resourceHeap {
         .sType = VK_STRUCTURE_TYPE_BIND_HEAP_INFO_EXT,

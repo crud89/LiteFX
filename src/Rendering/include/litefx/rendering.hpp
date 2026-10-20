@@ -286,7 +286,7 @@ namespace LiteFX::Rendering {
         inline UniquePtr<descriptor_set_type> allocateWithBindings(UInt32 unboundedArraySize, TBindings&& bindings) const {
             auto descriptorSet = this->allocateDescriptorSet(unboundedArraySize);
 
-            for (UInt32 i{ 0 }; const DescriptorBinding& binding : bindings)
+            for (UInt32 i{ 0 }; const DescriptorBinding& binding : std::forward<TBindings>(bindings))
             {
                 std::visit(type_switch {
                     [](const std::monostate&) {}, // Default: don't bind anything.
@@ -306,7 +306,7 @@ namespace LiteFX::Rendering {
             auto self = this->shared_from_this();
 
             for (size_t i{ 0 }; i < static_cast<size_t>(descriptorSets); ++i)
-                co_yield i < bindings.size() ? this->allocateWithBindings(unboundedArraySize, bindings[i]) : this->allocateDescriptorSet(unboundedArraySize);
+                co_yield i < bindings.size() ? this->allocateWithBindings(unboundedArraySize, bindings[i]) : this->allocateDescriptorSet(unboundedArraySize); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         }
 
     private:
@@ -1650,7 +1650,7 @@ namespace LiteFX::Rendering {
         [[nodiscard]] virtual UniquePtr<descriptor_range_type> allocateGlobalDescriptors(DescriptorHeapType heapType, UInt32 descriptors) const = 0;
 
         /// @copydoc IGraphicsDevice::bindGlobalDescriptorHeaps(const ICommandBuffer&)
-        virtual void bindGlobalDescriptorHeaps(const command_buffer_type& commandBuffer) const noexcept = 0;
+        virtual void bindGlobalDescriptorHeaps(const command_buffer_type& commandBuffer) const = 0;
 
         /// @copydoc IGraphicsDevice::updateGlobalDescriptors(const IDescriptorSet&, UInt32, UInt32, UInt32)
         void updateGlobalDescriptors(const descriptor_set_type& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const {
@@ -1703,7 +1703,7 @@ namespace LiteFX::Rendering {
             this->bindDescriptorSet(dynamic_cast<const command_buffer_type&>(commandBuffer), dynamic_cast<const descriptor_set_type&>(descriptorSet), dynamic_cast<const pipeline_type&>(pipeline));
         }
 
-        inline void doBindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept override {
+        inline void doBindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const override {
             this->bindGlobalDescriptorHeaps(dynamic_cast<const command_buffer_type&>(commandBuffer));
         }
 

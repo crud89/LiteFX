@@ -5382,6 +5382,13 @@ namespace LiteFX::Rendering {
     ///
     /// The range releases its descriptors when destroyed. The caller must ensure that the GPU no longer accesses the range at this point.
     class LITEFX_RENDERING_API IDescriptorRange {
+    protected:
+        IDescriptorRange() = default;
+        IDescriptorRange(const IDescriptorRange&) = delete;
+        IDescriptorRange(IDescriptorRange&&) noexcept = default;
+        IDescriptorRange& operator=(const IDescriptorRange&) = delete;
+        IDescriptorRange& operator=(IDescriptorRange&&) noexcept = default;
+
     public:
         virtual ~IDescriptorRange() noexcept = default;
 
@@ -6086,7 +6093,7 @@ namespace LiteFX::Rendering {
         /// @see @ref PipelineBindingHint
         /// @see https://github.com/crud89/LiteFX/wiki/Shader-Development
         inline SharedPtr<IPipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints = {}) const {
-            return this->parsePipelineLayout(hints);
+            return this->parsePipelineLayout(std::move(hints));
         };
 
         /// @brief Builds a shader record collection based on the current shader program.
@@ -9362,7 +9369,7 @@ namespace LiteFX::Rendering {
         /// @brief Binds the global descriptor heap.
         ///
         /// @param commandBuffer The command buffer to issue the bind command on.
-        inline void bindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept {
+        inline void bindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const {
             this->doBindGlobalDescriptorHeaps(commandBuffer);
         }
 
@@ -9373,7 +9380,7 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IDescriptorRange> getDescriptorRange(DescriptorHeapType heapType, UInt32 descriptors) const = 0;
         virtual void doUpdateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const = 0;
         virtual void doBindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const = 0;
-        virtual void doBindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept = 0;
+        virtual void doBindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const = 0;
 
     public:
         /// @brief Waits until all queues allocated from the device have finished the work issued prior to this point.

@@ -77,7 +77,7 @@ void GlobalDescriptorHeaps::release(DescriptorHeapAllocation&& allocation)
     auto& target = m_impl->heap(allocation.Heap);
 
     std::lock_guard<std::mutex> lock(target.Mutex);
-    target.Allocator->free(std::move(allocation.Allocation));
+    target.Allocator->free(std::move(allocation.Allocation)); // NOLINT(performance-move-const-arg)
 }
 
 UInt32 GlobalDescriptorHeaps::capacity(DescriptorHeapType heap) const

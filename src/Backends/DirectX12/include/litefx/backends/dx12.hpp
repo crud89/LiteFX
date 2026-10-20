@@ -2572,7 +2572,7 @@ namespace LiteFX::Rendering::Backends {
         [[nodiscard]] UniquePtr<DirectX12DescriptorRange> allocateGlobalDescriptors(DescriptorHeapType heapType, UInt32 descriptors) const override;
 
         /// @copydoc GraphicsDevice::bindGlobalDescriptorHeaps
-        void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept override;
+        void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const override;
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:

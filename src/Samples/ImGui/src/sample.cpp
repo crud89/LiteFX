@@ -293,9 +293,8 @@ void SampleApp::onInit()
                 ImGui_ImplGlfw_NewFrame();
             };
 
-            m_endUiCallback = [this](const ICommandBuffer& commandBuffer) {
-                auto& commands = dynamic_cast<const DirectX12CommandBuffer&>(commandBuffer);
-                ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commands.handle().Get());
+            m_endUiCallback = [/*this*/](const ICommandBuffer& commandBuffer) {
+                ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dynamic_cast<const DirectX12CommandBuffer&>(commandBuffer).handle().Get());
 
                 // ImGui binds its own descriptor heaps, which invalidates our descriptor heap bindings. This is harmless, because we do  not render anything beyond that 
                 // point. If you render anything after the UI, you need to re-bind the global descriptor heaps. Consider this an expensive operation and prefer rendering 
@@ -353,7 +352,7 @@ void SampleApp::onInit()
                 ImGui_ImplGlfw_NewFrame();
             };
 
-            m_endUiCallback = [this](const ICommandBuffer& commandBuffer) {
+            m_endUiCallback = [/*this*/](const ICommandBuffer& commandBuffer) {
                 ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), dynamic_cast<const VulkanCommandBuffer&>(commandBuffer).handle());
 
                 // ImGui binds classic descriptor sets and push constants, which invalidates the descriptor heap bindings and all push data. This is harmless, because we do 

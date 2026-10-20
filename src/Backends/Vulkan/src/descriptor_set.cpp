@@ -38,11 +38,9 @@ public:
     {
         auto& storage = heap == DescriptorHeapType::Sampler ? m_samplerDescriptors : m_resourceDescriptors;
         size_t stride = m_layout->device().descriptorStride(heap);
+        auto descriptor = Span<Byte>{ storage }.subspan(static_cast<size_t>(slot) * stride, stride);
 
-        return { 
-            .address = std::next(storage.data(), slot * stride), 
-            .size = stride
-        };
+        return { .address = descriptor.data(), .size = descriptor.size() };
     }
 
     UInt32 updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 firstDescriptor, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat)
@@ -130,8 +128,10 @@ VulkanDescriptorSet::~VulkanDescriptorSet() noexcept
 {
     const auto& device = m_impl->m_layout->device();
     
+    // NOLINTBEGIN(performance-move-const-arg)
     device.releaseGlobalDescriptors(std::move(m_impl->m_resourceAllocation));
     device.releaseGlobalDescriptors(std::move(m_impl->m_samplerAllocation));
+    // NOLINTEND(performance-move-const-arg)
     m_impl->m_layout->free(*this);
 }
 

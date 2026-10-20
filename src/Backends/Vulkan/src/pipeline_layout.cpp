@@ -33,6 +33,7 @@ public:
     VulkanPipelineLayoutImpl(VulkanPipelineLayoutImpl&&) noexcept = default;
     VulkanPipelineLayoutImpl& operator=(const VulkanPipelineLayoutImpl&) = delete;
     VulkanPipelineLayoutImpl& operator=(VulkanPipelineLayoutImpl&&) noexcept = default;
+    ~VulkanPipelineLayoutImpl() noexcept = default;
 
 public:
     void createMappings()

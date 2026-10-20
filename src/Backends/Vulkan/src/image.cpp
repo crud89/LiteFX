@@ -457,7 +457,7 @@ private:
 	Float m_minLod, m_maxLod;
 	Float m_anisotropy;
 	WeakPtr<const VulkanDevice> m_device;
-	VkSamplerCreateInfo m_createInfo;
+	VkSamplerCreateInfo m_createInfo{};
 
 public:
 	VulkanSamplerImpl(const VulkanDevice& device, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) :

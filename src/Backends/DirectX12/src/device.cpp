@@ -331,10 +331,10 @@ UniquePtr<DirectX12DescriptorRange> DirectX12Device::allocateGlobalDescriptors(D
 
 void DirectX12Device::releaseGlobalDescriptors(DescriptorHeapAllocation&& allocation) const
 {
-	m_impl->m_descriptorHeaps->release(std::move(allocation));
+	m_impl->m_descriptorHeaps->release(std::move(allocation)); // NOLINT(performance-move-const-arg)
 }
 
-void DirectX12Device::bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept
+void DirectX12Device::bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const
 {
 	const auto globalHeaps = std::array { m_impl->m_globalBufferHeap.Get(), m_impl->m_globalSamplerHeap.Get() };
 	commandBuffer.handle()->SetDescriptorHeaps(static_cast<UINT>(globalHeaps.size()), globalHeaps.data());

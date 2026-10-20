@@ -558,7 +558,7 @@ const Array<UniquePtr<const VulkanShaderModule>>& VulkanShaderProgram::modules()
 
 SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout(Enumerable<PipelineBindingHint> hints) const
 {
-    return m_impl->reflectPipelineLayout(hints);
+    return m_impl->reflectPipelineLayout(std::move(hints));
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

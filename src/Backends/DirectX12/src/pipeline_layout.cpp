@@ -270,7 +270,7 @@ public:
         auto rootSignatureSize = std::ranges::fold_left(descriptorParameters | std::views::transform([](const D3D12_ROOT_PARAMETER1& parameter) -> UInt32 {
             switch (parameter.ParameterType)
             {
-            case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:  return parameter.Constants.Num32BitValues;
+            case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:  return parameter.Constants.Num32BitValues; // NOLINT(cppcoreguidelines-pro-type-union-access)
             case D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE: return 1u; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             case D3D12_ROOT_PARAMETER_TYPE_CBV:
             case D3D12_ROOT_PARAMETER_TYPE_SRV:

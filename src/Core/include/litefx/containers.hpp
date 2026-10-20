@@ -277,7 +277,7 @@ namespace LiteFX {
 			};
 
 			inline iterator_base& operator++() override {
-				++_it;
+				++_it; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 				return *this;
 			}
 
@@ -533,6 +533,8 @@ namespace LiteFX {
 				if constexpr (!use_const_view)
 					_cache = { std::ranges::begin(_view), std::ranges::end(_view) };
 			}
+
+			~range_holder() noexcept override = default;
 
 			iterator begin() const override 
 			{

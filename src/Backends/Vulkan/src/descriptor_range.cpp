@@ -18,7 +18,7 @@ private:
 
 public:
     VulkanDescriptorRangeImpl(const VulkanDevice& device, DescriptorHeapAllocation&& allocation) :
-        m_device(device.shared_from_this()), m_allocation(std::move(allocation)),
+        m_device(device.shared_from_this()), m_allocation(std::move(allocation)), // NOLINT(performance-move-const-arg)
         m_size(static_cast<UInt32>(m_allocation.Allocation.Size)), m_stride(device.descriptorStride(m_allocation.Heap))
     {
         try
@@ -27,19 +27,26 @@ public:
         }
         catch (...)
         {
-            m_device->releaseGlobalDescriptors(std::move(m_allocation));
+            m_device->releaseGlobalDescriptors(std::move(m_allocation)); // NOLINT(performance-move-const-arg)
             throw;
         }
     }
 
+    VulkanDescriptorRangeImpl(const VulkanDescriptorRangeImpl&) = delete;
+    VulkanDescriptorRangeImpl(VulkanDescriptorRangeImpl&&) noexcept = default;
+    VulkanDescriptorRangeImpl& operator=(const VulkanDescriptorRangeImpl&) = delete;
+    VulkanDescriptorRangeImpl& operator=(VulkanDescriptorRangeImpl&&) noexcept = default;
+
     ~VulkanDescriptorRangeImpl() noexcept
     {
-        m_device->releaseGlobalDescriptors(std::move(m_allocation));
+        m_device->releaseGlobalDescriptors(std::move(m_allocation)); // NOLINT(performance-move-const-arg)
     }
 
-    VkHostAddressRangeEXT target(UInt32 element) const noexcept
+    VkHostAddressRangeEXT targetAddressRange(UInt32 element) const noexcept
     {
-        return { .address = std::next(m_staging.data(), static_cast<size_t>(element) * m_stride), .size = m_stride };
+        auto descriptor = Span<Byte>{ m_staging }.subspan(static_cast<size_t>(element) * m_stride, m_stride);
+        
+        return { .address = descriptor.data(), .size = descriptor.size() };
     }
 
     void flush(UInt32 element, UInt32 count) const
@@ -63,7 +70,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanDescriptorRange::VulkanDescriptorRange(const VulkanDevice& device, DescriptorHeapAllocation&& allocation) :
-    m_impl(device, std::move(allocation))
+    m_impl(device, std::move(allocation)) // NOLINT(performance-move-const-arg)
 {
 }
 
@@ -90,7 +97,7 @@ void VulkanDescriptorRange::update(UInt32 element, DescriptorType bindingType, c
     m_impl->validate(element, count, DescriptorHeapType::Resource);
 
     auto targets = std::views::iota(element, element + count) 
-        | std::views::transform([this](UInt32 e) { return m_impl->target(e); }) 
+        | std::views::transform([this](UInt32 e) { return m_impl->targetAddressRange(e); }) 
         | std::ranges::to<Array<VkHostAddressRangeEXT>>();
 
     writeBufferDescriptors(*m_impl->m_device, bindingType, buffer, bufferElement, texelFormat, targets);
@@ -101,7 +108,7 @@ void VulkanDescriptorRange::update(UInt32 element, DescriptorType bindingType, c
 {
     m_impl->validate(element, 1u, DescriptorHeapType::Resource);
 
-    writeImageDescriptor(*m_impl->m_device, bindingType, image, firstLevel, levels, firstLayer, layers, m_impl->target(element));
+    writeImageDescriptor(*m_impl->m_device, bindingType, image, firstLevel, levels, firstLayer, layers, m_impl->targetAddressRange(element));
     m_impl->flush(element, 1u);
 }
 
@@ -109,7 +116,7 @@ void VulkanDescriptorRange::update(UInt32 element, const IVulkanSampler& sampler
 {
     m_impl->validate(element, 1u, DescriptorHeapType::Sampler);
 
-    writeSamplerDescriptor(*m_impl->m_device, sampler, m_impl->target(element));
+    writeSamplerDescriptor(*m_impl->m_device, sampler, m_impl->targetAddressRange(element));
     m_impl->flush(element, 1u);
 }
 
@@ -117,6 +124,6 @@ void VulkanDescriptorRange::update(UInt32 element, const IVulkanAccelerationStru
 {
     m_impl->validate(element, 1u, DescriptorHeapType::Resource);
 
-    writeAccelerationStructureDescriptor(*m_impl->m_device, accelerationStructure, m_impl->target(element));
+    writeAccelerationStructureDescriptor(*m_impl->m_device, accelerationStructure, m_impl->targetAddressRange(element));
     m_impl->flush(element, 1u);
 }

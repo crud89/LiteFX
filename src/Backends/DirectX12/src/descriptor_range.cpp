@@ -19,7 +19,7 @@ private:
 
 public:
     DirectX12DescriptorRangeImpl(const DirectX12Device& device, DescriptorHeapAllocation&& allocation) :
-        m_device(device.shared_from_this()), m_allocation(std::move(allocation)), m_size(static_cast<UInt32>(m_allocation.Allocation.Size))
+        m_device(device.shared_from_this()), m_allocation(std::move(allocation)), m_size(static_cast<UInt32>(m_allocation.Allocation.Size)) // NOLINT(performance-move-const-arg)
     {
         auto heapType = m_allocation.Heap == DescriptorHeapType::Sampler ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
@@ -35,16 +35,21 @@ public:
         }
         catch (...)
         {
-            device.releaseGlobalDescriptors(std::move(m_allocation));
+            device.releaseGlobalDescriptors(std::move(m_allocation)); // NOLINT(performance-move-const-arg)
             throw;
         }
 
         m_increment = device.handle()->GetDescriptorHandleIncrementSize(heapType);
     }
 
+    DirectX12DescriptorRangeImpl(const DirectX12DescriptorRangeImpl&) = delete;
+    DirectX12DescriptorRangeImpl(DirectX12DescriptorRangeImpl&&) noexcept = default;
+    DirectX12DescriptorRangeImpl& operator=(const DirectX12DescriptorRangeImpl&) = delete;
+    DirectX12DescriptorRangeImpl& operator=(DirectX12DescriptorRangeImpl&&) noexcept = default;
+
     ~DirectX12DescriptorRangeImpl() noexcept
     {
-        m_device->releaseGlobalDescriptors(std::move(m_allocation));
+        m_device->releaseGlobalDescriptors(std::move(m_allocation)); // NOLINT(performance-move-const-arg)
     }
 
 public:
@@ -73,7 +78,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12DescriptorRange::DirectX12DescriptorRange(const DirectX12Device& device, DescriptorHeapAllocation&& allocation) :
-    m_impl(device, std::move(allocation))
+    m_impl(device, std::move(allocation)) // NOLINT(performance-move-const-arg)
 {
 }
 

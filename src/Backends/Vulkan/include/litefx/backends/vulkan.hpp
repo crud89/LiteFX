@@ -2690,7 +2690,7 @@ namespace LiteFX::Rendering::Backends {
         [[nodiscard]] UniquePtr<VulkanDescriptorRange> allocateGlobalDescriptors(DescriptorHeapType heapType, UInt32 descriptors) const override;
 
         /// @copydoc GraphicsDevice::bindGlobalDescriptorHeaps
-        void bindGlobalDescriptorHeaps(const VulkanCommandBuffer& commandBuffer) const noexcept override;
+        void bindGlobalDescriptorHeaps(const VulkanCommandBuffer& commandBuffer) const override;
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:

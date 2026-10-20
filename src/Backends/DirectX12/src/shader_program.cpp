@@ -656,7 +656,7 @@ const Array<UniquePtr<const DirectX12ShaderModule>>& DirectX12ShaderProgram::mod
 
 SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout(Enumerable<PipelineBindingHint> hints) const
 {
-    return m_impl->reflectPipelineLayout(hints);
+    return m_impl->reflectPipelineLayout(std::move(hints));
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

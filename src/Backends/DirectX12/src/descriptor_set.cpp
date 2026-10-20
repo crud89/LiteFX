@@ -127,8 +127,10 @@ DirectX12DescriptorSet::~DirectX12DescriptorSet() noexcept
 {
     auto device = m_impl->m_layout->device();
 
+    // NOLINTBEGIN(performance-move-const-arg)
     device->releaseGlobalDescriptors(std::move(m_impl->m_resourceHeap.Allocation));
     device->releaseGlobalDescriptors(std::move(m_impl->m_samplerHeap.Allocation));
+    // NOLINTEND(performance-move-const-arg)
     m_impl->m_layout->free(*this);
 }
 
