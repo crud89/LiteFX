@@ -896,6 +896,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#enabling-the-feature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enabling the feature
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#indexing-the-heap-in-the-shader" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -907,10 +918,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#binding-to-the-heap" class="md-nav__link">
+  <a href="#allocating-descriptors-on-the-heap" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Binding to the heap
+        Allocating descriptors on the heap
       
     </span>
   </a>
@@ -1194,6 +1205,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#enabling-the-feature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enabling the feature
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#indexing-the-heap-in-the-shader" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1205,10 +1227,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#binding-to-the-heap" class="md-nav__link">
+  <a href="#allocating-descriptors-on-the-heap" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Binding to the heap
+        Allocating descriptors on the heap
       
     </span>
   </a>
@@ -1337,42 +1359,61 @@
 <p>Shader model 6.6 introduced a second way to do bindless rendering: instead of binding an array of resources, the shader indexes the GPU's
 global descriptor heap directly, with <code>ResourceDescriptorHeap</code>. The type of a descriptor is then only decided when it is bound, not when the
 pipeline is created. The sample draws the same 100,000 instances as the bindless sample.</p>
+<h2 id="enabling-the-feature">Enabling the feature<a class="headerlink" href="#enabling-the-feature" title="Permanent link">&para;</a></h2>
+<p>Dynamic descriptors are an optional device feature. Enabling it checks that the device supports shader model 6.6, and on Vulkan also enables
+the <code>VK_KHR_shader_untyped_pointers</code> extension, which the heap indexing relies on:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">m_device</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">addressof</span><span class="p">(</span><span class="n">backend</span><span class="o">-&gt;</span><span class="n">createDevice</span><span class="p">(</span><span class="s">"Default"</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">adapter</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">surface</span><span class="p">),</span><span class="w"> </span><span class="n">Format</span><span class="o">::</span><span class="n">B8G8R8A8_UNORM</span><span class="p">,</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="n">m_viewport</span><span class="o">-&gt;</span><span class="n">getRectangle</span><span class="p">().</span><span class="n">extent</span><span class="p">(),</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="n">GraphicsDeviceFeatures</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">.</span><span class="n">DynamicDescriptors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="w"> </span><span class="p">}));</span>
+</code></pre></div>
 <h2 id="indexing-the-heap-in-the-shader">Indexing the heap in the shader<a class="headerlink" href="#indexing-the-heap-in-the-shader" title="Permanent link">&para;</a></h2>
 <p>The array binding disappears from the shader. What remains is the index, which the shader uses to fetch the buffer from the heap:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">ConstantBuffer</span><span class="o">&lt;</span><span class="n">CameraData</span><span class="o">&gt;</span><span class="w"> </span><span class="n">camera</span><span class="w">  </span><span class="o">:</span><span class="w"> </span><span class="k">register</span><span class="p">(</span><span class="n">b0</span><span class="p">,</span><span class="w"> </span><span class="n">space1</span><span class="p">);</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">ConstantBuffer</span><span class="o">&lt;</span><span class="n">DrawData</span><span class="o">&gt;</span><span class="w"> </span><span class="n">drawData</span><span class="w">  </span><span class="o">:</span><span class="w"> </span><span class="k">register</span><span class="p">(</span><span class="n">b0</span><span class="p">,</span><span class="w"> </span><span class="n">space2</span><span class="p">);</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">VertexData</span><span class="w"> </span><span class="n">main</span><span class="p">(</span><span class="k">in</span><span class="w"> </span><span class="n">VertexInput</span><span class="w"> </span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="kt">uint</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nd">SV_InstanceID</span><span class="p">,</span><span class="w"> </span><span class="kt">uint</span><span class="w"> </span><span class="n">baseId</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">SV_StartInstanceLocation</span><span class="p">)</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">{</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="kt">StructuredBuffer</span><span class="o">&lt;</span><span class="n">InstanceData</span><span class="o">&gt;</span><span class="w"> </span><span class="n">instanceBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ResourceDescriptorHeap</span><span class="p">[</span><span class="n">NonUniformResourceIndex</span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">baseId</span><span class="p">)];</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="n">InstanceData</span><span class="w"> </span><span class="nd">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">instanceBuffer</span><span class="p">.</span><span class="n">Load</span><span class="p">(</span><span class="mo">0</span><span class="p">);</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="c1">// ...</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">ConstantBuffer</span><span class="o">&lt;</span><span class="n">CameraData</span><span class="o">&gt;</span><span class="w"> </span><span class="n">camera</span><span class="w">  </span><span class="o">:</span><span class="w"> </span><span class="k">register</span><span class="p">(</span><span class="n">b0</span><span class="p">,</span><span class="w"> </span><span class="n">space1</span><span class="p">);</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">ConstantBuffer</span><span class="o">&lt;</span><span class="n">DrawData</span><span class="o">&gt;</span><span class="w"> </span><span class="n">drawData</span><span class="w">  </span><span class="o">:</span><span class="w"> </span><span class="k">register</span><span class="p">(</span><span class="n">b0</span><span class="p">,</span><span class="w"> </span><span class="n">space2</span><span class="p">);</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">VertexData</span><span class="w"> </span><span class="n">main</span><span class="p">(</span><span class="k">in</span><span class="w"> </span><span class="n">VertexInput</span><span class="w"> </span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="kt">uint</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nd">SV_InstanceID</span><span class="p">,</span><span class="w"> </span><span class="kt">uint</span><span class="w"> </span><span class="n">baseId</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">SV_StartInstanceLocation</span><span class="p">)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="p">{</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="kt">StructuredBuffer</span><span class="o">&lt;</span><span class="n">InstanceData</span><span class="o">&gt;</span><span class="w"> </span><span class="n">instanceBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ResourceDescriptorHeap</span><span class="p">[</span><span class="n">NonUniformResourceIndex</span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">baseId</span><span class="p">)];</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="n">InstanceData</span><span class="w"> </span><span class="nd">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">instanceBuffer</span><span class="p">.</span><span class="n">Load</span><span class="p">(</span><span class="mo">0</span><span class="p">);</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="c1">// ...</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="p">}</span>
 </code></pre></div>
 <p>Two things change compared to the <a href="../../samples-intermediate/bindless/">bindless</a> sample:</p>
 <ul>
-<li><strong>The instance buffer is no longer declared</strong>, so the camera and draw data move to the spaces after the heap's own space.</li>
+<li><strong>The instance buffer is no longer declared.</strong> The shader reaches it through the heap, so the pipeline layout only contains the camera
+  and the draw data.</li>
 <li><strong><code>SV_StartInstanceLocation</code></strong> provides the offset of the first descriptor, which the draw call passes in. Adding it to the instance ID
   gives the descriptor index of the instance.</li>
 </ul>
-<h2 id="binding-to-the-heap">Binding to the heap<a class="headerlink" href="#binding-to-the-heap" title="Permanent link">&para;</a></h2>
-<p>Instead of allocating a descriptor set over an array, the sample allocates an empty set and binds the buffer into the heap:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">instanceBindingLayout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">geometryPipeline</span><span class="p">.</span><span class="n">layout</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">descriptorSet</span><span class="p">(</span><span class="mi">0u</span><span class="p">);</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">auto</span><span class="w"> </span><span class="n">instanceBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">factory</span><span class="p">().</span><span class="n">createBuffer</span><span class="p">(</span><span class="s">"Instance Buffer"</span><span class="p">,</span><span class="w"> </span><span class="n">instanceBindingLayout</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceHeap</span><span class="o">::</span><span class="n">Resource</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">InstanceBuffer</span><span class="p">),</span><span class="w"> </span><span class="n">NUM_INSTANCES</span><span class="p">);</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">auto</span><span class="w"> </span><span class="n">instanceBinding</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">instanceBindingLayout</span><span class="p">.</span><span class="n">allocate</span><span class="p">();</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">m_instanceBaseIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">instanceBinding</span><span class="o">-&gt;</span><span class="n">bindToHeap</span><span class="p">(</span><span class="n">DescriptorType</span><span class="o">::</span><span class="n">StructuredBuffer</span><span class="p">,</span><span class="w"> </span><span class="mi">0u</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">instanceBuffer</span><span class="p">,</span><span class="w"> </span><span class="mi">0u</span><span class="p">,</span><span class="w"> </span><span class="n">NUM_INSTANCES</span><span class="p">);</span>
+<h2 id="allocating-descriptors-on-the-heap">Allocating descriptors on the heap<a class="headerlink" href="#allocating-descriptors-on-the-heap" title="Permanent link">&para;</a></h2>
+<p>Since the instance buffer is not part of the pipeline layout, there is no descriptor set to bind it to. Instead, the sample allocates a
+<em>descriptor range</em>: a block of descriptors directly on the device's global descriptor heap.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">m_instanceDescriptors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">allocateGlobalDescriptors</span><span class="p">(</span><span class="n">DescriptorHeapType</span><span class="o">::</span><span class="n">Resource</span><span class="p">,</span><span class="w"> </span><span class="n">NUM_INSTANCES</span><span class="p">);</span>
 </code></pre></div>
-<p><code>bindToHeap</code> returns the index of the first descriptor it bound. That index is what the shader needs, and the descriptor type is passed here
-rather than taken from the pipeline layout, which is what makes these descriptors <em>dynamic</em>.</p>
-<p>The pipeline layout gets a matching hint:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">.</span><span class="n">layout</span><span class="p">(</span><span class="n">shaderProgram</span><span class="o">-&gt;</span><span class="n">reflectPipelineLayout</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">array</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">PipelineBindingHint</span><span class="o">::</span><span class="n">resourceHeap</span><span class="p">(</span><span class="mi">0u</span><span class="p">,</span><span class="w"> </span><span class="mi">0u</span><span class="p">,</span><span class="w"> </span><span class="n">NUM_INSTANCES</span><span class="p">)</span><span class="w"> </span><span class="p">}))</span>
+<p>The buffer is created without a layout, and written into the range much like into a descriptor set:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">auto</span><span class="w"> </span><span class="n">instanceBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">factory</span><span class="p">().</span><span class="n">createBuffer</span><span class="p">(</span><span class="s">"Instance Buffer"</span><span class="p">,</span><span class="w"> </span><span class="n">BufferType</span><span class="o">::</span><span class="n">Storage</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceHeap</span><span class="o">::</span><span class="n">Resource</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">InstanceBuffer</span><span class="p">),</span><span class="w"> </span><span class="n">NUM_INSTANCES</span><span class="p">);</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">m_instanceDescriptors</span><span class="o">-&gt;</span><span class="n">update</span><span class="p">(</span><span class="mi">0u</span><span class="p">,</span><span class="w"> </span><span class="n">DescriptorType</span><span class="o">::</span><span class="n">StructuredBuffer</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">instanceBuffer</span><span class="p">,</span><span class="w"> </span><span class="mi">0u</span><span class="p">,</span><span class="w"> </span><span class="n">NUM_INSTANCES</span><span class="p">);</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">m_instanceBaseIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_instanceDescriptors</span><span class="o">-&gt;</span><span class="n">globalIndex</span><span class="p">();</span>
+</code></pre></div>
+<p><code>update</code> writes one descriptor per element of the buffer, starting at the first descriptor of the range. The descriptor type is passed here
+rather than taken from a pipeline layout, which is what makes these descriptors <em>dynamic</em>. <code>globalIndex</code> returns the position of the range's
+first descriptor on the heap, which is the index the shader needs.</p>
+<p>The range owns its descriptors, and releasing it frees them. The sample keeps it in a member and resets it when the backend stops, before
+the device is released:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">auto</span><span class="w"> </span><span class="n">stopCallback</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">]</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TBackend</span><span class="o">&gt;</span><span class="p">(</span><span class="n">TBackend</span><span class="o">*</span><span class="w"> </span><span class="n">backend</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="n">m_instanceDescriptors</span><span class="p">.</span><span class="n">reset</span><span class="p">();</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="n">backend</span><span class="o">-&gt;</span><span class="n">releaseDevice</span><span class="p">(</span><span class="s">"Default"</span><span class="p">);</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="p">};</span>
+</code></pre></div>
+<p>The pipeline layout needs no hint anymore and is reflected as usual:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">.</span><span class="n">layout</span><span class="p">(</span><span class="n">shaderProgram</span><span class="o">-&gt;</span><span class="n">reflectPipelineLayout</span><span class="p">())</span>
 </code></pre></div>
 <h2 id="passing-the-base-index">Passing the base index<a class="headerlink" href="#passing-the-base-index" title="Permanent link">&para;</a></h2>
-<p>The base index reaches the shader through the draw call, as the first instance:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">bind</span><span class="p">({</span><span class="w"> </span><span class="o">&amp;</span><span class="n">cameraBindings</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">instanceBindings</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">drawDataBindings</span><span class="w"> </span><span class="p">});</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">bind</span><span class="p">(</span><span class="n">vertexBuffer</span><span class="p">);</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">bind</span><span class="p">(</span><span class="n">indexBuffer</span><span class="p">);</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">drawIndexed</span><span class="p">(</span><span class="n">indexBuffer</span><span class="p">.</span><span class="n">elements</span><span class="p">(),</span><span class="w"> </span><span class="n">NUM_INSTANCES</span><span class="p">,</span><span class="w"> </span><span class="mi">0u</span><span class="p">,</span><span class="w"> </span><span class="mi">0u</span><span class="p">,</span><span class="w"> </span><span class="n">m_instanceBaseIndex</span><span class="p">);</span>
+<p>The base index reaches the shader through the draw call, as the first instance. The descriptor range itself is not bound: its descriptors
+are already part of the global heap, which the shader indexes directly.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">bind</span><span class="p">({</span><span class="w"> </span><span class="o">&amp;</span><span class="n">cameraBindings</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">drawDataBindings</span><span class="w"> </span><span class="p">});</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">bind</span><span class="p">(</span><span class="n">vertexBuffer</span><span class="p">);</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">bind</span><span class="p">(</span><span class="n">indexBuffer</span><span class="p">);</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">drawIndexed</span><span class="p">(</span><span class="n">indexBuffer</span><span class="p">.</span><span class="n">elements</span><span class="p">(),</span><span class="w"> </span><span class="n">NUM_INSTANCES</span><span class="p">,</span><span class="w"> </span><span class="mi">0u</span><span class="p">,</span><span class="w"> </span><span class="mi">0u</span><span class="p">,</span><span class="w"> </span><span class="n">m_instanceBaseIndex</span><span class="p">);</span>
 </code></pre></div>
 <p>The GPU adds it to each instance ID, so the shader reads the right descriptors without any extra buffer or push constant.</p>
 <h2 id="when-to-use-which">When to use which<a class="headerlink" href="#when-to-use-which" title="Permanent link">&para;</a></h2>
@@ -1393,12 +1434,17 @@ rather than taken from the pipeline layout, which is what makes these descriptor
 <tr>
 <td>Descriptor type</td>
 <td>Fixed by the pipeline layout</td>
-<td>Chosen when binding</td>
+<td>Chosen when writing the range</td>
+</tr>
+<tr>
+<td>Descriptors</td>
+<td>Descriptor set, bound to the pipeline</td>
+<td>Descriptor range on the global heap, not bound</td>
 </tr>
 <tr>
 <td>Requirements</td>
-<td>Descriptor indexing</td>
-<td>Shader model 6.6</td>
+<td>None beyond the engine's base requirements</td>
+<td>Shader model 6.6 and the <code>DynamicDescriptors</code> device feature</td>
 </tr>
 <tr>
 <td>Fits</td>

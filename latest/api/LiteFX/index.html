@@ -738,6 +738,8 @@
       
         
       
+        
+      
     
     
     
@@ -1175,6 +1177,16 @@
       
         
           
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
         
       
         
@@ -2197,6 +2209,34 @@
   
   
     <li class="md-nav__item">
+      <a href="covariant_const_range/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    covariant_const_range
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="covariant_forward_iterator/" class="md-nav__link">
         
   
@@ -2229,6 +2269,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -4460,8 +4504,9 @@
 <thead><tr><th>Name</th><th>Description</th></tr></thead>
 <tbody>
 <tr><td><a href="backend/"><code>backend</code></a> </td><td>Concept that can be used to refer to backend implementations.</td></tr>
+<tr><td><a href="covariant_const_range/"><code>covariant_const_range</code></a> </td><td>Evaluates, if <code>TView</code> can be iterated as <code>const</code> with iterators that yield values covariant to <code>TValue.</code></td></tr>
 <tr><td><a href="covariant_forward_iterator/"><code>covariant_forward_iterator</code></a> </td><td>Evaluates, if an iterator of type <code>TIterator</code> iterates values that are covariant to <code>TValue.</code></td></tr>
-<tr><td><a href="is_covariant/"><code>is_covariant</code></a> </td><td>Evaluates if a type <code>TCovariant</code> behaves covariant to a value type <code>TValue.</code> In this context, covariance is expressed as the type <code>TCovariant</code> can be assigned a value of type <code>TValue</code> or can be constructed from a value of <code>TValue.</code></td></tr>
+<tr><td><a href="is_covariant/"><code>is_covariant</code></a> </td><td>Evaluates, if a value of type <code>TValue</code> can be returned as <code>TCovariant.</code> If <code>TCovariant</code> is a reference, <code>TValue</code> must be a reference as well, as returning a temporary as a reference would dangle.</td></tr>
 </tbody>
 </table></div>
 

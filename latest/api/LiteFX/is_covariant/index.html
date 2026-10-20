@@ -738,6 +738,8 @@
       
         
       
+        
+      
     
     
     
@@ -1175,6 +1177,16 @@
       
         
           
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
         
       
         
@@ -2197,6 +2209,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../covariant_const_range/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    covariant_const_range
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../covariant_forward_iterator/" class="md-nav__link">
         
   
@@ -2229,6 +2269,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -4427,13 +4471,13 @@
 
 
 <h1 id="litefxis_covariant"><code>LiteFX::is_covariant</code><a class="headerlink" href="#litefxis_covariant" title="Permanent link">&para;</a></h1>
-<p>Evaluates if a type <code>TCovariant</code> behaves covariant to a value type <code>TValue.</code> In this context, covariance is expressed as the type <code>TCovariant</code> can be assigned a value of type <code>TValue</code> or can be constructed from a value of <code>TValue.</code></p>
+<p>Evaluates, if a value of type <code>TValue</code> can be returned as <code>TCovariant.</code> If <code>TCovariant</code> is a reference, <code>TValue</code> must be a reference as well, as returning a temporary as a reference would dangle.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/df93ec27cbfd4d5d8ffcfa4b5929bdaba307d99a/src/Core/include/litefx/containers.hpp#L191">litefx/containers.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/605d54b6d6f51b74d7b5002542862491cae356b2/src/Core/include/litefx/containers.hpp#L192">litefx/containers.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
 </span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TValue</span><span class="p">,</span><span class="w">
 </span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TCovariant</span><span class="o">&gt;</span><span class="w">
-</span><span class="k">concept</span><span class="w"> </span><span class="nc">is_covariant</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">is_assignable_v</span><span class="o">&lt;</span><span class="n">TCovariant</span><span class="p">,</span><span class="w"> </span><span class="n">TValue</span><span class="o">&gt;</span><span class="w"> </span><span class="o">|</span><span class="o">|</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">is_constructible_v</span><span class="o">&lt;</span><span class="n">TCovariant</span><span class="p">,</span><span class="w"> </span><span class="n">TValue</span><span class="o">&gt;</span><span class="p">;</span></code></pre></div>
+</span><span class="k">concept</span><span class="w"> </span><span class="nc">is_covariant</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">convertible_to</span><span class="o">&lt;</span><span class="n">TValue</span><span class="p">,</span><span class="w"> </span><span class="n">TCovariant</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">is_reference_v</span><span class="o">&lt;</span><span class="n">TCovariant</span><span class="o">&gt;</span><span class="w"> </span><span class="o">|</span><span class="o">|</span><span class="w"> </span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">is_reference_v</span><span class="o">&lt;</span><span class="n">TValue</span><span class="o">&gt;</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="template-parameters">Template Parameters<a class="headerlink" href="#template-parameters" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">

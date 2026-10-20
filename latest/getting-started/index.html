@@ -857,8 +857,10 @@ working reference, please check the <a href="https://github.com/crud89/LiteFX-Te
 <li><strong>Windows 10 or 11</strong> (64-bit).</li>
 <li><strong>A C++23 compiler:</strong> Visual C++ from Visual Studio 2022 or newer, or Clang/clang-cl.</li>
 <li><strong>CMake 3.23 or newer</strong> and <strong>vcpkg</strong>. Both are part of the <em>Desktop development with C++</em> workload of Visual Studio.</li>
-<li><strong>A GPU with driver support</strong> for Vulkan 1.3 and/or DirectX 12.</li>
-<li><strong>The <a href="https://vulkan.lunarg.com/sdk/home">Vulkan SDK</a></strong> (only required to target Vulkan).</li>
+<li><strong>A GPU with driver support</strong> for Vulkan 1.4 and/or DirectX 12. The Vulkan backend also requires the <code>VK_EXT_descriptor_heap</code> and
+  <code>VK_KHR_unified_image_layouts</code> extensions, which need recent drivers.</li>
+<li><strong>A recent <a href="https://vulkan.lunarg.com/sdk/home">Vulkan SDK</a></strong> (only required to target Vulkan), whose validation layers support the
+  extensions above.</li>
 </ul>
 <h2 id="starting-points">Starting points<a class="headerlink" href="#starting-points" title="Permanent link">&para;</a></h2>
 <p>If you want to start right away, use the <a href="https://github.com/crud89/LiteFX-Template">project template</a>, which contains a ready-to-build project that 

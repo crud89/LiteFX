@@ -736,6 +736,8 @@
       
         
       
+        
+      
     
     
     
@@ -1041,8 +1043,9 @@
 <thead><tr><th>Name</th><th>Description</th></tr></thead>
 <tbody>
 <tr><td><a href="LiteFX/backend/"><code>backend</code></a> </td><td>Concept that can be used to refer to backend implementations.</td></tr>
+<tr><td><a href="LiteFX/covariant_const_range/"><code>covariant_const_range</code></a> </td><td>Evaluates, if <code>TView</code> can be iterated as <code>const</code> with iterators that yield values covariant to <code>TValue.</code></td></tr>
 <tr><td><a href="LiteFX/covariant_forward_iterator/"><code>covariant_forward_iterator</code></a> </td><td>Evaluates, if an iterator of type <code>TIterator</code> iterates values that are covariant to <code>TValue.</code></td></tr>
-<tr><td><a href="LiteFX/is_covariant/"><code>is_covariant</code></a> </td><td>Evaluates if a type <code>TCovariant</code> behaves covariant to a value type <code>TValue.</code> In this context, covariance is expressed as the type <code>TCovariant</code> can be assigned a value of type <code>TValue</code> or can be constructed from a value of <code>TValue.</code></td></tr>
+<tr><td><a href="LiteFX/is_covariant/"><code>is_covariant</code></a> </td><td>Evaluates, if a value of type <code>TValue</code> can be returned as <code>TCovariant.</code> If <code>TCovariant</code> is a reference, <code>TValue</code> must be a reference as well, as returning a temporary as a reference would dangle.</td></tr>
 </tbody>
 </table></div>
 
@@ -1255,8 +1258,11 @@
 <tr><td><a href="LiteFX/Rendering/ComputePipeline-01/"><code>ComputePipeline</code></a> </td><td>Represents a compute <a href="LiteFX/Rendering/Pipeline-046/"><code>Pipeline</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/ComputePipelineBuilder-05/"><code>ComputePipelineBuilder</code></a> </td><td>Describes the interface of a compute pipeline builder.</td></tr>
 <tr><td><a href="LiteFX/Rendering/DepthStencilState/"><code>DepthStencilState</code></a> </td><td>Stores the depth/stencil state of a see <a href="LiteFX/Rendering/IRasterizer/"><code>IRasterizer</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/DescriptorAllocationLayout/"><code>DescriptorAllocationLayout</code></a> </td><td>Stores the layout of a</td></tr>
+<tr><td><a href="LiteFX/Rendering/DescriptorAllocationRange/"><code>DescriptorAllocationRange</code></a> </td><td>Stores the relative location of a descriptor within a <a href="LiteFX/Rendering/DescriptorAllocationLayout/"><code>DescriptorAllocationLayout</code></a> in a descriptor heap.</td></tr>
 <tr><td><a href="LiteFX/Rendering/DescriptorBinding/"><code>DescriptorBinding</code></a> </td><td>Describes a resource binding to a descriptor or descriptor set.</td></tr>
 <tr><td><a href="LiteFX/Rendering/DescriptorBindingPoint/"><code>DescriptorBindingPoint</code></a> </td><td>Describes a single descriptor binding point within a <a href="LiteFX/Rendering/IShaderModule/"><code>IShaderModule</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/DescriptorHeapAllocation/"><code>DescriptorHeapAllocation</code></a> </td><td>Represents an allocation from a global descriptor heap.</td></tr>
 <tr><td><a href="LiteFX/Rendering/DescriptorSet-09/"><code>DescriptorSet</code></a> </td><td>Defines a set of descriptors.</td></tr>
 <tr><td><a href="LiteFX/Rendering/DescriptorSetLayout-03d/"><code>DescriptorSetLayout</code></a> </td><td>Describes the layout of a descriptor set.</td></tr>
 <tr><td><a href="LiteFX/Rendering/DescriptorSetLayoutBuilder-0d6/"><code>DescriptorSetLayoutBuilder</code></a> </td><td>Builds a <a href="LiteFX/Rendering/DescriptorSetLayout-03d/"><code>DescriptorSetLayout</code></a> for a <a href="LiteFX/Rendering/PipelineLayout-06/"><code>PipelineLayout</code></a>.</td></tr>
@@ -1264,9 +1270,10 @@
 <tr><td><a href="LiteFX/Rendering/DeviceState/"><code>DeviceState</code></a> </td><td>A class that can be used to manage the state of a <a href="LiteFX/Rendering/IGraphicsDevice/"><code>IGraphicsDevice</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/FrameBuffer-0b4/"><code>FrameBuffer</code></a> </td><td>Stores the images used by a <a href="LiteFX/Rendering/RenderPass-0d/"><code>RenderPass</code></a> to either read from using input attachments or write to using render targets.</td></tr>
 <tr><td><a href="LiteFX/Rendering/FrameBuffer-0bc/"><code>FrameBuffer</code></a> </td><td>Stores the images used by a <a href="LiteFX/Rendering/RenderPass-0d/"><code>RenderPass</code></a> to either read from using input attachments or write to using render targets.</td></tr>
-<tr><td><a href="LiteFX/Rendering/GraphicsDevice-0b/"><code>GraphicsDevice</code></a> </td><td>Represents the graphics device that a rendering back-end is doing work on.</td></tr>
+<tr><td><a href="LiteFX/Rendering/GlobalDescriptorHeaps/"><code>GlobalDescriptorHeaps</code></a> </td><td>Implements the book-keeping required for allocations on the global descriptor heaps used by a <a href="LiteFX/Rendering/IGraphicsDevice/"><code>IGraphicsDevice</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/GraphicsDevice-0c/"><code>GraphicsDevice</code></a> </td><td>Represents the graphics device that a rendering back-end is doing work on.</td></tr>
 <tr><td><a href="LiteFX/Rendering/GraphicsDeviceFeatures/"><code>GraphicsDeviceFeatures</code></a> </td><td>Describes optional features that can be supported by a device.</td></tr>
-<tr><td><a href="LiteFX/Rendering/GraphicsFactory-06/"><code>GraphicsFactory</code></a> </td><td>Describes a factory that creates objects for a <a href="LiteFX/Rendering/GraphicsDevice-0b/"><code>GraphicsDevice</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/GraphicsFactory-06/"><code>GraphicsFactory</code></a> </td><td>Describes a factory that creates objects for a <a href="LiteFX/Rendering/GraphicsDevice-0c/"><code>GraphicsDevice</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/IAccelerationStructure/"><code>IAccelerationStructure</code></a> </td><td>Base interface for a ray tracing acceleration structure.</td></tr>
 <tr><td><a href="LiteFX/Rendering/IBarrier/"><code>IBarrier</code></a> </td><td>The interface for a barrier.</td></tr>
 <tr><td><a href="LiteFX/Rendering/IBottomLevelAccelerationStructure/"><code>IBottomLevelAccelerationStructure</code></a> </td><td>A structure that holds a singular entity of geometry for hardware ray-tracing.</td></tr>
@@ -1276,6 +1283,7 @@
 <tr><td><a href="LiteFX/Rendering/ICommandQueue/"><code>ICommandQueue</code></a> </td><td>The interface for a command queue.</td></tr>
 <tr><td><a href="LiteFX/Rendering/IComputePipeline/"><code>IComputePipeline</code></a> </td><td>The interface for a compute pipeline.</td></tr>
 <tr><td><a href="LiteFX/Rendering/IDescriptorLayout/"><code>IDescriptorLayout</code></a> </td><td>Describes a the layout of a single descriptor within a <a href="LiteFX/Rendering/DescriptorSet-09/"><code>DescriptorSet</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/IDescriptorRange/"><code>IDescriptorRange</code></a> </td><td>A contiguous range of descriptors on one of the global descriptor heaps, accessed directly by shaders through <code>ResourceDescriptorHeap</code> or <code>SamplerDescriptorHeap</code>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/IDescriptorSet/"><code>IDescriptorSet</code></a> </td><td>The interface for a descriptor set.</td></tr>
 <tr><td><a href="LiteFX/Rendering/IDescriptorSetLayout/"><code>IDescriptorSetLayout</code></a> </td><td>The interface for a descriptor set layout.</td></tr>
 <tr><td><a href="LiteFX/Rendering/IDeviceMemory/"><code>IDeviceMemory</code></a> </td><td>Describes a chunk of device memory.</td></tr>
@@ -1328,7 +1336,7 @@
 <tr><td><a href="LiteFX/Rendering/RasterizerBuilder-05/"><code>RasterizerBuilder</code></a> </td><td>Builds a <a href="LiteFX/Rendering/Rasterizer/"><code>Rasterizer</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/RayTracingPipeline-09/"><code>RayTracingPipeline</code></a> </td><td>Represents a ray-tracing <a href="LiteFX/Rendering/Pipeline-046/"><code>Pipeline</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/RayTracingPipelineBuilder-0a/"><code>RayTracingPipelineBuilder</code></a> </td><td>Describes the interface of a ray-tracing pipeline builder.</td></tr>
-<tr><td><a href="LiteFX/Rendering/RenderBackend-0d/"><code>RenderBackend</code></a> </td><td>Defines a back-end, that provides a device instance for a certain surface and graphics adapter.</td></tr>
+<tr><td><a href="LiteFX/Rendering/RenderBackend-05/"><code>RenderBackend</code></a> </td><td>Defines a back-end, that provides a device instance for a certain surface and graphics adapter.</td></tr>
 <tr><td><a href="LiteFX/Rendering/RenderPass-08/"><code>RenderPass</code></a> </td><td>Represents a render pass.</td></tr>
 <tr><td><a href="LiteFX/Rendering/RenderPass-0d/"><code>RenderPass</code></a> </td><td>Represents a render pass.</td></tr>
 <tr><td><a href="LiteFX/Rendering/RenderPassBuilder-01/"><code>RenderPassBuilder</code></a> </td><td>Describes the interface of a render pass builder.</td></tr>
@@ -1462,7 +1470,7 @@
 <thead><tr><th>Name</th><th>Description</th></tr></thead>
 <tbody>
 <tr><td><a href="LiteFX/Rendering/Backends/DX12PlatformException/"><code>DX12PlatformException</code></a> </td><td>An exception that is thrown, if a requested D3D12 operation could not be executed.</td></tr>
-<tr><td><a href="LiteFX/Rendering/Backends/DirectX12Backend/"><code>DirectX12Backend</code></a> </td><td>Implements the DirectX 12 <a href="LiteFX/Rendering/RenderBackend-0d/"><code>RenderBackend</code></a>.</td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12Backend/"><code>DirectX12Backend</code></a> </td><td>Implements the DirectX 12 <a href="LiteFX/Rendering/RenderBackend-05/"><code>RenderBackend</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/Backends/DirectX12Barrier/"><code>DirectX12Barrier</code></a> </td><td>Implements a DirectX 12 resource barrier.</td></tr>
 <tr><td><a href="LiteFX/Rendering/Backends/DirectX12BarrierBuilder/"><code>DirectX12BarrierBuilder</code></a> </td><td>Builds a DirectX 12 <a href="LiteFX/Rendering/Barrier-00/"><code>Barrier</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/Backends/DirectX12BottomLevelAccelerationStructure/"><code>DirectX12BottomLevelAccelerationStructure</code></a> </td><td>Implements a DirectX 12 bottom-level acceleration structure (BLAS).</td></tr>
@@ -1470,6 +1478,7 @@
 <tr><td><a href="LiteFX/Rendering/Backends/DirectX12ComputePipeline/"><code>DirectX12ComputePipeline</code></a> </td><td>Implements a DirectX 12 <a href="LiteFX/Rendering/ComputePipeline-01/"><code>ComputePipeline</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/Backends/DirectX12ComputePipelineBuilder/"><code>DirectX12ComputePipelineBuilder</code></a> </td><td>Builds a DirectX 12 <a href="LiteFX/Rendering/ComputePipeline-01/"><code>ComputePipeline</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/Backends/DirectX12DescriptorLayout/"><code>DirectX12DescriptorLayout</code></a> </td><td>Implements a DirectX 12 <a href="LiteFX/Rendering/IDescriptorLayout/"><code>IDescriptorLayout</code></a></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/DirectX12DescriptorRange/"><code>DirectX12DescriptorRange</code></a> </td><td>Implements a DirectX12 <a href="LiteFX/Rendering/IDescriptorRange/"><code>IDescriptorRange</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/Backends/DirectX12DescriptorSet/"><code>DirectX12DescriptorSet</code></a> </td><td>Implements a DirectX 12 <a href="LiteFX/Rendering/DescriptorSet-09/"><code>DescriptorSet</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/Backends/DirectX12DescriptorSetLayout/"><code>DirectX12DescriptorSetLayout</code></a> </td><td>Implements a DirectX 12 <a href="LiteFX/Rendering/DescriptorSetLayout-03d/"><code>DescriptorSetLayout</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/Backends/DirectX12DescriptorSetLayoutBuilder/"><code>DirectX12DescriptorSetLayoutBuilder</code></a> </td><td>Builds a <a href="LiteFX/Rendering/Backends/DirectX12DescriptorSetLayout/"><code>DirectX12DescriptorSetLayout</code></a> for a pipeline layout.</td></tr>
@@ -1524,6 +1533,7 @@
 <tr><td><a href="LiteFX/Rendering/Backends/VulkanComputePipeline/"><code>VulkanComputePipeline</code></a> </td><td>Implements a Vulkan <a href="LiteFX/Rendering/ComputePipeline-01/"><code>ComputePipeline</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/Backends/VulkanComputePipelineBuilder/"><code>VulkanComputePipelineBuilder</code></a> </td><td>Builds a Vulkan <a href="LiteFX/Rendering/ComputePipeline-01/"><code>ComputePipeline</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/Backends/VulkanDescriptorLayout/"><code>VulkanDescriptorLayout</code></a> </td><td>Implements a Vulkan <a href="LiteFX/Rendering/IDescriptorLayout/"><code>IDescriptorLayout</code></a></td></tr>
+<tr><td><a href="LiteFX/Rendering/Backends/VulkanDescriptorRange/"><code>VulkanDescriptorRange</code></a> </td><td>Implements a Vulkan <a href="LiteFX/Rendering/IDescriptorRange/"><code>IDescriptorRange</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/Backends/VulkanDescriptorSet/"><code>VulkanDescriptorSet</code></a> </td><td>Implements a Vulkan <a href="LiteFX/Rendering/DescriptorSet-09/"><code>DescriptorSet</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/Backends/VulkanDescriptorSetLayout/"><code>VulkanDescriptorSetLayout</code></a> </td><td>Implements a Vulkan <a href="LiteFX/Rendering/DescriptorSetLayout-03d/"><code>DescriptorSetLayout</code></a>.</td></tr>
 <tr><td><a href="LiteFX/Rendering/Backends/VulkanDescriptorSetLayoutBuilder/"><code>VulkanDescriptorSetLayoutBuilder</code></a> </td><td>Builds a <a href="LiteFX/Rendering/Backends/VulkanDescriptorSetLayout/"><code>VulkanDescriptorSetLayout</code></a> for a <a href="LiteFX/Rendering/Backends/VulkanPipelineLayout/"><code>VulkanPipelineLayout</code></a>.</td></tr>
