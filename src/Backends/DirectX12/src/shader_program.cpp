@@ -536,14 +536,6 @@ public:
                     }
                 };
 
-                auto unboundedArrayHintCallback = [&](const PipelineBindingHint::UnboundedArrayHint& hint) {
-                    // Unbounded arrays are supported by D3D12 reflection, so we just need to validate them. We also do not need to set an upper bound here, as D3D12 handles descriptors more loosely.
-                    if (!descriptor.unbounded)
-                        LITEFX_WARNING(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates an unbounded array, but the bound descriptor type either a static array or a single descriptor. The hint will be ignored.", descriptor.location, descriptorSet.space);
-                    else
-                        descriptor.elements = hint.MaxDescriptors;
-                };
-
                 auto shaderStageHintCallback = [&](const PipelineBindingHint::ShaderStageHint& hint) {
                     // Simply mask in the stage into the parent descriptor set mask.
                     descriptorSet.stage |= hint.Stages;
@@ -552,7 +544,7 @@ public:
                 // If the descriptor binds a sampler and the hint is a static sampler, patch it.
                 std::visit(type_switch{
                     [](const std::monostate&) {}, // Default: don't patch anything
-                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback, shaderStageHintCallback
+                    samplerHintCallback, pushConstantsHintCallback, shaderStageHintCallback
                 }, hint);
 
                 // NOTE: don't do anything here, as both `descriptor` and `i` may be invalid at this point.

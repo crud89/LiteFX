@@ -5918,13 +5918,6 @@ namespace LiteFX::Rendering {
     /// @see @ref IShaderProgram::reflectPipelineLayout
     struct LITEFX_RENDERING_API PipelineBindingHint {
 
-        /// @brief Defines a hint that is used to mark an unbounded descriptor array.
-        struct UnboundedArrayHint {
-            /// @brief If the binding point binds an array, this property can be used to turn it into an unbounded array and set the maximum number of descriptors that can be bound to the array. This is especially
-            /// useful to comply with Vulkan device limits.
-            UInt32 MaxDescriptors{ 0 };
-        };
-
         /// @brief Defines a hint that is used to mark a push constants range.
         struct PushConstantsHint {
             /// @brief If the binding point binds a constant or uniform buffer, setting this property to `true` will configure the binding point it as part of the root constants for the pipeline layout. If this
@@ -5953,7 +5946,7 @@ namespace LiteFX::Rendering {
         };
 
         /// @brief Defines the type of the pipeline binding hint.
-        using hint_type = Variant<std::monostate, UnboundedArrayHint, PushConstantsHint, StaticSamplerHint, ShaderStageHint>;
+        using hint_type = Variant<std::monostate, PushConstantsHint, StaticSamplerHint, ShaderStageHint>;
 
         /// @brief The binding point the hint applies to.
         DescriptorBindingPoint Binding{ };
@@ -5962,25 +5955,6 @@ namespace LiteFX::Rendering {
         hint_type Hint = std::monostate{ };
 
     public:
-        /// @brief Initializes a hint that binds an unbounded runtime array.
-        ///
-        /// @param at The binding point the hint applies to.
-        /// @param maxDescriptors The maximum number of descriptors that can be bound to the runtime array at the binding point.
-        /// @return The initialized pipeline binding hint.
-        static inline auto runtimeArray(DescriptorBindingPoint at, UInt32 maxDescriptors) noexcept -> PipelineBindingHint {
-            return { .Binding = at, .Hint = UnboundedArrayHint { maxDescriptors } };
-        }
-
-        /// @brief Initializes a hint that binds an unbounded runtime array.
-        ///
-        /// @param space The descriptor space of the binding point.
-        /// @param binding The register of the descriptor binding point.
-        /// @param maxDescriptors The maximum number of descriptors that can be bound to the runtime array at the binding point.
-        /// @return The initialized pipeline binding hint.
-        static inline auto runtimeArray(UInt32 space, UInt32 binding, UInt32 maxDescriptors) noexcept -> PipelineBindingHint {
-            return { .Binding = { .Register = binding, .Space = space }, .Hint = UnboundedArrayHint { maxDescriptors } };
-        }
-
         /// @brief Initializes a hint that binds push constants.
         ///
         /// @param at The binding point the hint applies to.

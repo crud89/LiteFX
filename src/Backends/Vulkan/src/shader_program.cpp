@@ -417,19 +417,6 @@ public:
                         LITEFX_WARNING(VULKAN_LOG, "A hint for binding {0} at space {1} indicates a push constants range, but a standard descriptor was bound here. In Vulkan push constants do not bind to a descriptor set, but a hint for the descriptor set indicates that the binding should be reserved for one anyway, perhaps to preserve compatibility with other backends. The hint will be ignored.", descriptor.location, descriptorSet.space);
                 };
 
-                auto unboundedArrayHintCallback = [&](const PipelineBindingHint::UnboundedArrayHint& hint) {
-                    // In Vulkan, unbounded arrays are obtained through shader reflection, however, to comply with device limits, a descriptor count for the upper limit of 
-                    // descriptors in the pipeline layout must be set. Only few implementations actually support arbitrarily (i.e., max UInt32) large arrays. It's a good
-                    // practice to provide a reasonable guess using a hint. 
-                    // If the binding does not refer to a static array, we must not overwrite the descriptor count, so we issue a warning. The same holds true for scalar
-                    // descriptors.
-                    
-                    if (!descriptor.unbounded)
-                        LITEFX_WARNING(VULKAN_LOG, "A hint for binding {0} at space {1} indicates an unbounded array, but the bound descriptor is either a static array or a single descriptor. The hint will be ignored.", descriptor.location, descriptorSet.space);
-                    else
-                        descriptor.elements = hint.MaxDescriptors;
-                };
-
                 auto shaderStageHintCallback = [&](const PipelineBindingHint::ShaderStageHint& hint) {
                     // Simply mask in the stage into the parent descriptor set mask.
                     descriptorSet.stage |= hint.Stages;
@@ -438,7 +425,7 @@ public:
                 // If the descriptor binds a sampler and the hint is a static sampler, patch it.
                 std::visit(type_switch{
                     [](const std::monostate&) {}, // Default: don't patch anything
-                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback, shaderStageHintCallback
+                    samplerHintCallback, pushConstantsHintCallback, shaderStageHintCallback
                 }, hint);
             }
         });

@@ -127,7 +127,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
             .cullOrder(CullOrder::ClockWise)
             .lineWidth(1.f)
             .depthState(DepthStencilState::DepthState{ .Operation = CompareOperation::LessEqual }))
-        .layout(shaderProgram->reflectPipelineLayout(std::array { PipelineBindingHint::runtimeArray(DescriptorSets::InstanceData, 0u, NUM_INSTANCES) }))
+        .layout(shaderProgram->reflectPipelineLayout())
         .shaderProgram(shaderProgram);
 
     // Add the resources to the device state.
@@ -168,12 +168,11 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
         { {.binding = 0, .resource = *drawDataBuffer, .firstElement = 2, .elements = 1 } },
     }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 
-    // Next, we create the descriptor set for the instance buffer. The shader is designed to handle an arbitrary number of instances using an unbounded buffer array, so
-    // we have to specify how many instances we are actually allocating. We do this only once and then bind this array to all command buffers, since we do not need to 
-    // update it regularly. In case, updates are required, we either would have to allocate multiple descriptor sets (as in the other examples), or handle the frame index
-    // in the shader manually (which is a little bit more tricky, but we could then pack everything in one descriptor set. This descriptor set would then receive updates
-    // to the indices currently not in use (i.e. each instance buffer needs to be inside the array multiple times, once for each frame in flight). This is allowed for 
-    // unbounded descriptor arrays, as long as we ensure, not to overwrite descriptors that are currently in use.
+    // Next, we create the descriptor set for the instance buffer. The shader is designed to handle an arbitrary number of instances using an unbounded buffer array, so we 
+    // specify the number of instances when allocating the descriptor set. The array occupies a contiguous range on the global descriptor heap, so its size is only limited 
+    // by the heap capacity. We allocate the set only once and bind it to all command buffers, since the instance buffer never changes. If it would require updates, we would
+    // either have to allocate one set per frame in flight (as in the other samples), or include each instance buffer once per frame in flight and index it by the frame 
+    // index in the shader, updating only the descriptors that are currently not in use.
     auto& instanceBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::InstanceData);
 
     // Since we are using an unstructured storage buffer, we need to specify the element size manually.
