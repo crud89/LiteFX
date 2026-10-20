@@ -28,9 +28,7 @@ public:
         if (unboundedArraySize == std::numeric_limits<UInt32>::max())
             m_unboundedArraySize = layout.maxUnboundedArraySize();
 
-        // Allocate the host descriptor buffers.
         auto& allocationLayout = layout.allocationLayout();
-
         m_resourceDescriptors.resize(static_cast<size_t>(allocationLayout.descriptorCount(DescriptorHeapType::Resource, m_unboundedArraySize)) * m_layout->device().descriptorStride(DescriptorHeapType::Resource), 0_b);
         m_samplerDescriptors.resize(static_cast<size_t>(allocationLayout.descriptorCount(DescriptorHeapType::Sampler, m_unboundedArraySize)) * m_layout->device().descriptorStride(DescriptorHeapType::Sampler), 0_b);
     }

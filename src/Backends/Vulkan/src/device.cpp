@@ -337,7 +337,6 @@ public:
 
         if (auto pAccelerationStructureFeatures = defineExtension(deviceExtensionObjects, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR, accelerationStructureFeatures, features.RayTracing || features.RayQueries)) {
             pAccelerationStructureFeatures->accelerationStructure = true;
-            pAccelerationStructureFeatures->descriptorBindingAccelerationStructureUpdateAfterBind = true;
         }
 
         VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures{};
@@ -402,25 +401,14 @@ public:
 
         pDeviceFeatures12->drawIndirectCount = features.DrawIndirect;
         pDeviceFeatures12->descriptorIndexing = true;
-        //deviceFeatures12.shaderInputAttachmentArrayDynamicIndexing = true; // Not supported by Intel ARC drivers and SwiftShader and since we're now using dynamic rendering anyway, this became (even) less important.
         pDeviceFeatures12->shaderUniformTexelBufferArrayDynamicIndexing = true;
         pDeviceFeatures12->shaderStorageTexelBufferArrayDynamicIndexing = true;
         pDeviceFeatures12->shaderUniformBufferArrayNonUniformIndexing = true;
         pDeviceFeatures12->shaderSampledImageArrayNonUniformIndexing = true;
         pDeviceFeatures12->shaderStorageBufferArrayNonUniformIndexing = true;
         pDeviceFeatures12->shaderStorageImageArrayNonUniformIndexing = true;
-        //deviceFeatures12.shaderInputAttachmentArrayNonUniformIndexing = true; // See above.
         pDeviceFeatures12->shaderUniformTexelBufferArrayNonUniformIndexing = true;
         pDeviceFeatures12->shaderStorageTexelBufferArrayNonUniformIndexing = true;
-        //deviceFeatures12.descriptorBindingUniformBufferUpdateAfterBind = true; // Not supported on NVidia Pascal and earlier, as well as SwiftShader.
-        pDeviceFeatures12->descriptorBindingSampledImageUpdateAfterBind = true;
-        pDeviceFeatures12->descriptorBindingStorageImageUpdateAfterBind = true;
-        pDeviceFeatures12->descriptorBindingStorageBufferUpdateAfterBind = true;
-        pDeviceFeatures12->descriptorBindingUniformTexelBufferUpdateAfterBind = true;
-        pDeviceFeatures12->descriptorBindingStorageTexelBufferUpdateAfterBind = true;
-        pDeviceFeatures12->descriptorBindingUpdateUnusedWhilePending = true;
-        pDeviceFeatures12->descriptorBindingPartiallyBound = true;
-        pDeviceFeatures12->descriptorBindingVariableDescriptorCount = true;
         pDeviceFeatures12->runtimeDescriptorArray = true;
         pDeviceFeatures12->separateDepthStencilLayouts = true;
         pDeviceFeatures12->hostQueryReset = true;

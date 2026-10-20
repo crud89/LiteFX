@@ -3723,7 +3723,8 @@ namespace LiteFX::Rendering {
 
         /// @brief Returns the number of descriptors in the descriptor array.
         ///
-        /// If @ref unbounded is set to `true`, the descriptor count defines the upper limit for the number of descriptors that can be allocated for in the array.
+        /// If @ref unbounded is set to `true`, the number of descriptors is not part of the layout. Instead, it is specified when allocating a descriptor set, and only limited by 
+        /// the capacity of the global descriptor heap.
         ///
         /// @return The number of descriptors in the descriptor array.
         /// @see @ref IDescriptorLayout
@@ -5180,19 +5181,13 @@ namespace LiteFX::Rendering {
     public:
         /// @brief Allocates a new descriptor set or returns an instance of an unused descriptor set.
         ///
-        /// Allocating a new descriptor set may be an expensive operation. To improve performance, and prevent fragmentation, the descriptor set layout keeps track of created descriptor sets. It does this by
-        /// never releasing them. Instead, when a @ref DescriptorSet instance gets destroyed, it should call @ref free in order to mark itself (i.e. its handle) as not being used any longer.
+        /// To reduce allocation overhead, the descriptor set layout keeps the local descriptor storage of freed descriptor sets and re-uses it for subsequent allocations. When 
+        /// a descriptor set is destroyed, it calls @ref free to return its storage to the layout. Each allocated set also reserves a range on the global descriptor heaps, which is 
+        /// released when the set is destroyed.
         ///
-        /// Before allocating a new descriptor set from a pool (which may even result in the creation of a new pool, if the existing pools are full), the layout tries to hand out descriptor sets that marked as
-        /// unused. Descriptor sets are only deleted, if the whole layout instance and therefore the descriptor pools are deleted.
-        ///
-        /// The above does not apply to unbounded descriptor arrays. A unbounded descriptor array is one, for which @ref IDescriptorLayout::descriptors returns `-1` (or `0xFFFFFFFF`). They must be allocated by
-        /// specifying the @p descriptors parameter. This parameter defines the number of descriptors to allocate in the array.
-        ///
-        /// Note that descriptor sets, that contain an unbounded descriptor array must only contain one single descriptor (the one that identifies this array). Such descriptor sets are never cached. Instead, they
-        /// are released when calling @ref free. It is a good practice to cache such descriptor sets as global descriptor tables once and never release them. They provide more flexibility than regular descriptor
-        /// arrays, since they may be updated, even after they have been bound to a command buffer or from different threads. However, you must ensure yourself not to overwrite any descriptors that are currently
-        /// in use. Because unbounded arrays are not cached, freeing and re-allocating such descriptor sets may leave the descriptor heap fragmented, which might cause the allocation to fail, if the heap is full.
+        /// The above does not apply to descriptor sets containing an unbounded descriptor array (see @ref IDescriptorLayout::unbounded). Their size is defined by the 
+        /// @p descriptors parameter, so their storage is never cached. The unbounded array must be bound to the last binding of the descriptor set. Because such sets are not 
+        /// cached, freeing and re-allocating them may fragment the global descriptor heap, which can cause allocations to fail if the heap is full.
         ///
         /// @param bindings Optional default bindings for descriptors in the descriptor set.
         /// @return The instance of the descriptor set.
@@ -9354,8 +9349,8 @@ namespace LiteFX::Rendering {
 
         /// @brief Binds the descriptors of the descriptor set to the global descriptor heaps.
         ///
-        /// Note that after binding the descriptor set, the descriptors must not be updated anymore, unless they are elements on unbounded descriptor arrays, in which case you have to ensure manually to not
-        /// update them, as long as they may still be in use!
+        /// Descriptors can be updated after binding the descriptor set. However, updates are visible to all command buffers immediately, so you have to ensure manually that 
+        /// descriptors are not updated while they may still be in use by the GPU.
         ///
         /// @param commandBuffer The command buffer to bind the descriptor set on.
         /// @param descriptorSet The descriptor set to bind.

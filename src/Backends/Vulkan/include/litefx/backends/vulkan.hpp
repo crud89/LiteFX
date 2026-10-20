@@ -669,17 +669,17 @@ namespace LiteFX::Rendering::Backends {
         const VulkanDescriptorSetLayout& layout() const noexcept;
 
     private:
-        /// @brief Releases the underlying buffer of the descriptor set and returns it to the caller (usually the parent descriptor set layout).
+        /// @brief Releases the underlying buffer of the descriptor set's local heap and returns it to the caller (usually the parent descriptor set layout).
         ///
         /// @param heapType The type of the host-local descriptor heap to release.
-        /// @return The underlying descriptor buffer.
+        /// @return The underlying descriptor heap buffer.
         Array<Byte>&& releaseBuffer(DescriptorHeapType heapType) const;
 
     public:
-        /// @brief Returns a view over the underlying descriptor buffer.
+        /// @brief Returns a view over the underlying descriptor heap buffer.
         ///
-        /// @param heapType The type of the descriptor heap for which to obtain the descriptor buffer.
-        /// @return A view over the underlying descriptor buffer.
+        /// @param heapType The type of the descriptor heap for which to obtain the descriptor heap buffer.
+        /// @return A view over the underlying heap descriptor buffer.
         Span<const Byte> descriptorBuffer(DescriptorHeapType heapType) const;
 
     public:

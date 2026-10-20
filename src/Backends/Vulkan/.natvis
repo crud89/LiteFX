@@ -468,7 +468,7 @@
 			<Item Name="Parent Device">impl()->m_device</Item>
 			<Item Name="Allocation Layout">impl()->m_allocationLayout</Item>
 			<Item Name="Max. Unbounded Array Size">impl()->m_maxUnboundedArraySize</Item>
-			<Item Name="Cached Descriptor Buffers">impl()->m_freeDescriptorSets.c,view(simple)</Item>
+			<Item Name="Cached Descriptor Heap Buffers">impl()->m_freeDescriptorSets.c,view(simple)</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
