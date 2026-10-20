@@ -117,7 +117,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
 
     // Create the shader program.
-    // NOTE: The hit shader here receives per-invocation data at the descriptor bound to register 0, space/set 1.
+    // NOTE: The hit shader here receives per-invocation data at the descriptor bound to register 0, space/set 3.
     SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
         .withRayGenerationShaderModule("shaders/raytracing_gen." + FileExtensions<TRenderBackend>::SHADER)
         .withClosestHitShaderModule("shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, DescriptorBindingPoint { .Register = 0, .Space = std::to_underlying(DescriptorSets::GeometryData) })
