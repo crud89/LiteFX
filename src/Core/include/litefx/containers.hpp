@@ -183,13 +183,14 @@ namespace LiteFX {
 	template <typename T, typename TVal = void>
 	using Generator = std::generator<T, TVal>;
 
-	/// @brief Evaluates if a type @p TCovariant behaves covariant to a value type @p TValue. In this context, covariance is expressed as the type @p TCovariant can be assigned a value of type @p TValue or
-	/// can be constructed from a value of @p TValue.
+	/// @brief Evaluates, if a value of type @p TValue can be returned as @p TCovariant.
+	/// 
+	/// If @p TCovariant is a reference, @p TValue must be a reference as well, as returning a temporary as a reference would dangle.
 	///
 	/// @tparam TValue The type of the value.
 	/// @tparam TCovariant The covariant type to check against @p TValue.
 	template <typename TValue, typename TCovariant>
-	concept is_covariant = std::is_assignable_v<TCovariant, TValue> || std::is_constructible_v<TCovariant, TValue>;
+	concept is_covariant = std::convertible_to<TValue, TCovariant> && (!std::is_reference_v<TCovariant> || std::is_reference_v<TValue>);
 
 	/// @brief Evaluates, if an iterator of type @p TIterator iterates values that are covariant to @p TValue.
 	///
@@ -592,8 +593,23 @@ namespace LiteFX {
 			static_assert(std::ranges::viewable_range<TRange>, "The source range does not satisfy std::ranges::viewable_range!");
 			static_assert(std::ranges::forward_range<TRange>, "The source range does not satisfy std::ranges::forward_range!");
 
-			auto view = std::views::common(std::forward<TRange>(range));
-			_range = std::make_shared<range_holder<decltype(view)>>(std::move(view));
+			// If the range is valid, also validate the value type.
+			if constexpr (std::ranges::viewable_range<TRange> && std::ranges::forward_range<TRange>)
+			{
+				using reference_t = std::ranges::range_reference_t<decltype(std::views::common(std::declval<TRange>()))>;
+				constexpr bool convertible = std::convertible_to<reference_t, T>;
+				constexpr bool dangling = std::is_reference_v<T> && !std::is_reference_v<reference_t>;
+
+				static_assert(convertible, "The elements of the source range cannot be converted to the enumerated type. If the enumerated type is a mutable reference, make sure the source range is not const.");
+				static_assert(!dangling, "The source range yields temporaries, which cannot be enumerated as references, as they would dangle. Enumerate values instead, or make sure the range yields references (e.g., a `std::views::transform` that returns a reference).");
+
+				// Only if the range and value is valid, continue with the construction of the type-erased iterator.
+				if constexpr (convertible && !dangling)
+				{
+					auto view = std::views::common(std::forward<TRange>(range));
+					_range = std::make_shared<range_holder<decltype(view)>>(std::move(view));
+				}
+			}
 		}
 
 		/// @brief Returns an iterator pointing to the start of the underlying range.
