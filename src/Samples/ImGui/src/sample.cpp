@@ -73,8 +73,7 @@ void SampleApp::releaseImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* co
     auto app = static_cast<SampleApp*>(context->UserData);
 
     // Remove the descriptor range, which will automatically release the descriptor allocation.
-    if (auto match = app->m_d3dDescriptorAllocations.find(cpu_handle.ptr); match != app->m_d3dDescriptorAllocations.end())
-        app->m_d3dDescriptorAllocations.erase(cpu_handle.ptr);
+    app->m_d3dDescriptorAllocations.erase(cpu_handle.ptr);
 }
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
@@ -294,8 +293,14 @@ void SampleApp::onInit()
                 ImGui_ImplGlfw_NewFrame();
             };
 
-            m_endUiCallback = [](const ICommandBuffer& commandBuffer) {
-                ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dynamic_cast<const DirectX12CommandBuffer&>(commandBuffer).handle().Get());
+            m_endUiCallback = [this](const ICommandBuffer& commandBuffer) {
+                auto& commands = dynamic_cast<const DirectX12CommandBuffer&>(commandBuffer);
+                ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commands.handle().Get());
+
+                // ImGui binds its own descriptor heaps, which invalidates our descriptor heap bindings. This is harmless, because we do  not render anything beyond that 
+                // point. If you render anything after the UI, you need to re-bind the global descriptor heaps. Consider this an expensive operation and prefer rendering 
+                // everything before the UI, though!
+                //m_device->bindGlobalDescriptorHeaps(commandBuffer);
             };
         }
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
@@ -326,8 +331,7 @@ void SampleApp::onInit()
             initInfo.Device = std::as_const(*device).handle();
             initInfo.QueueFamily = device->defaultQueue(QueueType::Graphics).familyId();
             initInfo.Queue = device->defaultQueue(QueueType::Graphics).handle();
-            // Randomly guessed... not sure how many are required by ImGui.
-            initInfo.DescriptorPoolSize = 10u;  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            initInfo.DescriptorPoolSize = IMGUI_IMPL_VULKAN_MINIMUM_SAMPLED_IMAGE_POOL_SIZE;
             initInfo.MinImageCount = backBuffers;
             initInfo.ImageCount = backBuffers;
             initInfo.UseDynamicRendering = true;
@@ -349,8 +353,13 @@ void SampleApp::onInit()
                 ImGui_ImplGlfw_NewFrame();
             };
 
-            m_endUiCallback = [](const ICommandBuffer& commandBuffer) {
+            m_endUiCallback = [this](const ICommandBuffer& commandBuffer) {
                 ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), dynamic_cast<const VulkanCommandBuffer&>(commandBuffer).handle());
+
+                // ImGui binds classic descriptor sets and push constants, which invalidates the descriptor heap bindings and all push data. This is harmless, because we do 
+                // not render anything beyond that point. If you render anything after the UI, you need to re-bind the global descriptor heaps. Consider this an expensive
+                // operation and prefer rendering everything before the UI, though!
+                //m_device->bindGlobalDescriptorHeaps(commandBuffer);
             };
         }
 #endif // LITEFX_BUILD_VULKAN_BACKEND
@@ -368,6 +377,7 @@ void SampleApp::onInit()
         {
             ImGui_ImplDX12_Shutdown();
             ImGui_ImplGlfw_Shutdown();
+            m_d3dDescriptorAllocations.clear();
         }
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
