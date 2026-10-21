@@ -107,6 +107,13 @@ nav:
       - getting-started/index.md
       - Installation: getting-started/installation.md
       - Project Setup: getting-started/project-setup.md
+  - Synchronization Guide:
+      - synchronization/index.md
+      - Queues and Fences: synchronization/queues-and-fences.md
+      - Command Buffers: synchronization/command-buffers.md
+      - Barriers: synchronization/barriers.md
+      - Render Passes and Frames: synchronization/render-passes-and-frames.md
+      - Patterns and Pitfalls: synchronization/patterns.md
   - Tutorials:
       - tutorials/index.md
       - Your First Triangle:
