@@ -249,13 +249,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../getting-started/" class="md-tabs__link">
+        <a href="../../../guides/" class="md-tabs__link">
           
   
   
     
   
-  Getting Started
+  Guides
 
         </a>
       </li>
@@ -434,14 +434,14 @@
   
   
   
-    <a href="../../../getting-started/" class="md-nav__link">
+    <a href="../../../guides/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Guides
   
 
     
@@ -1349,10 +1349,11 @@ for this through the <code>prepareMove</code> event, whose handler records the b
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="p">};</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">}</span>
 </code></pre></div>
-<p>The barrier starts from <code>ResourceAccess::None</code>, because defragmentation runs on its own queue, where nothing has accessed the resource
-before. That does not mean the resource is unused: other queues may still be reading it. Those accesses are synchronized between the queues
-with fences, as described below, not with this barrier.</p>
-<p>Images additionally need a target layout for the copy. The sample uses <code>Common</code>, which allows any kind of access, including the transfer
+<p>The barrier starts from <code>ResourceAccess::None</code>, because it is recorded at the start of a submission on the defragmentation queue.
+Submissions on a queue run one after another, so nothing on that queue can still access the resource (see <a href="../../../guides/synchronization/queues-and-fences/#submissions-run-one-after-another">submissions run one after
+another</a>). That does not mean the resource is unused: other queues may
+still be reading it. Those accesses are synchronized between the queues with fences, as described below, not with this barrier.</p>
+<p>Images additionally need a target layout for the copy. The sample uses <code>Common</code>, the default state of all images, which allows the transfer
 read:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">setupMoveHandlers</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">IImage</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">resource</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="n">resource</span><span class="o">-&gt;</span><span class="n">prepareMove</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="p">[</span><span class="n">image</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">resource</span><span class="o">-&gt;</span><span class="n">weak_from_this</span><span class="p">()](</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="cm">/*sender*/</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">IDeviceMemory</span><span class="o">::</span><span class="n">PrepareMoveEventArgs</span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>

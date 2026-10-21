@@ -249,13 +249,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../getting-started/" class="md-tabs__link">
+        <a href="../../../guides/" class="md-tabs__link">
           
   
   
     
   
-  Getting Started
+  Guides
 
         </a>
       </li>
@@ -434,14 +434,14 @@
   
   
   
-    <a href="../../../getting-started/" class="md-nav__link">
+    <a href="../../../guides/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Guides
   
 
     
@@ -1552,7 +1552,7 @@ still draws frame 0, the CPU can already write the transform of frame 1, because
 <p>Two details are worth noting:</p>
 <ul>
 <li><strong><code>waitFor</code></strong> makes the render pass's queue wait for the transfer that uploaded the vertices, indices and camera. Queues run
-  independently, so this synchronization is explicit.</li>
+  independently, so this synchronization is explicit (see <a href="../../../guides/synchronization/queues-and-fences/#waiting-on-another-queue">waiting on another queue</a>).</li>
 <li><strong><code>map</code> with the back buffer index</strong> writes into the element of the transform buffer that belongs to the current frame.</li>
 </ul>
 <h2 id="switching-backends-at-runtime">Switching backends at runtime<a class="headerlink" href="#switching-backends-at-runtime" title="Permanent link">&para;</a></h2>

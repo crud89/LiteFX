@@ -249,13 +249,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../getting-started/" class="md-tabs__link">
+        <a href="../../../guides/" class="md-tabs__link">
           
   
   
     
   
-  Getting Started
+  Guides
 
         </a>
       </li>
@@ -434,14 +434,14 @@
   
   
   
-    <a href="../../../getting-started/" class="md-nav__link">
+    <a href="../../../guides/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Guides
   
 
     
@@ -1439,7 +1439,8 @@ parallel and submitted together. The sample draws nine objects, each recorded by
 </code></pre></div>
 <p>The render pass submits all of its command buffers in order when it ends, so the result is the same as if one thread had recorded them.</p>
 <h2 id="resources-per-thread">Resources per thread<a class="headerlink" href="#resources-per-thread" title="Permanent link">&para;</a></h2>
-<p>The important rule is that <strong>no two threads may write to the same resource</strong>. In the basic rendering sample there is one transform buffer
+<p>The important rule is that <strong>no two threads may write to the same resource</strong> (see <a href="../../../guides/synchronization/command-buffers/#threads">threads</a> in the
+synchronization guide). In the basic rendering sample there is one transform buffer
 with one element per frame in flight. Here, each worker needs its own:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">Array</span><span class="o">&lt;</span><span class="n">SharedPtr</span><span class="o">&lt;</span><span class="n">IBuffer</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">transformBuffers</span><span class="p">(</span><span class="n">NUM_WORKERS</span><span class="p">);</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">std</span><span class="o">::</span><span class="n">ranges</span><span class="o">::</span><span class="n">generate</span><span class="p">(</span><span class="n">transformBuffers</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="o">&amp;</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">]()</span><span class="w"> </span><span class="k">mutable</span><span class="w"> </span><span class="p">{</span>

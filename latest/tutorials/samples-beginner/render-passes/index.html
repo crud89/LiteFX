@@ -249,13 +249,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../getting-started/" class="md-tabs__link">
+        <a href="../../../guides/" class="md-tabs__link">
           
   
   
     
   
-  Getting Started
+  Guides
 
         </a>
       </li>
@@ -434,14 +434,14 @@
   
   
   
-    <a href="../../../getting-started/" class="md-nav__link">
+    <a href="../../../guides/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Guides
   
 
     
@@ -1499,7 +1499,7 @@ one. The third pass reuses that depth buffer to test its geometry against, but m
 <p>The screen-filling quad of the second pass needs no depth test and no culling at all, so its pipeline uses <code>CullMode::Disabled</code>.</p>
 <h2 id="drawing-the-passes">Drawing the passes<a class="headerlink" href="#drawing-the-passes" title="Permanent link">&para;</a></h2>
 <p>Each pass is begun and ended in turn. Because the passes write into the same frame buffer, the engine knows their dependencies and inserts
-the necessary barriers:</p>
+the necessary barriers (see <a href="../../../guides/synchronization/render-passes-and-frames/">render passes and frames</a> in the synchronization guide):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">firstPass</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">frameBuffer</span><span class="p">);</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1">// ... draw the geometry as in the basic rendering sample ...</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">firstPass</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>

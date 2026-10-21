@@ -249,13 +249,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../../getting-started/" class="md-tabs__link">
+        <a href="../../../../guides/" class="md-tabs__link">
           
   
   
     
   
-  Getting Started
+  Guides
 
         </a>
       </li>
@@ -436,14 +436,14 @@
   
   
   
-    <a href="../../../../getting-started/" class="md-nav__link">
+    <a href="../../../../guides/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Guides
   
 
     
@@ -15250,7 +15250,7 @@
 <h1 id="litefxrenderingresourceaccess"><code>LiteFX::Rendering::ResourceAccess</code><a class="headerlink" href="#litefxrenderingresourceaccess" title="Permanent link">&para;</a></h1>
 <p>Defines how a <a href="../IBuffer/"><code>IBuffer</code></a> or <a href="../IImage/"><code>IImage</code></a> resource is accessed.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/605d54b6d6f51b74d7b5002542862491cae356b2/src/Rendering/include/litefx/rendering_api.hpp#L1233">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/7ed63e973434d90f8dc00be6570e20a7348ec00c/src/Rendering/include/litefx/rendering_api.hpp#L1262">litefx/rendering_api.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ResourceAccess</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kt">int</span><span class="p">;</span></code></pre></div>
 
 <h2 id="members">Members<a class="headerlink" href="#members" title="Permanent link">&para;</a></h2>
@@ -15264,6 +15264,7 @@
 <tr><td><a href="./"><code>RenderTarget</code></a> </td><td>Indicates that a resource is accessed as a render target.</td></tr>
 <tr><td><a href="./"><code>DepthStencilRead</code></a> </td><td>Indicates that a resource is accessed as to read depth/stencil values.</td></tr>
 <tr><td><a href="./"><code>DepthStencilWrite</code></a> </td><td>Indicates that a resource is accessed as to write depth/stencil values.</td></tr>
+<tr><td><a href="./"><code>DepthStencil</code></a> </td><td>Combines <a href="./"><code>DepthStencilRead</code></a> and <a href="./"><code>DepthStencilWrite</code></a>.</td></tr>
 <tr><td><a href="./"><code>ShaderRead</code></a> </td><td>Indicates that a resource is accessed as a read-only shader resource.</td></tr>
 <tr><td><a href="./"><code>ShaderReadWrite</code></a> </td><td>Indicates that a resource is accessed as a read-write shader resource.</td></tr>
 <tr><td><a href="./"><code>Indirect</code></a> </td><td>Indicates that a resource is accessed as to read indirect draw commands.</td></tr>

@@ -249,13 +249,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../getting-started/" class="md-tabs__link">
+        <a href="../../../guides/" class="md-tabs__link">
           
   
   
     
   
-  Getting Started
+  Guides
 
         </a>
       </li>
@@ -434,14 +434,14 @@
   
   
   
-    <a href="../../../getting-started/" class="md-nav__link">
+    <a href="../../../guides/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Guides
   
 
     
@@ -1479,42 +1479,48 @@ them, so only the input assembler gains another attribute:</p>
 <p>The usage flags say what the texture is used for: it is written by the mip map generation (<code>AllowWrite</code>), and it is both the destination of
 the upload and the source when the mip levels are generated from each other.</p>
 <h2 id="barriers-and-layouts">Barriers and layouts<a class="headerlink" href="#barriers-and-layouts" title="Permanent link">&para;</a></h2>
-<p>Unlike buffers, images have a <em>layout</em> that describes how the GPU currently stores them. A layout is optimal for exactly one purpose, so the
-image has to be transitioned before it is used differently. A <em>barrier</em> performs that transition, and at the same time orders the commands
-around it:</p>
+<p>Unlike buffers, images have a <em>layout</em> that describes how the GPU currently stores them, and each layout only allows certain kinds of
+access. LiteFX keeps this manageable with two rules (see <a href="../../../guides/synchronization/barriers/#the-default-state">the default state</a> in
+the synchronization guide):</p>
+<ul>
+<li><strong>A newly created image has no defined layout.</strong> Treat it as if it were in <code>ImageLayout::Undefined</code>, so its first transition starts from
+  there.</li>
+<li><strong>An image that is not currently in use is in <code>ImageLayout::Common</code>.</strong> Work that needs a different layout transitions the image there and
+  back into <code>Common</code> when it is done.</li>
+</ul>
+<p><code>Common</code> already allows copies and sampling, so the texture can stay in it for its whole life. Only the first transition is needed, which
+takes the new texture out of <code>Undefined</code>. A <em>barrier</em> performs that transition, and at the same time orders the commands around it:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">TBarrier</span><span class="o">&gt;</span><span class="w"> </span><span class="n">barrier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">device</span><span class="p">.</span><span class="n">buildBarrier</span><span class="p">()</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="p">.</span><span class="n">waitFor</span><span class="p">(</span><span class="n">PipelineStage</span><span class="o">::</span><span class="n">None</span><span class="p">).</span><span class="n">toContinueWith</span><span class="p">(</span><span class="n">PipelineStage</span><span class="o">::</span><span class="n">Transfer</span><span class="p">)</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="p">.</span><span class="n">blockAccessTo</span><span class="p">(</span><span class="o">*</span><span class="n">texture</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceAccess</span><span class="o">::</span><span class="n">TransferWrite</span><span class="p">).</span><span class="n">transitionLayout</span><span class="p">(</span><span class="n">ImageLayout</span><span class="o">::</span><span class="n">CopyDestination</span><span class="p">).</span><span class="n">whenFinishedWith</span><span class="p">(</span><span class="n">ResourceAccess</span><span class="o">::</span><span class="n">None</span><span class="p">);</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">barrier</span><span class="p">(</span><span class="o">*</span><span class="n">barrier</span><span class="p">);</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">transfer</span><span class="p">(</span><span class="n">imageData</span><span class="p">.</span><span class="n">get</span><span class="p">(),</span><span class="w"> </span><span class="n">texture</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span><span class="w"> </span><span class="o">*</span><span class="n">texture</span><span class="p">);</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="p">.</span><span class="n">waitFor</span><span class="p">(</span><span class="n">PipelineStage</span><span class="o">::</span><span class="n">None</span><span class="p">)</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="p">.</span><span class="n">toContinueWith</span><span class="p">(</span><span class="n">PipelineStage</span><span class="o">::</span><span class="n">Transfer</span><span class="p">)</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="p">.</span><span class="n">blockAccessTo</span><span class="p">(</span><span class="o">*</span><span class="n">texture</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceAccess</span><span class="o">::</span><span class="n">TransferWrite</span><span class="p">)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="p">.</span><span class="n">transitionLayout</span><span class="p">(</span><span class="n">ImageLayout</span><span class="o">::</span><span class="n">Undefined</span><span class="p">,</span><span class="w"> </span><span class="n">ImageLayout</span><span class="o">::</span><span class="n">Common</span><span class="p">)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="p">.</span><span class="n">whenFinishedWith</span><span class="p">(</span><span class="n">ResourceAccess</span><span class="o">::</span><span class="n">None</span><span class="p">);</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">barrier</span><span class="p">(</span><span class="o">*</span><span class="n">barrier</span><span class="p">);</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">transfer</span><span class="p">(</span><span class="n">imageData</span><span class="p">.</span><span class="n">get</span><span class="p">(),</span><span class="w"> </span><span class="n">texture</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span><span class="w"> </span><span class="o">*</span><span class="n">texture</span><span class="p">);</span>
 </code></pre></div>
 <p>Read as a sentence: wait for nothing, continue with transfer commands, and block their write access to the texture until it has been
-transitioned to the layout for copy destinations.</p>
+transitioned from <code>Undefined</code> into <code>Common</code>. Nothing has to be waited for, because the texture is used for the first time in this command buffer,
+and a submission only starts after the previous one on the same queue has finished.</p>
 <p>After the upload, the smaller mip levels are generated from the largest one. The engine provides a <code>Blitter</code> for this, which records the
-necessary dispatches and barriers:</p>
+necessary dispatches and barriers. Like everything the engine does, it expects the image in <code>Common</code> and leaves it there:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">auto</span><span class="w"> </span><span class="n">blitter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Blitter</span><span class="o">&lt;</span><span class="n">TBackend</span><span class="o">&gt;::</span><span class="n">create</span><span class="p">(</span><span class="n">device</span><span class="p">);</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">blitter</span><span class="o">-&gt;</span><span class="n">generateMipMaps</span><span class="p">(</span><span class="o">*</span><span class="n">texture</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">commandBuffer</span><span class="p">);</span>
 </code></pre></div>
-<p>Finally, the texture is transitioned into the layout for shader resources, so the fragment shader can sample it:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">barrier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">device</span><span class="p">.</span><span class="n">buildBarrier</span><span class="p">()</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="p">.</span><span class="n">waitFor</span><span class="p">(</span><span class="n">PipelineStage</span><span class="o">::</span><span class="n">All</span><span class="p">).</span><span class="n">toContinueWith</span><span class="p">(</span><span class="n">PipelineStage</span><span class="o">::</span><span class="n">Fragment</span><span class="p">)</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="p">.</span><span class="n">blockAccessTo</span><span class="p">(</span><span class="o">*</span><span class="n">texture</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceAccess</span><span class="o">::</span><span class="n">ShaderRead</span><span class="p">).</span><span class="n">transitionLayout</span><span class="p">(</span><span class="n">ImageLayout</span><span class="o">::</span><span class="n">ShaderResource</span><span class="p">).</span><span class="n">whenFinishedWith</span><span class="p">(</span><span class="n">ResourceAccess</span><span class="o">::</span><span class="n">None</span><span class="p">);</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">barrier</span><span class="p">(</span><span class="o">*</span><span class="n">barrier</span><span class="p">);</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="k">auto</span><span class="w"> </span><span class="n">transferFence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">submit</span><span class="p">();</span>
-</code></pre></div>
-<p>Mip map generation is a compute workload, so the command buffer is created on the graphics queue here, not on the transfer queue.</p>
+<p>Mip map generation is a compute workload in DirectX, so the command buffer is created on the graphics queue here, not on the transfer queue. The
+synchronization guide covers this case in more detail under <a href="../../../guides/synchronization/patterns/#textures-with-mip-maps">textures with mip
+maps</a>.</p>
 <h2 id="the-sampler">The sampler<a class="headerlink" href="#the-sampler" title="Permanent link">&para;</a></h2>
 <p>The sampler is created separately from the texture, and the same sampler can be used with many textures:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">sampler</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">device</span><span class="p">.</span><span class="n">factory</span><span class="p">().</span><span class="n">createSampler</span><span class="p">(</span><span class="s">"Sampler"</span><span class="p">,</span><span class="w"> </span><span class="n">FilterMode</span><span class="o">::</span><span class="n">Linear</span><span class="p">,</span><span class="w"> </span><span class="n">FilterMode</span><span class="o">::</span><span class="n">Linear</span><span class="p">,</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="n">BorderMode</span><span class="o">::</span><span class="n">Repeat</span><span class="p">,</span><span class="w"> </span><span class="n">BorderMode</span><span class="o">::</span><span class="n">Repeat</span><span class="p">,</span><span class="w"> </span><span class="n">BorderMode</span><span class="o">::</span><span class="n">Repeat</span><span class="p">,</span><span class="w"> </span><span class="n">MipMapMode</span><span class="o">::</span><span class="n">Linear</span><span class="p">,</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="mf">0.f</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">numeric_limits</span><span class="o">&lt;</span><span class="n">Float</span><span class="o">&gt;::</span><span class="n">max</span><span class="p">(),</span><span class="w"> </span><span class="mf">0.f</span><span class="p">,</span><span class="w"> </span><span class="mf">16.f</span><span class="p">);</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">sampler</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">device</span><span class="p">.</span><span class="n">factory</span><span class="p">().</span><span class="n">createSampler</span><span class="p">(</span><span class="s">"Sampler"</span><span class="p">,</span><span class="w"> </span><span class="n">FilterMode</span><span class="o">::</span><span class="n">Linear</span><span class="p">,</span><span class="w"> </span><span class="n">FilterMode</span><span class="o">::</span><span class="n">Linear</span><span class="p">,</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="n">BorderMode</span><span class="o">::</span><span class="n">Repeat</span><span class="p">,</span><span class="w"> </span><span class="n">BorderMode</span><span class="o">::</span><span class="n">Repeat</span><span class="p">,</span><span class="w"> </span><span class="n">BorderMode</span><span class="o">::</span><span class="n">Repeat</span><span class="p">,</span><span class="w"> </span><span class="n">MipMapMode</span><span class="o">::</span><span class="n">Linear</span><span class="p">,</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="mf">0.f</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">numeric_limits</span><span class="o">&lt;</span><span class="n">Float</span><span class="o">&gt;::</span><span class="n">max</span><span class="p">(),</span><span class="w"> </span><span class="mf">0.f</span><span class="p">,</span><span class="w"> </span><span class="mf">16.f</span><span class="p">);</span>
 </code></pre></div>
 <p>Linear filtering interpolates between neighboring pixels and mip levels, <code>Repeat</code> tiles the image outside its bounds, and the last argument
 enables anisotropic filtering, which keeps steeply viewed surfaces sharp.</p>
 <p>Texture and sampler share the descriptor set with the camera, since all three are written once and then stay unchanged:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">auto</span><span class="w"> </span><span class="n">staticBindings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">staticBindingLayout</span><span class="p">.</span><span class="n">allocate</span><span class="p">({</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">cameraBuffer</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">texture</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">sampler</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">});</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">auto</span><span class="w"> </span><span class="n">staticBindings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">staticBindingLayout</span><span class="p">.</span><span class="n">allocate</span><span class="p">({</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">cameraBuffer</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">texture</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">sampler</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">});</span>
 </code></pre></div>
 
 

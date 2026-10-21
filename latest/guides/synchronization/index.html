@@ -12,13 +12,13 @@
         <meta name="author" content="Carsten Rudolph">
       
       
-        <link rel="canonical" href="https://litefx.crudolph.io/latest/getting-started/project-setup/">
+        <link rel="canonical" href="https://litefx.crudolph.io/latest/guides/synchronization/">
       
       
-        <link rel="prev" href="../installation/">
+        <link rel="prev" href="../getting-started/project-setup/">
       
       
-        <link rel="next" href="../../tutorials/">
+        <link rel="next" href="queues-and-fences/">
       
       
         
@@ -29,7 +29,7 @@
     
     
       
-        <title>Project Setup - LiteFX</title>
+        <title>Synchronization - LiteFX</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#project-setup" class="md-skip">
+        <a href="#synchronization" class="md-skip">
           Skip to content
         </a>
       
@@ -115,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Project Setup
+              Synchronization
             
           </span>
         </div>
@@ -257,7 +257,7 @@
   
     
   
-  Getting Started
+  Guides
 
         </a>
       </li>
@@ -445,7 +445,7 @@
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Guides
   
 
     
@@ -467,7 +467,148 @@
             <span class="md-nav__icon md-icon"></span>
             
   
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../getting-started/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
     Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="./" class="md-nav__link md-nav__link--active">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Synchronization
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link md-nav__link--active" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Synchronization
   
 
           </label>
@@ -482,14 +623,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
+      <a href="queues-and-fences/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Installation
+    Queues and Fences
   
 
     
@@ -507,44 +648,17 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Project Setup
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="command-buffers/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Project Setup
+    Command Buffers
   
 
     
@@ -553,91 +667,97 @@
   
 
       </a>
-      
-        
+    </li>
+  
 
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+              
+            
+              
+                
   
   
   
+  
+    <li class="md-nav__item">
+      <a href="barriers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
     
   
+    Barriers
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#project-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Project structure
-      
-    </span>
-  </a>
+
+    
+  </span>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#vcpkg-manifest" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        vcpkg manifest
-      
-    </span>
-  </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cmake-presets" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CMake presets
-      
-    </span>
-  </a>
+
+      </a>
+    </li>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#build-script" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Build script
-      
-    </span>
-  </a>
+
+              
+            
+              
+                
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#building-the-project" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Building the project
-      
-    </span>
-  </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Next steps
-      
-    </span>
-  </a>
   
-</li>
-      
-    </ul>
   
-</nav>
+    <li class="md-nav__item">
+      <a href="render-passes-and-frames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Render Passes and Frames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="patterns/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Patterns and Pitfalls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
       
     </li>
   
@@ -833,10 +953,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#project-structure" class="md-nav__link">
+  <a href="#three-levels-of-synchronization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Project structure
+        Three levels of synchronization
       
     </span>
   </a>
@@ -844,10 +964,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#vcpkg-manifest" class="md-nav__link">
+  <a href="#pages-in-this-guide" class="md-nav__link">
     <span class="md-ellipsis">
       
-        vcpkg manifest
+        Pages in this guide
       
     </span>
   </a>
@@ -855,10 +975,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#cmake-presets" class="md-nav__link">
+  <a href="#terms-used-in-this-guide" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CMake presets
+        Terms used in this guide
       
     </span>
   </a>
@@ -866,32 +986,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#build-script" class="md-nav__link">
+  <a href="#backend-differences" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Build script
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#building-the-project" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Building the project
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Next steps
+        Backend differences
       
     </span>
   </a>
@@ -944,7 +1042,25 @@
         <a href="../" class="md-path__link">
           
   <span class="md-ellipsis">
-    Getting Started
+    Guides
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="./" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Synchronization
   </span>
 
         </a>
@@ -963,7 +1079,7 @@
 
 
   
-    <a href="https://github.com/crud89/LiteFX/edit/main/docs/site/content/getting-started/project-setup.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/crud89/LiteFX/edit/main/docs/site/content/guides/synchronization/index.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -971,156 +1087,118 @@
   
 
 
-<h1 id="project-setup">Project setup<a class="headerlink" href="#project-setup" title="Permanent link">&para;</a></h1>
-<p>This guide walks you through setting up a new CMake project that uses LiteFX, with vcpkg providing the engine. If you have not installed vcpkg
-yet, follow the <a href="../installation/#vcpkg">installation guide</a> first. The guide assumes a Windows system with Visual C++ and uses
-<a href="https://www.glfw.org/">GLFW</a> for the application window.</p>
-<h2 id="project-structure">Project structure<a class="headerlink" href="#project-structure" title="Permanent link">&para;</a></h2>
-<p>Start with an empty directory, which will contain the following files:</p>
+<h1 id="synchronization">Synchronization<a class="headerlink" href="#synchronization" title="Permanent link">&para;</a></h1>
+<p>The GPU does not execute commands when you record them. You record commands into <em>command buffers</em>, submit those to <em>command queues</em>, and
+the GPU works through them later, in parallel to your application and to other queues. Whenever two pieces of work touch the same resource,
+or the CPU needs the result of GPU work, you have to tell the engine how they are ordered. This guide explains the tools LiteFX gives you for
+that, and the rules both backends follow.</p>
+<p>You have already used most of them in the <a href="../../tutorials/first-triangle/">first triangle</a> tutorial: the upload waited for a <em>fence</em>, and the
+render pass took care of everything else. This guide explains what happened there, and what you need to do once you leave the beaten path,
+for example when you add compute work, copy images or use more than one queue.</p>
+<h2 id="three-levels-of-synchronization">Three levels of synchronization<a class="headerlink" href="#three-levels-of-synchronization" title="Permanent link">&para;</a></h2>
+<p>Synchronization in LiteFX happens on three levels. Each one has its own tool:</p>
 <table>
 <thead>
 <tr>
-<th>File</th>
-<th>Purpose</th>
+<th>Level</th>
+<th>Question it answers</th>
+<th>Tool</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>vcpkg.json</code></td>
-<td>The <em>manifest</em>: your project's metadata and dependencies.</td>
+<td>CPU and GPU</td>
+<td>Has the GPU finished the work I submitted, so I can read results or reuse memory?</td>
+<td>A <em>fence</em> and <code>ICommandQueue::waitFor(fence)</code></td>
 </tr>
 <tr>
-<td><code>vcpkg-configuration.json</code></td>
-<td>Tells vcpkg where to find the engine (the LiteFX registry).</td>
+<td>Queue and queue</td>
+<td>Does this queue have to wait for work on another queue?</td>
+<td>A <em>fence</em> and <code>ICommandQueue::waitFor(queue, fence)</code></td>
 </tr>
 <tr>
-<td><code>CMakePresets.json</code></td>
-<td>Build configurations, e.g. the compiler, build type and vcpkg integration.</td>
-</tr>
-<tr>
-<td><code>CMakeLists.txt</code></td>
-<td>The build script of your project.</td>
-</tr>
-<tr>
-<td><code>main.h</code>, <code>main.cpp</code></td>
-<td>The application sources, written in the <a href="../../tutorials/first-triangle/">first tutorial</a>.</td>
+<td>Within a submission</td>
+<td>Does this command have to wait for a previous one, and in which state does it need a resource?</td>
+<td>A <em>barrier</em></td>
 </tr>
 </tbody>
 </table>
-<h2 id="vcpkg-manifest">vcpkg manifest<a class="headerlink" href="#vcpkg-manifest" title="Permanent link">&para;</a></h2>
-<p>The manifest tells vcpkg which libraries your project depends on: the engine itself and GLFW, which creates the application window and
-handles user input. You can use any other window library, or your own, but then some parts of the tutorials need to be adapted.</p>
-<div class="highlight"><span class="filename">vcpkg.json</span><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"myapp"</span><span class="p">,</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0"</span><span class="p">,</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">"supports"</span><span class="p">:</span><span class="w"> </span><span class="s2">"windows &amp; !arm"</span><span class="p">,</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="s2">"litefx"</span><span class="p">,</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="s2">"glfw3"</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="p">]</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">}</span>
-</code></pre></div>
-<p>Next to it, create the <code>vcpkg-configuration.json</code> file that adds the LiteFX registry, as described in the
-<a href="../installation/#adding-the-litefx-registry">installation guide</a>.</p>
-<h2 id="cmake-presets">CMake presets<a class="headerlink" href="#cmake-presets" title="Permanent link">&para;</a></h2>
-<p>A <em>preset</em> describes how CMake configures a build. The following preset builds a 64-bit debug version with Visual C++ and
-<a href="https://ninja-build.org/">Ninja</a>. It loads vcpkg through its CMake <em>toolchain file</em>, which installs the dependencies from your manifest when
-you configure the project.</p>
-<div class="highlight"><span class="filename">CMakePresets.json</span><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">"cmakeMinimumRequired"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">"major"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">"minor"</span><span class="p">:</span><span class="w"> </span><span class="mi">23</span><span class="p">,</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">"patch"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="p">},</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nt">"configurePresets"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"windows-msvc-x64-debug"</span><span class="p">,</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="nt">"generator"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Ninja"</span><span class="p">,</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">"binaryDir"</span><span class="p">:</span><span class="w"> </span><span class="s2">"${sourceDir}/out/build/${presetName}"</span><span class="p">,</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">      </span><span class="nt">"installDir"</span><span class="p">:</span><span class="w"> </span><span class="s2">"${sourceDir}/out/install/${presetName}"</span><span class="p">,</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">      </span><span class="nt">"toolchainFile"</span><span class="p">:</span><span class="w"> </span><span class="s2">"$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"</span><span class="p">,</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">      </span><span class="nt">"architecture"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">        </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"x64"</span><span class="p">,</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">        </span><span class="nt">"strategy"</span><span class="p">:</span><span class="w"> </span><span class="s2">"external"</span>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">      </span><span class="p">},</span>
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">      </span><span class="nt">"cacheVariables"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">        </span><span class="nt">"CMAKE_BUILD_TYPE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Debug"</span><span class="p">,</span>
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">        </span><span class="nt">"VCPKG_TARGET_TRIPLET"</span><span class="p">:</span><span class="w"> </span><span class="s2">"x64-windows"</span>
-<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">      </span><span class="p">}</span>
-<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">  </span><span class="p">],</span>
-<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">  </span><span class="nt">"buildPresets"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"windows-msvc-x64-debug"</span><span class="p">,</span>
-<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">      </span><span class="nt">"configurePreset"</span><span class="p">:</span><span class="w"> </span><span class="s2">"windows-msvc-x64-debug"</span>
-<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">  </span><span class="p">]</span>
-<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="p">}</span>
-</code></pre></div>
-<p>The toolchain file is located through the <code>VCPKG_ROOT</code> environment variable, which is set by Visual Studio or by you, depending on how you
-<a href="../installation/#installing-vcpkg">installed vcpkg</a>. For more ways to integrate vcpkg, see the
-<a href="https://learn.microsoft.com/vcpkg/users/buildsystems/cmake-integration">vcpkg CMake integration</a> documentation.</p>
-<h2 id="build-script">Build script<a class="headerlink" href="#build-script" title="Permanent link">&para;</a></h2>
-<p>The build script defines your application and its dependencies:</p>
-<div class="highlight"><span class="filename">CMakeLists.txt</span><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">CMAKE_MINIMUM_REQUIRED</span><span class="p">(</span><span class="s">VERSION</span><span class="w"> </span><span class="s">3.23</span><span class="p">)</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">PROJECT</span><span class="p">(</span><span class="s">MyApp</span><span class="w"> </span><span class="s">LANGUAGES</span><span class="w"> </span><span class="s">CXX</span><span class="p">)</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nb">SET</span><span class="p">(</span><span class="s">CMAKE_CXX_STANDARD</span><span class="w"> </span><span class="s">23</span><span class="p">)</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nb">SET</span><span class="p">(</span><span class="s">CMAKE_CXX_STANDARD_REQUIRED</span><span class="w"> </span><span class="s">ON</span><span class="p">)</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c"># Build the application and its runtime files into a common directory.</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="nb">SET</span><span class="p">(</span><span class="s">CMAKE_RUNTIME_OUTPUT_DIRECTORY</span><span class="w"> </span><span class="s2">"${CMAKE_BINARY_DIR}/binaries"</span><span class="p">)</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="nb">FIND_PACKAGE</span><span class="p">(</span><span class="s">LiteFX</span><span class="w"> </span><span class="s">CONFIG</span><span class="w"> </span><span class="s">REQUIRED</span><span class="p">)</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="nb">FIND_PACKAGE</span><span class="p">(</span><span class="s">glfw3</span><span class="w"> </span><span class="s">CONFIG</span><span class="w"> </span><span class="s">REQUIRED</span><span class="p">)</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="nb">ADD_EXECUTABLE</span><span class="p">(</span><span class="s">MyApp</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="s2">"main.h"</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">    </span><span class="s2">"main.cpp"</span>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="p">)</span>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="nb">TARGET_LINK_LIBRARIES</span><span class="p">(</span><span class="s">MyApp</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">LiteFX::Vulkan</span><span class="w"> </span><span class="s">LiteFX::DirectX12</span><span class="w"> </span><span class="s">glfw</span><span class="p">)</span>
-<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>
-<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="c"># Copy the runtime files the engine requires next to the application.</span>
-<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="nb">LITEFX_DEPLOY_RUNTIME</span><span class="p">(</span><span class="s">MyApp</span><span class="p">)</span>
-</code></pre></div>
-<p>Here is what the individual parts do:</p>
-<ul>
-<li><strong>C++23</strong> is the language standard the engine requires.</li>
-<li><strong><code>CMAKE_RUNTIME_OUTPUT_DIRECTORY</code></strong> places the application and the files it needs at runtime (e.g. shaders) into a <em>binaries</em> directory
-  within the build directory.</li>
-<li><strong><code>FIND_PACKAGE</code></strong> loads the engine and GLFW, which vcpkg installed.</li>
-<li><strong><code>TARGET_LINK_LIBRARIES</code></strong> links the application with the backends it uses. This example uses both, but you can remove the one you do not
-  need. Each backend links the core libraries of the engine automatically.</li>
-<li><strong><code>LITEFX_DEPLOY_RUNTIME</code></strong> copies files the engine loads at runtime next to the application. For example, the DirectX 12 backend requires
-  the <a href="https://devblogs.microsoft.com/directx/directx12agility/">Agility SDK</a> runtime.</li>
-</ul>
-<div class="admonition tip">
-<p class="admonition-title">Requiring specific backends</p>
-<p>To make sure the engine was built with the backends your application uses, list them as components:
-<code>FIND_PACKAGE(LiteFX CONFIG REQUIRED COMPONENTS Vulkan DirectX12)</code>. Configuring then fails with a clear message, if a backend is
-missing.</p>
+<p>The levels build on each other. A fence orders whole submissions, but says nothing about the commands inside them. A barrier orders
+commands inside a submission, but cannot wait for another queue or for the CPU. Between submissions to the <em>same</em> queue, there is nothing
+to do: a queue executes its submissions one after another, so every submission starts with all previous work on that queue completed.</p>
+<div class="admonition note">
+<p class="admonition-title">Some synchronization is done for you</p>
+<p>Render passes, the swap chain, mip map generation and defragmentation synchronize their own work. They do, however, expect resources in a
+well-defined state when you hand them over, and they return them in a well-defined state. These contracts are described on the pages of
+this guide, and summarized in <a href="barriers/#the-default-state">the default state</a>.</p>
 </div>
-<h2 id="building-the-project">Building the project<a class="headerlink" href="#building-the-project" title="Permanent link">&para;</a></h2>
-<p>Configure and build the project on the command line (in the <em>Developer PowerShell</em>, if you use the vcpkg bundled with Visual Studio):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">windows-msvc-x64-debug</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">windows-msvc-x64-debug</span>
-</code></pre></div>
-<p>When you configure the project for the first time, vcpkg builds the engine and its dependencies, which takes a while. Later runs use the
-cached binaries.</p>
-<p>In Visual Studio, open the project folder instead (<em>File</em> &gt; <em>Open</em> &gt; <em>Folder</em>). Visual Studio picks up the preset, and you can build
-and debug the application from the toolbar.</p>
-<p>For now, the build fails, because the application sources are still missing. Continue with the <a href="../../tutorials/first-triangle/">first tutorial</a>
-to write them.</p>
-<h2 id="next-steps">Next steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
-<p>The engine provides CMake helpers to integrate shaders and assets into your build:</p>
-<ul>
-<li><strong><code>TARGET_ADD_SHADER_PROGRAM</code></strong> compiles shaders for all backends and copies them next to your application. The
-  <a href="../../tutorials/first-triangle/shaders/">tutorial</a> uses it for its first shaders.</li>
-<li><strong><code>TARGET_ADD_ASSET_DIRECTORY</code></strong> copies assets, such as textures or models, next to your application.</li>
-</ul>
-<p>The <a href="https://github.com/crud89/LiteFX-Sample">sample project</a> demonstrates both.</p>
+<h2 id="pages-in-this-guide">Pages in this guide<a class="headerlink" href="#pages-in-this-guide" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">#</th>
+<th>Page</th>
+<th>Topic</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td><a href="queues-and-fences/">Queues and fences</a></td>
+<td>Queue types, submitting work, waiting on the CPU and on other queues</td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td><a href="command-buffers/">Command buffers</a></td>
+<td>Recording, submitting and reusing command buffers, secondary command buffers, resource lifetime</td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td><a href="barriers/">Barriers</a></td>
+<td>Pipeline stages, resource access, image layouts and the default state</td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td><a href="render-passes-and-frames/">Render passes and frames</a></td>
+<td>What render passes and the swap chain synchronize, and frames in flight</td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td><a href="patterns/">Patterns and pitfalls</a></td>
+<td>Recipes for common situations, typical mistakes and how to debug them</td>
+</tr>
+</tbody>
+</table>
+<p>Read the pages in order the first time. Afterwards, the <a href="patterns/">patterns</a> page works as a reference.</p>
+<h2 id="terms-used-in-this-guide">Terms used in this guide<a class="headerlink" href="#terms-used-in-this-guide" title="Permanent link">&para;</a></h2>
+<dl>
+<dt>Fence</dt>
+<dd>A 64-bit value on a queue's timeline. Every submission advances it, and the queue <em>passes</em> a fence value once all work submitted before
+it has finished on the GPU.</dd>
+<dt>Submission</dt>
+<dd>One or more command buffers handed to a queue in a single <code>submit</code> call. A submission is the unit a fence refers to. Render passes
+submit their own command buffers when they end, so each render pass is a submission of its own.</dd>
+<dt>Barrier</dt>
+<dd>A command that makes later commands in the same submission wait for earlier ones, makes memory written by the earlier commands visible to the
+later ones, and changes the layout of images.</dd>
+<dt>Layout</dt>
+<dd>The state an image is stored in. Some operations require an image in a specific layout. Buffers have no layout.</dd>
+<dt>Default state</dt>
+<dd>The state every engine-managed operation expects resources in, and leaves them in: images in <code>ImageLayout::Common</code>.</dd>
+</dl>
+<h2 id="backend-differences">Backend differences<a class="headerlink" href="#backend-differences" title="Permanent link">&para;</a></h2>
+<p>LiteFX maps all synchronization primitives to their native counterparts: fences are <em>timeline semaphores</em> in Vulkan and <code>ID3D12Fence</code>
+objects in DirectX 12, and barriers are <em>synchronization2</em> barriers in Vulkan and <em>enhanced barriers</em> in DirectX 12. The engine requires the
+<code>VK_KHR_unified_image_layouts</code> extension in Vulkan, which allows it to keep all images in the <code>GENERAL</code> layout. As a consequence, image
+layouts only have an effect in DirectX 12, while pipeline stages and resource access matter in both backends.</p>
+<p>Both backends also execute the submissions of a queue strictly one after another. DirectX 12 guarantees this for each
+<code>ExecuteCommandLists</code> call. Vulkan does not, so LiteFX lets each submission wait for the previous one on the same queue. This makes the
+synchronization rules in this guide identical for both backends.</p>
+<div class="admonition warning">
+<p class="admonition-title">Test your synchronization on both backends</p>
+<p>Because Vulkan ignores image layouts, a missing layout transition goes unnoticed there and only fails in DirectX 12. Run your application
+with the Vulkan validation layers <em>and</em> the DirectX 12 debug layer enabled while you develop it.</p>
+</div>
 
 
 
@@ -1156,7 +1234,7 @@ to write them.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../installation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Installation">
+          <a href="../getting-started/project-setup/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Project Setup">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1166,20 +1244,20 @@ to write them.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Installation
+                Project Setup
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../tutorials/" class="md-footer__link md-footer__link--next" aria-label="Next: Tutorials">
+          <a href="queues-and-fences/" class="md-footer__link md-footer__link--next" aria-label="Next: Queues and Fences">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Tutorials
+                Queues and Fences
               </div>
             </div>
             <div class="md-footer__button md-icon">

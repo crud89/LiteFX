@@ -249,13 +249,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../getting-started/" class="md-tabs__link">
+        <a href="../../../guides/" class="md-tabs__link">
           
   
   
     
   
-  Getting Started
+  Guides
 
         </a>
       </li>
@@ -434,14 +434,14 @@
   
   
   
-    <a href="../../../getting-started/" class="md-nav__link">
+    <a href="../../../guides/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Guides
   
 
     
@@ -1482,7 +1482,8 @@ the device.</p>
    fastest while drawing.</li>
 <li><strong>The <code>transfer</code> commands</strong> copy the data from the application's memory into the buffers.</li>
 <li><strong>Submitting</strong> the command buffer executes it on the GPU. This happens asynchronously: <code>submit</code> returns a <em>fence</em>, a value that the queue
-   reaches once the command buffer has been executed. <code>waitFor</code> blocks until then, which guarantees that the buffers are ready before drawing.</li>
+   reaches once the command buffer has been executed. <code>waitFor</code> blocks until then, which guarantees that the buffers are ready before drawing.
+   The <a href="../../../guides/synchronization/queues-and-fences/#fences">synchronization guide</a> explains fences in more detail.</li>
 </ol>
 <h2 id="the-frame-loop">The frame loop<a class="headerlink" href="#the-frame-loop" title="Permanent link">&para;</a></h2>
 <p>Now, draw the triangle in each iteration of the application loop. First, ask the swap chain for the next back buffer. It returns its index,

@@ -249,13 +249,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../../../getting-started/" class="md-tabs__link">
+        <a href="../../../../../guides/" class="md-tabs__link">
           
   
   
     
   
-  Getting Started
+  Guides
 
         </a>
       </li>
@@ -436,14 +436,14 @@
   
   
   
-    <a href="../../../../../getting-started/" class="md-nav__link">
+    <a href="../../../../../guides/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Guides
   
 
     
@@ -15709,7 +15709,7 @@
 <h1 id="litefxrenderingibarriertransition"><code>LiteFX::Rendering::IBarrier::transition</code><a class="headerlink" href="#litefxrenderingibarriertransition" title="Permanent link">&para;</a></h1>
 <p><code>transition</code> overloads</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/605d54b6d6f51b74d7b5002542862491cae356b2/src/Rendering/include/litefx/rendering_api.hpp#L4849">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/7ed63e973434d90f8dc00be6570e20a7348ec00c/src/Rendering/include/litefx/rendering_api.hpp#L4895">litefx/rendering_api.hpp</a>&gt;</code></p>
 <p>Inserts a buffer barrier that blocks access to <code>buffer</code> of types contained in <code>accessAfter</code> for subsequent commands until previous commands have finished accesses contained in <code>accessBefore.</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../transition-06/"><span class="n">transition</span></a><span class="p">(</span><span class="w">
 </span><span class="w">    </span><a href="../../IBuffer/"><span class="n">IBuffer</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span><span class="w">
@@ -15725,12 +15725,12 @@
 </span><span class="w">    </span><a href="../../ResourceAccess/"><span class="n">ResourceAccess</span></a><span class="w"> </span><span class="n">accessAfter</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../transition-0de/"><em>» more...</em></a></span></p>
-<p>Inserts an image barrier that blocks access to all sub-resources of <code>image</code> of the types contained in <code>accessAfter</code> for subsequent commands until previous commands have finished accesses contained in <code>accessBefore</code> and transitions all sub-resources into <code>layout.</code></p>
+<p>Inserts an image barrier that blocks access to all sub-resources of <code>image</code> of the types contained in <code>accessAfter</code> for subsequent commands until previous commands have finished accesses contained in <code>accessBefore</code> and transitions all sub-resources from <a href="../../ImageLayout/"><code>ImageLayout::Common</code></a> into <code>toLayout.</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../transition-03/"><span class="n">transition</span></a><span class="p">(</span><span class="w">
 </span><span class="w">    </span><a href="../../IImage/"><span class="n">IImage</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">image</span><span class="p">,</span><span class="w">
 </span><span class="w">    </span><a href="../../ResourceAccess/"><span class="n">ResourceAccess</span></a><span class="w"> </span><span class="n">accessBefore</span><span class="p">,</span><span class="w">
 </span><span class="w">    </span><a href="../../ResourceAccess/"><span class="n">ResourceAccess</span></a><span class="w"> </span><span class="n">accessAfter</span><span class="p">,</span><span class="w">
-</span><span class="w">    </span><a href="../../ImageLayout/"><span class="n">ImageLayout</span></a><span class="w"> </span><span class="n">layout</span><span class="p">)</span><span class="p">;</span></code></pre></div>
+</span><span class="w">    </span><a href="../../ImageLayout/"><span class="n">ImageLayout</span></a><span class="w"> </span><span class="n">toLayout</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../transition-03/"><em>» more...</em></a></span></p>
 <p>Inserts an image barrier that blocks access to all sub-resources of <code>image</code> of the types contained in <code>accessAfter</code> for subsequent commands until previous commands have finished accesses contained in <code>accessBefore</code> and transitions all sub-resources into <code>layout.</code></p>
@@ -15742,7 +15742,7 @@
 </span><span class="w">    </span><a href="../../ImageLayout/"><span class="n">ImageLayout</span></a><span class="w"> </span><span class="n">toLayout</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../transition-09f/"><em>» more...</em></a></span></p>
-<p>Inserts an image barrier that blocks access to a sub-resource range of <code>image</code> of the types contained in <code>accessAfter</code> for subsequent commands until previous commands have finished accesses contained in <code>accessBefore</code> and transitions the sub-resource into <code>layout.</code></p>
+<p>Inserts an image barrier that blocks access to a sub-resource range of <code>image</code> of the types contained in <code>accessAfter</code> for subsequent commands until previous commands have finished accesses contained in <code>accessBefore</code> and transitions the sub-resource from <a href="../../ImageLayout/"><code>ImageLayout::Common</code></a> into <code>toLayout.</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><a href="../transition-09b/"><span class="n">transition</span></a><span class="p">(</span><span class="w">
 </span><span class="w">    </span><a href="../../IImage/"><span class="n">IImage</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">image</span><span class="p">,</span><span class="w">
 </span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">level</span><span class="p">,</span><span class="w">
@@ -15752,7 +15752,7 @@
 </span><span class="w">    </span><a href="../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">plane</span><span class="p">,</span><span class="w">
 </span><span class="w">    </span><a href="../../ResourceAccess/"><span class="n">ResourceAccess</span></a><span class="w"> </span><span class="n">accessBefore</span><span class="p">,</span><span class="w">
 </span><span class="w">    </span><a href="../../ResourceAccess/"><span class="n">ResourceAccess</span></a><span class="w"> </span><span class="n">accessAfter</span><span class="p">,</span><span class="w">
-</span><span class="w">    </span><a href="../../ImageLayout/"><span class="n">ImageLayout</span></a><span class="w"> </span><span class="n">layout</span><span class="p">)</span><span class="p">;</span></code></pre></div>
+</span><span class="w">    </span><a href="../../ImageLayout/"><span class="n">ImageLayout</span></a><span class="w"> </span><span class="n">toLayout</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <p><span class="small"><a href="../transition-09b/"><em>» more...</em></a></span></p>
 <p>Inserts an image barrier that blocks access to a sub-resource range of <code>image</code> of the types contained in <code>accessAfter</code> for subsequent commands until previous commands have finished accesses contained in <code>accessBefore</code> and transitions the sub-resource into <code>layout.</code></p>
@@ -15778,9 +15778,8 @@
 <tr><td><b>accessAfter</b></td><td>The access types that subsequent commands continue with.</td></tr>
 <tr><td><b>element</b></td><td>The element of the resource to transition.</td></tr>
 <tr><td><b>image</b></td><td>The image resource to transition.</td></tr>
-<tr><td><b>layout</b></td><td>The image layout to transition into.</td></tr>
-<tr><td><b>fromLayout</b></td><td>The image layout to transition from.</td></tr>
 <tr><td><b>toLayout</b></td><td>The image layout to transition into.</td></tr>
+<tr><td><b>fromLayout</b></td><td>The image layout to transition from.</td></tr>
 <tr><td><b>level</b></td><td>The base mip-map level of the sub-resource range.</td></tr>
 <tr><td><b>levels</b></td><td>The number of mip-map levels of the sub-resource range.</td></tr>
 <tr><td><b>layer</b></td><td>The base array layer of the sub-resource range.</td></tr>

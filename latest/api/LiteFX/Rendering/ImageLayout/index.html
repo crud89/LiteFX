@@ -249,13 +249,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../../getting-started/" class="md-tabs__link">
+        <a href="../../../../guides/" class="md-tabs__link">
           
   
   
     
   
-  Getting Started
+  Guides
 
         </a>
       </li>
@@ -436,14 +436,14 @@
   
   
   
-    <a href="../../../../getting-started/" class="md-nav__link">
+    <a href="../../../../guides/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Guides
   
 
     
@@ -6418,6 +6418,17 @@
     <span class="md-ellipsis">
       
         Synopsis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
       
     </span>
   </a>
@@ -15239,16 +15250,20 @@
 <h1 id="litefxrenderingimagelayout"><code>LiteFX::Rendering::ImageLayout</code><a class="headerlink" href="#litefxrenderingimagelayout" title="Permanent link">&para;</a></h1>
 <p>Specifies the layout of an <a href="../IImage/"><code>IImage</code></a> resource.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/605d54b6d6f51b74d7b5002542862491cae356b2/src/Rendering/include/litefx/rendering_api.hpp#L1333">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/7ed63e973434d90f8dc00be6570e20a7348ec00c/src/Rendering/include/litefx/rendering_api.hpp#L1371">litefx/rendering_api.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ImageLayout</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kt">int</span><span class="p">;</span></code></pre></div>
 
+<h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
+<p>Note that almost all layouts under Vulkan translate to <code>VK_IMAGE_LAYOUT_GENERAL</code> under Vulkan, making this backend more robust to use. For correctness reasons, you still have to ensure that each resource ends up in <a href="./"><code>ImageLayout::Common</code></a> state after a diverging access.</p>
 <h2 id="members">Members<a class="headerlink" href="#members" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
 <thead><tr><th>Name</th><th>Description</th></tr></thead>
 <tbody>
+<tr><td><a href="./"><code>Undefined</code></a> </td><td>The layout of the image is not known by the engine.</td></tr>
 <tr><td><a href="./"><code>Common</code></a> </td><td>A common image layout that allows for all types of access (shader resource, transfer destination, transfer source).</td></tr>
-<tr><td><a href="./"><code>ShaderResource</code></a> </td><td>Indicates that the image is used as a read-only storage or texel buffer.</td></tr>
+<tr><td><a href="./"><code>ShaderResource</code></a> </td><td>Indicates that the image is used as a shader resource.</td></tr>
 <tr><td><a href="./"><code>ReadWrite</code></a> </td><td>Indicates that the image is used as a read-write storage or texel buffer.</td></tr>
+<tr><td><a href="./"><code>ReadOnly</code></a> </td><td>Indicates that the image is used as a read-only storage or texel buffer.</td></tr>
 <tr><td><a href="./"><code>CopySource</code></a> </td><td>Allows the image to be used as a source for transfer operations.</td></tr>
 <tr><td><a href="./"><code>CopyDestination</code></a> </td><td>Allows the image to be used as a destination for transfer operations.</td></tr>
 <tr><td><a href="./"><code>RenderTarget</code></a> </td><td>Indicates that the image is used as a render target.</td></tr>
@@ -15257,7 +15272,6 @@
 <tr><td><a href="./"><code>Present</code></a> </td><td>Indicates that the image is presented on a swap chain.</td></tr>
 <tr><td><a href="./"><code>ResolveSource</code></a> </td><td>Indicates that the image is resolved from a multi-sampled image.</td></tr>
 <tr><td><a href="./"><code>ResolveDestination</code></a> </td><td>Indicates that the image is a render-target that a multi-sampled image is resolved into.</td></tr>
-<tr><td><a href="./"><code>Undefined</code></a> </td><td>The layout of the image is not known by the engine.</td></tr>
 </tbody>
 </table></div>
 

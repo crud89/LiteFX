@@ -249,13 +249,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../../getting-started/" class="md-tabs__link">
+        <a href="../../../../guides/" class="md-tabs__link">
           
   
   
     
   
-  Getting Started
+  Guides
 
         </a>
       </li>
@@ -436,14 +436,14 @@
   
   
   
-    <a href="../../../../getting-started/" class="md-nav__link">
+    <a href="../../../../guides/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Guides
   
 
     
@@ -15250,7 +15250,7 @@
 <h1 id="litefxrenderingpipelinestage"><code>LiteFX::Rendering::PipelineStage</code><a class="headerlink" href="#litefxrenderingpipelinestage" title="Permanent link">&para;</a></h1>
 <p>Defines pipeline stages as points where synchronization may occur.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/605d54b6d6f51b74d7b5002542862491cae356b2/src/Rendering/include/litefx/rendering_api.hpp#L1111">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/7ed63e973434d90f8dc00be6570e20a7348ec00c/src/Rendering/include/litefx/rendering_api.hpp#L1114">litefx/rendering_api.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">PipelineStage</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kt">int</span><span class="p">;</span></code></pre></div>
 
 <h2 id="members">Members<a class="headerlink" href="#members" title="Permanent link">&para;</a></h2>
@@ -15275,9 +15275,13 @@
 <tr><td><a href="./"><code>Compute</code></a> </td><td>Waits for previous commands to finish the compute shader stage, or blocks following commands until the compute shader stage has finished.</td></tr>
 <tr><td><a href="./"><code>Transfer</code></a> </td><td>Waits for previous commands to finish the transfer stage, or blocks following commands until the transfer stage has finished.</td></tr>
 <tr><td><a href="./"><code>Resolve</code></a> </td><td>Waits for previous commands to finish the multi-sampling resolution stage, or blocks following commands until the multi-sampling resolution stage has finished.</td></tr>
+<tr><td><a href="./"><code>Task</code></a> </td><td>Waits for the previous commands to finish the task shader stage, or blocks following commands until the task shader stage has finished.</td></tr>
+<tr><td><a href="./"><code>Amplification</code></a> </td><td>Waits for the previous commands to finish the task shader stage, or blocks following commands until the task shader stage has finished.</td></tr>
+<tr><td><a href="./"><code>Mesh</code></a> </td><td>Waits for the previous commands to finish the mesh shader stage, or blocks following commands until the mesh shader stage has finished.</td></tr>
 <tr><td><a href="./"><code>AccelerationStructureBuild</code></a> </td><td>Waits for previous commands to finish the building stage for an acceleration structure, or blocks the following commands until the building has finished.</td></tr>
 <tr><td><a href="./"><code>AccelerationStructureCopy</code></a> </td><td>Waits for previous commands to finish the copying stage for an acceleration structure, or blocks the following commands until the copying has finished.</td></tr>
 <tr><td><a href="./"><code>Raytracing</code></a> </td><td>Waits for the previous commands to finish ray-tracing shader stages, or blocks the following commands until ray-tracing has finished.</td></tr>
+<tr><td><a href="./"><code>AllShading</code></a> </td><td>Waits for previous commands to finish all shader stages or blocks the following commands until shading has finished.</td></tr>
 </tbody>
 </table></div>
 

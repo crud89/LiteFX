@@ -249,13 +249,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../../../../getting-started/" class="md-tabs__link">
+        <a href="../../../../../../guides/" class="md-tabs__link">
           
   
   
     
   
-  Getting Started
+  Guides
 
         </a>
       </li>
@@ -436,14 +436,14 @@
   
   
   
-    <a href="../../../../../../getting-started/" class="md-nav__link">
+    <a href="../../../../../../guides/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Guides
   
 
     
@@ -25661,9 +25661,9 @@
 
 
 <h1 id="litefxrenderingbackendsdirectx12barriertransition"><code>LiteFX::Rendering::Backends::DirectX12Barrier::transition</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12barriertransition" title="Permanent link">&para;</a></h1>
-<p>Inserts an image barrier that blocks access to a sub-resource range of <code>image</code> of the types contained in <code>accessAfter</code> for subsequent commands until previous commands have finished accesses contained in <code>accessBefore</code> and transitions the sub-resource into <code>layout.</code></p>
+<p>Inserts an image barrier that blocks access to a sub-resource range of <code>image</code> of the types contained in <code>accessAfter</code> for subsequent commands until previous commands have finished accesses contained in <code>accessBefore</code> and transitions the sub-resource from <a href="../../../ImageLayout/"><code>ImageLayout::Common</code></a> into <code>toLayout.</code></p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/605d54b6d6f51b74d7b5002542862491cae356b2/src/Rendering/include/litefx/rendering.hpp#L52">litefx/rendering.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/7ed63e973434d90f8dc00be6570e20a7348ec00c/src/Rendering/include/litefx/rendering.hpp#L52">litefx/rendering.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">transition</span><span class="p">(</span><span class="w">
 </span><span class="w">    </span><a href="../../../Barrier-00/"><span class="n">image_type</span></a><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">image</span><span class="p">,</span><span class="w">
 </span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">level</span><span class="p">,</span><span class="w">
@@ -25688,8 +25688,8 @@
 <tr><td><b>plane</b></td><td>The plane of the sub-resource.</td></tr>
 <tr><td><b>accessBefore</b></td><td>The access types previous commands have to finish.</td></tr>
 <tr><td><b>accessAfter</b></td><td>The access types that subsequent commands continue with.</td></tr>
+<tr><td><b>toLayout</b></td><td>The image layout to transition into.</td></tr>
 <tr><td><b>fromLayout</b></td><td>Specifies the layout of an <a href="../../../IImage/"><code>IImage</code></a> resource.</td></tr>
-<tr><td><b>toLayout</b></td><td>Specifies the layout of an <a href="../../../IImage/"><code>IImage</code></a> resource.</td></tr>
 </tbody>
 </table></div>
 

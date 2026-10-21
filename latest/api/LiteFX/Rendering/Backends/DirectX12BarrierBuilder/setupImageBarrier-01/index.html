@@ -18,7 +18,7 @@
         <link rel="prev" href="../setupGlobalBarrier-07/">
       
       
-        <link rel="next" href="../setupImageBarrier-0f/">
+        <link rel="next" href="../setupImageBarrier-09/">
       
       
         
@@ -249,13 +249,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../../../../getting-started/" class="md-tabs__link">
+        <a href="../../../../../../guides/" class="md-tabs__link">
           
   
   
     
   
-  Getting Started
+  Guides
 
         </a>
       </li>
@@ -436,14 +436,14 @@
   
   
   
-    <a href="../../../../../../getting-started/" class="md-nav__link">
+    <a href="../../../../../../guides/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Guides
   
 
     
@@ -3075,7 +3075,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../setupImageBarrier-0f/" class="md-nav__link">
+      <a href="../setupImageBarrier-09/" class="md-nav__link">
         
   
   
@@ -25462,17 +25462,18 @@
 <h1 id="litefxrenderingbackendsdirectx12barrierbuildersetupimagebarrier"><code>LiteFX::Rendering::Backends::DirectX12BarrierBuilder::setupImageBarrier</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12barrierbuildersetupimagebarrier" title="Permanent link">&para;</a></h1>
 <p>Sets up the image layout transition and resource access states to wait for and continue with the barrier to be built.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/605d54b6d6f51b74d7b5002542862491cae356b2/src/Rendering/include/litefx/rendering_builders.hpp#L272">litefx/rendering_builders.hpp</a>&gt;</code></p>
-<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">setupImageBarrier</span><span class="p">(</span><span class="w">
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/7ed63e973434d90f8dc00be6570e20a7348ec00c/src/Backends/DirectX12/include/litefx/backends/dx12_builders.hpp#L38">litefx/backends/dx12_builders.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">setupImageBarrier</span><span class="p">(</span><span class="w">
 </span><span class="w">    </span><a href="../../../IImage/"><span class="n">IImage</span></a><span class="o">&amp;</span><span class="w"> </span><span class="n">image</span><span class="p">,</span><span class="w">
 </span><span class="w">    </span><a href="../../../ResourceAccess/"><span class="n">ResourceAccess</span></a><span class="w"> </span><span class="n">before</span><span class="p">,</span><span class="w">
 </span><span class="w">    </span><a href="../../../ResourceAccess/"><span class="n">ResourceAccess</span></a><span class="w"> </span><span class="n">after</span><span class="p">,</span><span class="w">
-</span><span class="w">    </span><a href="../../../ImageLayout/"><span class="n">ImageLayout</span></a><span class="w"> </span><span class="n">layout</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../ImageLayout/"><span class="n">ImageLayout</span></a><span class="w"> </span><span class="n">fromLayout</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><a href="../../../ImageLayout/"><span class="n">ImageLayout</span></a><span class="w"> </span><span class="n">toLayout</span><span class="p">,</span><span class="w">
 </span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">level</span><span class="p">,</span><span class="w">
 </span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">levels</span><span class="p">,</span><span class="w">
 </span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">layer</span><span class="p">,</span><span class="w">
 </span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">layers</span><span class="p">,</span><span class="w">
-</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">plane</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></code></pre></div>
+</span><span class="w">    </span><a href="../../../../Math/UInt32/"><span class="n">UInt32</span></a><span class="w"> </span><span class="n">plane</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span></code></pre></div>
 
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
@@ -25481,7 +25482,8 @@
 <tr><td><b>image</b></td><td>The image for this barrier.</td></tr>
 <tr><td><b>before</b></td><td>The resource access state of the sub-resources in the image to wait for with this barrier.</td></tr>
 <tr><td><b>after</b></td><td>The resource access state of the sub-resources in the image to continue with after this barrier.</td></tr>
-<tr><td><b>layout</b></td><td>The layout to transition the image sub-resources into.</td></tr>
+<tr><td><b>fromLayout</b></td><td>The current layout of the image sub-resources.</td></tr>
+<tr><td><b>toLayout</b></td><td>The layout to transition the image sub-resources into.</td></tr>
 <tr><td><b>level</b></td><td>The level of the first sub-resource to transition.</td></tr>
 <tr><td><b>levels</b></td><td>The number of levels to transition.</td></tr>
 <tr><td><b>layer</b></td><td>The layer of the first sub-resource to transition.</td></tr>
@@ -25544,7 +25546,7 @@
         
         
           
-          <a href="../setupImageBarrier-0f/" class="md-footer__link md-footer__link--next" aria-label="Next: setupImageBarrier (2)">
+          <a href="../setupImageBarrier-09/" class="md-footer__link md-footer__link--next" aria-label="Next: setupImageBarrier (2)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
