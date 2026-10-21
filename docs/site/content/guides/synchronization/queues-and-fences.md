@@ -10,6 +10,10 @@ never need a barrier to synchronize with an *earlier submission* on the same que
 `PipelineStage::None` and `ResourceAccess::None` as before values, even for resources that the previous submission wrote. Barriers are only
 needed between commands *within* a submission, as described on the [barriers page](barriers.md).
 
+This is the same in both backends. DirectX 12 guarantees it by specification, for each `ExecuteCommandLists` call. Vulkan would allow
+submissions to overlap, so the Vulkan backend enforces the order: each submission waits for the previous submission on the same queue. That
+way, the same barriers are correct for both backends (see [backend differences](index.md#backend-differences)).
+
 The flip side is that work on a single queue never overlaps across submissions. Use several queues if you want work to run in parallel.
 
 ## Queue types

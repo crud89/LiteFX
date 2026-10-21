@@ -5,7 +5,7 @@ the GPU works through them later, in parallel to your application and to other q
 or the CPU needs the result of GPU work, you have to tell the engine how they are ordered. This guide explains the tools LiteFX gives you for
 that, and the rules both backends follow.
 
-You have already used most of them in the [first triangle](../first-triangle/index.md) tutorial: the upload waited for a *fence*, and the
+You have already used most of them in the [first triangle](../../tutorials/first-triangle/index.md) tutorial: the upload waited for a *fence*, and the
 render pass took care of everything else. This guide explains what happened there, and what you need to do once you leave the beaten path,
 for example when you add compute work, copy images or use more than one queue.
 

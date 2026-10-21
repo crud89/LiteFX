@@ -58,7 +58,7 @@ primary command buffer at the point of the `execute` call.
 
 Render passes use secondary command buffers to let several threads record draw calls in parallel. `IRenderPass::commandBuffer(index)` returns
 them, and `IRenderPass::end` executes all of them in the order of their index. See the [multithreading
-sample](../samples-beginner/multithreading.md) for an example.
+sample](../../tutorials/samples-beginner/multithreading.md) for an example.
 
 ## Threads
 

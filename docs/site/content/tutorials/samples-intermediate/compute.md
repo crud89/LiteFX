@@ -66,9 +66,10 @@ auto postBindings = postInputLayout.allocate(3, {
 
 ## Dispatching the work
 
-The compute pass runs on the compute queue. When no render pass is drawing into it, a frame buffer image is in the `Common` layout, which
-allows any kind of read and write access, including the compute shader's. The image therefore needs no layout transition here, and the
-barriers around the dispatch only order the work, without transitioning anything:
+The compute pass runs on the compute queue. When no render pass is drawing into it, a frame buffer image is in the `Common` layout, the
+default state of all images (see [the default state](../../guides/synchronization/barriers.md#the-default-state)). `Common` allows shaders
+to *read* an image, but not to write it, so the image is transitioned into the `ReadWrite` layout before the dispatch, and back into
+`Common` afterwards:
 
 ```cpp
 auto& computeQueue = m_device->defaultQueue(QueueType::Compute);
@@ -77,14 +78,24 @@ commandBuffer->use(postPipeline);
 
 auto& image = frameBuffer["Color Target"];
 auto barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Compute);
+barrier->transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Common, ImageLayout::ReadWrite);
 commandBuffer->barrier(*barrier);
 
 commandBuffer->bind(postBindings);
 commandBuffer->dispatch({ static_cast<UInt32>(image.extent().x()) / 8, static_cast<UInt32>(image.extent().y()) / 8, 1 });
 
 barrier = m_device->makeBarrier(PipelineStage::Compute, PipelineStage::None);
+barrier->transition(image, ResourceAccess::ShaderReadWrite, ResourceAccess::None, ImageLayout::ReadWrite, ImageLayout::Common);
 commandBuffer->barrier(*barrier);
 ```
+
+The first barrier waits for nothing (`PipelineStage::None`): the image was last written by the render pass in an earlier submission, and the
+wait for that submission is handled by the queues, as described below. The second barrier returns the image to its default state, so the
+next user can rely on it being in `Common`.
+
+!!! note "Vulkan does not check layouts"
+    The Vulkan backend keeps all images in the `GENERAL` layout, so a missing transition into `ReadWrite` would go unnoticed there. DirectX
+    12 requires it for shader writes. Always write barriers as if targeting DirectX 12.
 
 `dispatch` takes the number of thread *groups*, not threads. With groups of 8×8 threads, the image dimensions are divided by eight.
 
@@ -106,8 +117,9 @@ auto fence = graphicsQueue.submit(commandBuffer);
 m_device->swapChain().present(fence);
 ```
 
-The copy itself is a transfer between two images. Unlike shader access, copies need dedicated layouts, so barriers move the post-processed
-image from `Common` into the layout for copy sources and the swap chain image into the one for copy destinations:
+The copy itself is a transfer between two images. The post-processed image is in `Common` again, which would allow the copy, but the
+sample uses the dedicated layout for copy sources, which can be more efficient. The swap chain image starts from `Undefined`, since its
+previous contents are overwritten:
 
 ```cpp
 barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Transfer);
@@ -118,14 +130,18 @@ commandBuffer->transfer(image, *m_device->swapChain().image(backBuffer));
 ```
 
 Afterwards, both images are transitioned back: the frame buffer image into `Common`, where the next render pass expects it, and the swap chain
-image into the layout for presentation:
+image into the layout for presentation. Nothing in this submission uses them afterwards, so the barrier waits for the copy and blocks no
+further stage (`PipelineStage::None` with `ResourceAccess::None`):
 
 ```cpp
-barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::Resolve);
-barrier->transition(image, ResourceAccess::TransferRead, ResourceAccess::Common, ImageLayout::CopySource, ImageLayout::Common);
-barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::TransferWrite, ResourceAccess::Common, ImageLayout::CopyDestination, ImageLayout::Present);
+barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::None);
+barrier->transition(image, ResourceAccess::TransferRead, ResourceAccess::None, ImageLayout::CopySource, ImageLayout::Common);
+barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::TransferWrite, ResourceAccess::None, ImageLayout::CopyDestination, ImageLayout::Present);
 commandBuffer->barrier(*barrier);
 ```
+
+The synchronization guide describes this case under [copying a render
+target](../../guides/synchronization/patterns.md#copying-a-render-target).
 
 !!! tip "Debug regions"
 

@@ -104,7 +104,7 @@ different graphics backends based on the same code base.
 
 … and there's more! Check out the [samples on GitHub](https://github.com/crud89/LiteFX/tree/main/src/Samples/).
 
-[Get started :material-arrow-right:](getting-started/index.md){ .md-button .md-button--primary }
+[Get started :material-arrow-right:](guides/getting-started/index.md){ .md-button .md-button--primary }
 [API reference :material-book-open-variant:](api/index.md){ .md-button }
 
 </div>

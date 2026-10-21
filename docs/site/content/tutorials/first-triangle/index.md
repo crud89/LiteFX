@@ -14,5 +14,5 @@ The application supports both backends, Vulkan and DirectX 12, from the same cod
 
 !!! info "Before you start"
 
-    Set up a project as described in the [project setup](../../getting-started/project-setup.md) guide. The tutorial writes the two source
+    Set up a project as described in the [project setup](../../guides/getting-started/project-setup.md) guide. The tutorial writes the two source
     files of that project, `main.h` and `main.cpp`.

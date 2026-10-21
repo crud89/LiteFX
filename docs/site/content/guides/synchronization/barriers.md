@@ -124,7 +124,18 @@ only valid one for an image that has never been used. Never transition from `Und
 ## The default state
 
 To keep code that hands resources from one system to another simple, LiteFX defines one *default state*: **an image that is not currently
-used for something specific is in `ImageLayout::Common`.** Everything the engine does on its own follows this rule:
+used for something specific is in `ImageLayout::Common`.** Together with the start of an image's life, this gives two rules for all image
+work:
+
+!!! abstract "Image layout rules"
+    1. **Treat a newly created image as if its layout were `Undefined`.** Its first transition must start from `Undefined`.
+    2. **Expect an image that no operation is currently using to be in `Common`.** When you work with an image, transition it from `Common`
+       into the layout you need, and back into `Common` once the work is finished.
+
+    If `Common` already allows the access you need, for example sampling or copying (see [image layouts](#image-layouts)), no layout
+    transition is necessary. Within a submission, a barrier is still needed to order the access after the previous one.
+
+Everything the engine does on its own follows these rules:
 
 | Operation | Expects | Leaves |
 |---|---|---|

@@ -25,11 +25,12 @@ static inline void setupMoveHandlers(const SharedPtr<const IBuffer>& resource) {
 }
 ```
 
-The barrier starts from `ResourceAccess::None`, because defragmentation runs on its own queue, where nothing has accessed the resource
-before. That does not mean the resource is unused: other queues may still be reading it. Those accesses are synchronized between the queues
-with fences, as described below, not with this barrier.
+The barrier starts from `ResourceAccess::None`, because it is recorded at the start of a submission on the defragmentation queue.
+Submissions on a queue run one after another, so nothing on that queue can still access the resource (see [submissions run one after
+another](../../guides/synchronization/queues-and-fences.md#submissions-run-one-after-another)). That does not mean the resource is unused: other queues may
+still be reading it. Those accesses are synchronized between the queues with fences, as described below, not with this barrier.
 
-Images additionally need a target layout for the copy. The sample uses `Common`, which allows any kind of access, including the transfer
+Images additionally need a target layout for the copy. The sample uses `Common`, the default state of all images, which allows the transfer
 read:
 
 ```cpp

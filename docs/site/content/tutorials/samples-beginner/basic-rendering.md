@@ -117,7 +117,7 @@ renderPass.end();
 Two details are worth noting:
 
 - **`waitFor`** makes the render pass's queue wait for the transfer that uploaded the vertices, indices and camera. Queues run
-  independently, so this synchronization is explicit.
+  independently, so this synchronization is explicit (see [waiting on another queue](../../guides/synchronization/queues-and-fences.md#waiting-on-another-queue)).
 - **`map` with the back buffer index** writes into the element of the transform buffer that belongs to the current frame.
 
 ## Switching backends at runtime

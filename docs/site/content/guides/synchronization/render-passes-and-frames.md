@@ -27,7 +27,7 @@ When the render pass **ends**:
 
 A render pass is a submission of its own, so everything submitted to its queue before has finished when it begins. As a result, render
 passes that use the same frame buffer on the same queue need no further synchronization. This is what the [render passes
-sample](../samples-beginner/render-passes.md) relies on.
+sample](../../tutorials/samples-beginner/render-passes.md) relies on.
 
 ## Using render targets outside of render passes
 
@@ -54,7 +54,7 @@ the image after the post barrier *in the same submission*, use their stages and 
 
 If this happens on a different queue than the render pass, the queue has to [wait for the fence](queues-and-fences.md#waiting-on-another-queue)
 returned by `end` first, and the render pass that uses the image next has to wait for the fence of your work. The [compute
-sample](../samples-intermediate/compute.md) shows the complete chain.
+sample](../../tutorials/samples-intermediate/compute.md) shows the complete chain.
 
 ## The swap chain
 
@@ -85,7 +85,7 @@ frames are *in flight* at the same time, and every resource that a frame writes 
 overwrite each other's data:
 
 - **Frame buffers**, one per back buffer.
-- **Per-frame buffers**, such as the transform buffer of the [basic rendering sample](../samples-beginner/basic-rendering.md), either as
+- **Per-frame buffers**, such as the transform buffer of the [basic rendering sample](../../tutorials/samples-beginner/basic-rendering.md), either as
   separate buffers or as one buffer with one element per back buffer.
 - **Descriptor sets** that point to per-frame resources.
 - **Command buffers** that you [reuse](command-buffers.md#reusing-command-buffers).
