@@ -374,7 +374,7 @@ void VulkanQueue::waitFor(UInt64 fence) const
 	m_impl->releaseCommandBuffers(*this, fence);
 }
 
-void VulkanQueue::waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept
+void VulkanQueue::waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept // NOLINT(bugprone-exception-escape)
 {
 	// We cannot directly push an empty submission with only synchronization primitives to the queue, since Vulkan doesn't define how they should be serialized by the 
 	// driver. Instead we cache the fence and semaphore and append it to the next submission's wait list. This also means, that the other queue must remain alive as 
