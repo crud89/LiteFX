@@ -54,6 +54,7 @@ Step by step:
 4. **The `transfer` commands** copy the data from the application's memory into the buffers.
 5. **Submitting** the command buffer executes it on the GPU. This happens asynchronously: `submit` returns a *fence*, a value that the queue
    reaches once the command buffer has been executed. `waitFor` blocks until then, which guarantees that the buffers are ready before drawing.
+   The [synchronization guide](../../guides/synchronization/queues-and-fences.md#fences) explains fences in more detail.
 
 ## The frame loop
 

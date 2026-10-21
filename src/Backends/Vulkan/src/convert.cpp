@@ -1007,22 +1007,28 @@ VkBlendOp LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendOperation(B
 
 VkPipelineStageFlags2 LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getPipelineStage(PipelineStage pipelineStage)
 {
-	if (pipelineStage == PipelineStage::None)
-		return VK_PIPELINE_STAGE_2_NONE;
-	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::All))
-		return VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
-	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Draw))
-		return VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT;
-	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Compute))
-		return VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+	VkPipelineStageFlags2 sync{ VK_PIPELINE_STAGE_2_NONE };
 
-	VkPipelineStageFlags2 sync{ };
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::All))
+		sync |= VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Draw))
+		sync |= VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Compute))
+		sync |= VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::InputAssembly))
 		sync |= VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Vertex))
 		sync |= VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Task))
+		sync |= VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_EXT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Mesh))
+		sync |= VK_PIPELINE_STAGE_2_MESH_SHADER_BIT_EXT;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::TessellationControl))
 		sync |= VK_PIPELINE_STAGE_2_TESSELLATION_CONTROL_SHADER_BIT;
@@ -1049,7 +1055,7 @@ VkPipelineStageFlags2 LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getPipe
 		sync |= VK_PIPELINE_STAGE_2_TRANSFER_BIT;
 	
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Resolve))
-		sync |= VK_PIPELINE_STAGE_2_RESOLVE_BIT;
+		sync |= VK_PIPELINE_STAGE_2_RESOLVE_BIT | VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Raytracing))
 		sync |= VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR;
@@ -1060,7 +1066,8 @@ VkPipelineStageFlags2 LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getPipe
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::AccelerationStructureCopy))
 		sync |= VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR;
 
-	// TODO: Mesh and task shader stages.
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::AllShading))
+		sync |= VK_PIPELINE_STAGE_2_PRE_RASTERIZATION_SHADERS_BIT | VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
 
 	return sync;
 }
@@ -1109,10 +1116,10 @@ VkAccessFlags2 LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getResourceAcc
 		access |= VK_ACCESS_2_TRANSFER_WRITE_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ResolveRead))
-		access |= VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT;
+		access |= VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_2_TRANSFER_READ_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ResolveWrite))
-		access |= VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
+		access |= VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_2_TRANSFER_WRITE_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::AccelerationStructureRead))
 		access |= VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR;
@@ -1131,25 +1138,32 @@ VkAccessFlags2 LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getResourceAcc
 
 VkImageLayout LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getImageLayout(ImageLayout imageLayout)
 {
+	// NOTE: Since we use VK_EXT_unified_image_layouts, almost everything can map to GENERAL. Builtin swap-chains still require PRESENT and UNDEFINED has the semantic 
+	//       implication of discarding the image.
 	switch (imageLayout) {
-	case ImageLayout::Common: return VK_IMAGE_LAYOUT_GENERAL;
-	case ImageLayout::ShaderResource: return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	case ImageLayout::ReadWrite: return VK_IMAGE_LAYOUT_GENERAL;
-	case ImageLayout::CopySource: return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-	case ImageLayout::CopyDestination: return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	case ImageLayout::DepthRead: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-	case ImageLayout::DepthWrite: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	case ImageLayout::Common:
+	case ImageLayout::ShaderResource:
+	case ImageLayout::ReadWrite:
+	case ImageLayout::ReadOnly:
+	case ImageLayout::CopySource:
+	case ImageLayout::CopyDestination:
 	case ImageLayout::RenderTarget:
+	case ImageLayout::DepthRead:
+	case ImageLayout::DepthWrite:
 	case ImageLayout::ResolveSource:
-#ifdef USE_VULKAN_INTEROP_SWAP_CHAIN // Images from interop swap chain must not be transitioned into present state.
+	case ImageLayout::ResolveDestination:
+#ifdef USE_VULKAN_INTEROP_SWAP_CHAIN
 	case ImageLayout::Present:
 #endif
-	case ImageLayout::ResolveDestination: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		return VK_IMAGE_LAYOUT_GENERAL;
 #ifndef USE_VULKAN_INTEROP_SWAP_CHAIN
-	case ImageLayout::Present: return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	case ImageLayout::Present: 
+		return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 #endif
-	case ImageLayout::Undefined: return VK_IMAGE_LAYOUT_UNDEFINED;
-	default: throw InvalidArgumentException("imageLayout", "Unsupported image layout.");
+	case ImageLayout::Undefined: 
+		return VK_IMAGE_LAYOUT_UNDEFINED;
+	default: 
+		throw InvalidArgumentException("imageLayout", "Unsupported image layout.");
 	}
 }
 

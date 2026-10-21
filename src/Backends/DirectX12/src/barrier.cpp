@@ -5,7 +5,7 @@ using namespace LiteFX::Rendering::Backends;
 
 using GlobalBarrier = Tuple<ResourceAccess, ResourceAccess>;
 using BufferBarrier = Tuple<ResourceAccess, ResourceAccess, SharedPtr<const IDirectX12Buffer>, UInt32>;
-using ImageBarrier  = Tuple<ResourceAccess, ResourceAccess, SharedPtr<const IDirectX12Image>, Optional<ImageLayout>, ImageLayout, UInt32, UInt32, UInt32, UInt32, UInt32>;
+using ImageBarrier  = Tuple<ResourceAccess, ResourceAccess, SharedPtr<const IDirectX12Image>, ImageLayout, ImageLayout, UInt32, UInt32, UInt32, UInt32, UInt32, UInt32>;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -83,24 +83,14 @@ void DirectX12Barrier::transition(const IDirectX12Buffer& buffer, UInt32 element
 	m_impl->m_bufferBarriers.emplace_back(accessBefore, accessAfter, buffer.shared_from_this(), element);
 }
 
-void DirectX12Barrier::transition(const IDirectX12Image& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout)
-{
-	m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image.shared_from_this(), std::nullopt, layout, 0, image.levels(), 0, image.layers(), 0);
-}
-
 void DirectX12Barrier::transition(const IDirectX12Image& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout)
 {
-	m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image.shared_from_this(), fromLayout, toLayout, 0, image.levels(), 0, image.layers(), 0);
-}
-
-void DirectX12Barrier::transition(const IDirectX12Image& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout)
-{
-	m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image.shared_from_this(), std::nullopt, layout, level, levels, layer, layers, plane);
+	m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image.shared_from_this(), fromLayout, toLayout, 0, image.levels(), 0, image.layers(), 0, image.planes());
 }
 
 void DirectX12Barrier::transition(const IDirectX12Image& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout)
 {
-	m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image.shared_from_this(), fromLayout, toLayout, level, levels, layer, layers, plane);
+	m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image.shared_from_this(), fromLayout, toLayout, level, levels, layer, layers, plane, 1u);
 }
 
 void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) const
@@ -131,7 +121,7 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) cons
 
 	// Image barriers.
 	auto imageBarriers = m_impl->m_imageBarriers | std::views::transform([&syncBefore, &syncAfter](auto& barrier) {
-		auto [accessBefore, accessAfter, resource, currentLayout, targetLayout, firstLevel, levels, firstLayer, layers, plane] = barrier;
+		auto [accessBefore, accessAfter, resource, currentLayout, targetLayout, firstLevel, levels, firstLayer, layers, plane, planes] = barrier;
 
 		// TODO: The image itself should expose a property (e.g., "inheritOnAlias"), that in D3D12 prevents the discard flag and in Vulkan adds the 
 		//       VK_IMAGE_CREATE_ALIAS_BIT flag to the image. This should only be done for aliasing images though. For non-aliasing images, however, 
@@ -143,9 +133,9 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) cons
 
 		return CD3DX12_TEXTURE_BARRIER(syncBefore, syncAfter, 
 			DX12::getResourceAccess(accessBefore), DX12::getResourceAccess(accessAfter), 
-			DX12::getImageLayout(currentLayout.value_or(ImageLayout::Undefined)), DX12::getImageLayout(targetLayout),
+			DX12::getImageLayout(currentLayout), DX12::getImageLayout(targetLayout),
 			std::as_const(*resource).handle().Get(), 
-			CD3DX12_BARRIER_SUBRESOURCE_RANGE(firstLevel, levels, firstLayer, layers, plane, 1u), flags); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+			CD3DX12_BARRIER_SUBRESOURCE_RANGE(firstLevel, levels, firstLayer, layers, plane, planes), flags); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 	}) | std::ranges::to<Array<D3D12_TEXTURE_BARRIER>>();
 
 	// Put all into a buffer group.
@@ -192,10 +182,10 @@ void DirectX12BarrierBuilder::setupBufferBarrier(IBuffer& buffer, ResourceAccess
 	this->instance()->transition(buffer, before, after);
 }
 
-void DirectX12BarrierBuilder::setupImageBarrier(IImage& image, ResourceAccess before, ResourceAccess after, ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane)
+void DirectX12BarrierBuilder::setupImageBarrier(IImage& image, ResourceAccess before, ResourceAccess after, ImageLayout fromLayout, ImageLayout toLayout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane)
 {
 	auto numLevels = levels > 0 ? levels : image.levels() - level;
 	auto numLayers = layers > 0 ? layers : image.layers() - layer;
-	this->instance()->transition(image, level, numLevels, layer, numLayers, plane, before, after, layout);
+	this->instance()->transition(image, level, numLevels, layer, numLayers, plane, before, after, fromLayout, toLayout);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

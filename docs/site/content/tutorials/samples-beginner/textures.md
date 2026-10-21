@@ -53,42 +53,45 @@ the upload and the source when the mip levels are generated from each other.
 
 ## Barriers and layouts
 
-Unlike buffers, images have a *layout* that describes how the GPU currently stores them. A layout is optimal for exactly one purpose, so the
-image has to be transitioned before it is used differently. A *barrier* performs that transition, and at the same time orders the commands
-around it:
+Unlike buffers, images have a *layout* that describes how the GPU currently stores them, and each layout only allows certain kinds of
+access. LiteFX keeps this manageable with two rules (see [the default state](../../guides/synchronization/barriers.md#the-default-state) in
+the synchronization guide):
+
+- **A newly created image has no defined layout.** Treat it as if it were in `ImageLayout::Undefined`, so its first transition starts from
+  there.
+- **An image that is not currently in use is in `ImageLayout::Common`.** Work that needs a different layout transitions the image there and
+  back into `Common` when it is done.
+
+`Common` already allows copies and sampling, so the texture can stay in it for its whole life. Only the first transition is needed, which
+takes the new texture out of `Undefined`. A *barrier* performs that transition, and at the same time orders the commands around it:
 
 ```cpp
 UniquePtr<TBarrier> barrier = device.buildBarrier()
-    .waitFor(PipelineStage::None).toContinueWith(PipelineStage::Transfer)
-    .blockAccessTo(*texture, ResourceAccess::TransferWrite).transitionLayout(ImageLayout::CopyDestination).whenFinishedWith(ResourceAccess::None);
+    .waitFor(PipelineStage::None)
+    .toContinueWith(PipelineStage::Transfer)
+    .blockAccessTo(*texture, ResourceAccess::TransferWrite)
+    .transitionLayout(ImageLayout::Undefined, ImageLayout::Common)
+    .whenFinishedWith(ResourceAccess::None);
 
 commandBuffer->barrier(*barrier);
 commandBuffer->transfer(imageData.get(), texture->size(0), *texture);
 ```
 
 Read as a sentence: wait for nothing, continue with transfer commands, and block their write access to the texture until it has been
-transitioned to the layout for copy destinations.
+transitioned from `Undefined` into `Common`. Nothing has to be waited for, because the texture is used for the first time in this command buffer,
+and a submission only starts after the previous one on the same queue has finished.
 
 After the upload, the smaller mip levels are generated from the largest one. The engine provides a `Blitter` for this, which records the
-necessary dispatches and barriers:
+necessary dispatches and barriers. Like everything the engine does, it expects the image in `Common` and leaves it there:
 
 ```cpp
 auto blitter = Blitter<TBackend>::create(device);
 blitter->generateMipMaps(*texture, *commandBuffer);
 ```
 
-Finally, the texture is transitioned into the layout for shader resources, so the fragment shader can sample it:
-
-```cpp
-barrier = device.buildBarrier()
-    .waitFor(PipelineStage::All).toContinueWith(PipelineStage::Fragment)
-    .blockAccessTo(*texture, ResourceAccess::ShaderRead).transitionLayout(ImageLayout::ShaderResource).whenFinishedWith(ResourceAccess::None);
-
-commandBuffer->barrier(*barrier);
-auto transferFence = commandBuffer->submit();
-```
-
-Mip map generation is a compute workload, so the command buffer is created on the graphics queue here, not on the transfer queue.
+Mip map generation is a compute workload in DirectX, so the command buffer is created on the graphics queue here, not on the transfer queue. The
+synchronization guide covers this case in more detail under [textures with mip
+maps](../../guides/synchronization/patterns.md#textures-with-mip-maps).
 
 ## The sampler
 

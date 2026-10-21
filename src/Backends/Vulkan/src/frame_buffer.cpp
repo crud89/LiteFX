@@ -149,7 +149,7 @@ public:
                 auto newImage = this->createImage(*device, renderTargetId, renderArea, image->usage(), format, image->samples(), image->name());
                 imageReplacements[image.get()] = newImage;
 
-                barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::Common);
+                barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::Undefined, ImageLayout::Common);
 
                 return newImage;
             }) 
@@ -310,7 +310,7 @@ void VulkanFrameBuffer::addImage(const String& name, Format format, MultiSamplin
     auto& queue = device->defaultQueue(QueueType::Graphics);
     auto commandBuffer = queue.createCommandBuffer(true);
     auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
-    barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::Common);
+    barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::Undefined, ImageLayout::Common);
     commandBuffer->barrier(*barrier);
     auto fence = queue.submit(commandBuffer);
 
@@ -345,7 +345,7 @@ void VulkanFrameBuffer::addImage(const String& name, const RenderTarget& renderT
     auto& queue = device->defaultQueue(QueueType::Graphics);
     auto commandBuffer = queue.createCommandBuffer(true);
     auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
-    barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::Common);
+    barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::Undefined, ImageLayout::Common);
     commandBuffer->barrier(*barrier);
     auto fence = queue.submit(commandBuffer);
 

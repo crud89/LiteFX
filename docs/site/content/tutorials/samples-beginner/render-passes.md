@@ -81,7 +81,7 @@ The screen-filling quad of the second pass needs no depth test and no culling at
 ## Drawing the passes
 
 Each pass is begun and ended in turn. Because the passes write into the same frame buffer, the engine knows their dependencies and inserts
-the necessary barriers:
+the necessary barriers (see [render passes and frames](../../guides/synchronization/render-passes-and-frames.md) in the synchronization guide):
 
 ```cpp
 firstPass.begin(frameBuffer);

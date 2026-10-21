@@ -27,7 +27,7 @@ dependencies are managed with [vcpkg](https://vcpkg.io/). This section helps you
 
     Write a small application that renders a triangle with both backends, and learn the core concepts of the engine along the way.
 
-    [:octicons-arrow-right-24: Start the tutorial](../tutorials/first-triangle/index.md)
+    [:octicons-arrow-right-24: Start the tutorial](../../tutorials/first-triangle/index.md)
 
 -   :material-code-braces:{ .lg .middle } __Samples__
 
@@ -35,7 +35,7 @@ dependencies are managed with [vcpkg](https://vcpkg.io/). This section helps you
 
     Follow the samples, from basic rendering to ray tracing and mesh shaders.
 
-    [:octicons-arrow-right-24: Sample Walkthroughs](../tutorials/samples-beginner/index.md)
+    [:octicons-arrow-right-24: Sample Walkthroughs](../../tutorials/samples-beginner/index.md)
 
     [:octicons-arrow-right-24: Samples on GitHub](https://github.com/crud89/LiteFX/tree/main/src/Samples/)
 

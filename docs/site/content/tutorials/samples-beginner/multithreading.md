@@ -30,7 +30,8 @@ The render pass submits all of its command buffers in order when it ends, so the
 
 ## Resources per thread
 
-The important rule is that **no two threads may write to the same resource**. In the basic rendering sample there is one transform buffer
+The important rule is that **no two threads may write to the same resource** (see [threads](../../guides/synchronization/command-buffers.md#threads) in the
+synchronization guide). In the basic rendering sample there is one transform buffer
 with one element per frame in flight. Here, each worker needs its own:
 
 ```cpp

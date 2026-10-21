@@ -591,6 +591,9 @@ namespace LiteFX::Rendering {
         /// @see @ref IFrameBuffer
         FrameBufferImage = TransferSource | RenderTarget,
 
+        /// @brief Expresses a portable usage mode for mip-map targets.
+        MipMapTarget = TransferSource | TransferDestination | AllowWrite,
+
         /// @brief Causes the contents of the resource to not be copied during defragmentation.
         ///
         /// @see @ref IGraphicsFactory::beginDefragmentation
@@ -1113,26 +1116,24 @@ namespace LiteFX::Rendering {
         ///
         /// Translates to `VK_PIPELINE_2_STAGE_NONE` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_NONE` in DirectX 12 ❎.
         ///
-        /// This stage flag is special, as it cannot be combined with other stage flags.
+        /// This stage flag is exclusive and must not be combined with other stages. It must be combined with @ref ResourceAccess::None in barriers.
         None = 0x00000000,
 
         /// @brief Waits for all previous commands to be finished, or blocks all following commands until the barrier is executed.
         ///
         /// Translates to `VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_ALL` in DirectX 12 ❎.
-        ///
-        /// This stage flag is special, as it cannot be combined with other stage flags.
+        /// 
+        /// This stage flag is exclusive. Combining it with other stages is redundant.
         All = 0x00000001,
 
         /// @brief Waits for previous commands to finish all graphics stages, or blocks following commands until the graphics stages has finished.
         ///
         /// Translates to `VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_DRAW` in DirectX 12 ❎.
-        ///
-        /// This stage flag is special, as it cannot be combined with other stage flags.
         Draw = 0x00000002,
 
         /// @brief Waits for previous commands to finish the input assembly stage, or blocks following commands until the input assembly stage has finished.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_2_INDEX_INPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_INDEX_INPUT` in DirectX 12 ❎.
+        /// Translates to `VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_INDEX_INPUT | D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
         InputAssembly = 0x00000004,
 
         /// @brief Waits for previous commands to finish the vertex shader stage, or blocks following commands until the vertex shader stage has finished.
@@ -1146,7 +1147,7 @@ namespace LiteFX::Rendering {
         TessellationControl = 0x00000010,
 
         /// @copydoc TessellationControl
-        Hull = 0x00000010,
+        Hull = TessellationControl,
 
         /// @brief Waits for previous commands to finish the tessellation evaluation/domain shader stage, or blocks following commands until the tessellation evaluation/domain shader stage has finished.
         ///
@@ -1154,7 +1155,7 @@ namespace LiteFX::Rendering {
         TessellationEvaluation = 0x00000020,
        
         /// @copydoc TessellationEvaluation
-        Domain = 0x00000020,
+        Domain = TessellationEvaluation,
 
         /// @brief Waits for previous commands to finish the geometry shader stage, or blocks following commands until the geometry shader stage has finished.
         ///
@@ -1167,7 +1168,7 @@ namespace LiteFX::Rendering {
         Fragment = 0x00000080,
 
         /// @copydoc Fragment
-        Pixel = 0x00000080,
+        Pixel = Fragment,
 
         /// @brief Waits for previous commands to finish the depth/stencil stage, or blocks following commands until the depth/stencil stage has finished.
         ///
@@ -1187,40 +1188,68 @@ namespace LiteFX::Rendering {
         /// @brief Waits for previous commands to finish the compute shader stage, or blocks following commands until the compute shader stage has finished.
         ///
         /// Translates to `VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_COMPUTE_SHADING` in DirectX 12 ❎.
-        ///
-        /// This stage flag is special, as it cannot be combined with other stage flags.
         Compute = 0x00000800,
 
         /// @brief Waits for previous commands to finish the transfer stage, or blocks following commands until the transfer stage has finished.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_2_TRANSFER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_COPY` in DirectX 12 ❎.
+        /// Translates to `VK_PIPELINE_STAGE_2_TRANSFER_BIT | VK_PIPELINE_STAGE_2_COPY_BIT | VK_PIPELINE_STAGE_2_BLIT_BIT | VK_PIPELINE_STAGE_2_CLEAR_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_COPY` in DirectX 12 ❎.
         Transfer = 0x00001000,
 
         /// @brief Waits for previous commands to finish the multi-sampling resolution stage, or blocks following commands until the multi-sampling resolution stage has finished.
         ///
-        /// Translates to `VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_RESOLVE` in DirectX 12 ❎.
+        /// Translates to `VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_2_RESOLVE_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_RESOLVE` in DirectX 12 ❎.
         Resolve = 0x00002000,
+
+        /// @brief Waits for the previous commands to finish the task shader stage, or blocks following commands until the task shader stage has finished.
+        /// 
+        /// Translates to `VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_EXT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
+        /// 
+        /// @see @ref GraphicsDeviceFeatures::MeshShaders
+        Task = 0x00004000,
+
+        /// @copydoc Task
+        Amplification = Task,
+
+        /// @brief Waits for the previous commands to finish the mesh shader stage, or blocks following commands until the mesh shader stage has finished.
+        /// 
+        /// Translates to `VK_PIPELINE_STAGE_2_MESH_SHADER_BIT_EXT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
+        /// 
+        /// @see @ref GraphicsDeviceFeatures::MeshShaders
+        Mesh = 0x00008000,
 
         /// @brief Waits for previous commands to finish the building stage for an acceleration structure, or blocks the following commands until the building has finished.
         ///
-        /// This flag is only supported, if ray-tracing support is enabled. It translates to `VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR` in Vulkan 🌋 and
+        /// This flag is only supported, if ray-tracing support is enabled. It translates to `VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR` in Vulkan 🌋 and
         /// `D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE` in DirectX 12 ❎.
         ///
         /// @see @ref IAccelerationStructure
+        /// @see @ref GraphicsDeviceFeatures::RayTracing
+        /// @see @ref GraphicsDeviceFeatures::RayQueries
         AccelerationStructureBuild = 0x00010000,
 
         /// @brief Waits for previous commands to finish the copying stage for an acceleration structure, or blocks the following commands until the copying has finished.
         ///
-        /// This flag is only supported, if ray-tracing support is enabled. It translates to `VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR` in Vulkan 🌋 and
+        /// This flag is only supported, if ray-tracing support is enabled. It translates to `VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR` in Vulkan 🌋 and
         /// `D3D12_BARRIER_SYNC_COPY_RAYTRACING_ACCELERATION_STRUCTURE` in DirectX 12 ❎.
         ///
         /// @see @ref IAccelerationStructure
+        /// @see @ref GraphicsDeviceFeatures::RayTracing
+        /// @see @ref GraphicsDeviceFeatures::RayQueries
         AccelerationStructureCopy = 0x00020000,
 
         /// @brief Waits for the previous commands to finish ray-tracing shader stages, or blocks the following commands until ray-tracing has finished.
         ///
         /// This flag is only supported if ray-tracing support is enabled. It translates to `VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_RAYTRACING` in DirectX 12 ❎.
+        /// 
+        /// @see @ref GraphicsDeviceFeatures::RayTracing
         Raytracing = 0x00040000,
+
+        /// @brief Waits for previous commands to finish all shader stages or blocks the following commands until shading has finished.
+        /// 
+        /// Translates to `VK_PIPELINE_STAGE_2_PRE_RASTERIZATION_SHADERS_BIT | VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_ALL_SHADING` in DirectX 12 ❎.
+        /// 
+        /// Note that this does not include fixed-function stages, copies or resolves.
+        AllShading = 0x00080000
     };
 
     /// @brief Defines how a @ref IBuffer or @ref IImage resource is accessed.
@@ -1233,112 +1262,132 @@ namespace LiteFX::Rendering {
     enum class ResourceAccess {
         /// @brief Indicates that a resource is not accessed.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_NO_ACCESS` in the DirectX 12 ❎ backend and `VK_ACCESS_NONE` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_NO_ACCESS` in the DirectX 12 ❎ backend and `VK_ACCESS_2_NONE` in the Vulkan 🌋 backend.
         ///
-        /// This access flag is special, as it cannot be combined with other access flags.
-        None = 0x7FFFFFFF,
+        /// This access flag is exclusive and must not be combined with other access flags. It is required whenever the corresponding stage is @ref PipelineStage::None, but can also be
+        /// used with other stages, e.g., for resources that are accessed for the first time within a submission.
+        None = 0x00000000,
 
         /// @brief Indicates that a resource is accessed as a vertex buffer.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_VERTEX_BUFFER` in the DirectX 12 ❎ backend and `VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_VERTEX_BUFFER` in the DirectX 12 ❎ backend and `VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT` in the Vulkan 🌋 backend.
         VertexBuffer = 0x00000001,
 
         /// @brief Indicates that a resource is accessed as an index buffer.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_INDEX_BUFFER` in the DirectX 12 ❎ backend and `VK_ACCESS_INDEX_READ_BIT` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_INDEX_BUFFER` in the DirectX 12 ❎ backend and `VK_ACCESS_2_INDEX_READ_BIT` in the Vulkan 🌋 backend.
         IndexBuffer = 0x00000002,
 
         /// @brief Indicates that a resource is accessed as an uniform/constant buffer.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_CONSTANT_BUFFER` in the DirectX 12 ❎ backend and `VK_ACCESS_UNIFORM_READ_BIT` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_CONSTANT_BUFFER` in the DirectX 12 ❎ backend and `VK_ACCESS_2_UNIFORM_READ_BIT` in the Vulkan 🌋 backend.
         UniformBuffer = 0x00000004,
 
         /// @brief Indicates that a resource is accessed as a render target.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_RENDER_TARGET` in the DirectX 12 ❎ backend and `VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT` in the Vulkan 🌋
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_RENDER_TARGET` in the DirectX 12 ❎ backend and `VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT` in the Vulkan 🌋
         /// backend.
         RenderTarget = 0x00000008,
 
         /// @brief Indicates that a resource is accessed as to read depth/stencil values.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ` in the DirectX 12 ❎ backend and `VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ` in the DirectX 12 ❎ backend and `VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT` in the Vulkan 🌋 backend.
         DepthStencilRead = 0x00000010,
 
         /// @brief Indicates that a resource is accessed as to write depth/stencil values.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE` in the DirectX 12 ❎ backend and `VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE` in the DirectX 12 ❎ backend and `VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT` in the Vulkan 🌋 backend.
         DepthStencilWrite = 0x00000020,
+
+        /// @brief Combines @ref DepthStencilRead and @ref DepthStencilWrite.
+        DepthStencil = DepthStencilRead | DepthStencilWrite,
 
         /// @brief Indicates that a resource is accessed as a read-only shader resource.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_SHADER_RESOURCE` in the DirectX 12 ❎ backend and `VK_ACCESS_SHADER_READ_BIT` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_SHADER_RESOURCE` in the DirectX 12 ❎ backend and `VK_ACCESS_2_SHADER_READ_BIT` in the Vulkan 🌋 backend.
+        /// 
+        /// Note that this only covers resources that are bound as read-only. A resource bound with write-access -- even if not written -- must use @ref ShaderReadWrite.
         ShaderRead = 0x00000040,
 
         /// @brief Indicates that a resource is accessed as a read-write shader resource.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_UNORDERED_ACCESS` in the DirectX 12 ❎ backend and `VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_UNORDERED_ACCESS` in the DirectX 12 ❎ backend and `VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT` in the Vulkan 🌋 backend.
         ShaderReadWrite = 0x00000080,
 
         /// @brief Indicates that a resource is accessed as to read indirect draw commands.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_INDIRECT_ARGUMENT` in the DirectX 12 ❎ backend and `VK_ACCESS_INDIRECT_COMMAND_READ_BIT` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_INDIRECT_ARGUMENT` in the DirectX 12 ❎ backend and `VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT` in the Vulkan 🌋 backend.
         Indirect = 0x00000100,
 
         /// @brief Indicates that a resource is accessed as to read during a transfer operation.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_COPY_SOURCE` in the DirectX 12 ❎ backend and `VK_ACCESS_TRANSFER_READ_BIT` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_COPY_SOURCE` in the DirectX 12 ❎ backend and `VK_ACCESS_2_TRANSFER_READ_BIT` in the Vulkan 🌋 backend.
         TransferRead = 0x00000200,
 
         /// @brief Indicates that a resource is accessed as to write during a transfer operation.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_COPY_DEST` in the DirectX 12 ❎ backend and `VK_ACCESS_TRANSFER_WRITE_BIT` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_COPY_DEST` in the DirectX 12 ❎ backend and `VK_ACCESS_2_TRANSFER_WRITE_BIT` in the Vulkan 🌋 backend.
         TransferWrite = 0x00000400,
 
         /// @brief Indicates that a resource is accessed as to read during a resolve operation.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_RESOLVE_SOURCE` in the DirectX 12 ❎ backend and `VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_RESOLVE_SOURCE` in the DirectX 12 ❎ backend and `VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_2_TRANSFER_READ_BIT` in the Vulkan 🌋 backend.
         ResolveRead = 0x00000800,
 
         /// @brief Indicates that a resource is accessed as to write during a resolve operation.
         ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_RESOLVE_DEST` in the DirectX 12 ❎ backend and `VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_RESOLVE_DEST` in the DirectX 12 ❎ backend and `VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_2_TRANSFER_WRITE_BIT` in the Vulkan 🌋 backend.
         ResolveWrite = 0x00001000,
-        
+
         /// @brief Indicates that a resource can be accessed in any way, compatible to the layout.
         ///
-        /// Note that you have to ensure that you do not access the resource in an incompatible way manually.
-        ///
-        /// This access mode translates to `D3D12_BARRIER_ACCESS_COMMON` in the DirectX 12 ❎ backend and `VK_ACCESS_2_NONE` in the Vulkan 🌋 backend.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_COMMON` in the DirectX 12 ❎ backend and `VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_WRITE_BIT` in the Vulkan 🌋 backend.
+        /// 
+        /// This access mode must be used with a stage other than @ref PipelineStage::None. It represents a portable convention to express any previous as well as any subsequent access.
         Common = 0x00002000,
 
         /// @brief Indicates that a resources is accessed to read an acceleration structure.
         ///
         /// This access mode flags is only supported if ray-tracing support is enabled. It translates `D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ` in the DirectX 12 ❎ backend and
-        /// `VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR` in the Vulkan 🌋 backend.
+        /// `VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR` in the Vulkan 🌋 backend.
         AccelerationStructureRead = 0x00010000,
 
         /// @brief Indicates that a resources is accessed to write an acceleration structure.
         ///
         /// This access mode flags is only supported if ray-tracing support is enabled. It translates `D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE` in the DirectX 12 ❎ backend and
-        /// `VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR` in the Vulkan 🌋 backend.
+        /// `VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR` in the Vulkan 🌋 backend.
         AccelerationStructureWrite = 0x00020000,
     };
 
     /// @brief Specifies the layout of an @ref IImage resource.
     ///
+    /// Note that almost all layouts under Vulkan translate to `VK_IMAGE_LAYOUT_GENERAL` under Vulkan, making this backend more robust to use. For correctness reasons, you still have to ensure that
+    /// each resource ends up in @ref ImageLayout::Common state after a diverging access.
+    /// 
     /// @see @ref IImage
     /// @see @ref IBarrier
     /// @see @ref ResourceAccess
     /// @see @ref PipelineStage
     enum class ImageLayout {
+        /// @brief The layout of the image is not known by the engine.
+        ///
+        /// Indicates that an image's layout is not known, which typically happens after creating image resources. It is not valid to transition any resource into this state.
+        ///
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_UNDEFINED` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_UNDEFINED` in the Vulkan 🌋 backend.
+        ///
+        /// When using this layout as a source layout, the contents of the image may be discarded. Newly created images start out in this layout.
+        Undefined = 0x00000000,
+
         /// @brief A common image layout that allows for all types of access (shader resource, transfer destination, transfer source).
         ///
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_COMMON` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_GENERAL` in the Vulkan 🌋 backend.
+        /// 
+        /// This image layout represents the default layout which all image resources are assumed to rest in if they are not currently used in any other way.
         Common = 0x00000001,
 
-        /// @brief Indicates that the image is used as a read-only storage or texel buffer.
+        /// @brief Indicates that the image is used as a shader resource.
         ///
-        /// This image layout translates to `D3D12_BARRIER_LAYOUT_SHADER_RESOURCE` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL` in the Vulkan 🌋 backend.
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_SHADER_RESOURCE` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_GENERAL` in the Vulkan 🌋 backend.
         ShaderResource = 0x00000002,
 
         /// @brief Indicates that the image is used as a read-write storage or texel buffer.
@@ -1346,56 +1395,53 @@ namespace LiteFX::Rendering {
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_UNORDERED_ACCESS` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_GENERAL` in the Vulkan 🌋 backend.
         ReadWrite = 0x00000003,
 
+        /// @brief Indicates that the image is used as a read-only storage or texel buffer.
+        ///
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_GENERIC_READ` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_GENERAL` in the Vulkan 🌋 backend.
+        ReadOnly = 0x00000004,
+
         /// @brief Allows the image to be used as a source for transfer operations.
         ///
-        /// This image layout translates to `D3D12_BARRIER_LAYOUT_COPY_SOURCE` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL` in the Vulkan 🌋 backend.
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_COPY_SOURCE` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_GENERAL` in the Vulkan 🌋 backend.
         CopySource = 0x00000010,
 
         /// @brief Allows the image to be used as a destination for transfer operations.
         ///
-        /// This image layout translates to `D3D12_BARRIER_LAYOUT_COPY_DEST` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL` in the Vulkan 🌋 backend.
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_COPY_DEST` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_GENERAL` in the Vulkan 🌋 backend.
         CopyDestination = 0x00000011,
 
         /// @brief Indicates that the image is used as a render target.
         ///
-        /// This image layout translates to `D3D12_BARRIER_LAYOUT_RENDER_TARGET` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` in the Vulkan 🌋 backend.
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_RENDER_TARGET` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_GENERAL` in the Vulkan 🌋 backend.
         RenderTarget = 0x00000020,
 
         /// @brief Indicates that image is used as a read-only depth/stencil target.
         ///
-        /// This image layout translates to `D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL` in the Vulkan 🌋 backend.
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_GENERAL` in the Vulkan 🌋 backend.
         DepthRead = 0x00000021,
 
         /// @brief Indicates that the image is used as a write-only depth/stencil target.
         ///
-        /// This image layout translates to `D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL` in the Vulkan 🌋 backend.
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_GENERAL` in the Vulkan 🌋 backend.
         DepthWrite = 0x00000022,
 
         /// @brief Indicates that the image is presented on a swap chain.
         ///
-        /// This image layout translates to `D3D12_BARRIER_LAYOUT_PRESENT` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR` in the Vulkan 🌋 backend.
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_PRESENT` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR` in the Vulkan 🌋 backend. The 
+        /// D3D12 interop swap chain interprets this as `VK_IMAGE_LAYOUT_GENERAL` under Vulkan as well.
         ///
         /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by @ref RenderPass "RenderPasses".
         Present = 0x00000023,
 
         /// @brief Indicates that the image is resolved from a multi-sampled image.
         ///
-        /// This image layout translates to `D3D12_BARRIER_LAYOUT_RESOLVE_SOURCE` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` in the Vulkan 🌋 backend.
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_RESOLVE_SOURCE` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_GENERAL` in the Vulkan 🌋 backend.
         ResolveSource = 0x00000024,
 
         /// @brief Indicates that the image is a render-target that a multi-sampled image is resolved into.
         ///
-        /// This image layout translates to `D3D12_BARRIER_LAYOUT_RESOLVE_DEST` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` in the Vulkan 🌋 backend.
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_RESOLVE_DEST` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_GENERAL` in the Vulkan 🌋 backend.
         ResolveDestination = 0x00000025,
-
-        /// @brief The layout of the image is not known by the engine.
-        ///
-        /// Indicates that an image's layout is not known, which typically happens after creating image resources. It is not valid to transition any resource into this state.
-        ///
-        /// This image layout translates to `D3D12_BARRIER_LAYOUT_UNDEFINED` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_UNDEFINED` in the Vulkan 🌋 backend.
-        ///
-        /// When using this layout as a source layout, the contents of the image may be discarded.
-        Undefined = 0x7FFFFFFF
     };
 
     /// @brief Controls how a geometry that is part of a bottom-level acceleration structure (BLAS) behaves during ray-tracing.
@@ -4865,18 +4911,18 @@ namespace LiteFX::Rendering {
         }
 
         /// @brief Inserts an image barrier that blocks access to all sub-resources of @p image of the types contained in @p accessAfter for subsequent commands until previous commands have finished accesses
-        /// contained in @p accessBefore and transitions all sub-resources into @p layout.
+        /// contained in @p accessBefore and transitions all sub-resources from @ref ImageLayout::Common into @p toLayout.
         ///
         /// @param image The image resource to transition.
         /// @param accessBefore The access types previous commands have to finish.
         /// @param accessAfter The access types that subsequent commands continue with.
-        /// @param layout The image layout to transition into.
-        constexpr void transition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) {
-            this->doTransition(image, accessBefore, accessAfter, layout);
+        /// @param toLayout The image layout to transition into.
+        constexpr void transition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout toLayout) {
+            this->transition(image, accessBefore, accessAfter, ImageLayout::Common, toLayout);
         }
 
         /// @brief Inserts an image barrier that blocks access to a sub-resource range of @p image of the types contained in @p accessAfter for subsequent commands until previous commands have finished accesses
-        /// contained in @p accessBefore and transitions the sub-resource into @p layout.
+        /// contained in @p accessBefore and transitions the sub-resource from @ref ImageLayout::Common into @p toLayout.
         ///
         /// @param image The image resource to transition.
         /// @param level The base mip-map level of the sub-resource range.
@@ -4886,16 +4932,13 @@ namespace LiteFX::Rendering {
         /// @param plane The plane of the sub-resource.
         /// @param accessBefore The access types previous commands have to finish.
         /// @param accessAfter The access types that subsequent commands continue with.
-        /// @param layout The image layout to transition into.
-        constexpr void transition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) {
-            this->doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter, layout);
+        /// @param toLayout The image layout to transition into.
+        constexpr void transition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout toLayout) {
+            this->transition(image, level, levels, layer, layers, plane, accessBefore, accessAfter, ImageLayout::Common, toLayout);
         }
 
         /// @brief Inserts an image barrier that blocks access to all sub-resources of @p image of the types contained in @p accessAfter for subsequent commands until previous commands have finished accesses
         /// contained in @p accessBefore and transitions all sub-resources into @p layout.
-        ///
-        /// This overload let's you explicitly specify the @p fromLayout. This is required, if you use any external transition mechanism that causes the engine to lose track of the image layout. If you are not
-        /// running into issues with the other overloads, you probably do not want to call this method.
         ///
         /// @param image The image resource to transition.
         /// @param accessBefore The access types previous commands have to finish.
@@ -4929,9 +4972,7 @@ namespace LiteFX::Rendering {
     private:
         constexpr virtual void doTransition(const IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
         constexpr virtual void doTransition(const IBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
-        constexpr virtual void doTransition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
         constexpr virtual void doTransition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
-        constexpr virtual void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
         constexpr virtual void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
     };
 

@@ -71,6 +71,9 @@ Blitter<DirectX12Backend>::Blitter(const DirectX12Device& device) :
 template <>
 void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX12CommandBuffer& commandBuffer)
 {
+	if (!LITEFX_FLAG_IS_SET(image.usage(), ResourceUsage::MipMapTarget)) [[unlikely]]
+		throw InvalidArgumentException("image", "The image must be declared with the `MipMapTarget` usage.");
+
 	auto device = m_impl->m_device.lock();
 
 	if (device == nullptr) [[unlikely]]
@@ -112,9 +115,14 @@ void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX1
 	parameters->map(parametersBlock, sizeof(Parameters));
 	commandBuffer.track(parameters);
 
-	// Transition the texture into a read/write state.
+	// Nothing to do for images without additional mip levels.
+	if (image.levels() < 2u)
+		return;
+
+	// Transition the texture mip 0 into a shader resource layout and discard all other mip levels.
 	DirectX12Barrier startBarrier(PipelineStage::All, PipelineStage::Compute);
-	startBarrier.transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Undefined, ImageLayout::ReadWrite);
+	startBarrier.transition(image, 0, 1, 0, image.layers(), 0, ResourceAccess::Common, ResourceAccess::ShaderRead, ImageLayout::Common, ImageLayout::ShaderResource);
+	startBarrier.transition(image, 1, image.levels() - 1, 0, image.layers(), 0, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Undefined, ImageLayout::ReadWrite);
 	commandBuffer.barrier(startBarrier);
 	auto resourceBinding = resourceBindings.begin();
 
@@ -148,12 +156,12 @@ void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX1
 			commandBuffer.track(std::move(resource));
 			resourceBinding++;
 		}
-
-		// Original sub-resource also needs to be transitioned.
-		DirectX12Barrier endBarrier(PipelineStage::Compute, PipelineStage::All);
-		endBarrier.transition(image, 0, 1, l, 1, 0, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderRead, ImageLayout::ReadWrite, ImageLayout::ShaderResource);
-		commandBuffer.barrier(endBarrier);
 	}
+
+	// All levels are now in `ShaderResource` layout. Return them to the default state.
+	DirectX12Barrier endBarrier(PipelineStage::Compute, PipelineStage::None);
+	endBarrier.transition(image, 0, image.levels(), 0, image.layers(), 0, ResourceAccess::ShaderRead, ResourceAccess::None, ImageLayout::ShaderResource, ImageLayout::Common);
+	commandBuffer.barrier(endBarrier);
 }
 
 // ------------------------------------------------------------------------------------------------

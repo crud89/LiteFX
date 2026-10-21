@@ -678,24 +678,29 @@ D3D12_BLEND_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getBlendO
 
 D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getPipelineStage(PipelineStage pipelineStage)
 {
-	if (pipelineStage == PipelineStage::None)
-		return D3D12_BARRIER_SYNC_NONE;
-	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::All))
-		return D3D12_BARRIER_SYNC_ALL;
-	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Draw))
-		return D3D12_BARRIER_SYNC_DRAW;
-	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Compute))
-		return D3D12_BARRIER_SYNC_COMPUTE_SHADING;
+	D3D12_BARRIER_SYNC sync { D3D12_BARRIER_SYNC_NONE };
 
-	D3D12_BARRIER_SYNC sync { };
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::All))
+		sync |= D3D12_BARRIER_SYNC_ALL;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::AllShading))
+		sync |= D3D12_BARRIER_SYNC_ALL_SHADING;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Draw))
+		sync |= D3D12_BARRIER_SYNC_DRAW;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Compute))
+		sync |= D3D12_BARRIER_SYNC_COMPUTE_SHADING;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::InputAssembly))
-		sync |= D3D12_BARRIER_SYNC_INDEX_INPUT;	// D3D12_BARRIER_SYNC_INPUT_ASSEMBLER appears to be deprecated but I could not find any info about the deprecation.
+		sync |= D3D12_BARRIER_SYNC_INDEX_INPUT | D3D12_BARRIER_SYNC_VERTEX_SHADING;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Vertex) || 
 		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::TessellationControl) ||
 		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::TessellationEvaluation) ||
-		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Geometry))
+		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Geometry) ||
+		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Task) ||
+		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Mesh))
 		sync |= D3D12_BARRIER_SYNC_VERTEX_SHADING;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Fragment))
@@ -791,6 +796,7 @@ D3D12_BARRIER_LAYOUT LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::get
 	switch (imageLayout) {
 	case ImageLayout::Common: return D3D12_BARRIER_LAYOUT_COMMON;
 	case ImageLayout::ShaderResource: return D3D12_BARRIER_LAYOUT_SHADER_RESOURCE;
+	case ImageLayout::ReadOnly: return D3D12_BARRIER_LAYOUT_GENERIC_READ;
 	case ImageLayout::ReadWrite: return D3D12_BARRIER_LAYOUT_UNORDERED_ACCESS;
 	case ImageLayout::CopySource: return D3D12_BARRIER_LAYOUT_COPY_SOURCE;
 	case ImageLayout::CopyDestination: return D3D12_BARRIER_LAYOUT_COPY_DEST;

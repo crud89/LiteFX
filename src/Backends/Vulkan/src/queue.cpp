@@ -26,6 +26,7 @@ private:
 	mutable std::mutex m_mutex;
 	WeakPtr<const VulkanDevice> m_device;
 	Array<Tuple<UInt64, SharedPtr<const VulkanCommandBuffer>>> m_submittedCommandBuffers;
+	Array<VkSemaphoreSubmitInfo> m_crossQueueWaitInfos{};
 
 public:
 	VulkanQueueImpl(const VulkanDevice& device, QueueType type, QueuePriority priority, UInt32 familyId, UInt32 queueId) :
@@ -198,13 +199,24 @@ UInt64 VulkanQueue::submit(const SharedPtr<const VulkanCommandBuffer>& commandBu
 	// End the command buffer.
 	commandBuffer->end();
 
-	// Submit the command buffer.
-	auto fence = ++m_impl->m_fenceValue;
+	// Submit the command buffer. Here we wait for the current fence on the queue, which enforces command buffers to be executed sequentially. This isn't necessary in Vulkan, but it 
+	// matches the D3D12 behavior. This allows us to make portable assumptions for barriers (e.g., first-use barriers can use ResourceAccess::None, etc.).
+	auto currentFence = m_impl->m_fenceValue;
+	auto signalFence = ++m_impl->m_fenceValue;
+
+	VkSemaphoreSubmitInfo waitSemaphoreInfo = {
+		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+		.semaphore = m_impl->m_timelineSemaphore,
+		.value = currentFence,
+		.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT
+	};
+
+	m_impl->m_crossQueueWaitInfos.push_back(waitSemaphoreInfo);
 
 	VkSemaphoreSubmitInfo signalSemaphoreInfo = {
 		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
 		.semaphore = m_impl->m_timelineSemaphore,
-		.value = fence,
+		.value = signalFence,
 		.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT
 	};
 
@@ -215,21 +227,36 @@ UInt64 VulkanQueue::submit(const SharedPtr<const VulkanCommandBuffer>& commandBu
 
 	VkSubmitInfo2 submitInfo = {
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+		.waitSemaphoreInfoCount = static_cast<UInt32>(m_impl->m_crossQueueWaitInfos.size()),
+		.pWaitSemaphoreInfos = m_impl->m_crossQueueWaitInfos.data(),
 		.commandBufferInfoCount = 1,
 		.pCommandBufferInfos = &commandBufferInfo,
 		.signalSemaphoreInfoCount = 1,
 		.pSignalSemaphoreInfos = &signalSemaphoreInfo
 	};
 
-	// Submit the command buffer to the transfer queue.
-	raiseIfFailed(::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
+	// Submit the command buffer to the queue.
+	try
+	{
+		raiseIfFailed(::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
+	}
+	catch (...)
+	{
+		// Prevent deadlocks if this fails.
+		--m_impl->m_fenceValue;
+		throw;
+	}
 
 	// Add the command buffer to the submitted command buffers list.
-	m_impl->m_submittedCommandBuffers.emplace_back(fence, commandBuffer);
+	m_impl->m_submittedCommandBuffers.emplace_back(signalFence, commandBuffer);
 
 	// Fire end event.
-	this->submitted(this, { fence });
-	return fence;
+	this->submitted(this, { signalFence });
+
+	// Clear the wait list.
+	m_impl->m_crossQueueWaitInfos.clear();
+
+	return signalFence;
 }
 
 UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const
@@ -267,33 +294,59 @@ UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> comm
 		};
 	}) | std::ranges::to<Array<VkCommandBufferSubmitInfo>>();
 
-	// Submit the command buffer.
-	auto fence = ++m_impl->m_fenceValue;
+	// Submit the command buffer. Here we wait for the current fence on the queue, which enforces command buffers to be executed sequentially. This isn't necessary in Vulkan, but it 
+	// matches the D3D12 behavior. This allows us to make portable assumptions for barriers (e.g., first-use barriers can use ResourceAccess::None, etc.).
+	auto currentFence = m_impl->m_fenceValue;
+	auto signalfence = ++m_impl->m_fenceValue;
+	
+	VkSemaphoreSubmitInfo waitSemaphoreInfo = {
+		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+		.semaphore = m_impl->m_timelineSemaphore,
+		.value = currentFence,
+		.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT
+	};
+
+	m_impl->m_crossQueueWaitInfos.push_back(waitSemaphoreInfo);
 
 	VkSemaphoreSubmitInfo signalSemaphoreInfo = {
 		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
 		.semaphore = m_impl->m_timelineSemaphore,
-		.value = fence,
-		.stageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT
+		.value = signalfence,
+		.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT
 	};
 
 	VkSubmitInfo2 submitInfo = {
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+		.waitSemaphoreInfoCount = static_cast<UInt32>(m_impl->m_crossQueueWaitInfos.size()),
+		.pWaitSemaphoreInfos = m_impl->m_crossQueueWaitInfos.data(),
 		.commandBufferInfoCount = static_cast<UInt32>(commandBufferInfos.size()),
 		.pCommandBufferInfos = commandBufferInfos.data(),
 		.signalSemaphoreInfoCount = 1,
 		.pSignalSemaphoreInfos = &signalSemaphoreInfo
 	};
 
-	// Submit the command buffer to the transfer queue.
-	raiseIfFailed(::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
+	// Submit the command buffer to the queue.
+	try
+	{
+		raiseIfFailed(::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
+	}
+	catch (...)
+	{
+		// Prevent deadlocks if this fails.
+		--m_impl->m_fenceValue;
+		throw;
+	}
 
 	// Add the command buffers to the submitted command buffers list.
-	std::ranges::for_each(commandBuffers, [this, &fence](const SharedPtr<const VulkanCommandBuffer>& buffer) { m_impl->m_submittedCommandBuffers.emplace_back(fence, buffer); });
+	std::ranges::for_each(commandBuffers, [this, &signalfence](const SharedPtr<const VulkanCommandBuffer>& buffer) { m_impl->m_submittedCommandBuffers.emplace_back(signalfence, buffer); });
 
 	// Fire end event.
-	this->submitted(this, { fence });
-	return fence;
+	this->submitted(this, { signalfence });
+
+	// Clear the wait list.
+	m_impl->m_crossQueueWaitInfos.clear();
+
+	return signalfence;
 }
 
 void VulkanQueue::waitFor(UInt64 fence) const
@@ -321,8 +374,13 @@ void VulkanQueue::waitFor(UInt64 fence) const
 	m_impl->releaseCommandBuffers(*this, fence);
 }
 
-void VulkanQueue::waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept
+void VulkanQueue::waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept // NOLINT(bugprone-exception-escape)
 {
+	// We cannot directly push an empty submission with only synchronization primitives to the queue, since Vulkan doesn't define how they should be serialized by the 
+	// driver. Instead we cache the fence and semaphore and append it to the next submission's wait list. This also means, that the other queue must remain alive as 
+	// long as such waits are pending, but we shouldn't be able to delete queues at runtime anyway.
+	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
+
 	VkSemaphoreSubmitInfo waitSemaphoreInfo {
 		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
 		.semaphore = queue.m_impl->m_timelineSemaphore,
@@ -330,13 +388,7 @@ void VulkanQueue::waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept
 		.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT
 	};
 
-	VkSubmitInfo2 submitInfo {
-		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
-		.waitSemaphoreInfoCount = 1,
-		.pWaitSemaphoreInfos = &waitSemaphoreInfo
-	};
-
-	::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE);
+	m_impl->m_crossQueueWaitInfos.push_back(waitSemaphoreInfo);
 }
 
 UInt64 VulkanQueue::currentFence() const noexcept

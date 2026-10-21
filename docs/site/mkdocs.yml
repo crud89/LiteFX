@@ -103,10 +103,19 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Getting Started:
-      - getting-started/index.md
-      - Installation: getting-started/installation.md
-      - Project Setup: getting-started/project-setup.md
+  - Guides:
+      - guides/index.md
+      - Getting Started:
+          - guides/getting-started/index.md
+          - Installation: guides/getting-started/installation.md
+          - Project Setup: guides/getting-started/project-setup.md
+      - Synchronization:
+          - guides/synchronization/index.md
+          - Queues and Fences: guides/synchronization/queues-and-fences.md
+          - Command Buffers: guides/synchronization/command-buffers.md
+          - Barriers: guides/synchronization/barriers.md
+          - Render Passes and Frames: guides/synchronization/render-passes-and-frames.md
+          - Patterns and Pitfalls: guides/synchronization/patterns.md
   - Tutorials:
       - tutorials/index.md
       - Your First Triangle:

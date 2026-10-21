@@ -14,7 +14,7 @@ Start with an empty directory, which will contain the following files:
 | `vcpkg-configuration.json` | Tells vcpkg where to find the engine (the LiteFX registry). |
 | `CMakePresets.json` | Build configurations, e.g. the compiler, build type and vcpkg integration. |
 | `CMakeLists.txt` | The build script of your project. |
-| `main.h`, `main.cpp` | The application sources, written in the [first tutorial](../tutorials/first-triangle/index.md). |
+| `main.h`, `main.cpp` | The application sources, written in the [first tutorial](../../tutorials/first-triangle/index.md). |
 
 ## vcpkg manifest { #vcpkg-manifest }
 
@@ -140,7 +140,7 @@ cached binaries.
 In Visual Studio, open the project folder instead (*File* > *Open* > *Folder*). Visual Studio picks up the preset, and you can build
 and debug the application from the toolbar.
 
-For now, the build fails, because the application sources are still missing. Continue with the [first tutorial](../tutorials/first-triangle/index.md)
+For now, the build fails, because the application sources are still missing. Continue with the [first tutorial](../../tutorials/first-triangle/index.md)
 to write them.
 
 ## Next steps
@@ -148,7 +148,7 @@ to write them.
 The engine provides CMake helpers to integrate shaders and assets into your build:
 
 - **`TARGET_ADD_SHADER_PROGRAM`** compiles shaders for all backends and copies them next to your application. The
-  [tutorial](../tutorials/first-triangle/shaders.md) uses it for its first shaders.
+  [tutorial](../../tutorials/first-triangle/shaders.md) uses it for its first shaders.
 - **`TARGET_ADD_ASSET_DIRECTORY`** copies assets, such as textures or models, next to your application.
 
 The [sample project](https://github.com/crud89/LiteFX-Sample) demonstrates both.

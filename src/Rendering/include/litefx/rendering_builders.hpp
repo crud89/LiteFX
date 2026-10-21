@@ -119,7 +119,7 @@ namespace LiteFX::Rendering {
             TParent m_parent;
             ResourceAccess m_access;
             SharedPtr<IImage> m_image;
-            ImageLayout m_layout;
+            ImageLayout m_currentLayout, m_layout;
             UInt32 m_level{ 0 }, m_levels{ 1 }, m_layer{ 0 }, m_layers{ 1 }, m_plane{ 0 };
 
             /// @brief Initializes a builder that sets up the layout transition barrier for a set of sub-resources of a specific image.
@@ -127,14 +127,15 @@ namespace LiteFX::Rendering {
             /// @param parent The parent builder instance.
             /// @param image The image for this barrier.
             /// @param access The resource access state of the sub-resources in the image to wait for with this barrier.
-            /// @param layout The layout to transition the image sub-resources into.
+            /// @param fromLayout The current layout of the sub-resources.
+            /// @param toLayout The layout to transition the image sub-resources into.
             /// @param level The level of the first sub-resource to transition.
             /// @param levels The number of levels to transition.
             /// @param layer The layer of the first sub-resource to transition.
             /// @param layers The number of layers to transition.
             /// @param plane The plane of the sub-resource to transition.
-            constexpr ImageLayoutBarrierBuilder(TParent&& parent, IImage& image, ResourceAccess access, ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane) :
-                m_parent(std::move(parent)), m_access(access), m_image(image.shared_from_this()), m_layout(layout), m_level(level), m_levels(levels), m_layer(layer), m_layers(layers), m_plane(plane) { }
+            constexpr ImageLayoutBarrierBuilder(TParent&& parent, IImage& image, ResourceAccess access, ImageLayout fromLayout, ImageLayout toLayout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane) :
+                m_parent(std::move(parent)), m_access(access), m_image(image.shared_from_this()), m_currentLayout(fromLayout), m_layout(toLayout), m_level(level), m_levels(levels), m_layer(layer), m_layers(layers), m_plane(plane) { }
 
         public:
             friend class BarrierBuilder;
@@ -144,7 +145,7 @@ namespace LiteFX::Rendering {
             ///
             /// @param access The resource accesses that are waited for on the image sub-resources before the barrier can be executed.
             constexpr auto whenFinishedWith(ResourceAccess access) -> TParent {
-                this->m_parent.imageBarrierCallback(*m_image, access, m_access, m_layout, m_level, m_levels, m_layer, m_layers, m_plane);
+                this->m_parent.imageBarrierCallback(*m_image, access, m_access, m_currentLayout, m_layout, m_level, m_levels, m_layer, m_layers, m_plane);
                 return std::move(this->m_parent);
             }
         };
@@ -173,10 +174,20 @@ namespace LiteFX::Rendering {
             friend class BarrierBuilder;
 
             /// @brief Specifies the layout to transition an image to when executing the barrier.
+            /// 
+            /// Note that this method assumes a transition from @ref ImageLayout::Common.
             ///
-            /// @param layout The layout to transition an image to when executing the barrier.
-            constexpr auto transitionLayout(ImageLayout layout) -> ImageLayoutBarrierBuilder<TParent> {
-                return ImageLayoutBarrierBuilder<TParent>{ std::move(m_parent), *m_image, m_access, layout, m_level, m_levels, m_layer, m_layers, m_plane };
+            /// @param toLayout The layout to transition an image to when executing the barrier.
+            constexpr auto transitionLayout(ImageLayout toLayout) -> ImageLayoutBarrierBuilder<TParent> {
+                return ImageLayoutBarrierBuilder<TParent>{ std::move(m_parent), *m_image, m_access, ImageLayout::Common, toLayout, m_level, m_levels, m_layer, m_layers, m_plane };
+            }
+
+            /// @brief Specifies a layout transition for an image resource.
+            ///
+            /// @param fromLayout The current layout of the image.
+            /// @param toLayout The layout to transition an image to when executing the barrier.
+            constexpr auto transitionLayout(ImageLayout fromLayout, ImageLayout toLayout) -> ImageLayoutBarrierBuilder<TParent> {
+                return ImageLayoutBarrierBuilder<TParent>{ std::move(m_parent), *m_image, m_access, fromLayout, toLayout, m_level, m_levels, m_layer, m_layers, m_plane };
             }
 
             /// @brief Specifies the sub-resource to block and transition when executing the barrier.
@@ -228,14 +239,15 @@ namespace LiteFX::Rendering {
         /// @param image The image for this barrier.
         /// @param before The resource access state of the sub-resources in the image to wait for with this barrier.
         /// @param after The resource access state of the sub-resources in the image to continue with after this barrier.
-        /// @param layout The layout to transition the image sub-resources into.
+        /// @param fromLayout The current layout of the image sub-resources.
+        /// @param toLayout The layout to transition the image sub-resources into.
         /// @param level The level of the first sub-resource to transition.
         /// @param levels The number of levels to transition.
         /// @param layer The layer of the first sub-resource to transition.
         /// @param layers The number of layers to transition.
         /// @param plane The plane of the sub-resource to transition.
-        constexpr void imageBarrierCallback(IImage& image, ResourceAccess before, ResourceAccess after, ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane) {
-            this->setupImageBarrier(image, before, after, layout, level, levels, layer, layers, plane);
+        constexpr void imageBarrierCallback(IImage& image, ResourceAccess before, ResourceAccess after, ImageLayout fromLayout, ImageLayout toLayout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane) {
+            this->setupImageBarrier(image, before, after, fromLayout, toLayout, level, levels, layer, layers, plane);
         }
 
     protected:
@@ -263,13 +275,14 @@ namespace LiteFX::Rendering {
         /// @param image The image for this barrier.
         /// @param before The resource access state of the sub-resources in the image to wait for with this barrier.
         /// @param after The resource access state of the sub-resources in the image to continue with after this barrier.
-        /// @param layout The layout to transition the image sub-resources into.
+        /// @param fromLayout The current layout of the image sub-resources.
+        /// @param toLayout The layout to transition the image sub-resources into.
         /// @param level The level of the first sub-resource to transition.
         /// @param levels The number of levels to transition.
         /// @param layer The layer of the first sub-resource to transition.
         /// @param layers The number of layers to transition.
         /// @param plane The plane of the sub-resource to transition.
-        constexpr virtual void setupImageBarrier(IImage& image, ResourceAccess before, ResourceAccess after, ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane) = 0;
+        constexpr virtual void setupImageBarrier(IImage& image, ResourceAccess before, ResourceAccess after, ImageLayout fromLayout, ImageLayout toLayout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane) = 0;
 
     public:
         using Builder<TBarrier>::Builder;

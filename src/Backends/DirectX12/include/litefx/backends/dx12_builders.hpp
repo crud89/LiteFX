@@ -35,7 +35,7 @@ namespace LiteFX::Rendering::Backends {
 		void setupBufferBarrier(IBuffer& buffer, ResourceAccess before, ResourceAccess after) override;
 
 		/// @copydoc BarrierBuilder::setupImageBarrier
-		void setupImageBarrier(IImage& image, ResourceAccess before, ResourceAccess after, ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane) override;
+		void setupImageBarrier(IImage& image, ResourceAccess before, ResourceAccess after, ImageLayout fromLayout, ImageLayout toLayout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane) override;
 	};
 
 	/// @brief Builds a DirectX 12 @ref ShaderProgram.
