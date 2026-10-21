@@ -236,7 +236,16 @@ UInt64 VulkanQueue::submit(const SharedPtr<const VulkanCommandBuffer>& commandBu
 	};
 
 	// Submit the command buffer to the queue.
-	raiseIfFailed(::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
+	try
+	{
+		raiseIfFailed(::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
+	}
+	catch (...)
+	{
+		// Prevent deadlocks if this fails.
+		--m_impl->m_fenceValue;
+		throw;
+	}
 
 	// Add the command buffer to the submitted command buffers list.
 	m_impl->m_submittedCommandBuffers.emplace_back(signalFence, commandBuffer);
@@ -317,7 +326,16 @@ UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> comm
 	};
 
 	// Submit the command buffer to the queue.
-	raiseIfFailed(::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
+	try
+	{
+		raiseIfFailed(::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
+	}
+	catch (...)
+	{
+		// Prevent deadlocks if this fails.
+		--m_impl->m_fenceValue;
+		throw;
+	}
 
 	// Add the command buffers to the submitted command buffers list.
 	std::ranges::for_each(commandBuffers, [this, &signalfence](const SharedPtr<const VulkanCommandBuffer>& buffer) { m_impl->m_submittedCommandBuffers.emplace_back(signalfence, buffer); });

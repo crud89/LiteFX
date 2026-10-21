@@ -31,8 +31,16 @@ Blitter<VulkanBackend>::Blitter(const VulkanDevice& /*device*/) :
 template <>
 void Blitter<VulkanBackend>::generateMipMaps(IVulkanImage& image, VulkanCommandBuffer& commandBuffer)
 {
-	// NOTE: We currently assume that this only happens after a texture is initialized by transferring data into it, so the last resource access is TransferWrite and the layout is CopyDestination.
-	VulkanBarrier startBarrier(PipelineStage::Transfer, PipelineStage::Transfer);
+	if (!LITEFX_FLAG_IS_SET(image.usage(), ResourceUsage::MipMapTarget)) [[unlikely]]
+		throw InvalidArgumentException("image", "The image must be declared with the `MipMapTarget` usage.");
+
+	// Check if the image has enough levels to build a mip chain.
+	if (image.levels() < 2u)
+		return;
+
+	VulkanBarrier startBarrier(PipelineStage::All, PipelineStage::Transfer);
+	startBarrier.transition(image, 0, 1, 0, image.layers(), 0, ResourceAccess::None, ResourceAccess::TransferRead, ImageLayout::Common, ImageLayout::Common);
+	startBarrier.transition(image, 1, image.levels() - 1, 0, image.layers(), 0, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::Common);
 	commandBuffer.barrier(startBarrier);
 
 	for (UInt32 layer(0); layer < image.layers(); ++layer)
@@ -44,7 +52,7 @@ void Blitter<VulkanBackend>::generateMipMaps(IVulkanImage& image, VulkanCommandB
 		for (UInt32 level(1); level < image.levels(); ++level)
 		{
 			VulkanBarrier subBarrier(PipelineStage::Transfer, PipelineStage::Transfer);
-			subBarrier.transition(image, level - 1, 1, layer, 1, 0, ResourceAccess::TransferWrite, ResourceAccess::TransferRead, ImageLayout::CopySource);
+			subBarrier.transition(image, level - 1, 1, layer, 1, 0, ResourceAccess::TransferWrite, ResourceAccess::TransferRead, ImageLayout::Common);
 			commandBuffer.barrier(subBarrier);
 
 			// Blit the image of the previous level into the current level.
@@ -68,22 +76,17 @@ void Blitter<VulkanBackend>::generateMipMaps(IVulkanImage& image, VulkanCommandB
 			blit.dstOffsets[0] = { 0, 0, 0 };
 			blit.dstOffsets[1] = { mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, mipDepth > 1 ? mipDepth / 2 : 1 };
 
-			::vkCmdBlitImage(std::as_const(commandBuffer).handle(), std::as_const(image).handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, std::as_const(image).handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
+			::vkCmdBlitImage(std::as_const(commandBuffer).handle(), std::as_const(image).handle(), VK_IMAGE_LAYOUT_GENERAL, std::as_const(image).handle(), VK_IMAGE_LAYOUT_GENERAL, 1, &blit, VK_FILTER_LINEAR);
 
 			// Compute the new size.
 			mipWidth = std::max(mipWidth / 2, 1);
 			mipHeight = std::max(mipHeight / 2, 1);
 			mipDepth = std::max(mipDepth / 2, 1);
 		}
-
-		VulkanBarrier subBarrier(PipelineStage::Transfer, PipelineStage::Transfer);
-		subBarrier.transition(image, image.levels() - 1, 1, layer, 1, 0, ResourceAccess::TransferWrite, ResourceAccess::TransferRead, ImageLayout::CopySource);
-		subBarrier.transition(image, 0, 1, layer, 1, 0, ResourceAccess::TransferWrite, ResourceAccess::TransferRead, ImageLayout::CopySource);
-		commandBuffer.barrier(subBarrier);
 	}
 
 	VulkanBarrier endBarrier(PipelineStage::Transfer, PipelineStage::All);
-	endBarrier.transition(image, ResourceAccess::TransferRead | ResourceAccess::TransferWrite, ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
+	endBarrier.transition(image, ResourceAccess::TransferRead | ResourceAccess::TransferWrite, ResourceAccess::None, ImageLayout::Common);
 	commandBuffer.barrier(endBarrier);
 }
 

@@ -40,13 +40,13 @@ namespace LiteFX::Rendering {
         constexpr virtual void transition(const buffer_type& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
 
         /// @copydoc IBarrier::transition(const IImage&, ResourceAccess, ResourceAccess, ImageLayout)
-        constexpr virtual void transition(const image_type& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
+        constexpr virtual void transition(const image_type& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout toLayout) = 0;
 
         /// @copydoc IBarrier::transition(const IImage&, ResourceAccess, ResourceAccess, ImageLayout, ImageLayout)
         constexpr virtual void transition(const image_type& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
 
         /// @copydoc IBarrier::transition(const IImage&, UInt32, UInt32, UInt32, UInt32, ResourceAccess, ResourceAccess, ImageLayout)
-        constexpr virtual void transition(const image_type& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
+        constexpr virtual void transition(const image_type& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout toLayout) = 0;
 
         /// @copydoc IBarrier::transition(const IImage&, UInt32, UInt32, UInt32, UInt32, ResourceAccess, ResourceAccess, ImageLayout, ImageLayout)
         constexpr virtual void transition(const image_type& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
@@ -60,16 +60,8 @@ namespace LiteFX::Rendering {
             this->transition(dynamic_cast<const buffer_type&>(buffer), element, accessBefore, accessAfter);
         }
 
-        constexpr void doTransition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override {
-            this->transition(dynamic_cast<const image_type&>(image), accessBefore, accessAfter, layout);
-        }
-
         constexpr void doTransition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override {
             this->transition(dynamic_cast<const image_type&>(image), accessBefore, accessAfter, fromLayout, toLayout);
-        }
-
-        constexpr void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override {
-            this->transition(dynamic_cast<const image_type&>(image), level, levels, layer, layers, plane, accessBefore, accessAfter, layout);
         }
 
         constexpr void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override {

@@ -406,9 +406,34 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
     auto primaryCommandBuffer = m_impl->getPrimaryCommandBuffer(frameBuffer);
     primaryCommandBuffer->begin();
 
-    // Since we use unified image layouts, we can simply insert a global barrier here, as no layout transitions occur.
-    VulkanBarrier renderTargetBarrier(PipelineStage::None, PipelineStage::RenderTarget);
+    // Declare render pass input transition barriers for render targets and input attachments.
+    VulkanBarrier
+        renderTargetBarrier(PipelineStage::None, PipelineStage::RenderTarget),
+        depthStencilBarrier(PipelineStage::None, PipelineStage::DepthStencil),
+        inputAttachmentBarrier(PipelineStage::None, PipelineStage::Pixel);
+
+    std::ranges::for_each(m_impl->m_renderTargets, [&renderTargetBarrier, &depthStencilBarrier, &frameBuffer](const RenderTarget& renderTarget) {
+        auto& image = frameBuffer[renderTarget]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+
+        if (renderTarget.type() == RenderTargetType::DepthStencil) {
+            const auto withDepth = ::hasDepth(renderTarget.format());
+            
+            if (withDepth)
+                depthStencilBarrier.transition(image, 0u, image.levels(), 0u, image.layers(), 0u, ResourceAccess::None, ResourceAccess::DepthStencil, renderTarget.clearBuffer() ? ImageLayout::Undefined : ImageLayout::Common, ImageLayout::DepthWrite);
+            if (::hasStencil(renderTarget.format()))
+                depthStencilBarrier.transition(image, 0u, image.levels(), 0u, image.layers(), withDepth ? 1u : 0u, ResourceAccess::None, ResourceAccess::DepthStencil, renderTarget.clearStencil() ? ImageLayout::Undefined : ImageLayout::Common, ImageLayout::DepthWrite);
+        }
+        else
+            renderTargetBarrier.transition(image, ResourceAccess::None, ResourceAccess::RenderTarget, renderTarget.clearBuffer() ? ImageLayout::Undefined : ImageLayout::Common, ImageLayout::RenderTarget);
+    });
+
+    std::ranges::for_each(m_impl->m_inputAttachments, [&inputAttachmentBarrier, &frameBuffer](const RenderPassDependency& dependency) {
+        inputAttachmentBarrier.transition(frameBuffer[dependency.renderTarget()], ResourceAccess::None, ResourceAccess::ShaderRead, ImageLayout::Common, ImageLayout::ShaderResource); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+    });
+
     primaryCommandBuffer->barrier(renderTargetBarrier);
+    primaryCommandBuffer->barrier(depthStencilBarrier);
+    primaryCommandBuffer->barrier(inputAttachmentBarrier);
 
     // If the present target is multi-sampled, transition the back buffer image into resolve state.
     const auto& backBufferImage = m_impl->m_device->swapChain().image();
@@ -416,8 +441,8 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
 
     if (requiresResolve)
     {
-        VulkanBarrier resolveBarrier(PipelineStage::None, PipelineStage::RenderTarget);
-        resolveBarrier.transition(backBufferImage, ResourceAccess::None, ResourceAccess::ResolveWrite, ImageLayout::Undefined, ImageLayout::Common);
+        VulkanBarrier resolveBarrier(PipelineStage::None, PipelineStage::Resolve);
+        resolveBarrier.transition(backBufferImage, ResourceAccess::None, ResourceAccess::ResolveWrite, ImageLayout::Undefined, ImageLayout::ResolveDestination);
         primaryCommandBuffer->barrier(resolveBarrier);
     }
     
@@ -453,38 +478,37 @@ UInt64 VulkanRenderPass::end() const
     ::vkCmdExecuteCommands(std::as_const(*primaryCommandBuffer).handle(), static_cast<UInt32>(secondaryHandles.size()), secondaryHandles.data());
     ::vkCmdEndRendering(std::as_const(*primaryCommandBuffer).handle());
 
-    // Since we use unified image layouts, we simply use a global barrier here.
-    VulkanBarrier renderTargetBarrier(PipelineStage::RenderTarget, PipelineStage::None);
-    primaryCommandBuffer->barrier(renderTargetBarrier);
-
     // If the present target is multi-sampled, we need to resolve it to the back buffer.
     const auto& backBufferImage = swapChain.image();
+    const auto* presentImage = this->hasPresentTarget() ? &frameBuffer[*m_impl->m_presentTarget] : nullptr; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+    bool requiresResolve{ presentImage != nullptr && presentImage->samples() > MultiSamplingLevel::x1 }; 
 
     // Add another barrier for the back buffer image, if required.
-    if (this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1) // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+    if (requiresResolve)
     {
         // Transition the resolved swap chain back buffer image into a present state.
-        VulkanBarrier backBufferBarrier(PipelineStage::RenderTarget, PipelineStage::None);
-        backBufferBarrier.transition(backBufferImage, ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::Common, ImageLayout::Present);
+        VulkanBarrier backBufferBarrier(PipelineStage::Resolve, PipelineStage::None);
+        backBufferBarrier.transition(backBufferImage, ResourceAccess::ResolveWrite, ResourceAccess::None, ImageLayout::ResolveDestination, ImageLayout::Present);
         primaryCommandBuffer->barrier(backBufferBarrier);
     }
     else if (this->hasPresentTarget())
     {
-        auto& presentTarget = frameBuffer[*m_impl->m_presentTarget]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
-
         // Copy the contents from the frame buffer image into the swap chain back buffer.
         VulkanBarrier beginPresentBarrier(PipelineStage::RenderTarget, PipelineStage::Transfer);
-        beginPresentBarrier.transition(presentTarget, ResourceAccess::RenderTarget, ResourceAccess::TransferRead, ImageLayout::Common, ImageLayout::CopySource);
+        beginPresentBarrier.transition(*presentImage, ResourceAccess::RenderTarget, ResourceAccess::TransferRead, ImageLayout::RenderTarget, ImageLayout::CopySource);
         beginPresentBarrier.transition(backBufferImage, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
         primaryCommandBuffer->barrier(beginPresentBarrier);
 
-        primaryCommandBuffer->transfer(presentTarget, backBufferImage);
+        primaryCommandBuffer->transfer(*presentImage, backBufferImage);
 
         VulkanBarrier endPresentBarrier(PipelineStage::Transfer, PipelineStage::None);
-        endPresentBarrier.transition(presentTarget, ResourceAccess::TransferRead, ResourceAccess::None, ImageLayout::CopySource, ImageLayout::Common);
+        endPresentBarrier.transition(*presentImage, ResourceAccess::TransferRead, ResourceAccess::None, ImageLayout::CopySource, ImageLayout::Common);
         endPresentBarrier.transition(backBufferImage, ResourceAccess::TransferWrite, ResourceAccess::None, ImageLayout::CopyDestination, ImageLayout::Present);
         primaryCommandBuffer->barrier(endPresentBarrier);
     }
+
+    // NOTE: D3D12 transitions the render targets and input attachments here, but in Vulkan we don't need to do this, as the layout is already `Common` and accesses
+    //       are synchronized through command buffer submission order (see the queue implementation for details).
     
     // Submit and store the fence.
     auto fence = m_impl->m_queue->submit(primaryCommandBuffer);

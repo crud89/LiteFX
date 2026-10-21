@@ -551,7 +551,7 @@ Generator<ResourceAllocationResult> DirectX12GraphicsFactory::allocate(Enumerabl
 				{
 					auto& imageInfo = std::get<ResourceAllocationInfo::ImageInfo>(allocationInfo.ResourceInfo);
 
-					if (allocationInfo.Usage == ResourceUsage::RenderTarget || ::hasDepth(imageInfo.Format) || ::hasStencil(imageInfo.Format))
+					if (LITEFX_FLAG_IS_SET(allocationInfo.Usage, ResourceUsage::RenderTarget) || ::hasDepth(imageInfo.Format) || ::hasStencil(imageInfo.Format))
 						return std::make_tuple(ResourceHeap::Resource, D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
 					else
 						return std::make_tuple(ResourceHeap::Resource, D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES);
@@ -662,7 +662,7 @@ bool DirectX12GraphicsFactory::canAlias(Enumerable<const ResourceAllocationInfo&
 
 	if (resourceTypes.test(1))
 		resourceTypes.set(2, std::ranges::any_of(allocationInfos, [](auto& allocationInfo) {
-			if (allocationInfo.Usage == ResourceUsage::RenderTarget)
+			if (LITEFX_FLAG_IS_SET(allocationInfo.Usage, ResourceUsage::RenderTarget))
 				return true;
 
 			if (!std::holds_alternative<ResourceAllocationInfo::ImageInfo>(allocationInfo.ResourceInfo))

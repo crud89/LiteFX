@@ -487,13 +487,17 @@ namespace LiteFX::Rendering::Backends {
         void transition(const IVulkanBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) override;
 
         /// @copydoc Barrier::transition(const image_type&, ResourceAccess, ResourceAccess, ImageLayout)
-        void transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override;
+        void transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout toLayout) override {
+            this->transition(image, accessBefore, accessAfter, ImageLayout::Common, toLayout);
+        }
 
         /// @copydoc Barrier::transition(const image_type&, ResourceAccess, ResourceAccess, ImageLayout, ImageLayout)
         void transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override;
 
         /// @copydoc Barrier::transition(const image_type&, UInt32, UInt32, UInt32, UInt32, UInt32, ResourceAccess, ResourceAccess, ImageLayout)
-        void transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override;
+        void transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout toLayout) override {
+            this->transition(image, level, levels, layer, layers, plane, accessBefore, accessAfter, ImageLayout::Common, toLayout);
+        }
 
         /// @copydoc Barrier::transition(const image_type&, UInt32, UInt32, UInt32, UInt32, UInt32, ResourceAccess, ResourceAccess, ImageLayout, ImageLayout)
         void transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override;

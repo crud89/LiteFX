@@ -241,7 +241,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // Transfer the skybox texture.
     commandBuffer->transfer(imageData.get(), texture->size(0), *texture);
     barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::None);
-    barrier->transition(*texture, ResourceAccess::TransferWrite, ResourceAccess::None, ImageLayout::CopyDestination, ImageLayout::ShaderResource);
+    barrier->transition(*texture, ResourceAccess::TransferWrite, ResourceAccess::None, ImageLayout::CopyDestination, ImageLayout::Common);
     commandBuffer->barrier(*barrier);
 
     // Create a sampler for the skybox (note that a static sampler would make more sense here, but let's not care too much, as it's a demo).

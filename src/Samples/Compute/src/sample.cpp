@@ -490,9 +490,9 @@ void SampleApp::drawFrame()
         // Transition the image back into `Present` layout.
         // NOTE: It is important to transition the frame buffer image back into "Common", as frame buffer color images are always expected to be in this state, when no
         //       render pass is currently rendering to them.
-        barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::Resolve);
-        barrier->transition(image, ResourceAccess::TransferRead, ResourceAccess::Common, ImageLayout::CopySource, ImageLayout::Common);
-        barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::TransferWrite, ResourceAccess::Common, ImageLayout::CopyDestination, ImageLayout::Present);
+        barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::None);
+        barrier->transition(image, ResourceAccess::TransferRead, ResourceAccess::None, ImageLayout::CopySource, ImageLayout::Common);
+        barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::TransferWrite, ResourceAccess::None, ImageLayout::CopyDestination, ImageLayout::Present);
         commandBuffer->barrier(*barrier);
 
         // Wait for the compute queue to finish before performing the transfer.

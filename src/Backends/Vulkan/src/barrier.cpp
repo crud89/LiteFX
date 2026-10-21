@@ -5,7 +5,7 @@ using namespace LiteFX::Rendering::Backends;
 
 using GlobalBarrier = Tuple<ResourceAccess, ResourceAccess>;
 using BufferBarrier = Tuple<ResourceAccess, ResourceAccess, SharedPtr<const IVulkanBuffer>, UInt32>;
-using ImageBarrier = Tuple<ResourceAccess, ResourceAccess, SharedPtr<const IVulkanImage>, Optional<ImageLayout>, ImageLayout, UInt32, UInt32, UInt32, UInt32, UInt32>;
+using ImageBarrier = Tuple<ResourceAccess, ResourceAccess, SharedPtr<const IVulkanImage>, ImageLayout, ImageLayout, UInt32, UInt32, UInt32, UInt32, UInt32, UInt32>;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -83,24 +83,14 @@ void VulkanBarrier::transition(const IVulkanBuffer& buffer, UInt32 element, Reso
     m_impl->m_bufferBarriers.emplace_back(accessBefore, accessAfter, buffer.shared_from_this(), element);
 }
 
-void VulkanBarrier::transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout)
-{
-    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image.shared_from_this(), std::nullopt, layout, 0, image.levels(), 0, image.layers(), 0);
-}
-
 void VulkanBarrier::transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout)
 {
-    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image.shared_from_this(), fromLayout, toLayout, 0, image.levels(), 0, image.layers(), 0);
-}
-
-void VulkanBarrier::transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout)
-{
-    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image.shared_from_this(), std::nullopt, layout, level, levels, layer, layers, plane);
+    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image.shared_from_this(), fromLayout, toLayout, 0, image.levels(), 0, image.layers(), 0, image.planes());
 }
 
 void VulkanBarrier::transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout)
 {
-    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image.shared_from_this(), fromLayout, toLayout, level, levels, layer, layers, plane);
+    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image.shared_from_this(), fromLayout, toLayout, level, levels, layer, layers, plane, 1u);
 }
 
 void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const
@@ -141,7 +131,7 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const
 
 	// Image barriers.
 	auto imageBarriers = m_impl->m_imageBarriers | std::views::transform([syncBefore, syncAfter](auto& barrier) {
-        auto [accessBefore, accessAfter, image, currentLayout, targetLayout, firstLevel, levels, firstLayer, layers, plane] = barrier;
+        auto [accessBefore, accessAfter, image, currentLayout, targetLayout, firstLevel, levels, firstLayer, layers, plane, planes] = barrier;
 
         return VkImageMemoryBarrier2 {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
@@ -149,13 +139,13 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const
             .srcAccessMask = Vk::getResourceAccess(accessBefore),
             .dstStageMask = syncAfter,
             .dstAccessMask = Vk::getResourceAccess(accessAfter),
-            .oldLayout = Vk::getImageLayout(currentLayout.value_or(ImageLayout::Undefined)),
+            .oldLayout = Vk::getImageLayout(currentLayout),
             .newLayout = Vk::getImageLayout(targetLayout),
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = std::as_const(*image).handle(),
             .subresourceRange = VkImageSubresourceRange {
-                .aspectMask = image->aspectMask(plane),
+                .aspectMask = planes != 1u ? image->aspectMask() : image->aspectMask(plane),
                 .baseMipLevel = firstLevel,
                 .levelCount = levels,
                 .baseArrayLayer = firstLayer,
@@ -210,10 +200,10 @@ void VulkanBarrierBuilder::setupBufferBarrier(IBuffer& buffer, ResourceAccess be
     this->instance()->transition(buffer, before, after);
 }
 
-void VulkanBarrierBuilder::setupImageBarrier(IImage& image, ResourceAccess before, ResourceAccess after, ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane)
+void VulkanBarrierBuilder::setupImageBarrier(IImage& image, ResourceAccess before, ResourceAccess after, ImageLayout fromLayout, ImageLayout toLayout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane)
 {
     auto numLevels = levels > 0 ? levels : image.levels() - level;
     auto numLayers = layers > 0 ? layers : image.layers() - layer;
-    this->instance()->transition(image, level, numLevels, layer, numLayers, plane, before, after, layout);
+    this->instance()->transition(image, level, numLevels, layer, numLayers, plane, before, after, fromLayout, toLayout);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

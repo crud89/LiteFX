@@ -501,6 +501,9 @@ void VulkanCommandBuffer::transfer(Span<const void* const> data, size_t elementS
 
 void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
+	if (!LITEFX_FLAG_IS_SET(target.usage(), ResourceUsage::TransferDestination)) [[unlikely]]
+		throw InvalidArgumentException("target", "The target image's usage does not allow for it to be used as a transfer destination.");
+
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("sourceElement", "The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
@@ -527,7 +530,7 @@ void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanIma
 		};
 	});
 
-	::vkCmdCopyBufferToImage(this->handle(), std::as_const(source).handle(), std::as_const(target).handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
+	::vkCmdCopyBufferToImage(this->handle(), std::as_const(source).handle(), std::as_const(target).handle(), VK_IMAGE_LAYOUT_GENERAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 
 void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IVulkanImage& target, UInt32 subresource) const
@@ -537,6 +540,9 @@ void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IV
 
 	if (device == nullptr) [[unlikely]]
 		throw RuntimeException("Cannot create staging buffer on a released device instance.");
+
+	if (!LITEFX_FLAG_IS_SET(target.usage(), ResourceUsage::TransferDestination)) [[unlikely]]
+		throw InvalidArgumentException("target", "The target image's usage does not allow for it to be used as a transfer destination.");
 
 	auto stagingBuffer = device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size);
 	stagingBuffer->map(data, size, 0);
@@ -552,6 +558,9 @@ void VulkanCommandBuffer::transfer(Span<const void* const> data, size_t elementS
 	if (device == nullptr) [[unlikely]]
 		throw RuntimeException("Cannot create staging buffer on a released device instance.");
 
+	if (!LITEFX_FLAG_IS_SET(target.usage(), ResourceUsage::TransferDestination)) [[unlikely]]
+		throw InvalidArgumentException("target", "The target image's usage does not allow for it to be used as a transfer destination.");
+
 	auto elements = static_cast<UInt32>(data.size());
 	auto stagingBuffer = device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements);
 	stagingBuffer->map(data, elementSize, 0);
@@ -561,6 +570,12 @@ void VulkanCommandBuffer::transfer(Span<const void* const> data, size_t elementS
 
 void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
+	if (!LITEFX_FLAG_IS_SET(source.usage(), ResourceUsage::TransferSource)) [[unlikely]]
+		throw InvalidArgumentException("source", "The source image's usage does not allow for it to be used as a transfer source.");
+
+	if (!LITEFX_FLAG_IS_SET(target.usage(), ResourceUsage::TransferDestination)) [[unlikely]]
+		throw InvalidArgumentException("target", "The target image's usage does not allow for it to be used as a transfer destination.");
+
 	if (source.elements() < sourceSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("sourceElement", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, sourceSubresource);
 
@@ -594,11 +609,14 @@ void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanImag
 		};
 	});
 
-	::vkCmdCopyImage(this->handle(), std::as_const(source).handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, std::as_const(target).handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
+	::vkCmdCopyImage(this->handle(), std::as_const(source).handle(), VK_IMAGE_LAYOUT_GENERAL, std::as_const(target).handle(), VK_IMAGE_LAYOUT_GENERAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 
 void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
+	if (!LITEFX_FLAG_IS_SET(source.usage(), ResourceUsage::TransferSource)) [[unlikely]]
+		throw InvalidArgumentException("source", "The source image's usage does not allow for it to be used as a transfer source.");
+
 	if (source.elements() < firstSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("sourceElement", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
 
@@ -626,7 +644,7 @@ void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanBuff
 		};
 	});
 
-	::vkCmdCopyImageToBuffer(this->handle(), std::as_const(source).handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, std::as_const(target).handle(), static_cast<UInt32>(copyInfos.size()), copyInfos.data());
+	::vkCmdCopyImageToBuffer(this->handle(), std::as_const(source).handle(), VK_IMAGE_LAYOUT_GENERAL, std::as_const(target).handle(), static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 
 void VulkanCommandBuffer::transfer(const SharedPtr<const IVulkanBuffer>& source, const IVulkanBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
