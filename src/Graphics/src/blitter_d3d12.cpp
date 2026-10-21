@@ -121,7 +121,7 @@ void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX1
 
 	// Transition the texture mip 0 into a shader resource layout and discard all other mip levels.
 	DirectX12Barrier startBarrier(PipelineStage::All, PipelineStage::Compute);
-	startBarrier.transition(image, 0, 1, 0, image.layers(), 0, ResourceAccess::None, ResourceAccess::ShaderRead, ImageLayout::Common, ImageLayout::ShaderResource);
+	startBarrier.transition(image, 0, 1, 0, image.layers(), 0, ResourceAccess::Common, ResourceAccess::ShaderRead, ImageLayout::Common, ImageLayout::ShaderResource);
 	startBarrier.transition(image, 1, image.levels() - 1, 0, image.layers(), 0, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Undefined, ImageLayout::ReadWrite);
 	commandBuffer.barrier(startBarrier);
 	auto resourceBinding = resourceBindings.begin();
