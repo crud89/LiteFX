@@ -1298,6 +1298,25 @@ namespace LiteFX::Rendering::Backends {
         virtual void use(const DirectX12CommandBuffer& commandBuffer) const = 0;
     };
 
+    /// @brief Implement a DirectX 12 @ref ICommandAllocatorHandle.
+    class LITEFX_DIRECTX12_API IDirectX12CommandAllocatorHandle : public ICommandAllocatorHandle {
+    protected:
+        IDirectX12CommandAllocatorHandle() = default;
+        IDirectX12CommandAllocatorHandle(const IDirectX12CommandAllocatorHandle&) = delete;
+        IDirectX12CommandAllocatorHandle(IDirectX12CommandAllocatorHandle&&) noexcept = delete;
+        IDirectX12CommandAllocatorHandle& operator=(const IDirectX12CommandAllocatorHandle&) = delete;
+        IDirectX12CommandAllocatorHandle& operator=(IDirectX12CommandAllocatorHandle&&) noexcept = delete;
+
+    public:
+        ~IDirectX12CommandAllocatorHandle() noexcept override = default;
+
+    public:
+        /// @brief Returns the handle of the underlying command buffer associated with the allocator.
+        /// 
+        /// @return The handle of the underlying command buffer associated with the allocator.
+        virtual ComPtr<ID3D12GraphicsCommandList7> commandBuffer() const noexcept = 0;
+    };
+
     /// @brief Records commands for a @ref DirectX12Queue
     ///
     /// @see @ref DirectX12Queue
@@ -1379,8 +1398,11 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc ICommandBuffer::track(UniquePtr<const IDescriptorRange>&&) const
         void track(UniquePtr<const IDescriptorRange>&& descriptorRange) const override;
 
-        /// @copydoc ICommandBuffer::isSecondary
-        bool isSecondary() const noexcept override;
+        /// @copydoc ICommandBuffer::secondary
+        bool secondary() const noexcept override;
+
+        /// @copydoc ICommandBuffer::recording
+        bool recording() const noexcept override;
 
         /// @copydoc ICommandBuffer::setViewports(Span<const IViewport*>) const
         void setViewports(Span<const IViewport*> viewports) const override;
@@ -1614,7 +1636,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// @copydoc CommandQueue::createCommandBuffer
-        SharedPtr<DirectX12CommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const override;
+        SharedPtr<DirectX12CommandBuffer> createCommandBuffer(bool secondary = false) const override;
 
         /// @copydoc CommandQueue::submit(const SharedPtr<const command_buffer_type>&) const
         UInt64 submit(const SharedPtr<const DirectX12CommandBuffer>& commandBuffer) const override;

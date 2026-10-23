@@ -153,7 +153,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 void SampleApp::initBuffers(IRenderBackend* /*backend*/)
 {
     // Get a command buffer. Note that we use the graphics queue here, as it also supports transfers, but additionally allows us to build acceleration structures.
-    auto commandBuffer = m_device->defaultQueue(QueueType::Graphics).createCommandBuffer(true);
+    auto commandBuffer = m_device->defaultQueue(QueueType::Graphics).createCommandBuffer();
 
     // Create the vertex buffer and transfer the staging buffer into it.
     auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
@@ -281,7 +281,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
         auto compactedTlas = m_device->factory().createTopLevelAccelerationStructure("TLAS");
 
         // Create a new command buffer to record compaction commands.
-        commandBuffer = m_device->defaultQueue(QueueType::Graphics).createCommandBuffer(true);
+        commandBuffer = m_device->defaultQueue(QueueType::Graphics).createCommandBuffer();
 
         // Copy and compress the acceleration structures individually. This will copy the acceleration structures into one buffer as follows: [ tlas, opaque, reflective ]. Building info will not
         // be copied and updates are not supported.

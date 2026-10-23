@@ -143,9 +143,9 @@ QueuePriority DirectX12Queue::priority() const noexcept
 	return m_impl->m_priority;
 }
 
-SharedPtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(bool beginRecording, bool secondary) const
+SharedPtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(bool secondary) const
 {
-	return DirectX12CommandBuffer::create(*this, beginRecording, !secondary);
+	return DirectX12CommandBuffer::create(*this, !secondary);
 }
 
 UInt64 DirectX12Queue::submit(const SharedPtr<const DirectX12CommandBuffer>& commandBuffer) const
@@ -153,7 +153,7 @@ UInt64 DirectX12Queue::submit(const SharedPtr<const DirectX12CommandBuffer>& com
 	if (commandBuffer == nullptr)
 		throw InvalidArgumentException("commandBuffer", "The command buffer must be initialized.");
 
-	if (commandBuffer->isSecondary())
+	if (commandBuffer->secondary())
 		throw InvalidArgumentException("commandBuffer", "The command buffer must be a primary command buffer.");
 
 	// Begin event.
@@ -191,7 +191,7 @@ UInt64 DirectX12Queue::submit(Enumerable<SharedPtr<const DirectX12CommandBuffer>
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return buffer != nullptr; }))
 		throw InvalidArgumentException("commandBuffers", "At least one command buffer is not initialized.");
 
-	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return !buffer->isSecondary(); }))
+	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return !buffer->secondary(); }))
 		throw InvalidArgumentException("commandBuffers", "At least one command buffer is a secondary command buffer, which is not allowed to be submitted to a command queue.");
 
 	// Begin event.

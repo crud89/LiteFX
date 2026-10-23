@@ -6281,6 +6281,19 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<const IPipelineLayout> getLayout() const noexcept = 0;
     };
 
+    /// @brief An opaque interface that stores the command allocator used by a @ref ICommandBuffer.
+    class LITEFX_RENDERING_API ICommandAllocatorHandle {
+    protected:
+        ICommandAllocatorHandle() = default;
+        ICommandAllocatorHandle(const ICommandAllocatorHandle&) = delete;
+        ICommandAllocatorHandle(ICommandAllocatorHandle&&) noexcept = delete;
+        ICommandAllocatorHandle& operator=(const ICommandAllocatorHandle&) = delete;
+        ICommandAllocatorHandle& operator=(ICommandAllocatorHandle&&) noexcept = delete;
+
+    public:
+        virtual ~ICommandAllocatorHandle() noexcept = default;
+    };
+
     /// @brief The interface for a command buffer.
     class LITEFX_RENDERING_API ICommandBuffer : public SharedObject {
     public:
@@ -6288,6 +6301,9 @@ namespace LiteFX::Rendering {
 
         /// @brief Stores the resources that are tracked by the command buffer until they can be safely released.
         struct TrackedResources final {
+            /// @brief Stores secondary command buffers executed by the owning command buffer.
+            Array<SharedPtr<const ICommandBuffer>> SecondaryCommandBuffers{};
+
             /// @brief Stores tracked resources, such as buffers, images or samplers.
             Array<SharedPtr<const IStateResource>> Resources{};
 
@@ -6309,25 +6325,15 @@ namespace LiteFX::Rendering {
         ~ICommandBuffer() noexcept override = default;
 
     public:
-        /// @brief Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent @ref CommandQueue.
-        ///
-        /// Note that you have to wait for a command buffer to be executed on the parent @ref CommandQueue before you can begin recording on it again.
-        ///
-        /// @throws RuntimeException Thrown, if the command buffer is already recording.
-        /// @see @ref end
-        virtual void begin() const = 0;
-
-        /// @brief Ends recording commands on the command buffer.
-        ///
-        /// It is valid to call this method multiple times. If a command buffer is already closed, nothing will happen.
-        ///
-        /// @see @ref begin
-        virtual void end() const = 0;
-
         /// @brief Returns `true`, if the command buffer is a secondary command buffer, or `false` otherwise.
         ///
         /// @return `true`, if the command buffer is a secondary command buffer, or `false` otherwise.
-        virtual bool isSecondary() const noexcept = 0;
+        virtual bool secondary() const noexcept = 0;
+
+        /// @brief Returns `true`, if the command buffer is currently recording and `false` otherwise.
+        /// 
+        /// @return `true`, if the command buffer is currently recording and `false` otherwise.
+        virtual bool recording() const noexcept = 0;
 
         /// @brief Returns the resources that are currently tracked by the command buffer.
         /// 
@@ -8168,16 +8174,15 @@ namespace LiteFX::Rendering {
         /// @brief Creates a command buffer that can be used to allocate commands on the queue.
         ///
         /// Specifying @p secondary allows to create secondary command buffers (aka. bundles). Those are intended to be used as efficient pre-recorded command buffers that are re-used multiple times. Using such a
-        /// command buffer allows drivers to pre-apply optimizations, which causes a one-time cost during setup, but reduces cost when re- applying the command buffer multiple times. Ideally they are used as
+        /// command buffer allows drivers to pre-apply optimizations, which causes a one-time cost during setup, but reduces cost when re-applying the command buffer multiple times. Ideally they are used as
         /// small chunks of re-occurring workloads.
         ///
         /// A secondary command buffer must not be submitted to a queue, but rather to a primary command buffer by calling @ref ICommandBuffer::execute.
         ///
-        /// @param beginRecording If set to `true`, the command buffer will be initialized in recording state and can receive commands straight away.
         /// @param secondary If set to `true`, the method will create a secondary command buffer/bundle.
         /// @return The instance of the command buffer.
-        inline SharedPtr<ICommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const {
-            return this->getCommandBuffer(beginRecording, secondary);
+        inline SharedPtr<ICommandBuffer> createCommandBuffer(bool secondary = false) const {
+            return this->getCommandBuffer( secondary);
         }
 
         /// @brief Submits a single command buffer with shared ownership and inserts a fence to wait for it.
@@ -8232,7 +8237,7 @@ namespace LiteFX::Rendering {
         /// This overload performs a GPU-side wait, i.e., the current command queue waits until @p queue has passed the fence value provided by the @p fence parameter. This overload does return immediately and
         /// does not block the CPU.
         /// 
-        /// Waiting for a @p fence that is larger than @ref ICommandQueue::currentFence on @p queue returns is erroneous, since it would wait for a future submission, that may be blocked by another wait. This can
+        /// Waiting for a @p fence that is larger than @ref ICommandQueue::currentFence on @p queue logs a warning, since it would wait for a future submission, that may be blocked by another wait. This can
         /// cause deadlocks and should be avoided. A @p fence value of `0` is a no-op, as it is always satisfied.
         ///
         /// @param queue The queue to wait upon.
@@ -8255,7 +8260,7 @@ namespace LiteFX::Rendering {
         virtual UInt64 lastCompletedFence() const noexcept = 0;
 
     private:
-        virtual SharedPtr<ICommandBuffer> getCommandBuffer(bool beginRecording, bool secondary) const = 0;
+        virtual SharedPtr<ICommandBuffer> getCommandBuffer(bool secondary) const = 0;
         virtual UInt64 submitCommandBuffer(const SharedPtr<const ICommandBuffer>& commandBuffer) const = 0;
         virtual UInt64 submitCommandBuffers(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const = 0;
         virtual void waitForQueue(const ICommandQueue& queue, UInt64 fence) const = 0;

@@ -24,12 +24,12 @@ public:
 
 private:
 	bool m_recording{ false }, m_secondary{ false };
-	VkCommandPool m_commandPool{};
 	const VulkanPipelineState* m_lastPipeline = nullptr;
 	WeakPtr<const VulkanQueue> m_queue;
 	WeakPtr<const VulkanDevice> m_device;
 	bool m_canBindDescriptorHeaps = false;
 	TrackedResources m_trackedResources{};
+	UniquePtr<IVulkanCommandAllocatorHandle> m_allocatorHandle{};
 
 public:
 	VulkanCommandBufferImpl(const VulkanQueue& queue, bool primary) :
@@ -39,50 +39,83 @@ public:
 	}
 
 public:
-	void release(const VulkanCommandBuffer& commandBuffer) 
+	void begin(const VulkanCommandBuffer& commandBuffer, const VulkanRenderPass* renderPass = nullptr)
 	{
-		auto device = m_device.lock();
+		// Set the buffer into recording state.
+		VkCommandBufferBeginInfo beginInfo {
+			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+			.pNext = nullptr,
+			.flags = m_secondary ? 0 : VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+		};
+
+		// Secondary command buffers always require an inheritance info. Those continuing a render pass also inherit its rendering state.
+		VkCommandBufferInheritanceInfo inheritanceInfo{ .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO };
+		VkCommandBufferInheritanceRenderingInfo renderingInfo{ .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDERING_INFO };
+		Array<VkFormat> colorFormats{};
+
+		if (m_secondary)
+			beginInfo.pInheritanceInfo = &inheritanceInfo;
 		
-		if (device == nullptr) [[unlikely]]
-			LITEFX_FATAL_ERROR(VULKAN_LOG, "Invalid attempt to release command buffer after parent device has been released.");
-		else
+		// If a render pass is provided, gather formats from the render targets and attachments.
+		if (renderPass != nullptr)
 		{
-			::vkFreeCommandBuffers(device->handle(), m_commandPool, 1, &commandBuffer.handle());
-			::vkDestroyCommandPool(device->handle(), m_commandPool, nullptr);
+			auto frameBuffer = renderPass->activeFrameBuffer();
+
+			if (frameBuffer == nullptr) [[unlikely]]
+				throw RuntimeException("Cannot begin a secondary command buffer on an inactive render pass.");
+
+			auto renderTargets = renderPass->renderTargets();
+			colorFormats = renderTargets |
+				std::views::filter([](auto& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }) |
+				std::views::transform([](auto& renderTarget) { return Vk::getFormat(renderTarget.format()); }) |
+				std::ranges::to<Array<VkFormat>>();
+			auto depthStencilFormats = renderTargets |
+				std::views::filter([](auto& renderTarget) { return renderTarget.type() == RenderTargetType::DepthStencil; }) |
+				std::views::transform([](auto& renderTarget) { return renderTarget.format(); }) |
+				std::ranges::to<Array<Format>>();
+			auto depthFormat = depthStencilFormats.size() > 0 && ::hasDepth(depthStencilFormats.front()) ? Vk::getFormat(depthStencilFormats.front()) : VK_FORMAT_UNDEFINED;
+			auto stencilFormat = depthStencilFormats.size() > 0 && ::hasStencil(depthStencilFormats.front()) ? Vk::getFormat(depthStencilFormats.front()) : VK_FORMAT_UNDEFINED;
+
+			// Get the multi sampling level.
+			auto samples = renderTargets |
+				std::views::transform([&frameBuffer](auto& renderTarget) { return Vk::getSamples(frameBuffer->image(renderTarget).samples()); }) |
+				std::ranges::to<Array<VkSampleCountFlagBits>>();
+
+			if (std::ranges::adjacent_find(samples, std::not_equal_to{ }) != samples.end()) [[unlikely]]
+				throw RuntimeException("All render targets of the current render pass must use the same multi-sampling level.");
+
+			renderingInfo.viewMask = renderPass->viewMask();
+			renderingInfo.colorAttachmentCount = static_cast<UInt32>(colorFormats.size());
+			renderingInfo.pColorAttachmentFormats = colorFormats.data();
+			renderingInfo.depthAttachmentFormat = depthFormat;
+			renderingInfo.stencilAttachmentFormat = stencilFormat;
+			renderingInfo.rasterizationSamples = samples.front();
+
+			inheritanceInfo.pNext = &renderingInfo;
+			beginInfo.flags |= VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
 		}
+
+		// Begin the command buffer.
+		raiseIfFailed(::vkBeginCommandBuffer(m_allocatorHandle->commandBuffer(), &beginInfo), "Unable to begin command recording.");
+
+		// Bind global descriptor heaps.
+		bindDescriptorHeaps(commandBuffer);
+		m_recording = true;
 	}
 
-	VkCommandBuffer initialize(const VulkanQueue& queue, const VulkanDevice& device)
+	void end()
 	{
-		// Create command pool.
-		VkCommandPoolCreateInfo poolInfo = {
-			.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-			.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-			.queueFamilyIndex = queue.familyId(),
-		};
+		if (m_recording)
+			raiseIfFailed(::vkEndCommandBuffer(m_allocatorHandle->commandBuffer()), "Unable to stop command recording.");
 
-		// Primary command buffers are frequently reset and re-allocated, whilst secondary command buffers must be recorded once and never reset.
-		if (!m_secondary)
-			poolInfo.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-
-		raiseIfFailed(::vkCreateCommandPool(device.handle(), &poolInfo, nullptr, &m_commandPool), "Unable to create command pool.");
-
-		// Create the command buffer.
-		VkCommandBufferAllocateInfo bufferInfo = {
-			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-			.commandPool = m_commandPool,
-			.level = m_secondary ? VK_COMMAND_BUFFER_LEVEL_SECONDARY : VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-			.commandBufferCount = 1
-		};
-
-		VkCommandBuffer buffer{};
-		raiseIfFailed(::vkAllocateCommandBuffers(device.handle(), &bufferInfo, &buffer), "Unable to allocate command buffer.");
-
-		return buffer;
+		m_recording = false;
 	}
 
 	inline void buildAccelerationStructure(const VulkanCommandBuffer& commandBuffer, VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset, bool update)
 	{
+		if (!m_recording)
+			throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 		auto device = m_device.lock();
 
 		if (device == nullptr) [[unlikely]]
@@ -138,6 +171,9 @@ public:
 
 	inline void buildAccelerationStructure(const VulkanCommandBuffer& commandBuffer, VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset, bool update)
 	{
+		if (!m_recording)
+			throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 		auto device = m_device.lock();
 
 		if (device == nullptr) [[unlikely]]
@@ -231,110 +267,30 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, bool begin, bool primary) :
+VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, bool primary) :
 	Resource<VkCommandBuffer>(nullptr), m_impl(queue, primary)
 {
-	this->handle() = m_impl->initialize(queue, *queue.device());
-
-	if (begin)
-		this->begin();
+	m_impl->m_allocatorHandle = queue.acquireCommandAllocator(!primary);
+	this->handle() = m_impl->m_allocatorHandle->commandBuffer();
+	m_impl->begin(*this);
 }
 
-VulkanCommandBuffer::~VulkanCommandBuffer() noexcept // NOLINT(bugprone-exception-escape)
+VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, const VulkanRenderPass& renderPass) :
+	Resource<VkCommandBuffer>(nullptr), m_impl(queue, false)
 {
-	m_impl->release(*this);
+	m_impl->m_allocatorHandle = queue.acquireCommandAllocator(true);
+	this->handle() = m_impl->m_allocatorHandle->commandBuffer();
+	m_impl->begin(*this, &renderPass);
+}
+
+void VulkanCommandBuffer::end() const 
+{
+	m_impl->end();
 }
 
 SharedPtr<const VulkanQueue> VulkanCommandBuffer::queue() const noexcept
 {
 	return m_impl->m_queue.lock();
-}
-
-void VulkanCommandBuffer::begin() const
-{
-	// Set the buffer into recording state.
-	VkCommandBufferBeginInfo beginInfo {
-		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-		.pNext = nullptr,
-		.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
-	};
-
-	raiseIfFailed(::vkBeginCommandBuffer(this->handle(), &beginInfo), "Unable to begin command recording.");
-
-	// Bind global descriptor heaps.
-	m_impl->bindDescriptorHeaps(*this);
-	m_impl->m_recording = true;
-
-	// If it was possible to reset the command buffer, we can also safely release shared resources from previous recordings.
-	m_impl->m_trackedResources.Resources.clear();
-	m_impl->m_trackedResources.DescriptorSets.clear();
-}
-
-void VulkanCommandBuffer::begin(const VulkanRenderPass& renderPass) const
-{
-	// Get the render target formats.
-	auto frameBuffer = renderPass.activeFrameBuffer();
-
-	if (frameBuffer == nullptr)
-		throw RuntimeException("Cannot begin secondary command buffer on inactive render pass.");
-
-	auto renderTargets = renderPass.renderTargets();
-	auto formats = renderTargets |
-		std::views::filter([](auto& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }) |
-		std::views::transform([](auto& renderTarget) { return Vk::getFormat(renderTarget.format()); }) |
-		std::ranges::to<Array<VkFormat>>();
-	auto depthStencilFormats = renderTargets |
-		std::views::filter([](auto& renderTarget) { return renderTarget.type() == RenderTargetType::DepthStencil; }) |
-		std::views::transform([](auto& renderTarget) { return renderTarget.format(); }) |
-		std::ranges::to<Array<Format>>();
-	auto depthFormat = depthStencilFormats.size() > 0 && ::hasDepth(depthStencilFormats.front()) ? Vk::getFormat(depthStencilFormats.front()) : VK_FORMAT_UNDEFINED;
-	auto stencilFormat = depthStencilFormats.size() > 0 && ::hasStencil(depthStencilFormats.front()) ? Vk::getFormat(depthStencilFormats.front()) : VK_FORMAT_UNDEFINED;
-
-	// Get the multi sampling level.
-	auto samples = renderTargets |
-		std::views::transform([&frameBuffer](auto& renderTarget) { return Vk::getSamples(frameBuffer->image(renderTarget).samples()); }) |
-		std::ranges::to<Array<VkSampleCountFlagBits>>();
-
-	if (std::ranges::adjacent_find(samples, std::not_equal_to { }) != samples.end()) [[unlikely]]
-		throw RuntimeException("All render targets of the current render pass must use the multi sampling level.");
-
-	// Create an inheritance info for the parent buffer.
-	VkCommandBufferInheritanceRenderingInfo renderingInfo = {
-		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDERING_INFO,
-		.colorAttachmentCount = static_cast<UInt32>(formats.size()),
-		.pColorAttachmentFormats = formats.data(),
-		.depthAttachmentFormat = depthFormat,
-		.stencilAttachmentFormat = stencilFormat,
-		.rasterizationSamples = samples.front()
-	};
-
-	VkCommandBufferInheritanceInfo inheritanceInfo {
-		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
-		.pNext = &renderingInfo
-	};
-
-	// Set the buffer into recording state.
-	VkCommandBufferBeginInfo beginInfo {
-		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-		.pNext = nullptr,
-		.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT | VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT,
-		.pInheritanceInfo = &inheritanceInfo
-	};
-
-	raiseIfFailed(::vkBeginCommandBuffer(this->handle(), &beginInfo), "Unable to begin command recording.");
-
-	// Bind global descriptor heaps.
-	m_impl->bindDescriptorHeaps(*this);
-	m_impl->m_recording = true;
-}
-
-void VulkanCommandBuffer::end() const
-{
-	// End recording.
-	if (m_impl->m_recording)
-		raiseIfFailed(::vkEndCommandBuffer(this->handle()), "Unable to stop command recording.");
-
-	m_impl->m_recording = false;
 }
 
 const ICommandBuffer::TrackedResources& VulkanCommandBuffer::trackedResources() const noexcept 
@@ -387,13 +343,21 @@ void VulkanCommandBuffer::track(UniquePtr<const IDescriptorRange>&& descriptorRa
 		m_impl->m_trackedResources.DescriptorRanges.push_back(std::move(descriptorRange));
 }
 
-bool VulkanCommandBuffer::isSecondary() const noexcept
+bool VulkanCommandBuffer::secondary() const noexcept
 {
 	return m_impl->m_secondary;
 }
 
+bool VulkanCommandBuffer::recording() const noexcept
+{
+	return m_impl->m_recording;
+}
+
 void VulkanCommandBuffer::setViewports(Span<const IViewport*> viewports) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	auto vps = viewports |
 		std::views::transform([](const auto& viewport) { return VkViewport{ .x = viewport->getRectangle().x(), .y = viewport->getRectangle().y(), .width = viewport->getRectangle().width(), .height = viewport->getRectangle().height(), .minDepth = viewport->getMinDepth(), .maxDepth = viewport->getMaxDepth() }; }) |
 		std::ranges::to<Array<VkViewport>>();
@@ -403,12 +367,18 @@ void VulkanCommandBuffer::setViewports(Span<const IViewport*> viewports) const
 
 void VulkanCommandBuffer::setViewports(const IViewport* viewport) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	auto vp = VkViewport{ .x = viewport->getRectangle().x(), .y = viewport->getRectangle().y(), .width = viewport->getRectangle().width(), .height = viewport->getRectangle().height(), .minDepth = viewport->getMinDepth(), .maxDepth = viewport->getMaxDepth() };
 	::vkCmdSetViewportWithCount(this->handle(), 1, &vp);
 }
 
 void VulkanCommandBuffer::setScissors(Span<const IScissor*> scissors) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	auto scs = scissors |
 		std::views::transform([](const auto& scissor) { return VkRect2D{ { .x = static_cast<Int32>(scissor->getRectangle().x()), .y = static_cast<Int32>(scissor->getRectangle().y())}, { .width = static_cast<UInt32>(scissor->getRectangle().width()), .height = static_cast<UInt32>(scissor->getRectangle().height())} }; }) |
 		std::ranges::to<Array<VkRect2D>>();
@@ -418,22 +388,28 @@ void VulkanCommandBuffer::setScissors(Span<const IScissor*> scissors) const
 
 void VulkanCommandBuffer::setScissors(const IScissor* scissor) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	auto s = VkRect2D{ { .x = static_cast<Int32>(scissor->getRectangle().x()), .y = static_cast<Int32>(scissor->getRectangle().y())},  { .width = static_cast<UInt32>(scissor->getRectangle().width()), .height = static_cast<UInt32>(scissor->getRectangle().height())} };
 	::vkCmdSetScissorWithCount(this->handle(), 1, &s);
 }
 
 void VulkanCommandBuffer::setBlendFactors(const Vector4f& blendFactors) const noexcept
 {
+	assert(m_impl->m_recording);
 	::vkCmdSetBlendConstants(this->handle(), blendFactors.elements());
 }
 
 void VulkanCommandBuffer::setStencilRef(UInt32 stencilRef) const noexcept
 {
+	assert(m_impl->m_recording);
 	::vkCmdSetStencilReference(this->handle(), VK_STENCIL_FACE_FRONT_AND_BACK, stencilRef);
 }
 
 void VulkanCommandBuffer::setDepthBounds(Float minBounds, Float maxBounds) const noexcept
 {
+	assert(m_impl->m_recording);
 	::vkCmdSetDepthBounds(this->handle(), minBounds, maxBounds);
 }
 
@@ -444,7 +420,7 @@ UInt64 VulkanCommandBuffer::submit() const
 	if (queue == nullptr) [[unlikely]]
 		throw RuntimeException("Unable to submit command buffer to a released device instance.");
 
-	if (this->isSecondary())
+	if (this->secondary())
 		throw RuntimeException("A secondary command buffer cannot be directly submitted to a command queue and must be executed on a primary command buffer instead.");
 
 	return queue->submit(this->shared_from_this());
@@ -463,11 +439,15 @@ UniquePtr<VulkanBarrier> VulkanCommandBuffer::makeBarrier(PipelineStage syncBefo
 
 void VulkanCommandBuffer::barrier(const VulkanBarrier& barrier) const noexcept
 {
+	assert(m_impl->m_recording);
 	barrier.execute(*this);
 }
 
 void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("sourceElement", "The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
@@ -485,6 +465,9 @@ void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanBuf
 
 void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IVulkanBuffer& target, UInt32 targetElement, UInt32 elements) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -499,6 +482,9 @@ void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IV
 
 void VulkanCommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IVulkanBuffer& target, UInt32 firstElement) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -514,6 +500,9 @@ void VulkanCommandBuffer::transfer(Span<const void* const> data, size_t elementS
 
 void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	if (!LITEFX_FLAG_IS_SET(target.usage(), ResourceUsage::TransferDestination)) [[unlikely]]
 		throw InvalidArgumentException("target", "The target image's usage does not allow for it to be used as a transfer destination.");
 
@@ -548,6 +537,9 @@ void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanIma
 
 void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IVulkanImage& target, UInt32 subresource) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -565,6 +557,9 @@ void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IV
 
 void VulkanCommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IVulkanImage& target, UInt32 firstSubresource, UInt32 subresources) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -583,6 +578,9 @@ void VulkanCommandBuffer::transfer(Span<const void* const> data, size_t elementS
 
 void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	if (!LITEFX_FLAG_IS_SET(source.usage(), ResourceUsage::TransferSource)) [[unlikely]]
 		throw InvalidArgumentException("source", "The source image's usage does not allow for it to be used as a transfer source.");
 
@@ -627,6 +625,9 @@ void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanImag
 
 void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	if (!LITEFX_FLAG_IS_SET(source.usage(), ResourceUsage::TransferSource)) [[unlikely]]
 		throw InvalidArgumentException("source", "The source image's usage does not allow for it to be used as a transfer source.");
 
@@ -686,12 +687,16 @@ void VulkanCommandBuffer::transfer(const SharedPtr<const IVulkanImage>& source, 
 
 void VulkanCommandBuffer::use(const VulkanPipelineState& pipeline) const noexcept
 {
+	assert(m_impl->m_recording);
 	m_impl->m_lastPipeline = &pipeline;
 	pipeline.use(*this);
 }
 
 void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -706,6 +711,9 @@ void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet) const
 
 void VulkanCommandBuffer::bind(Span<const VulkanDescriptorSet*> descriptorSets) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -720,6 +728,9 @@ void VulkanCommandBuffer::bind(Span<const VulkanDescriptorSet*> descriptorSets) 
 
 void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -731,6 +742,9 @@ void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet, const V
 
 void VulkanCommandBuffer::bind(Span<const VulkanDescriptorSet*> descriptorSets, const VulkanPipelineState& pipeline) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -742,72 +756,88 @@ void VulkanCommandBuffer::bind(Span<const VulkanDescriptorSet*> descriptorSets, 
 
 void VulkanCommandBuffer::bind(const IVulkanVertexBuffer& buffer) const noexcept
 {
+	assert(m_impl->m_recording);
 	constexpr VkDeviceSize offset { 0 };
 	::vkCmdBindVertexBuffers(this->handle(), buffer.layout().binding(), 1, &buffer.handle(), &offset);
 }
 
 void VulkanCommandBuffer::bind(const IVulkanIndexBuffer& buffer) const noexcept
 {
+	assert(m_impl->m_recording);
 	::vkCmdBindIndexBuffer(this->handle(), buffer.handle(), 0, buffer.layout().indexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
 }
 
 void VulkanCommandBuffer::dispatch(const Vector3u& threadCount) const noexcept
 {
+	assert(m_impl->m_recording);
 	::vkCmdDispatch(this->handle(), threadCount.x(), threadCount.y(), threadCount.z());
 }
 
 void VulkanCommandBuffer::dispatchIndirect(const IVulkanBuffer& batchBuffer, UInt32 /*batchCount*/, UInt64 offset) const noexcept
 {
+	assert(m_impl->m_recording);
 	::vkCmdDispatchIndirect(this->handle(), batchBuffer.handle(), offset);
 }
 
 void VulkanCommandBuffer::dispatchMesh(const Vector3u& threadCount) const noexcept
 {
+	assert(m_impl->m_recording);
 	::vkCmdDrawMeshTasks(this->handle(), threadCount.x(), threadCount.y(), threadCount.z());
 }
 
 void VulkanCommandBuffer::dispatchMeshIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
 {
+	assert(m_impl->m_recording);
 	::vkCmdDrawMeshTasksIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, static_cast<UInt32>(batchBuffer.elementSize()));
 }
 
 void VulkanCommandBuffer::dispatchMeshIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept
 {
+	assert(m_impl->m_recording);
 	::vkCmdDrawMeshTasksIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectDispatchBatch))), sizeof(IndirectDispatchBatch));
 }
 
 void VulkanCommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const noexcept
 {
+	assert(m_impl->m_recording);
 	::vkCmdDraw(this->handle(), vertices, instances, firstVertex, firstInstance);
 }
 
 void VulkanCommandBuffer::drawIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
 {
+	assert(m_impl->m_recording);
 	::vkCmdDrawIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, static_cast<UInt32>(batchBuffer.elementSize()));
 }
 
 void VulkanCommandBuffer::drawIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept
 {
+	assert(m_impl->m_recording);
 	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectBatch))), sizeof(IndirectBatch));
 }
 
 void VulkanCommandBuffer::drawIndexed(UInt32 indices, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const noexcept
 {
+	assert(m_impl->m_recording);
 	::vkCmdDrawIndexed(this->handle(), indices, instances, firstIndex, vertexOffset, firstInstance);
 }
 
 void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
 {
+	assert(m_impl->m_recording);
 	::vkCmdDrawIndexedIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, static_cast<UInt32>(batchBuffer.elementSize()));
 }
 
 void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept
 {
+	assert(m_impl->m_recording);
 	::vkCmdDrawIndexedIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectIndexedBatch))), sizeof(IndirectIndexedBatch));
 }
 
 void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	std::ranges::for_each(layout.ranges(), [&](const auto& range) {
 		VkPushDataInfoEXT pushData { 
 			.sType = VK_STRUCTURE_TYPE_PUSH_DATA_INFO_EXT, 
@@ -821,6 +851,9 @@ void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout,
 
 void VulkanCommandBuffer::writeTimingEvent(const SharedPtr<const TimingEvent>& timingEvent) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -835,22 +868,43 @@ void VulkanCommandBuffer::writeTimingEvent(const SharedPtr<const TimingEvent>& t
 
 void VulkanCommandBuffer::execute(const SharedPtr<const VulkanCommandBuffer>& commandBuffer) const
 {
+	if (!commandBuffer->secondary()) [[unlikely]]
+		throw InvalidArgumentException("commandBuffer", "Unable to execute a primary command buffer on another command buffer.");
+
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
+	// End and execute the command buffer.
+	commandBuffer->end();
 	::vkCmdExecuteCommands(this->handle(), 1, &commandBuffer->handle());
+	m_impl->m_trackedResources.SecondaryCommandBuffers.push_back(commandBuffer);
 }
 
 void VulkanCommandBuffer::execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const
 {
-	auto secondaryHandles = commandBuffers 
-		| std::views::transform([](const SharedPtr<const VulkanCommandBuffer>& commandBuffer) { return commandBuffer->handle(); })
+	auto buffers = Enumerable<SharedPtr<const VulkanCommandBuffer>> | std::ranges::to<std::vector>();
+
+	if (std::ranges::any_of(buffers, [](const auto& commandBuffer) { return !commandBuffer->secondary(); })) [[unlikely]]
+		throw InvalidArgumentException("commandBuffers", "Unable to execute a primary command buffer on another command buffer. At least one of the provided command buffers is a primary command buffer.");
+
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
+	auto secondaryHandles = buffers
+		| std::views::transform([](const SharedPtr<const VulkanCommandBuffer>& commandBuffer) { 
+				// End the command buffer and return its handle.
+				commandBuffer->end();
+				return commandBuffer->handle(); 
+			})
 		| std::ranges::to<Array<VkCommandBuffer>>();
 
 	::vkCmdExecuteCommands(this->handle(), static_cast<UInt32>(secondaryHandles.size()), secondaryHandles.data());
+	m_impl->m_trackedResources.SecondaryCommandBuffers.append_range(buffers);
 }
 
 void VulkanCommandBuffer::releaseSharedState() const
 {
-	m_impl->m_trackedResources.Resources.clear();
-	m_impl->m_trackedResources.DescriptorSets.clear();
+	m_impl->m_trackedResources = {};
 }
 
 void VulkanCommandBuffer::buildAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
@@ -875,6 +929,8 @@ void VulkanCommandBuffer::updateAccelerationStructure(VulkanTopLevelAcceleration
 
 void VulkanCommandBuffer::copyAccelerationStructure(const VulkanBottomLevelAccelerationStructure& from, const VulkanBottomLevelAccelerationStructure& to, bool compress) const noexcept
 {
+	assert(m_impl->m_recording);
+
 	VkCopyAccelerationStructureInfoKHR copyInfo = {
 		.sType = VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_INFO_KHR,
 		.src = from.handle(),
@@ -887,6 +943,8 @@ void VulkanCommandBuffer::copyAccelerationStructure(const VulkanBottomLevelAccel
 
 void VulkanCommandBuffer::copyAccelerationStructure(const VulkanTopLevelAccelerationStructure& from, const VulkanTopLevelAccelerationStructure& to, bool compress) const noexcept
 {
+	assert(m_impl->m_recording);
+
 	VkCopyAccelerationStructureInfoKHR copyInfo = {
 		.sType = VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_INFO_KHR,
 		.src = from.handle(),
@@ -899,6 +957,8 @@ void VulkanCommandBuffer::copyAccelerationStructure(const VulkanTopLevelAccelera
 
 void VulkanCommandBuffer::traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IVulkanBuffer& rayGenerationShaderBindingTable, const IVulkanBuffer* missShaderBindingTable, const IVulkanBuffer* hitShaderBindingTable, const IVulkanBuffer* callableShaderBindingTable) const noexcept
 {
+	assert(m_impl->m_recording);
+
 	VkStridedDeviceAddressRegionKHR raygen = {
 		.deviceAddress = rayGenerationShaderBindingTable.virtualAddress() + offsets.RayGenerationGroupOffset,
 		.stride = offsets.RayGenerationGroupStride,

@@ -135,7 +135,7 @@ public:
         // Recreate all resources.
         Dictionary<const IVulkanImage*, SharedPtr<const IVulkanImage>> imageReplacements;
         auto& queue = device->defaultQueue(QueueType::Graphics);
-        auto commandBuffer = queue.createCommandBuffer(true);
+        auto commandBuffer = queue.createCommandBuffer();
         auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
 
         auto images = m_images 
@@ -308,7 +308,7 @@ void VulkanFrameBuffer::addImage(const String& name, Format format, MultiSamplin
 
     // ... and make sure it is in the right layout.
     auto& queue = device->defaultQueue(QueueType::Graphics);
-    auto commandBuffer = queue.createCommandBuffer(true);
+    auto commandBuffer = queue.createCommandBuffer();
     auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
     barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::Undefined, ImageLayout::Common);
     commandBuffer->barrier(*barrier);
@@ -343,7 +343,7 @@ void VulkanFrameBuffer::addImage(const String& name, const RenderTarget& renderT
 
     // ... and make sure it is in the right layout.
     auto& queue = device->defaultQueue(QueueType::Graphics);
-    auto commandBuffer = queue.createCommandBuffer(true);
+    auto commandBuffer = queue.createCommandBuffer();
     auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
     barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::Undefined, ImageLayout::Common);
     commandBuffer->barrier(*barrier);

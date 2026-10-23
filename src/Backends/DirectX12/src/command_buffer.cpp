@@ -256,9 +256,14 @@ void DirectX12CommandBuffer::track(UniquePtr<const IDescriptorRange>&& descripto
 		m_impl->m_trackedResources.DescriptorRanges.push_back(std::move(descriptorRange));
 }
 
-bool DirectX12CommandBuffer::isSecondary() const noexcept
+bool DirectX12CommandBuffer::secondary() const noexcept
 {
 	return m_impl->m_secondary;
+}
+
+bool DirectX12CommandBuffer::recording() const noexcept
+{
+	return m_impl->m_recording;
 }
 
 void DirectX12CommandBuffer::setViewports(Span<const IViewport*> viewports) const
@@ -322,7 +327,7 @@ UInt64 DirectX12CommandBuffer::submit() const
 	if (queue == nullptr) [[unlikely]]
 		throw RuntimeException("Cannot submit command buffer to a released command queue.");
 
-	if (this->isSecondary())
+	if (this->secondary())
 		throw RuntimeException("A secondary command buffer cannot be directly submitted to a command queue and must be executed on a primary command buffer instead.");
 
 	return queue->submit(this->shared_from_this());

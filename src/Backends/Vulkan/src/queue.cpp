@@ -10,6 +10,176 @@ extern PFN_vkQueueInsertDebugUtilsLabelEXT  vkQueueInsertDebugUtilsLabel;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
+// Command allocator pool.
+// ------------------------------------------------------------------------------------------------
+
+class VulkanCommandAllocatorPool final : public std::enable_shared_from_this<VulkanCommandAllocatorPool> {
+public:
+	struct Allocator {
+		VkCommandPool Pool{};
+		VkCommandBuffer Primary{}, Secondary{};
+		bool Dirty{ false };
+	};
+
+private:
+	static constexpr std::size_t MAX_FREE_ALLOCATORS = 32;
+
+	std::mutex m_mutex;
+	WeakPtr<const VulkanDevice> m_device;
+	UInt32 m_queueFamily;
+	Array<UniquePtr<Allocator>> m_freeAllocators{};
+
+public:
+	VulkanCommandAllocatorPool(const VulkanDevice& device, UInt32 queueFamily) :
+		m_device(device.weak_from_this()), m_queueFamily(queueFamily)
+	{
+	}
+
+	VulkanCommandAllocatorPool(const VulkanCommandAllocatorPool&) = delete;
+	VulkanCommandAllocatorPool(VulkanCommandAllocatorPool&&) noexcept = delete;
+	VulkanCommandAllocatorPool& operator=(const VulkanCommandAllocatorPool&) = delete;
+	VulkanCommandAllocatorPool& operator=(VulkanCommandAllocatorPool&&) noexcept = delete;
+
+	~VulkanCommandAllocatorPool() noexcept
+	{
+		// Destroy the command pools. Since the allocators hold a shared pointer to the allocator pool, there's only free allocators left.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+		{
+			if (!m_freeAllocators.empty())
+				LITEFX_FATAL_ERROR(VULKAN_LOG, "Invalid attempt to release command allocators after the parent device has been released.");
+
+			return;
+		}
+
+		for (auto& allocator : m_freeAllocators)
+			::vkDestroyCommandPool(device->handle(), allocator->Pool, nullptr);
+	}
+
+public:
+	UniquePtr<IVulkanCommandAllocatorHandle> acquire(bool secondary);
+
+	void release(UniquePtr<Allocator>&& allocator) noexcept
+	{
+		allocator->Dirty = true;
+
+		{
+			std::lock_guard lock(m_mutex);
+
+			if (m_freeAllocators.size() < MAX_FREE_ALLOCATORS)
+			{
+				m_freeAllocators.push_back(std::move(allocator));
+				return;
+			}
+		}
+
+		// Allocators beyond the `MAX_FREE_ALLOCATORS` are released immediately.
+		if (auto device = m_device.lock(); device != nullptr) [[likely]]
+			::vkDestroyCommandPool(device->handle(), allocator->Pool, nullptr);
+	}
+};
+
+// ------------------------------------------------------------------------------------------------
+// Command allocator handle.
+// ------------------------------------------------------------------------------------------------
+
+class VulkanCommandAllocatorHandle final : public IVulkanCommandAllocatorHandle {
+private:
+	SharedPtr<VulkanCommandAllocatorPool> m_pool;
+	UniquePtr<VulkanCommandAllocatorPool::Allocator> m_allocator;
+	VkCommandBuffer m_commandBuffer;
+
+public:
+	VulkanCommandAllocatorHandle(SharedPtr<VulkanCommandAllocatorPool> pool, UniquePtr<VulkanCommandAllocatorPool::Allocator>&& allocator, VkCommandBuffer commandBuffer) noexcept :
+		m_pool(std::move(pool)), m_allocator(std::move(allocator)), m_commandBuffer(commandBuffer)
+	{
+	}
+
+	VulkanCommandAllocatorHandle(const VulkanCommandAllocatorHandle&) = delete;
+	VulkanCommandAllocatorHandle(VulkanCommandAllocatorHandle&&) noexcept = delete;
+	VulkanCommandAllocatorHandle& operator=(const VulkanCommandAllocatorHandle&) = delete;
+	VulkanCommandAllocatorHandle& operator=(VulkanCommandAllocatorHandle&&) noexcept = delete;
+
+	~VulkanCommandAllocatorHandle() noexcept override
+	{
+		m_pool->release(std::move(m_allocator));
+	}
+
+	VkCommandBuffer commandBuffer() const noexcept override
+	{
+		return m_commandBuffer;
+	}
+};
+
+UniquePtr<IVulkanCommandAllocatorHandle> VulkanCommandAllocatorPool::acquire(bool secondary)
+{
+	auto device = m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot acquire a command allocator from a released device instance.");
+
+	// Check if there are any free allocators and acquire one from the list in this case.
+	UniquePtr<Allocator> allocator{};
+
+	{
+		std::lock_guard lock(m_mutex);
+
+		if (!m_freeAllocators.empty())
+		{
+			allocator = std::move(m_freeAllocators.back());
+			m_freeAllocators.pop_back();
+		}
+	}
+
+	// If there was no free allocator, create a new one.
+	if (allocator == nullptr)
+	{
+		VkCommandPoolCreateInfo poolInfo = {
+			.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+			.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
+			.queueFamilyIndex = m_queueFamily
+		};
+
+		allocator = makeUnique<Allocator>();
+		raiseIfFailed(::vkCreateCommandPool(device->handle(), &poolInfo, nullptr, &allocator->Pool), "Unable to create command pool.");
+	}
+
+	try
+	{
+		// If the allocator is dirty, reset the underlying command pool.
+		if (allocator->Dirty)
+		{
+			raiseIfFailed(::vkResetCommandPool(device->handle(), allocator->Pool, 0), "Unable to reset command pool.");
+			allocator->Dirty = false;
+		}
+
+		// Allocate a command buffer and return it.
+		auto& commandBuffer = secondary ? allocator->Secondary : allocator->Primary;
+
+		if (commandBuffer == VK_NULL_HANDLE)
+		{
+			VkCommandBufferAllocateInfo bufferInfo = {
+				.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+				.commandPool = allocator->Pool,
+				.level = secondary ? VK_COMMAND_BUFFER_LEVEL_SECONDARY : VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+				.commandBufferCount = 1
+			};
+
+			raiseIfFailed(::vkAllocateCommandBuffers(device->handle(), &bufferInfo, &commandBuffer), "Unable to allocate command buffer.");
+		}
+
+		return makeUnique<VulkanCommandAllocatorHandle>(this->shared_from_this(), std::move(allocator), commandBuffer);
+	}
+	catch (...)
+	{
+		this->release(std::move(allocator));
+		throw;
+	}
+}
+
+
+// ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
@@ -26,10 +196,11 @@ private:
 	WeakPtr<const VulkanDevice> m_device;
 	Array<Tuple<UInt64, SharedPtr<const VulkanCommandBuffer>>> m_submittedCommandBuffers;
 	Array<VkSemaphoreSubmitInfo> m_crossQueueWaitInfos{};
+	SharedPtr<VulkanCommandAllocatorPool> m_allocators;
 
 public:
 	VulkanQueueImpl(const VulkanDevice& device, QueueType type, QueuePriority priority, UInt32 familyId, UInt32 queueId) :
-		m_type(type), m_priority(priority), m_familyId(familyId), m_queueId(queueId), m_device(device.weak_from_this())
+		m_type(type), m_priority(priority), m_familyId(familyId), m_queueId(queueId), m_device(device.weak_from_this()), m_allocators(makeShared<VulkanCommandAllocatorPool>(device, familyId))
 	{
 	}
 
@@ -37,6 +208,7 @@ public:
 	void release()
 	{
 		m_submittedCommandBuffers.clear();
+		m_allocators.reset();
 
 		if (m_timelineSemaphore != VK_NULL_HANDLE)
 		{
@@ -103,6 +275,11 @@ VulkanQueue::VulkanQueue(const VulkanDevice& device, QueueType type, QueuePriori
 VulkanQueue::~VulkanQueue() noexcept // NOLINT(bugprone-exception-escape)
 {
 	m_impl->release();
+}
+
+UniquePtr<IVulkanCommandAllocatorHandle> VulkanQueue::acquireCommandAllocator(bool secondaryCommandBuffer) const
+{
+	return m_impl->m_allocators->acquire(secondaryCommandBuffer);
 }
 
 SharedPtr<const VulkanDevice> VulkanQueue::device() const noexcept
@@ -188,9 +365,9 @@ QueuePriority VulkanQueue::priority() const noexcept
 	return m_impl->m_priority;
 }
 
-SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(bool beginRecording, bool secondary) const
+SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(bool secondary) const
 {
-	return VulkanCommandBuffer::create(*this, beginRecording, !secondary);
+	return VulkanCommandBuffer::create(*this, !secondary);
 }
 
 UInt64 VulkanQueue::submit(const SharedPtr<const VulkanCommandBuffer>& commandBuffer) const
@@ -203,8 +380,11 @@ UInt64 VulkanQueue::submit(const SharedPtr<const VulkanCommandBuffer>& commandBu
 	if (commandBuffer == nullptr) [[unlikely]]
 		throw InvalidArgumentException("commandBuffer", "The command buffer must be initialized.");
 
-	if (commandBuffer->isSecondary()) [[unlikely]]
+	if (commandBuffer->secondary()) [[unlikely]]
 		throw InvalidArgumentException("commandBuffer", "The command buffer must be a primary command buffer.");
+
+	if (!commandBuffer->recording()) [[unlikely]]
+		throw InvalidArgumentException("commandBuffer", "The command buffer has already been submitted.");
 
 	// Begin event.
 	this->submitting(this, { { std::static_pointer_cast<const ICommandBuffer>(commandBuffer) } });
@@ -231,7 +411,8 @@ UInt64 VulkanQueue::submit(const SharedPtr<const VulkanCommandBuffer>& commandBu
 		.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT
 	};
 
-	m_impl->m_crossQueueWaitInfos.push_back(waitSemaphoreInfo);
+	auto queueWaitList = m_impl->m_crossQueueWaitInfos;
+	queueWaitList.push_back(waitSemaphoreInfo);
 
 	VkSemaphoreSubmitInfo signalSemaphoreInfo = {
 		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
@@ -247,8 +428,8 @@ UInt64 VulkanQueue::submit(const SharedPtr<const VulkanCommandBuffer>& commandBu
 
 	VkSubmitInfo2 submitInfo = {
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
-		.waitSemaphoreInfoCount = static_cast<UInt32>(m_impl->m_crossQueueWaitInfos.size()),
-		.pWaitSemaphoreInfos = m_impl->m_crossQueueWaitInfos.data(),
+		.waitSemaphoreInfoCount = static_cast<UInt32>(queueWaitList.size()),
+		.pWaitSemaphoreInfos = queueWaitList.data(),
 		.commandBufferInfoCount = 1,
 		.pCommandBufferInfos = &commandBufferInfo,
 		.signalSemaphoreInfoCount = 1,
@@ -274,7 +455,7 @@ UInt64 VulkanQueue::submit(const SharedPtr<const VulkanCommandBuffer>& commandBu
 	m_impl->m_crossQueueWaitInfos.clear();
 
 	// Fire end event.
-	lock.release();
+	lock.unlock();
 	this->submitted(this, { signalFence });
 
 	return signalFence;
@@ -290,8 +471,11 @@ UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> comm
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return buffer != nullptr; })) [[unlikely]]
 		throw InvalidArgumentException("commandBuffers", "At least one command buffer is not initialized.");
 
-	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return !buffer->isSecondary(); })) [[unlikely]]
+	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return !buffer->secondary(); })) [[unlikely]]
 		throw InvalidArgumentException("commandBuffers", "At least one command buffer is a secondary command buffer, which is not allowed to be submitted to a command queue.");
+
+	if (std::ranges::any_of(commandBuffers, [](const auto& buffer) { return !buffer->recording(); })) [[unlikely]]
+		throw InvalidArgumentException("commandBuffers", "At least one command buffer has already been submitted.");
 
 	// Begin event.
 	this->submitting(this, { commandBuffers 
@@ -327,7 +511,8 @@ UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> comm
 		.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT
 	};
 
-	m_impl->m_crossQueueWaitInfos.push_back(waitSemaphoreInfo);
+	auto queueWaitList = m_impl->m_crossQueueWaitInfos;
+	queueWaitList.push_back(waitSemaphoreInfo);
 
 	VkSemaphoreSubmitInfo signalSemaphoreInfo = {
 		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
@@ -338,8 +523,8 @@ UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> comm
 
 	VkSubmitInfo2 submitInfo = {
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
-		.waitSemaphoreInfoCount = static_cast<UInt32>(m_impl->m_crossQueueWaitInfos.size()),
-		.pWaitSemaphoreInfos = m_impl->m_crossQueueWaitInfos.data(),
+		.waitSemaphoreInfoCount = static_cast<UInt32>(queueWaitList.size()),
+		.pWaitSemaphoreInfos = queueWaitList.data(),
 		.commandBufferInfoCount = static_cast<UInt32>(commandBufferInfos.size()),
 		.pCommandBufferInfos = commandBufferInfos.data(),
 		.signalSemaphoreInfoCount = 1,
@@ -365,7 +550,7 @@ UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> comm
 	m_impl->m_crossQueueWaitInfos.clear();
 
 	// Fire end event.
-	lock.release();
+	lock.unlock();
 	this->submitted(this, { signalFence });
 
 	return signalFence;
@@ -403,14 +588,9 @@ void VulkanQueue::waitFor(const VulkanQueue& queue, UInt64 fence) const
 {
 	// Waiting for a future fence value is possible, but most certainly not intended, since there's a risk of deadlocking the queue, if the fence never is submitted.
 	if (fence > queue.currentFence()) [[unlikely]] 
-	{
-		LITEFX_ERROR(VULKAN_LOG, "Cannot wait for fence {0}, which has not been submitted to the queue yet. The current fence is at {1}.", fence, queue.currentFence());
-		return;
-	}
+		LITEFX_WARNING(VULKAN_LOG, "Waiting for fence {0} which has not been submitted to the queue yet. The current fence is at {1}.", fence, queue.currentFence());
 	else if (fence == 0)
-	{
 		return;
-	}
 
 	// We cannot directly push an empty submission with only synchronization primitives to the queue, since Vulkan doesn't define how they should be serialized by the 
 	// driver. Instead we cache the fence and semaphore and append it to the next submission's wait list. This also means, that the other queue must remain alive as 

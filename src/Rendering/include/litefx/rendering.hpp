@@ -603,7 +603,6 @@ namespace LiteFX::Rendering {
         using ICommandBuffer::queue;
         using ICommandBuffer::dispatch;
         using ICommandBuffer::dispatchIndirect;
-
         using ICommandBuffer::dispatchMesh;
         using ICommandBuffer::draw;
         using ICommandBuffer::drawIndirect;
@@ -1104,8 +1103,8 @@ namespace LiteFX::Rendering {
         ~CommandQueue() override = default;
 
     public:
-        /// @copydoc ICommandQueue::createCommandBuffer(bool, bool)
-        virtual SharedPtr<command_buffer_type> createCommandBuffer(bool beginRecording = false, bool secondary = false) const = 0;
+        /// @copydoc ICommandQueue::createCommandBuffer(bool)
+        virtual SharedPtr<command_buffer_type> createCommandBuffer(bool secondary = false) const = 0;
 
         /// @copydoc ICommandQueue::submit(const SharedPtr<ICommandBuffer>&)
         virtual inline UInt64 submit(const SharedPtr<command_buffer_type>& commandBuffer) const {
@@ -1119,8 +1118,8 @@ namespace LiteFX::Rendering {
         virtual UInt64 submit(Enumerable<SharedPtr<const command_buffer_type>> commandBuffers) const = 0;
 
     private:
-        inline SharedPtr<ICommandBuffer> getCommandBuffer(bool beginRecording, bool secondary) const override {
-            return this->createCommandBuffer(beginRecording, secondary);
+        inline SharedPtr<ICommandBuffer> getCommandBuffer(bool secondary) const override {
+            return this->createCommandBuffer(secondary);
         }
 
         inline UInt64 submitCommandBuffer(const SharedPtr<const ICommandBuffer>& commandBuffer) const override {

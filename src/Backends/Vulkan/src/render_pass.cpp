@@ -103,29 +103,16 @@ public:
         auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
 
         if (!m_frameBufferTokens.contains(interfacePointer)) [[unlikely]]
-        {
             m_frameBufferTokens[interfacePointer] = frameBuffer.released.add(std::bind(&VulkanRenderPassImpl::onFrameBufferRelease, this, std::placeholders::_1, std::placeholders::_2));
 
-            // Create primary command buffers.
-            {
-                auto commandBuffer = queue.createCommandBuffer(false);
+        // Create primary command buffers.
+        {
+            auto commandBuffer = queue.createCommandBuffer(false);
 #ifndef NDEBUG
-                m_device->setDebugName(std::as_const(*commandBuffer).handle(), VK_OBJECT_TYPE_COMMAND_BUFFER,
-                    std::format("{0} Primary Commands {1}", renderPass.name(), m_primaryCommandBuffers.size()).c_str());
+            m_device->setDebugName(std::as_const(*commandBuffer).handle(), VK_OBJECT_TYPE_COMMAND_BUFFER,
+                std::format("{0} Primary Commands {1}", renderPass.name(), m_primaryCommandBuffers.size()).c_str());
 #endif
-                m_primaryCommandBuffers[interfacePointer] = commandBuffer;
-            }
-
-            // Create secondary command buffers.
-            m_secondaryCommandBuffers[interfacePointer] = std::views::iota(0u, m_secondaryCommandBufferCount) |
-                std::views::transform([&]([[maybe_unused]] UInt32 i) {
-                    auto commandBuffer = queue.createCommandBuffer(false, true);
-#ifndef NDEBUG
-                    m_device->setDebugName(std::as_const(*commandBuffer).handle(), VK_OBJECT_TYPE_COMMAND_BUFFER,
-                        std::format("{0} Secondary Commands {1}", renderPass.name(), i).c_str());
-#endif
-                    return commandBuffer;
-                }) | std::ranges::to<Array<SharedPtr<VulkanCommandBuffer>>>();
+            m_primaryCommandBuffers[interfacePointer] = commandBuffer;
         }
 
         // Store the active frame buffer pointer.
@@ -404,7 +391,6 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
 
     // Begin the command recording on the frame buffers command buffer. Before we can do that, we need to make sure it has not being executed anymore.
     auto primaryCommandBuffer = m_impl->getPrimaryCommandBuffer(frameBuffer);
-    primaryCommandBuffer->begin();
 
     // Declare render pass input transition barriers for render targets and input attachments.
     VulkanBarrier
@@ -451,7 +437,20 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
 
     // Begin the render pass on the primary command buffer.
     ::vkCmdBeginRendering(std::as_const(*primaryCommandBuffer).handle(), &renderingInfo);
-    std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [this](auto& commandBuffer) { commandBuffer->begin(*this); });
+
+    // Create secondary command buffers.
+    const auto frameBufferPointer = static_cast<const IFrameBuffer*>(&frameBuffer);
+    m_impl->m_secondaryCommandBuffers[frameBufferPointer] = std::views::iota(0u, m_impl->m_secondaryCommandBufferCount)
+        | std::views::transform([this](UInt32 i) { 
+#ifndef NDEBUG
+                auto commandBuffer = VulkanCommandBuffer::create(*m_impl->m_queue, *this);
+                m_impl->m_device->setDebugName(std::as_const(*commandBuffer).handle(), VK_OBJECT_TYPE_COMMAND_BUFFER, std::format("{0} Secondary Commands {1}", this->name(), i).c_str());
+                return commandBuffer;
+#else
+                return VulkanCommandBuffer::create(*m_impl->m_queue, *this);
+#endif
+            })
+        | std::ranges::to<Array<SharedPtr<VulkanCommandBuffer>>>();
 
     // Publish beginning event.
     this->beginning(this, { frameBuffer });
@@ -472,10 +471,7 @@ UInt64 VulkanRenderPass::end() const
 
     // End secondary command buffers and end rendering.
     auto primaryCommandBuffer = m_impl->getPrimaryCommandBuffer(frameBuffer);
-    auto secondaryHandles = m_impl->getSecondaryCommandBuffers(frameBuffer) |
-        std::views::transform([](auto& commandBuffer) { commandBuffer->end(); return std::as_const(*commandBuffer).handle(); }) |
-        std::ranges::to<Array<VkCommandBuffer>>();
-    ::vkCmdExecuteCommands(std::as_const(*primaryCommandBuffer).handle(), static_cast<UInt32>(secondaryHandles.size()), secondaryHandles.data());
+    primaryCommandBuffer->execute(m_impl->getSecondaryCommandBuffers(frameBuffer));
     ::vkCmdEndRendering(std::as_const(*primaryCommandBuffer).handle());
 
     // If the present target is multi-sampled, we need to resolve it to the back buffer.

@@ -1348,12 +1348,33 @@ namespace LiteFX::Rendering::Backends {
         virtual void use(const VulkanCommandBuffer& commandBuffer) const = 0;
     };
 
+    /// @brief Implement a Vulkan @ref ICommandAllocatorHandle.
+    class LITEFX_VULKAN_API IVulkanCommandAllocatorHandle : public ICommandAllocatorHandle {
+    protected:
+        IVulkanCommandAllocatorHandle() = default;
+        IVulkanCommandAllocatorHandle(const IVulkanCommandAllocatorHandle&) = delete;
+        IVulkanCommandAllocatorHandle(IVulkanCommandAllocatorHandle&&) noexcept = delete;
+        IVulkanCommandAllocatorHandle& operator=(const IVulkanCommandAllocatorHandle&) = delete;
+        IVulkanCommandAllocatorHandle& operator=(IVulkanCommandAllocatorHandle&&) noexcept = delete;
+
+    public:
+        ~IVulkanCommandAllocatorHandle() noexcept override = default;
+
+    public:
+        /// @brief Returns the handle of the underlying command buffer associated with the allocator.
+        /// 
+        /// @return The handle of the underlying command buffer associated with the allocator.
+        virtual VkCommandBuffer commandBuffer() const noexcept = 0;
+    };
+
     /// @brief Records commands for a @ref VulkanQueue
     ///
     /// @see @ref VulkanQueue
     class LITEFX_VULKAN_API VulkanCommandBuffer final : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>, public Resource<VkCommandBuffer> {
         LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
         friend struct SharedObject::Allocator<VulkanCommandBuffer>;
+        friend class VulkanQueue;
+        friend class VulkanRenderPass;
 
     public:
         using base_type = CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>;
@@ -1377,9 +1398,14 @@ namespace LiteFX::Rendering::Backends {
         /// @brief Initializes a command buffer from a command queue.
         ///
         /// @param queue The parent command queue, the buffer gets submitted to.
-        /// @param begin If set to `true`, the command buffer automatically starts recording by calling @ref begin.
         /// @param primary `true`, if the command buffer is a primary command buffer.
-        explicit VulkanCommandBuffer(const VulkanQueue& queue, bool begin = false, bool primary = true);
+        explicit VulkanCommandBuffer(const VulkanQueue& queue, bool primary = true);
+
+        /// @brief Creates a secondary command buffer that continues the active render pass.
+        ///
+        /// @param queue The parent command queue, the buffer gets submitted to.
+        /// @param renderPass The render pass to continue on the command buffer.
+        explicit VulkanCommandBuffer(const VulkanQueue& queue, const VulkanRenderPass& renderPass);
 
     private:
         VulkanCommandBuffer(VulkanCommandBuffer&&) noexcept = delete;
@@ -1388,36 +1414,35 @@ namespace LiteFX::Rendering::Backends {
         VulkanCommandBuffer& operator=(const VulkanCommandBuffer&) = delete;
         
     public:
-        ~VulkanCommandBuffer() noexcept override;
+        ~VulkanCommandBuffer() noexcept override = default;
 
         // Factory method.
     public:
         /// @brief Initializes a command buffer from a command queue.
         ///
         /// @param queue The parent command queue, the buffer gets submitted to.
-        /// @param begin If set to `true`, the command buffer automatically starts recording by calling @ref begin.
         /// @param primary `true`, if the command buffer is a primary command buffer.
-        static inline SharedPtr<VulkanCommandBuffer> create(const VulkanQueue& queue, bool begin = false, bool primary = true) {
-            return SharedObject::create<VulkanCommandBuffer>(queue, begin, primary);
+        static inline SharedPtr<VulkanCommandBuffer> create(const VulkanQueue& queue, bool primary = true) {
+            return SharedObject::create<VulkanCommandBuffer>(queue, primary);
+        }
+
+    private:
+        /// @brief Initializes a secondary command buffer from a command queue that continues a render pass.
+        ///
+        /// @param queue The parent command queue, the buffer gets submitted to.
+        /// @param renderPass The render pass to continue on the command buffer.
+        static inline SharedPtr<VulkanCommandBuffer> create(const VulkanQueue& queue, const VulkanRenderPass& renderPass) {
+            return SharedObject::create<VulkanCommandBuffer>(queue, renderPass);
         }
 
         // Vulkan Command Buffer interface.
-    public:
-        /// @brief Begins the command buffer as a secondary command buffer that inherits the state of @p renderPass.
-        ///
-        /// @param renderPass The render pass state to inherit.
-        void begin(const VulkanRenderPass& renderPass) const;
+    private:
+        void end() const;
 
         // CommandBuffer interface.
     public:
         /// @copydoc ICommandBuffer::queue
         SharedPtr<const VulkanQueue> queue() const noexcept;
-
-        /// @copydoc ICommandBuffer::begin
-        void begin() const override;
-
-        /// @copydoc ICommandBuffer::end
-        void end() const override;
 
         /// @copydoc ICommandBuffer::trackedResources
         const TrackedResources& trackedResources() const noexcept override;
@@ -1437,8 +1462,11 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc ICommandBuffer::track(UniquePtr<const IDescriptorRange>&&) const
         void track(UniquePtr<const IDescriptorRange>&& descriptorRange) const override;
 
-        /// @copydoc ICommandBuffer::isSecondary
-        bool isSecondary() const noexcept override;
+        /// @copydoc ICommandBuffer::secondary
+        bool secondary() const noexcept override;
+
+        /// @copydoc ICommandBuffer::recording
+        bool recording() const noexcept override;
 
         /// @copydoc ICommandBuffer::setViewports(Span<const IViewport*>) const
         void setViewports(Span<const IViewport*> viewports) const override;
@@ -1607,6 +1635,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanQueue final : public CommandQueue<VulkanCommandBuffer>, public Resource<VkQueue> {
         LITEFX_IMPLEMENTATION(VulkanQueueImpl);
         friend struct SharedObject::Allocator<VulkanQueue>;
+        friend class VulkanCommandBuffer;
 
     public:
         using base_type = CommandQueue<VulkanCommandBuffer>;
@@ -1645,6 +1674,9 @@ namespace LiteFX::Rendering::Backends {
         }
 
         // VulkanQueue interface.
+    private:
+        UniquePtr<IVulkanCommandAllocatorHandle> acquireCommandAllocator(bool secondaryCommandBuffer) const;
+
     public:
         /// @brief Returns a pointer to the device that provides this queue or `nullptr`, if the device has already been released.
         ///

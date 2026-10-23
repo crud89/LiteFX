@@ -78,7 +78,7 @@ void TestApp::onInit()
                 .add();
 
         // Get a command buffer.
-        auto commandBuffer = _device->defaultQueue(QueueType::Graphics).createCommandBuffer(true);
+        auto commandBuffer = _device->defaultQueue(QueueType::Graphics).createCommandBuffer();
 
         // Create the vertex buffer.
         auto vertexBuffer = _device->factory().createVertexBuffer("Vertex Buffer", inputAssembler->vertexBufferLayout(0), 

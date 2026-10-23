@@ -25,7 +25,7 @@ private:
 
 	VmaDefragmentationContext m_defragmentationContext{ nullptr };
 	VmaDefragmentationPassMoveInfo m_defragmentationPass{};
-	SharedPtr<VulkanCommandBuffer> m_defragmentationCommandBuffer{ nullptr };
+	WeakPtr<VulkanQueue> m_defragmentationQueue{};
 	Queue<DefragResource> m_destroyedResources{};
 	UInt64 m_defragmentationFence{ 0u };
 	Array<SharedPtr<IDeviceMemory>> m_defragmentationPassResources{};
@@ -407,8 +407,13 @@ void VulkanGraphicsFactory::beginDefragmentation(const ICommandQueue& queue, Def
 	if (result != VK_SUCCESS)
 		throw VulkanPlatformException(result, "Unable to start defragmentation process.");
 
-	// Allocate a command buffer to record the transfer commands to.
-	m_impl->m_defragmentationCommandBuffer = std::dynamic_pointer_cast<VulkanCommandBuffer>(queue.createCommandBuffer(false));
+	// Store a weak pointer to the queue that executes the defragmentation commands
+	vulkanQueue = std::dynamic_pointer_cast<const VulkanQueue>(queue.shared_from_this());
+
+	if (vulkanQueue == nullptr) [[unlikely]]
+		throw InvalidArgumentException("queue", "The queue must be a Vulkan queue.");
+	else
+		m_impl->m_defragmentationQueue = vulkanQueue;
 }
 
 UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
@@ -470,12 +475,16 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 		return 0u;
 	}
 
-	// Begin the command buffer.
-	auto& commandBuffer = *m_impl->m_defragmentationCommandBuffer;
-	commandBuffer.begin();
+	// Create a command buffer for the movement commands.
+	auto commandQueue = m_impl->m_defragmentationQueue.lock();
+
+	if (commandQueue == nullptr)
+		throw RuntimeException("Unable to begin defragmentation pass on a released command queue.");
+	
+	auto commandBuffer = VulkanCommandBuffer::create(*commandQueue);
 
 	// Issue a barrier to transition the resources that requested it.
-	commandBuffer.barrier(barrier);
+	commandBuffer->barrier(barrier);
 
 	// Perform the actual move operations.
 	for (UInt32 i{ 0u }; i < pass.moveCount; ++i)
@@ -499,7 +508,7 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 		{
 			auto oldHandle = std::as_const(*buffer).handle();
 
-			if (VulkanBuffer::move(buffer->shared_from_this(), targetAllocation, commandBuffer))
+			if (VulkanBuffer::move(buffer->shared_from_this(), targetAllocation, *commandBuffer))
 				m_impl->m_destroyedResources.emplace([oldHandle](VkDevice device) { ::vkDestroyBuffer(device, oldHandle, nullptr); }, buffer->shared_from_this());
 			else {
 				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -516,7 +525,7 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 			{
 				auto oldHandle = std::as_const(*image).handle();
 
-				if (VulkanImage::move(image->shared_from_this(), targetAllocation, commandBuffer))
+				if (VulkanImage::move(image->shared_from_this(), targetAllocation, *commandBuffer))
 					m_impl->m_destroyedResources.emplace([oldHandle](VkDevice device) { ::vkDestroyImage(device, oldHandle, nullptr); }, image->shared_from_this());
 				else {
 					pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -529,11 +538,11 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 	}
 
 	// Submit de command buffer and store the fence.
-	auto fence = m_impl->m_defragmentationFence = commandBuffer.submit();
+	auto fence = m_impl->m_defragmentationFence = commandBuffer->submit();
 
 	// Invoke the `moving` event.
 	for (auto resource : resources)
-		resource->moving(this, { commandBuffer.queue(), fence });
+		resource->moving(this, { commandQueue, fence });
 
 	// Return the current fence value.
 	return fence;
@@ -549,7 +558,13 @@ bool VulkanGraphicsFactory::endDefragmentationPass() const
 	if (device == nullptr)
 		throw RuntimeException("Unable to acquire instance from an already released device.");
 
-	m_impl->m_defragmentationCommandBuffer->queue()->waitFor(m_impl->m_defragmentationFence);
+	// Wait for the defragmentation pass to finish.
+	auto commandQueue = m_impl->m_defragmentationQueue.lock();
+
+	if (commandQueue == nullptr)
+		throw RuntimeException("Unable to end defragmentation pass on a released command queue.");
+
+	commandQueue->waitFor(m_impl->m_defragmentationFence);
 
 	auto result = ::vmaEndDefragmentationPass(m_impl->m_allocator, m_impl->m_defragmentationContext, &m_impl->m_defragmentationPass);
 
