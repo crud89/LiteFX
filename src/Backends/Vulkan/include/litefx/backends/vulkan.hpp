@@ -1419,6 +1419,9 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc ICommandBuffer::end
         void end() const override;
 
+        /// @copydoc ICommandBuffer::trackedResources
+        const TrackedResources& trackedResources() const noexcept override;
+
         /// @copydoc ICommandBuffer::track(SharedPtr<const IBuffer>) const
         void track(SharedPtr<const IBuffer> buffer) const override;
 
@@ -1430,6 +1433,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// @copydoc ICommandBuffer::track(UniquePtr<const IDescriptorSet>&&) const
         void track(UniquePtr<const IDescriptorSet>&& descriptorSet) const override;
+
+        /// @copydoc ICommandBuffer::track(UniquePtr<const IDescriptorRange>&&) const
+        void track(UniquePtr<const IDescriptorRange>&& descriptorRange) const override;
 
         /// @copydoc ICommandBuffer::isSecondary
         bool isSecondary() const noexcept override;

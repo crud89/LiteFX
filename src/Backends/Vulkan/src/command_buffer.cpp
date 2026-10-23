@@ -25,12 +25,11 @@ public:
 private:
 	bool m_recording{ false }, m_secondary{ false };
 	VkCommandPool m_commandPool{};
-	Array<SharedPtr<const IStateResource>> m_sharedResources;
-	Array<UniquePtr<const IDescriptorSet>> m_trackedDescriptorSets;
 	const VulkanPipelineState* m_lastPipeline = nullptr;
 	WeakPtr<const VulkanQueue> m_queue;
 	WeakPtr<const VulkanDevice> m_device;
 	bool m_canBindDescriptorHeaps = false;
+	TrackedResources m_trackedResources{};
 
 public:
 	VulkanCommandBufferImpl(const VulkanQueue& queue, bool primary) :
@@ -134,7 +133,7 @@ public:
 		blas.updateState(device.get(), handle);
 
 		// Store the scratch buffer.
-		m_sharedResources.push_back(scratchBuffer);
+		m_trackedResources.Resources.push_back(scratchBuffer);
 	}
 
 	inline void buildAccelerationStructure(const VulkanCommandBuffer& commandBuffer, VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset, bool update)
@@ -209,8 +208,8 @@ public:
 		tlas.updateState(device.get(), handle);
 
 		// Store the scratch buffer.
-		m_sharedResources.emplace_back(instanceBuffer);
-		m_sharedResources.emplace_back(scratchBuffer);
+		m_trackedResources.Resources.emplace_back(instanceBuffer);
+		m_trackedResources.Resources.emplace_back(scratchBuffer);
 	}
 
 	inline void bindDescriptorHeaps(const VulkanCommandBuffer& parent)
@@ -267,8 +266,8 @@ void VulkanCommandBuffer::begin() const
 	m_impl->m_recording = true;
 
 	// If it was possible to reset the command buffer, we can also safely release shared resources from previous recordings.
-	m_impl->m_sharedResources.clear();
-	m_impl->m_trackedDescriptorSets.clear();
+	m_impl->m_trackedResources.Resources.clear();
+	m_impl->m_trackedResources.DescriptorSets.clear();
 }
 
 void VulkanCommandBuffer::begin(const VulkanRenderPass& renderPass) const
@@ -338,13 +337,18 @@ void VulkanCommandBuffer::end() const
 	m_impl->m_recording = false;
 }
 
+const ICommandBuffer::TrackedResources& VulkanCommandBuffer::trackedResources() const noexcept 
+{
+	return m_impl->m_trackedResources;
+}
+
 void VulkanCommandBuffer::track(SharedPtr<const IBuffer> buffer) const
 {
 	if (!m_impl->m_recording)
 		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
 
 	if (buffer != nullptr)
-		m_impl->m_sharedResources.push_back(buffer);
+		m_impl->m_trackedResources.Resources.push_back(buffer);
 }
 
 void VulkanCommandBuffer::track(SharedPtr<const IImage> image) const
@@ -353,7 +357,7 @@ void VulkanCommandBuffer::track(SharedPtr<const IImage> image) const
 		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
 
 	if (image != nullptr)
-		m_impl->m_sharedResources.push_back(image);
+		m_impl->m_trackedResources.Resources.push_back(image);
 }
 
 void VulkanCommandBuffer::track(SharedPtr<const ISampler> sampler) const
@@ -362,7 +366,7 @@ void VulkanCommandBuffer::track(SharedPtr<const ISampler> sampler) const
 		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
 
 	if (sampler != nullptr)
-		m_impl->m_sharedResources.push_back(sampler);
+		m_impl->m_trackedResources.Resources.push_back(sampler);
 }
 
 void VulkanCommandBuffer::track(UniquePtr<const IDescriptorSet>&& descriptorSet) const
@@ -371,7 +375,16 @@ void VulkanCommandBuffer::track(UniquePtr<const IDescriptorSet>&& descriptorSet)
 		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
 
 	if (descriptorSet != nullptr)
-		m_impl->m_trackedDescriptorSets.push_back(std::move(descriptorSet));
+		m_impl->m_trackedResources.DescriptorSets.push_back(std::move(descriptorSet));
+}
+
+void VulkanCommandBuffer::track(UniquePtr<const IDescriptorRange>&& descriptorRange) const
+{
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
+
+	if (descriptorRange != nullptr)
+		m_impl->m_trackedResources.DescriptorRanges.push_back(std::move(descriptorRange));
 }
 
 bool VulkanCommandBuffer::isSecondary() const noexcept
@@ -650,25 +663,25 @@ void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanBuff
 void VulkanCommandBuffer::transfer(const SharedPtr<const IVulkanBuffer>& source, const IVulkanBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
 	this->transfer(*source, target, sourceElement, targetElement, elements);
-	m_impl->m_sharedResources.push_back(source);
+	m_impl->m_trackedResources.Resources.push_back(source);
 }
 
 void VulkanCommandBuffer::transfer(const SharedPtr<const IVulkanBuffer>& source, const IVulkanImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
 	this->transfer(*source, target, sourceElement, firstSubresource, elements);
-	m_impl->m_sharedResources.push_back(source);
+	m_impl->m_trackedResources.Resources.push_back(source);
 }
 
 void VulkanCommandBuffer::transfer(const SharedPtr<const IVulkanImage>& source, const IVulkanImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
 	this->transfer(*source, target, sourceSubresource, targetSubresource, subresources);
-	m_impl->m_sharedResources.push_back(source);
+	m_impl->m_trackedResources.Resources.push_back(source);
 }
 
 void VulkanCommandBuffer::transfer(const SharedPtr<const IVulkanImage>& source, const IVulkanBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
 	this->transfer(*source, target, firstSubresource, targetElement, subresources);
-	m_impl->m_sharedResources.push_back(source);
+	m_impl->m_trackedResources.Resources.push_back(source);
 }
 
 void VulkanCommandBuffer::use(const VulkanPipelineState& pipeline) const noexcept
@@ -836,8 +849,8 @@ void VulkanCommandBuffer::execute(Enumerable<SharedPtr<const VulkanCommandBuffer
 
 void VulkanCommandBuffer::releaseSharedState() const
 {
-	m_impl->m_sharedResources.clear();
-	m_impl->m_trackedDescriptorSets.clear();
+	m_impl->m_trackedResources.Resources.clear();
+	m_impl->m_trackedResources.DescriptorSets.clear();
 }
 
 void VulkanCommandBuffer::buildAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const

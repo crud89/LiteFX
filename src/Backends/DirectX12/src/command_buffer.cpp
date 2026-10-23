@@ -15,11 +15,10 @@ private:
 	bool m_recording{ false }, m_secondary{ false };
 	WeakPtr<const DirectX12Queue> m_queue;
 	WeakPtr<const DirectX12Device> m_device;
-	Array<SharedPtr<const IStateResource>> m_sharedResources;
-	Array<UniquePtr<const IDescriptorSet>> m_trackedDescriptorSets;
 	const DirectX12PipelineState* m_lastPipeline = nullptr;
 	ComPtr<ID3D12CommandSignature> m_dispatchSignature, m_drawSignature, m_drawIndexedSignature, m_dispatchMeshSignature;
 	bool m_canBindDescriptorHeaps = false;
+	TrackedResources m_trackedResources{};
 
 public:
 	DirectX12CommandBufferImpl(const DirectX12Queue& queue) :
@@ -78,8 +77,8 @@ public:
 		m_recording = true;
 
 		// If it was possible to reset the command buffer, we can also safely release shared resources from previous recordings.
-		m_sharedResources.clear();
-		m_trackedDescriptorSets.clear();
+		m_trackedResources.Resources.clear();
+		m_trackedResources.DescriptorSets.clear();
 	}
 
 	inline void bindDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer)
@@ -122,7 +121,7 @@ public:
 		commandBuffer.handle()->BuildRaytracingAccelerationStructure(&blasDesc, 0, nullptr);
 
 		// Store the scratch buffer.
-		m_sharedResources.push_back(scratchBuffer);
+		m_trackedResources.Resources.push_back(scratchBuffer);
 	}
 
 	inline void buildAccelerationStructure(const DirectX12CommandBuffer& commandBuffer, DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
@@ -164,8 +163,8 @@ public:
 		commandBuffer.handle()->BuildRaytracingAccelerationStructure(&tlasDesc, 0, nullptr);
 
 		// Store the scratch buffer.
-		m_sharedResources.emplace_back(instanceBuffer);
-		m_sharedResources.emplace_back(scratchBuffer);
+		m_trackedResources.Resources.emplace_back(instanceBuffer);
+		m_trackedResources.Resources.emplace_back(scratchBuffer);
 	}
 };
 
@@ -207,13 +206,18 @@ void DirectX12CommandBuffer::end() const
 	m_impl->m_recording = false;
 }
 
+const ICommandBuffer::TrackedResources& DirectX12CommandBuffer::trackedResources() const noexcept
+{
+	return m_impl->m_trackedResources;
+}
+
 void DirectX12CommandBuffer::track(SharedPtr<const IBuffer> buffer) const
 {
 	if (!m_impl->m_recording)
 		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
 
 	if (buffer != nullptr)
-		m_impl->m_sharedResources.push_back(buffer);
+		m_impl->m_trackedResources.Resources.push_back(buffer);
 }
 
 void DirectX12CommandBuffer::track(SharedPtr<const IImage> image) const
@@ -222,7 +226,7 @@ void DirectX12CommandBuffer::track(SharedPtr<const IImage> image) const
 		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
 
 	if (image != nullptr)
-		m_impl->m_sharedResources.push_back(image);
+		m_impl->m_trackedResources.Resources.push_back(image);
 }
 
 void DirectX12CommandBuffer::track(SharedPtr<const ISampler> sampler) const
@@ -231,7 +235,7 @@ void DirectX12CommandBuffer::track(SharedPtr<const ISampler> sampler) const
 		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
 
 	if (sampler != nullptr)
-		m_impl->m_sharedResources.push_back(sampler);
+		m_impl->m_trackedResources.Resources.push_back(sampler);
 }
 
 void DirectX12CommandBuffer::track(UniquePtr<const IDescriptorSet>&& descriptorSet) const
@@ -240,7 +244,16 @@ void DirectX12CommandBuffer::track(UniquePtr<const IDescriptorSet>&& descriptorS
 		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
 	
 	if (descriptorSet != nullptr)
-		m_impl->m_trackedDescriptorSets.push_back(std::move(descriptorSet));
+		m_impl->m_trackedResources.DescriptorSets.push_back(std::move(descriptorSet));
+}
+
+void DirectX12CommandBuffer::track(UniquePtr<const IDescriptorRange>&& descriptorRange) const
+{
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
+	
+	if (descriptorRange != nullptr)
+		m_impl->m_trackedResources.DescriptorRanges.push_back(std::move(descriptorRange));
 }
 
 bool DirectX12CommandBuffer::isSecondary() const noexcept
@@ -486,25 +499,25 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDire
 void DirectX12CommandBuffer::transfer(const SharedPtr<const IDirectX12Buffer>& source, const IDirectX12Buffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
 	this->transfer(*source, target, sourceElement, targetElement, elements);
-	m_impl->m_sharedResources.push_back(source);
+	m_impl->m_trackedResources.Resources.push_back(source);
 }
 
 void DirectX12CommandBuffer::transfer(const SharedPtr<const IDirectX12Buffer>& source, const IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
 	this->transfer(*source, target, sourceElement, firstSubresource, elements);
-	m_impl->m_sharedResources.push_back(source);
+	m_impl->m_trackedResources.Resources.push_back(source);
 }
 
 void DirectX12CommandBuffer::transfer(const SharedPtr<const IDirectX12Image>& source, const IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
 	this->transfer(*source, target, sourceSubresource, targetSubresource, subresources);
-	m_impl->m_sharedResources.push_back(source);
+	m_impl->m_trackedResources.Resources.push_back(source);
 }
 
 void DirectX12CommandBuffer::transfer(const SharedPtr<const IDirectX12Image>& source, const IDirectX12Buffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
 	this->transfer(*source, target, firstSubresource, targetElement, subresources);
-	m_impl->m_sharedResources.push_back(source);
+	m_impl->m_trackedResources.Resources.push_back(source);
 }
 
 void DirectX12CommandBuffer::use(const DirectX12PipelineState& pipeline) const noexcept
@@ -681,8 +694,8 @@ void DirectX12CommandBuffer::execute(Enumerable<SharedPtr<const DirectX12Command
 
 void DirectX12CommandBuffer::releaseSharedState() const
 {
-	m_impl->m_sharedResources.clear();
-	m_impl->m_trackedDescriptorSets.clear();
+	m_impl->m_trackedResources.Resources.clear();
+	m_impl->m_trackedResources.DescriptorSets.clear();
 }
 
 void DirectX12CommandBuffer::buildAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const

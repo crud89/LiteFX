@@ -6286,6 +6286,18 @@ namespace LiteFX::Rendering {
     public:
         friend class ICommandQueue;
 
+        /// @brief Stores the resources that are tracked by the command buffer until they can be safely released.
+        struct TrackedResources final {
+            /// @brief Stores tracked resources, such as buffers, images or samplers.
+            Array<SharedPtr<const IStateResource>> Resources{};
+
+            /// @brief Stores tracked descriptor sets.
+            Array<UniquePtr<const IDescriptorSet>> DescriptorSets{};
+
+            /// @brief Stores tracked descriptor ranges.
+            Array<UniquePtr<const IDescriptorRange>> DescriptorRanges{};
+        };
+
     protected:
         ICommandBuffer() noexcept = default;
         ICommandBuffer(ICommandBuffer&&) noexcept = default;
@@ -6316,6 +6328,11 @@ namespace LiteFX::Rendering {
         ///
         /// @return `true`, if the command buffer is a secondary command buffer, or `false` otherwise.
         virtual bool isSecondary() const noexcept = 0;
+
+        /// @brief Returns the resources that are currently tracked by the command buffer.
+        /// 
+        /// @return A reference to the tracked resources container.
+        virtual const TrackedResources& trackedResources() const noexcept = 0;
 
         /// @brief Sets up tracking for a buffer, so that it will not be destroyed until the command buffer has been executed.
         ///
@@ -6350,6 +6367,11 @@ namespace LiteFX::Rendering {
         ///
         /// @param descriptorSet The descriptor set to track.
         virtual void track(UniquePtr<const IDescriptorSet>&& descriptorSet) const = 0;
+
+        /// @brief Sets up tracking for a descriptor range, so that descriptors within it aren't released until the command buffer has been executed.
+        ///
+        /// @param descriptorRange The descriptor range to track.
+        virtual void track(UniquePtr<const IDescriptorRange>&& descriptorRange) const = 0;
 
     public:
         /// @brief Gets a pointer to the command queue that this command buffer was allocated from or `nullptr`, if the queue has already been released.
