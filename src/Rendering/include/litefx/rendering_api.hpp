@@ -6281,6 +6281,27 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<const IPipelineLayout> getLayout() const noexcept = 0;
     };
 
+    /// @brief An opaque interface that stores the command allocator used by a @ref ICommandBuffer.
+    class LITEFX_RENDERING_API ICommandAllocatorHandle {
+    protected:
+        ICommandAllocatorHandle() = default;
+        ICommandAllocatorHandle(const ICommandAllocatorHandle&) = delete;
+        ICommandAllocatorHandle(ICommandAllocatorHandle&&) noexcept = delete;
+        ICommandAllocatorHandle& operator=(const ICommandAllocatorHandle&) = delete;
+        ICommandAllocatorHandle& operator=(ICommandAllocatorHandle&&) noexcept = delete;
+
+    public:
+        virtual ~ICommandAllocatorHandle() noexcept = default;
+
+    public:
+        /// @brief Releases the underlying command allocator, such that it can be used by another @ref ICommandBuffer in the future.
+        ///
+        /// This function is called by @ref ICommandBuffer::end. The underlying command allocator can then be used by additional command buffers to record 
+        /// commands, until the underlying queue is submitted. If a command buffer destroys the handle without calling this function, its commands will be
+        /// discarded instead.
+        virtual void release() noexcept = 0;
+    };
+
     /// @brief The interface for a command buffer.
     class LITEFX_RENDERING_API ICommandBuffer : public SharedObject {
     public:
@@ -6288,6 +6309,9 @@ namespace LiteFX::Rendering {
 
         /// @brief Stores the resources that are tracked by the command buffer until they can be safely released.
         struct TrackedResources final {
+            /// @brief Stores secondary command buffers executed by the owning command buffer.
+            Array<SharedPtr<const ICommandBuffer>> SecondaryCommandBuffers{};
+
             /// @brief Stores tracked resources, such as buffers, images or samplers.
             Array<SharedPtr<const IStateResource>> Resources{};
 

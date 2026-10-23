@@ -10,6 +10,294 @@ extern PFN_vkQueueInsertDebugUtilsLabelEXT  vkQueueInsertDebugUtilsLabel;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
+// Command allocator pool.
+// ------------------------------------------------------------------------------------------------
+
+class VulkanCommandAllocatorPool final {
+public:
+	struct Allocator {
+		VkCommandPool Pool{};
+		Array<VkCommandBuffer> FreePrimaries{}, FreeSecondaries{};
+		Array<VkCommandBuffer> UsedPrimaries{}, UsedSecondaries{};
+		UInt32 Unsubmitted{ 0 };
+		UInt64 Fence{ 0 };
+		bool Leased{ false }, Sealed{ false };
+		ICommandBuffer::TrackedResources TrackedState{};
+
+		bool isAvailable() const noexcept { return !Leased && !Sealed; }
+		bool isIdle() const noexcept { return !Leased && Unsubmitted == 0; }
+	};
+
+private:
+	static constexpr UInt32 MAX_IDLE_ALLOCATORS = 8;
+
+	mutable std::mutex m_mutex;
+	WeakPtr<const VulkanDevice> m_device;
+	UInt32 m_queueFamily;
+	Array<UniquePtr<Allocator>> m_allocators{};
+
+public:
+	VulkanCommandAllocatorPool(const VulkanDevice& device, UInt32 queueFamily) :
+		m_device(device.weak_from_this()), m_queueFamily(queueFamily)
+	{
+	}
+
+	VulkanCommandAllocatorPool(const VulkanCommandAllocatorPool&) = delete;
+	VulkanCommandAllocatorPool(VulkanCommandAllocatorPool&&) noexcept = delete;
+	VulkanCommandAllocatorPool& operator=(const VulkanCommandAllocatorPool&) = delete;
+	VulkanCommandAllocatorPool& operator=(VulkanCommandAllocatorPool&&) noexcept = delete;
+
+	~VulkanCommandAllocatorPool() noexcept
+	{
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+		{
+			if (!m_allocators.empty())
+				LITEFX_FATAL_ERROR(VULKAN_LOG, "Invalid attempt to release command allocators after the parent device has been released.");
+
+			return;
+		}
+
+		// Destroying a command pool also frees all command buffers allocated from it.
+		for (auto& allocator : m_allocators)
+			::vkDestroyCommandPool(device->handle(), allocator->Pool, nullptr);
+	}
+
+private:
+	// Collects all resources associated with the provided fence, so that they can be released, and resets the pools that are completed or discarded.
+	void reset(UInt64 completedFence, Array<ICommandBuffer::TrackedResources>& resources)
+	{
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			return;
+
+		// Go through each allocator that is currently not leased and can thus be cleaned up.
+		for (auto& allocator : m_allocators | std::views::filter([](const auto& allocator) { return allocator->isIdle(); }))
+		{
+			// Sealed allocators must wait for their fence. Unsealed ones only need a reset, if they contain discarded recordings.
+			bool hasCompleted = allocator->Sealed && allocator->Fence <= completedFence;
+			bool hasDiscarded = !allocator->Sealed && (!allocator->UsedPrimaries.empty() || !allocator->UsedSecondaries.empty());
+
+			if (!hasCompleted && !hasDiscarded)
+				continue;
+
+			// Reset the pool.
+			raiseIfFailed(::vkResetCommandPool(device->handle(), allocator->Pool, 0), "Unable to reset command pool.");
+
+			// After a pool reset, all command buffers allocated from it are in initial state and can be reused.
+			allocator->FreePrimaries.append_range(allocator->UsedPrimaries);
+			allocator->FreeSecondaries.append_range(allocator->UsedSecondaries);
+			allocator->UsedPrimaries.clear();
+			allocator->UsedSecondaries.clear();
+
+			// Store the resources tracked by the allocator in the caller's array.
+			resources.push_back(std::exchange(allocator->TrackedState, {}));
+			allocator->Sealed = false;
+			allocator->Fence = 0;
+		}
+
+		// Trim idle allocators beyond the limit.
+		UInt32 idle{ 0 };
+
+		std::erase_if(m_allocators, [&](const auto& allocator) {
+			if (!allocator->isIdle() || allocator->Sealed || ++idle <= MAX_IDLE_ALLOCATORS)
+				return false;
+
+			::vkDestroyCommandPool(device->handle(), allocator->Pool, nullptr);
+			return true;
+		});
+	}
+
+	// Creates a new allocator instance. 
+	Allocator* getAllocator()
+	{
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot create command allocator for a released device instance.");
+
+		VkCommandPoolCreateInfo poolInfo = {
+			.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+			.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
+			.queueFamilyIndex = m_queueFamily
+		};
+
+		auto allocator = makeUnique<Allocator>();
+		raiseIfFailed(::vkCreateCommandPool(device->handle(), &poolInfo, nullptr, &allocator->Pool), "Unable to create command pool.");
+
+		return m_allocators.emplace_back(std::move(allocator)).get();
+	}
+
+public:
+	Allocator& acquire(UInt64 completedFence)
+	{
+		// Store the tracked resources that can be released until the lock is released. Declaration order matters here; garbage is released after the lock is unlocked.
+		Array<ICommandBuffer::TrackedResources> garbage{};
+		std::lock_guard lock(m_mutex);
+
+		// Reset all allocators that have completed.
+		this->reset(completedFence, garbage);
+
+		// Find an available allocator. Prefer allocators which already store recordings, to reduce the total number of allocators if possible.
+		auto match = std::ranges::find_if(m_allocators, [](const auto& allocator) { return allocator->isAvailable() && allocator->Unsubmitted > 0; });
+
+		if (match == m_allocators.end())
+			match = std::ranges::find_if(m_allocators, [](const auto& allocator) { return allocator->isAvailable(); });
+
+		// Get the allocator or create a new one, if none was found.
+		Allocator* allocator = match != m_allocators.end() ? match->get() : this->getAllocator();
+		allocator->Leased = true;
+		++allocator->Unsubmitted;
+
+		return *allocator;
+	}
+
+	// Returns a fresh command buffer from the allocator.
+	VkCommandBuffer allocate(Allocator& allocator, bool secondary)
+	{
+		std::lock_guard lock(m_mutex);
+		assert(allocator.Leased);
+
+		// Check if there are unused command buffers in the allocator and re-use them.
+		auto& freeBuffers = secondary ? allocator.FreeSecondaries : allocator.FreePrimaries;
+		auto& usedBuffers = secondary ? allocator.UsedSecondaries : allocator.UsedPrimaries;
+
+		VkCommandBuffer buffer{};
+
+		if (!freeBuffers.empty())
+		{
+			buffer = freeBuffers.back();
+			freeBuffers.pop_back();
+		}
+		else
+		{
+			// Otherwise create a new command buffer.
+			auto device = m_device.lock();
+
+			if (device == nullptr) [[unlikely]]
+				throw RuntimeException("Cannot allocate command buffer from a released device instance.");
+
+			VkCommandBufferAllocateInfo bufferInfo = {
+				.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+				.commandPool = allocator.Pool,
+				.level = secondary ? VK_COMMAND_BUFFER_LEVEL_SECONDARY : VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+				.commandBufferCount = 1
+			};
+
+			raiseIfFailed(::vkAllocateCommandBuffers(device->handle(), &bufferInfo, &buffer), "Unable to allocate command buffer.");
+		}
+
+		usedBuffers.push_back(buffer);
+		return buffer;
+	}
+
+	// Ends the recording. Other command buffers may record into the allocator afterwards.
+	void release(Allocator& allocator) noexcept
+	{
+		std::lock_guard lock(m_mutex);
+		allocator.Leased = false;
+	}
+
+	// Seals the allocator and retains copies of the tracked resources until `fence` has passed.
+	void submitted(Allocator& allocator, UInt64 fence, bool firstSubmission, const ICommandBuffer::TrackedResources& resources)
+	{
+		std::lock_guard lock(m_mutex);
+
+		allocator.Sealed = true;
+		allocator.Fence = std::max(allocator.Fence, fence);
+
+		if (firstSubmission)
+		{
+			assert(allocator.Unsubmitted > 0);
+			--allocator.Unsubmitted;
+		}
+
+		auto& state = allocator.TrackedState;
+
+		state.Resources.append_range(resources.Resources);
+		state.DescriptorSets.append_range(resources.DescriptorSets);
+		state.DescriptorRanges.append_range(resources.DescriptorRanges);
+		state.SecondaryCommandBuffers.append_range(resources.SecondaryCommandBuffers);
+	}
+
+	// Drops a recording that has never been submitted. The command buffer keeps its own references, so no state is needed.
+	void discarded(Allocator& allocator) noexcept
+	{
+		std::lock_guard lock(m_mutex);
+
+		assert(allocator.Unsubmitted > 0);
+		allocator.Leased = false;
+		--allocator.Unsubmitted;
+	}
+
+	// Resets all allocators whose recordings have completed or have been discarded.
+	void recycle(UInt64 completedFence)
+	{
+		// Store the tracked resources that can be released until the lock is released. Declaration order matters here; garbage is released after the lock is unlocked.
+		Array<ICommandBuffer::TrackedResources> garbage{};
+		std::lock_guard lock(m_mutex);
+
+		this->reset(completedFence, garbage);
+	}
+};
+
+// ------------------------------------------------------------------------------------------------
+// Command allocator handle.
+// ------------------------------------------------------------------------------------------------
+
+class VulkanCommandAllocatorHandle final : public ICommandAllocatorHandle {
+private:
+	SharedPtr<VulkanCommandAllocatorPool> m_pool; 
+	VulkanCommandAllocatorPool::Allocator* m_allocator;
+	VkCommandBuffer m_commandBuffer;
+	bool m_recording{ true }, m_submitted{ false };
+
+public:
+	VulkanCommandAllocatorHandle(SharedPtr<VulkanCommandAllocatorPool> pool, VulkanCommandAllocatorPool::Allocator& allocator, VkCommandBuffer commandBuffer) noexcept :
+		m_pool(std::move(pool)), m_allocator(&allocator), m_commandBuffer(commandBuffer)
+	{
+	}
+
+	VulkanCommandAllocatorHandle(const VulkanCommandAllocatorHandle&) = delete;
+	VulkanCommandAllocatorHandle(VulkanCommandAllocatorHandle&&) noexcept = delete;
+	VulkanCommandAllocatorHandle& operator=(const VulkanCommandAllocatorHandle&) = delete;
+	VulkanCommandAllocatorHandle& operator=(VulkanCommandAllocatorHandle&&) noexcept = delete;
+
+	~VulkanCommandAllocatorHandle() noexcept override
+	{
+		if (!m_submitted)
+			m_pool->discarded(*m_allocator);
+	}
+
+public:
+	VkCommandBuffer commandBuffer() const noexcept 
+	{
+		return m_commandBuffer; 
+	}
+
+	void release() noexcept override
+	{
+		if (m_recording)
+		{
+			m_pool->release(*m_allocator);
+			m_recording = false;
+		}
+	}
+
+	void submitted(UInt64 fence, const ICommandBuffer::TrackedResources& resources)
+	{
+		assert(!m_recording && "Command buffers must be ended before they are submitted.");
+		assert(!m_submitted && "A recording can only be submitted once.");
+
+		m_pool->submitted(*m_allocator, fence, true, resources);
+		m_submitted = true;
+		m_allocator = nullptr;
+	}
+};
+
+// ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
