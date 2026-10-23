@@ -19,7 +19,7 @@ private:
 	QueueType m_type;
 	QueuePriority m_priority;
 	ComPtr<ID3D12Fence> m_fence;
-	UInt64 m_fenceValue{ 0 };
+	std::atomic<UInt64> m_fenceValue{ 0 };
 	mutable std::mutex m_mutex;
 	Array<Tuple<UInt64, SharedPtr<const DirectX12CommandBuffer>>> m_submittedCommandBuffers;
 
@@ -122,17 +122,17 @@ QueueType DirectX12Queue::type() const noexcept
 }
 
 #if defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
-void DirectX12Queue::beginDebugRegion(const String& label, const Vectors::ByteVector3& color) const noexcept
+void DirectX12Queue::beginDebugRegion(const String& label, const Vectors::ByteVector3& color) const
 {
 	::PIXBeginEvent(this->handle().Get(), PIX_COLOR(color.x(), color.y(), color.z()), label.c_str());
 }
 
-void DirectX12Queue::endDebugRegion() const noexcept
+void DirectX12Queue::endDebugRegion() const
 {
 	::PIXEndEvent(this->handle().Get());
 }
 
-void DirectX12Queue::setDebugMarker(const String& label, const Vectors::ByteVector3& color) const noexcept
+void DirectX12Queue::setDebugMarker(const String& label, const Vectors::ByteVector3& color) const
 {
 	::PIXSetMarker(this->handle().Get(), PIX_COLOR(color.x(), color.y(), color.z()), label.c_str());
 }
@@ -156,12 +156,12 @@ UInt64 DirectX12Queue::submit(const SharedPtr<const DirectX12CommandBuffer>& com
 	if (commandBuffer->isSecondary())
 		throw InvalidArgumentException("commandBuffer", "The command buffer must be a primary command buffer.");
 
-	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
-
 	// Begin event.
 	this->submitting(this, { { std::static_pointer_cast<const ICommandBuffer>(commandBuffer) } });
 
 	// Remove all previously submitted command buffers, that have already finished.
+	std::unique_lock<std::mutex> lock(m_impl->m_mutex);
+
 	auto completedValue = m_impl->m_fence->GetCompletedValue();
 	m_impl->releaseCommandBuffers(*this, completedValue);
 
@@ -173,14 +173,16 @@ UInt64 DirectX12Queue::submit(const SharedPtr<const DirectX12CommandBuffer>& com
 	this->handle()->ExecuteCommandLists(1, commandBuffers.data());
 
 	// Insert a fence and return the value.
-	auto fence = ++m_impl->m_fenceValue;
+	auto fence = m_impl->m_fenceValue.fetch_add(1u) + 1u;
 	raiseIfFailed(this->handle()->Signal(m_impl->m_fence.Get(), fence), "Unable to add fence signal to command buffer.");
 
 	// Add the command buffer to the submitted command buffers list.
 	m_impl->m_submittedCommandBuffers.emplace_back(fence, commandBuffer);
 
 	// Fire end event.
+	lock.release();
 	this->submitted(this, { fence });
+
 	return fence;
 }
 
@@ -192,14 +194,14 @@ UInt64 DirectX12Queue::submit(Enumerable<SharedPtr<const DirectX12CommandBuffer>
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return !buffer->isSecondary(); }))
 		throw InvalidArgumentException("commandBuffers", "At least one command buffer is a secondary command buffer, which is not allowed to be submitted to a command queue.");
 
-	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
-
 	// Begin event.
 	this->submitting(this, { commandBuffers 
 		| std::views::transform([](const SharedPtr<const DirectX12CommandBuffer>& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); }) 
 		| std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>() });
 
 	// Remove all previously submitted command buffers, that have already finished.
+	std::unique_lock<std::mutex> lock(m_impl->m_mutex);
+
 	auto completedValue = m_impl->m_fence->GetCompletedValue();
 	m_impl->releaseCommandBuffers(*this, completedValue);
 
@@ -214,19 +216,26 @@ UInt64 DirectX12Queue::submit(Enumerable<SharedPtr<const DirectX12CommandBuffer>
 	this->handle()->ExecuteCommandLists(static_cast<UInt32>(handles.size()), handles.data());
 
 	// Insert a fence and return the value.
-	auto fence = ++m_impl->m_fenceValue;
+	auto fence = m_impl->m_fenceValue.fetch_add(1u) + 1u;
 	raiseIfFailed(this->handle()->Signal(m_impl->m_fence.Get(), fence), "Unable to add fence signal to command buffer.");
 
 	// Add the command buffers to the submitted command buffers list.
 	std::ranges::for_each(commandBuffers, [this, &fence](const SharedPtr<const DirectX12CommandBuffer>& buffer) { m_impl->m_submittedCommandBuffers.emplace_back(fence, buffer); });
 
 	// Fire end event.
+	lock.release();
 	this->submitted(this, { fence });
+
 	return fence;
 }
 
 void DirectX12Queue::waitFor(UInt64 fence) const
 {
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot wait for fence on a released device instance.");
+
 	auto completedValue = m_impl->m_fence->GetCompletedValue();
 
 	if (completedValue < fence)
@@ -241,17 +250,31 @@ void DirectX12Queue::waitFor(UInt64 fence) const
 		raiseIfFailed(hr, "Unable to register fence completion event.");
 	}
 
+	// Synchronize command buffer release.
+	std::lock_guard<std::mutex> lock{ m_impl->m_mutex };
+
 	m_impl->releaseCommandBuffers(*this, fence);
 }
 
-void DirectX12Queue::waitFor(const DirectX12Queue& queue, UInt64 fence) const noexcept
+void DirectX12Queue::waitFor(const DirectX12Queue& queue, UInt64 fence) const
 {
+	// Waiting for a future fence value is possible, but most certainly not intended, since there's a risk of deadlocking the queue, if the fence never is submitted.
+	if (fence > queue.currentFence()) [[unlikely]]
+	{
+		LITEFX_ERROR(DIRECTX12_LOG, "Cannot wait for fence {0}, which has not been submitted to the queue yet. The current fence is at {1}.", fence, queue.currentFence());
+		return;
+	}
+	else if (fence == 0)
+	{
+		return;
+	}
+
 	this->handle()->Wait(queue.m_impl->m_fence.Get(), fence);
 }
 
 UInt64 DirectX12Queue::currentFence() const noexcept
 {
-	return m_impl->m_fenceValue;
+	return m_impl->m_fenceValue.load(std::memory_order_acquire);
 }
 
 UInt64 DirectX12Queue::lastCompletedFence() const noexcept

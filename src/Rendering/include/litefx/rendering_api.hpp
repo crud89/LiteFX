@@ -8121,12 +8121,12 @@ namespace LiteFX::Rendering {
         ///
         /// @param label The name of the debug region.
         /// @param color The color of the debug region.
-        virtual void beginDebugRegion([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept { };
+        virtual void beginDebugRegion([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const { };
         
         /// @brief Ends the current debug region.
         ///
         /// This is a debug helper, that is not required to be implemented. In the built-in backends, it will no-op by default in non-debug builds.
-        virtual void endDebugRegion() const noexcept { };
+        virtual void endDebugRegion() const { };
 
         /// @brief Inserts a debug marker.
         ///
@@ -8134,7 +8134,7 @@ namespace LiteFX::Rendering {
         ///
         /// @param label The name of the debug marker.
         /// @param color The color of the debug marker.
-        virtual void setDebugMarker([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept { };
+        virtual void setDebugMarker([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const { };
 
     public:
         /// @brief Invoked, when one or more command buffers are submitted to the queue.
@@ -8209,6 +8209,9 @@ namespace LiteFX::Rendering {
         ///
         /// This overload performs a GPU-side wait, i.e., the current command queue waits until @p queue has passed the fence value provided by the @p fence parameter. This overload does return immediately and
         /// does not block the CPU.
+        /// 
+        /// Waiting for a @p fence that is larger than @ref ICommandQueue::currentFence on @p queue returns is erroneous, since it would wait for a future submission, that may be blocked by another wait. This can
+        /// cause deadlocks and should be avoided. A @p fence value of `0` is a no-op, as it is always satisfied.
         ///
         /// @param queue The queue to wait upon.
         /// @param fence The value of the fence to wait upon on the other queue.

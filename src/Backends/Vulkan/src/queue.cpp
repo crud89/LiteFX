@@ -22,8 +22,7 @@ private:
 	QueuePriority m_priority;
 	UInt32 m_familyId, m_queueId;
 	VkSemaphore m_timelineSemaphore{};
-	UInt64 m_fenceValue{ 0 };
-	mutable std::mutex m_mutex;
+	std::atomic<UInt64> m_fenceValue{ 0 };
 	WeakPtr<const VulkanDevice> m_device;
 	Array<Tuple<UInt64, SharedPtr<const VulkanCommandBuffer>>> m_submittedCommandBuffers;
 	Array<VkSemaphoreSubmitInfo> m_crossQueueWaitInfos{};
@@ -62,7 +61,7 @@ public:
 		VkSemaphoreTypeCreateInfo timelineCreateInfo = {
 			.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO,
 			.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE,
-			.initialValue = m_fenceValue
+			.initialValue = m_fenceValue.load(std::memory_order_acquire)
 		};
 
 		VkSemaphoreCreateInfo createInfo = {
@@ -132,8 +131,15 @@ QueueType VulkanQueue::type() const noexcept
 }
 
 #ifdef LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
-void VulkanQueue::beginDebugRegion(const String& label, const Vectors::ByteVector3& color) const noexcept
+void VulkanQueue::beginDebugRegion(const String& label, const Vectors::ByteVector3& color) const
 {
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot begin debug region in a queue on a released device instance.");
+
+	std::lock_guard<std::mutex> lock{ device->queueMutex(m_impl->m_familyId, m_impl->m_queueId) };
+
 	VkDebugUtilsLabelEXT labelInfo {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
 		.pLabelName = label.c_str(),
@@ -144,14 +150,28 @@ void VulkanQueue::beginDebugRegion(const String& label, const Vectors::ByteVecto
 		::vkQueueBeginDebugUtilsLabel(this->handle(), &labelInfo);
 }
 
-void VulkanQueue::endDebugRegion() const noexcept
+void VulkanQueue::endDebugRegion() const
 {
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot end debug region in a queue on a released device instance.");
+
+	std::lock_guard<std::mutex> lock{ device->queueMutex(m_impl->m_familyId, m_impl->m_queueId) };
+
 	if (::vkQueueEndDebugUtilsLabel)
 		::vkQueueEndDebugUtilsLabel(this->handle());
 }
 
-void VulkanQueue::setDebugMarker(const String& label, const Vectors::ByteVector3& color) const noexcept
+void VulkanQueue::setDebugMarker(const String& label, const Vectors::ByteVector3& color) const
 {
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot set debug marker in a queue on a released device instance.");
+
+	std::lock_guard<std::mutex> lock{ device->queueMutex(m_impl->m_familyId, m_impl->m_queueId) };
+
 	VkDebugUtilsLabelEXT labelInfo {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
 		.pLabelName = label.c_str(),
@@ -186,10 +206,10 @@ UInt64 VulkanQueue::submit(const SharedPtr<const VulkanCommandBuffer>& commandBu
 	if (commandBuffer->isSecondary()) [[unlikely]]
 		throw InvalidArgumentException("commandBuffer", "The command buffer must be a primary command buffer.");
 
-	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
-
 	// Begin event.
 	this->submitting(this, { { std::static_pointer_cast<const ICommandBuffer>(commandBuffer) } });
+
+	std::unique_lock<std::mutex> lock(device->queueMutex(m_impl->m_familyId, m_impl->m_queueId));
 
 	// Remove all previously submitted command buffers, that have already finished.
 	UInt64 completedValue = 0;
@@ -201,8 +221,8 @@ UInt64 VulkanQueue::submit(const SharedPtr<const VulkanCommandBuffer>& commandBu
 
 	// Submit the command buffer. Here we wait for the current fence on the queue, which enforces command buffers to be executed sequentially. This isn't necessary in Vulkan, but it 
 	// matches the D3D12 behavior. This allows us to make portable assumptions for barriers (e.g., first-use barriers can use ResourceAccess::None, etc.).
-	auto currentFence = m_impl->m_fenceValue;
-	auto signalFence = ++m_impl->m_fenceValue;
+	auto currentFence = m_impl->m_fenceValue.fetch_add(1u);
+	auto signalFence = currentFence + 1u;
 
 	VkSemaphoreSubmitInfo waitSemaphoreInfo = {
 		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
@@ -243,18 +263,19 @@ UInt64 VulkanQueue::submit(const SharedPtr<const VulkanCommandBuffer>& commandBu
 	catch (...)
 	{
 		// Prevent deadlocks if this fails.
-		--m_impl->m_fenceValue;
+		m_impl->m_fenceValue.fetch_sub(1u);
 		throw;
 	}
 
 	// Add the command buffer to the submitted command buffers list.
 	m_impl->m_submittedCommandBuffers.emplace_back(signalFence, commandBuffer);
 
-	// Fire end event.
-	this->submitted(this, { signalFence });
-
 	// Clear the wait list.
 	m_impl->m_crossQueueWaitInfos.clear();
+
+	// Fire end event.
+	lock.release();
+	this->submitted(this, { signalFence });
 
 	return signalFence;
 }
@@ -272,12 +293,12 @@ UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> comm
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return !buffer->isSecondary(); })) [[unlikely]]
 		throw InvalidArgumentException("commandBuffers", "At least one command buffer is a secondary command buffer, which is not allowed to be submitted to a command queue.");
 
-	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
-
 	// Begin event.
 	this->submitting(this, { commandBuffers 
 		| std::views::transform([](const SharedPtr<const VulkanCommandBuffer>& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); })
 		| std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>() });
+
+	std::unique_lock<std::mutex> lock(device->queueMutex(m_impl->m_familyId, m_impl->m_queueId));
 
 	// Remove all previously submitted command buffers, that have already finished.
 	UInt64 completedValue = 0;
@@ -296,8 +317,8 @@ UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> comm
 
 	// Submit the command buffer. Here we wait for the current fence on the queue, which enforces command buffers to be executed sequentially. This isn't necessary in Vulkan, but it 
 	// matches the D3D12 behavior. This allows us to make portable assumptions for barriers (e.g., first-use barriers can use ResourceAccess::None, etc.).
-	auto currentFence = m_impl->m_fenceValue;
-	auto signalfence = ++m_impl->m_fenceValue;
+	auto currentFence = m_impl->m_fenceValue.fetch_add(1u);
+	auto signalFence = currentFence + 1u;
 	
 	VkSemaphoreSubmitInfo waitSemaphoreInfo = {
 		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
@@ -311,7 +332,7 @@ UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> comm
 	VkSemaphoreSubmitInfo signalSemaphoreInfo = {
 		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
 		.semaphore = m_impl->m_timelineSemaphore,
-		.value = signalfence,
+		.value = signalFence,
 		.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT
 	};
 
@@ -333,20 +354,21 @@ UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> comm
 	catch (...)
 	{
 		// Prevent deadlocks if this fails.
-		--m_impl->m_fenceValue;
+		m_impl->m_fenceValue.fetch_sub(1u);
 		throw;
 	}
 
 	// Add the command buffers to the submitted command buffers list.
-	std::ranges::for_each(commandBuffers, [this, &signalfence](const SharedPtr<const VulkanCommandBuffer>& buffer) { m_impl->m_submittedCommandBuffers.emplace_back(signalfence, buffer); });
-
-	// Fire end event.
-	this->submitted(this, { signalfence });
+	std::ranges::for_each(commandBuffers, [this, &signalFence](const SharedPtr<const VulkanCommandBuffer>& buffer) { m_impl->m_submittedCommandBuffers.emplace_back(signalFence, buffer); });
 
 	// Clear the wait list.
 	m_impl->m_crossQueueWaitInfos.clear();
 
-	return signalfence;
+	// Fire end event.
+	lock.release();
+	this->submitted(this, { signalFence });
+
+	return signalFence;
 }
 
 void VulkanQueue::waitFor(UInt64 fence) const
@@ -371,15 +393,34 @@ void VulkanQueue::waitFor(UInt64 fence) const
 		raiseIfFailed(::vkWaitSemaphores(device->handle(), &waitInfo, std::numeric_limits<UInt64>::max()), "Unable to wait for queue timeline semaphore.");
 	}
 
+	// Synchronize command buffer release.
+	std::lock_guard<std::mutex> lock{ device->queueMutex(m_impl->m_familyId, m_impl->m_queueId) };
+
 	m_impl->releaseCommandBuffers(*this, fence);
 }
 
-void VulkanQueue::waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept // NOLINT(bugprone-exception-escape)
+void VulkanQueue::waitFor(const VulkanQueue& queue, UInt64 fence) const
 {
+	// Waiting for a future fence value is possible, but most certainly not intended, since there's a risk of deadlocking the queue, if the fence never is submitted.
+	if (fence > queue.currentFence()) [[unlikely]] 
+	{
+		LITEFX_ERROR(VULKAN_LOG, "Cannot wait for fence {0}, which has not been submitted to the queue yet. The current fence is at {1}.", fence, queue.currentFence());
+		return;
+	}
+	else if (fence == 0)
+	{
+		return;
+	}
+
 	// We cannot directly push an empty submission with only synchronization primitives to the queue, since Vulkan doesn't define how they should be serialized by the 
 	// driver. Instead we cache the fence and semaphore and append it to the next submission's wait list. This also means, that the other queue must remain alive as 
 	// long as such waits are pending, but we shouldn't be able to delete queues at runtime anyway.
-	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
+	auto device = m_impl->m_device.lock();
+	
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot wait for fence on a released device instance.");
+
+	std::lock_guard<std::mutex> lock(device->queueMutex(m_impl->m_familyId, m_impl->m_queueId));
 
 	VkSemaphoreSubmitInfo waitSemaphoreInfo {
 		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
@@ -393,7 +434,7 @@ void VulkanQueue::waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept
 
 UInt64 VulkanQueue::currentFence() const noexcept
 {
-	return m_impl->m_fenceValue;
+	return m_impl->m_fenceValue.load(std::memory_order_acquire);
 }
 
 UInt64 VulkanQueue::lastCompletedFence() const noexcept

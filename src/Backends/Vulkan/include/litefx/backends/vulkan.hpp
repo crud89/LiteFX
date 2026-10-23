@@ -1671,13 +1671,13 @@ namespace LiteFX::Rendering::Backends {
 #ifdef LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
     public:
         /// @copydoc ICommandQueue::beginDebugRegion
-        void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept override;
+        void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const override;
 
         /// @copydoc ICommandQueue::endDebugRegion
-        void endDebugRegion() const noexcept override;
+        void endDebugRegion() const override;
 
         /// @copydoc ICommandQueue::setDebugMarker
-        void setDebugMarker(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept override;
+        void setDebugMarker(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const override;
 #endif // LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
 
     public:
@@ -1694,7 +1694,7 @@ namespace LiteFX::Rendering::Backends {
         void waitFor(UInt64 fence) const override;
 
         /// @copydoc ICommandQueue::waitFor(const ICommandQueue&, UInt64) const
-        void waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept;
+        void waitFor(const VulkanQueue& queue, UInt64 fence) const;
 
         /// @copydoc ICommandQueue::currentFence
         UInt64 currentFence() const noexcept override;
@@ -2481,6 +2481,8 @@ namespace LiteFX::Rendering::Backends {
         friend class VulkanBackend;
         friend class VulkanDescriptorSet;
         friend class VulkanDescriptorRange;
+        friend class VulkanQueue;
+        friend class VulkanSwapChain;
 
     public:
         /// @brief The default size for the global resource descriptor heap. Matches the required maximum in D3D12.
@@ -2578,6 +2580,8 @@ namespace LiteFX::Rendering::Backends {
         void setDebugName(VkObjectType objectType, UInt64 objectHandle, StringView name) const;
 
         void releaseGlobalDescriptors(DescriptorHeapAllocation&& allocation) const;
+
+        std::mutex& queueMutex(UInt32 queueFamily, UInt32 queueId) const;
 
     public:
         /// @brief Returns the array that stores the extensions that were used to initialize the device.

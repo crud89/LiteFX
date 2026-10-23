@@ -1,6 +1,8 @@
 #include <litefx/backends/vulkan.hpp>
 #include <litefx/backends/vulkan_builders.hpp>
+
 #include <bit>
+#include <mutex>
 
 #include "image.h"
 #include "buffer.h"
@@ -43,6 +45,7 @@ private:
     class QueueFamily {
     private:
         Array<SharedPtr<VulkanQueue>> m_queues{};
+        Array<std::mutex> m_queueMutexes{};
         Array<Float> m_queuePriorities{};
         UInt32 m_id, m_queueCount;
         QueueType m_type;
@@ -53,6 +56,7 @@ private:
         UInt32 active() const noexcept { return static_cast<UInt32>(m_queues.size()); }
         UInt32 id() const noexcept { return m_id; }
         const Array<SharedPtr<VulkanQueue>>& queues() const noexcept { return m_queues; }
+        std::mutex& mutex(UInt32 queueId) { return m_queueMutexes.at(queueId); }
 
     public:
         QueueFamily(UInt32 id, UInt32 queueCount, QueueType type) :
@@ -60,6 +64,9 @@ private:
         {
             if (queueCount == 0) [[unlikely]]
                 throw InvalidArgumentException("queueCount", "An empty queue family is invalid.");
+
+            // Allocate a mutex shared by all queue instances that map to the same queue id on the family.
+            m_queueMutexes = Array<std::mutex>(queueCount);
 
             // Initialize queue priorities. First queue always has the highest priority possible, as those become the default queues. After this we fill up the space evenly 
             // through all available priorities. Currently there are two priorities (`High` and `Normal`)
@@ -745,6 +752,11 @@ void VulkanDevice::setDebugName([[maybe_unused]] VkObjectType type, [[maybe_unus
 #endif
 }
 
+std::mutex& VulkanDevice::queueMutex(UInt32 queueFamily, UInt32 queueId) const
+{
+    return m_impl->m_families.at(queueFamily).mutex(queueId);
+}
+
 Enumerable<UInt32> VulkanDevice::queueFamilyIndices(QueueType type) const
 {
     return m_impl->m_families |
@@ -1022,6 +1034,14 @@ double VulkanDevice::ticksPerMillisecond() const noexcept
 
 void VulkanDevice::wait() const
 {
+    // Lock all queues in order so that no more work can be is submitted by any thread, before the wait finishes.
+    Array<std::unique_lock<std::mutex>> locks{};
+
+    for (auto& family : m_impl->m_families)
+        for (UInt32 queueId{ 0u }; queueId < family.total(); ++queueId)
+            locks.emplace_back(family.mutex(queueId));
+
+    // Wait for the device to finish all work.
     raiseIfFailed(::vkDeviceWaitIdle(this->handle()), "Unable to wait for the device.");
 }
 

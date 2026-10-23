@@ -1597,13 +1597,13 @@ namespace LiteFX::Rendering::Backends {
 #if defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
     public:
         /// @copydoc ICommandQueue::beginDebugRegion
-        void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept override;
+        void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const override;
 
         /// @copydoc ICommandQueue::endDebugRegion
-        void endDebugRegion() const noexcept override;
+        void endDebugRegion() const override;
 
         /// @copydoc ICommandQueue::setDebugMarker
-        void setDebugMarker(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept override;
+        void setDebugMarker(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const override;
 #endif // defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
 
     public:
@@ -1620,7 +1620,7 @@ namespace LiteFX::Rendering::Backends {
         void waitFor(UInt64 fence) const override;
 
         /// @copydoc ICommandQueue::waitFor(const ICommandQueue&, UInt64) const
-        void waitFor(const DirectX12Queue& queue, UInt64 fence) const noexcept;
+        void waitFor(const DirectX12Queue& queue, UInt64 fence) const;
 
         /// @copydoc ICommandQueue::currentFence
         UInt64 currentFence() const noexcept override;
