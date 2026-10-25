@@ -384,6 +384,11 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
     this->beginning(this, { frameBuffer });
 }
 
+void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer, const DirectX12CommandBuffer& commandBuffer) const
+{
+    throw;
+}
+
 UInt64 DirectX12RenderPass::end() const
 {
     // Check if we are running.

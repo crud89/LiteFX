@@ -1176,6 +1176,9 @@ namespace LiteFX::Rendering {
         /// @copydoc IRenderPass::begin(const IFrameBuffer&)
         virtual void begin(const frame_buffer_type& frameBuffer) const = 0;
 
+        /// @copydoc IRenderPass::begin(const IFrameBuffer&, const ICommandBuffer&)
+        virtual void begin(const frame_buffer_type& frameBuffer, const command_buffer_type& commandBuffer) const = 0;
+
     private:
         inline SharedPtr<const IFrameBuffer> getActiveFrameBuffer() const noexcept override {
             return this->activeFrameBuffer();
@@ -1195,6 +1198,10 @@ namespace LiteFX::Rendering {
 
         inline void beginRenderPass(const IFrameBuffer& frameBuffer) const override {
             this->begin(dynamic_cast<const frame_buffer_type&>(frameBuffer));
+        }
+
+        inline void beginRenderPass(const IFrameBuffer& frameBuffer, const ICommandBuffer& commandBuffer) const override {
+            this->begin(dynamic_cast<const frame_buffer_type&>(frameBuffer), dynamic_cast<const command_buffer_type&>(commandBuffer));
         }
     };
 

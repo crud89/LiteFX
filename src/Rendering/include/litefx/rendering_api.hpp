@@ -7816,11 +7816,26 @@ namespace LiteFX::Rendering {
             this->beginRenderPass(frameBuffer);
         };
 
+        /// @brief Begins the render pass by recording into the external primary command buffer provided by @p commandBuffer.
+        ///
+        /// With this overload, the render pass does not submit @p commandBuffer. Ending it with @ref end only records commands and returns `0`. If the 
+        /// render pass has a present target, submit @p commandBuffer and call @ref ISwapChain::present with the returned fence afterwards. The command 
+        /// buffer must be a recording primary command buffer that was created from @ref commandQueue. 
+        /// 
+        /// Note that pipeline and binding state is not preserved across the render pass boundaries!
+        ///
+        /// @param frameBuffer The frame buffer to obtain input attachments and render targets from.
+        /// @param commandBuffer The primary command buffer to record the render pass into.
+        /// @throws InvalidArgumentException Thrown, if @p commandBuffer is not a recording primary command buffer of the render pass queue.
+        inline void begin(const IFrameBuffer& frameBuffer, const ICommandBuffer& commandBuffer) const {
+            this->beginRenderPass(frameBuffer, commandBuffer);
+        }
+
         /// @brief Ends the render pass.
         ///
         /// If the frame buffer has a present render target, this causes the render pass to synchronize with the swap chain and issue a present command.
         ///
-        /// @return The value of the fence that indicates the end of the render pass.
+        /// @return The value of the fence that indicates the end of the render pass, or `0` if the render pass was recorded on an external command buffer.
         virtual UInt64 end() const = 0;
 
         /// @brief Returns the mask that identifies the views that are enabled during rendering.
@@ -7832,6 +7847,7 @@ namespace LiteFX::Rendering {
     private:
         virtual SharedPtr<const IFrameBuffer> getActiveFrameBuffer() const noexcept = 0;
         virtual void beginRenderPass(const IFrameBuffer& frameBuffer) const = 0;
+        virtual void beginRenderPass(const IFrameBuffer& frameBuffer, const ICommandBuffer& commandBuffer) const = 0;
         virtual const ICommandQueue& getCommandQueue() const noexcept = 0;
         virtual SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept = 0;
         virtual Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const = 0;

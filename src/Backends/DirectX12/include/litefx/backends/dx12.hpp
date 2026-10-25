@@ -2183,8 +2183,11 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc IRenderPass::inputAttachmentSamplerBinding
         const Optional<DescriptorBindingPoint>& inputAttachmentSamplerBinding() const noexcept override;
 
-        /// @copydoc RenderPass::begin
+        /// @copydoc IRenderPass::begin(const IFrameBuffer&)
         void begin(const DirectX12FrameBuffer& frameBuffer) const override;
+
+        /// @copydoc IRenderPass::begin(const IFrameBuffer&, const ICommandBuffer&)
+        void begin(const DirectX12FrameBuffer& frameBuffer, const DirectX12CommandBuffer& commandBuffer) const override;
 
         /// @copydoc IRenderPass::end
         UInt64 end() const override;
