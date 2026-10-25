@@ -45,7 +45,7 @@ public:
 		VkCommandBufferBeginInfo beginInfo {
 			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
 			.pNext = nullptr,
-			.flags = m_secondary ? 0 : VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+			.flags = m_secondary ? static_cast<VkCommandBufferUsageFlags>(VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT) : static_cast<VkCommandBufferUsageFlags>(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT)
 		};
 
 		// Secondary command buffers always require an inheritance info. Those continuing a render pass also inherit its rendering state.
@@ -882,7 +882,7 @@ void VulkanCommandBuffer::execute(const SharedPtr<const VulkanCommandBuffer>& co
 
 void VulkanCommandBuffer::execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const
 {
-	auto buffers = Enumerable<SharedPtr<const VulkanCommandBuffer>> | std::ranges::to<std::vector>();
+	auto buffers = commandBuffers | std::ranges::to<std::vector>();
 
 	if (std::ranges::any_of(buffers, [](const auto& commandBuffer) { return !commandBuffer->secondary(); })) [[unlikely]]
 		throw InvalidArgumentException("commandBuffers", "Unable to execute a primary command buffer on another command buffer. At least one of the provided command buffers is a primary command buffer.");

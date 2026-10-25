@@ -1720,7 +1720,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// @copydoc CommandQueue::createCommandBuffer
-        SharedPtr<VulkanCommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const override;
+        SharedPtr<VulkanCommandBuffer> createCommandBuffer(bool secondary = false) const override;
 
         /// @copydoc CommandQueue::submit(const SharedPtr<const command_buffer_type>&) const
         UInt64 submit(const SharedPtr<const VulkanCommandBuffer>& commandBuffer) const override;

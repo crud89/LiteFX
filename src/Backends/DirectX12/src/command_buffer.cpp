@@ -11,7 +11,6 @@ public:
 	friend class DirectX12CommandBuffer;
 
 private:
-	ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 	bool m_recording{ false }, m_secondary{ false };
 	WeakPtr<const DirectX12Queue> m_queue;
 	WeakPtr<const DirectX12Device> m_device;
@@ -19,15 +18,17 @@ private:
 	ComPtr<ID3D12CommandSignature> m_dispatchSignature, m_drawSignature, m_drawIndexedSignature, m_dispatchMeshSignature;
 	bool m_canBindDescriptorHeaps = false;
 	TrackedResources m_trackedResources{};
+	UniquePtr<IDirectX12CommandAllocatorHandle> m_allocatorHandle{};
 
 public:
-	DirectX12CommandBufferImpl(const DirectX12Queue& queue) :
-		m_queue(queue.weak_from_this()), m_device(queue.device()), m_canBindDescriptorHeaps(queue.type() == QueueType::Compute || queue.type() == QueueType::Graphics)
+	DirectX12CommandBufferImpl(const DirectX12Queue& queue, bool primary) :
+		m_secondary(!primary), m_queue(queue.weak_from_this()), m_device(queue.device()), 
+		m_canBindDescriptorHeaps(queue.type() == QueueType::Compute || queue.type() == QueueType::Graphics)
 	{
 	}
 
 public:
-	ComPtr<ID3D12GraphicsCommandList7> initialize(const DirectX12Queue& queue, bool begin, bool primary)
+	void initialize(const DirectX12Queue& queue)
 	{
 		// Get the parent device instance.
 		auto device = queue.device();
@@ -37,52 +38,13 @@ public:
 
 		// Store the command signatures for indirect drawing.
 		device->indirectDrawSignatures(m_dispatchSignature, m_dispatchMeshSignature, m_drawSignature, m_drawIndexedSignature);
-
-		// Create a command allocator.
-		D3D12_COMMAND_LIST_TYPE type{};
-
-		m_secondary = !primary;
-		if (m_secondary)
-			type = D3D12_COMMAND_LIST_TYPE_BUNDLE;
-		else
-		{
-			switch (queue.type())
-			{
-			case QueueType::Compute: type = D3D12_COMMAND_LIST_TYPE_COMPUTE; break;
-			case QueueType::Transfer: type = D3D12_COMMAND_LIST_TYPE_COPY; break;
-			default:
-			case QueueType::Graphics: type = D3D12_COMMAND_LIST_TYPE_DIRECT; break;
-			}
-		}
-
-		raiseIfFailed(device->handle()->CreateCommandAllocator(type, IID_PPV_ARGS(&m_commandAllocator)), "Unable to create command allocator for command buffer.");
-
-		// Create the actual command list.
-		ComPtr<ID3D12GraphicsCommandList7> commandList;
-
-		m_recording = begin;
-
-		if (begin)
-			raiseIfFailed(device->handle()->CreateCommandList(0, type, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
-		else
-			raiseIfFailed(device->handle()->CreateCommandList1(0, type, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
-
-		return commandList;
-	}
-
-	void reset(const DirectX12CommandBuffer& commandBuffer)
-	{
-		raiseIfFailed(m_commandAllocator->Reset(), "Unable to reset command allocator.");
-		raiseIfFailed(commandBuffer.handle()->Reset(m_commandAllocator.Get(), nullptr), "Unable to reset command list.");
-		m_recording = true;
-
-		// If it was possible to reset the command buffer, we can also safely release shared resources from previous recordings.
-		m_trackedResources.Resources.clear();
-		m_trackedResources.DescriptorSets.clear();
 	}
 
 	inline void bindDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer)
 	{
+		if (!m_recording)
+			throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 		if (m_canBindDescriptorHeaps)
 		{
 			auto device = m_device.lock();
@@ -96,6 +58,9 @@ public:
 
 	inline void buildAccelerationStructure(const DirectX12CommandBuffer& commandBuffer, DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
 	{
+		if (!m_recording)
+			throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 		if (scratchBuffer == nullptr) [[unlikely]]
 			throw ArgumentNotInitializedException("scratchBuffer");
 
@@ -126,6 +91,9 @@ public:
 
 	inline void buildAccelerationStructure(const DirectX12CommandBuffer& commandBuffer, DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
 	{
+		if (!m_recording)
+			throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 		// Check if the device is still valid.
 		auto device = m_device.lock();
 
@@ -172,29 +140,43 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, bool begin, bool primary) :
-	ComResource<ID3D12GraphicsCommandList7>(nullptr), m_impl(queue)
+DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, bool primary) :
+	ComResource<ID3D12GraphicsCommandList7>(nullptr), m_impl(queue, primary)
 {
-	this->handle() = m_impl->initialize(queue, begin, primary);
+	m_impl->initialize(queue);
+	m_impl->m_allocatorHandle = queue.acquireCommandAllocator(!primary);
+	this->handle() = m_impl->m_allocatorHandle->commandBuffer();
+	m_impl->m_recording = true;
 
-	if (begin)
+	try
+	{
 		m_impl->bindDescriptorHeaps(*this);
+	}
+	catch (...)
+	{
+		auto result = this->handle()->Close();
+
+		if (FAILED(result))
+			LITEFX_ERROR(DIRECTX12_LOG, "Unable to close the command list after binding the descriptor heaps failed {0}.", result);
+
+		throw;
+	}
 }
 
-DirectX12CommandBuffer::~DirectX12CommandBuffer() noexcept = default;
+DirectX12CommandBuffer::~DirectX12CommandBuffer() noexcept // NOLINT(bugprone-exception-escape)
+{
+	if (m_impl->m_recording)
+	{
+		auto result = this->handle()->Close();
+
+		if (FAILED(result))
+			LITEFX_ERROR(DIRECTX12_LOG, "Attempting to close a command list that was still recording failed with error {0}.", result);
+	}
+}
 
 SharedPtr<const DirectX12Queue> DirectX12CommandBuffer::queue() const noexcept
 {
 	return m_impl->m_queue.lock();
-}
-
-void DirectX12CommandBuffer::begin() const
-{
-	// Reset the command buffer.
-	m_impl->reset(*this);
-
-	// Bind the descriptor heaps.
-	m_impl->bindDescriptorHeaps(*this);
 }
 
 void DirectX12CommandBuffer::end() const
@@ -268,6 +250,9 @@ bool DirectX12CommandBuffer::recording() const noexcept
 
 void DirectX12CommandBuffer::setViewports(Span<const IViewport*> viewports) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	auto vps = viewports |
 		std::views::transform([](const auto& viewport) { return CD3DX12_VIEWPORT(viewport->getRectangle().x(), viewport->getRectangle().y(), viewport->getRectangle().width(), viewport->getRectangle().height(), viewport->getMinDepth(), viewport->getMaxDepth()); }) |
 		std::ranges::to<Array<D3D12_VIEWPORT>>();
@@ -277,13 +262,19 @@ void DirectX12CommandBuffer::setViewports(Span<const IViewport*> viewports) cons
 
 void DirectX12CommandBuffer::setViewports(const IViewport* viewport) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	auto vp = CD3DX12_VIEWPORT(viewport->getRectangle().x(), viewport->getRectangle().y(), viewport->getRectangle().width(), viewport->getRectangle().height(), viewport->getMinDepth(), viewport->getMaxDepth());
 	this->handle()->RSSetViewports(1, &vp);
 }
 
 void DirectX12CommandBuffer::setScissors(Span<const IScissor*> scissors) const
 {
-	auto scs = scissors 
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
+	auto scs = scissors
 		| std::views::transform([](const auto& scissor) -> D3D12_RECT { return CD3DX12_RECT{
 				static_cast<LONG>(scissor->getRectangle().x()), static_cast<LONG>(scissor->getRectangle().y()),
 				static_cast<LONG>(scissor->getRectangle().x()) + static_cast<LONG>(scissor->getRectangle().width()),
@@ -294,28 +285,35 @@ void DirectX12CommandBuffer::setScissors(Span<const IScissor*> scissors) const
 	this->handle()->RSSetScissorRects(static_cast<UINT>(scs.size()), scs.data());
 }
 
-void DirectX12CommandBuffer::setScissors(const IScissor* scissor) const
+void DirectX12CommandBuffer::setScissors(const IScissor * scissor) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	CD3DX12_RECT s {
 		static_cast<LONG>(scissor->getRectangle().x()), static_cast<LONG>(scissor->getRectangle().y()),
 		static_cast<LONG>(scissor->getRectangle().x()) + static_cast<LONG>(scissor->getRectangle().width()),
 		static_cast<LONG>(scissor->getRectangle().y()) + static_cast<LONG>(scissor->getRectangle().height())
 	};
+
 	this->handle()->RSSetScissorRects(1, &s);
 }
 
 void DirectX12CommandBuffer::setBlendFactors(const Vector4f& blendFactors) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->OMSetBlendFactor(blendFactors.elements());
 }
 
 void DirectX12CommandBuffer::setStencilRef(UInt32 stencilRef) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->OMSetStencilRef(stencilRef);
 }
 
 void DirectX12CommandBuffer::setDepthBounds(Float minBounds, Float maxBounds) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->OMSetDepthBounds(minBounds, maxBounds);
 }
 
@@ -346,11 +344,15 @@ UniquePtr<DirectX12Barrier> DirectX12CommandBuffer::makeBarrier(PipelineStage sy
 
 void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier) const noexcept
 {
+	assert(m_impl->m_recording);
 	barrier.execute(*this);
 }
 
 void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDirectX12Buffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("sourceElement", "The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
@@ -391,6 +393,9 @@ void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t eleme
 
 void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -454,6 +459,9 @@ void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t eleme
 
 void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	if (!LITEFX_FLAG_IS_SET(source.usage(), ResourceUsage::TransferSource)) [[unlikely]]
 		throw InvalidArgumentException("source", "The source image's usage does not allow for it to be used as a transfer source.");
 
@@ -475,6 +483,9 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDire
 
 void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDirectX12Buffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -527,12 +538,16 @@ void DirectX12CommandBuffer::transfer(const SharedPtr<const IDirectX12Image>& so
 
 void DirectX12CommandBuffer::use(const DirectX12PipelineState& pipeline) const noexcept
 {
+	assert(m_impl->m_recording);
 	m_impl->m_lastPipeline = &pipeline;
 	pipeline.use(*this);
 }
 
 void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -547,6 +562,9 @@ void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet) c
 
 void DirectX12CommandBuffer::bind(Span<const DirectX12DescriptorSet*> descriptorSets) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -561,6 +579,9 @@ void DirectX12CommandBuffer::bind(Span<const DirectX12DescriptorSet*> descriptor
 
 void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -572,6 +593,9 @@ void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet, c
 
 void DirectX12CommandBuffer::bind(Span<const DirectX12DescriptorSet*> descriptorSets, const DirectX12PipelineState& pipeline) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -583,76 +607,93 @@ void DirectX12CommandBuffer::bind(Span<const DirectX12DescriptorSet*> descriptor
 
 void DirectX12CommandBuffer::bind(const IDirectX12VertexBuffer& buffer) const noexcept 
 {
+	assert(m_impl->m_recording);
 	this->handle()->IASetVertexBuffers(buffer.layout().binding(), 1, &buffer.view());
 }
 
-void DirectX12CommandBuffer::bind(const IDirectX12IndexBuffer& buffer) const noexcept 
+void DirectX12CommandBuffer::bind(const IDirectX12IndexBuffer& buffer) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->IASetIndexBuffer(&buffer.view());
 }
 
 void DirectX12CommandBuffer::dispatch(const Vector3u& threadCount) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->Dispatch(threadCount.x(), threadCount.y(), threadCount.z());
 }
 
 void DirectX12CommandBuffer::dispatchIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->ExecuteIndirect(m_impl->m_dispatchSignature.Get(), batchCount, batchBuffer.handle().Get(), offset, nullptr, 0);
 }
 
 void DirectX12CommandBuffer::dispatchIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->ExecuteIndirect(m_impl->m_dispatchSignature.Get(), std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectDispatchBatch))), batchBuffer.handle().Get(), offset, countBuffer.handle().Get(), countOffset);
 }
 
 void DirectX12CommandBuffer::dispatchMesh(const Vector3u& threadCount) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->DispatchMesh(threadCount.x(), threadCount.y(), threadCount.z());
 }
 
 void DirectX12CommandBuffer::dispatchMeshIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->ExecuteIndirect(m_impl->m_dispatchMeshSignature.Get(), batchCount, batchBuffer.handle().Get(), offset, nullptr, 0);
 }
 
 void DirectX12CommandBuffer::dispatchMeshIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->ExecuteIndirect(m_impl->m_dispatchMeshSignature.Get(), std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectDispatchBatch))), batchBuffer.handle().Get(), offset, countBuffer.handle().Get(), countOffset);
 }
 
 void DirectX12CommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->DrawInstanced(vertices, instances, firstVertex, firstInstance);
 }
 
 void DirectX12CommandBuffer::drawIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->ExecuteIndirect(m_impl->m_drawSignature.Get(), batchCount, batchBuffer.handle().Get(), offset, nullptr, 0);
 }
 
 void DirectX12CommandBuffer::drawIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->ExecuteIndirect(m_impl->m_drawSignature.Get(), std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectBatch))), batchBuffer.handle().Get(), offset, countBuffer.handle().Get(), countOffset);
 }
 
 void DirectX12CommandBuffer::drawIndexed(UInt32 indices, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->DrawIndexedInstanced(indices, instances, firstIndex, vertexOffset, firstInstance);
 }
 
 void DirectX12CommandBuffer::drawIndexedIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->ExecuteIndirect(m_impl->m_drawIndexedSignature.Get(), batchCount, batchBuffer.handle().Get(), offset, nullptr, 0);
 }
 
 void DirectX12CommandBuffer::drawIndexedIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->ExecuteIndirect(m_impl->m_drawIndexedSignature.Get(), std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectIndexedBatch))), batchBuffer.handle().Get(), offset, countBuffer.handle().Get(), countOffset);
 }
 
 void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	if (!m_impl->m_lastPipeline) [[unlikely]]
 		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the push constants range.");
 
@@ -675,6 +716,9 @@ void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout& l
 
 void DirectX12CommandBuffer::writeTimingEvent(const SharedPtr<const TimingEvent>& timingEvent) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -689,18 +733,39 @@ void DirectX12CommandBuffer::writeTimingEvent(const SharedPtr<const TimingEvent>
 
 void DirectX12CommandBuffer::execute(const SharedPtr<const DirectX12CommandBuffer>& commandBuffer) const
 {
+	if (!commandBuffer->secondary()) [[unlikely]]
+		throw InvalidArgumentException("commandBuffer", "Unable to execute a primary command buffer on another command buffer.");
+
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
+	// End and execute the command buffer.
+	commandBuffer->end();
 	this->handle()->ExecuteBundle(commandBuffer->handle().Get());
+	m_impl->m_trackedResources.SecondaryCommandBuffers.push_back(commandBuffer);
 }
 
 void DirectX12CommandBuffer::execute(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const
 {
-	std::ranges::for_each(commandBuffers, [this](const SharedPtr<const DirectX12CommandBuffer>& bundle) { this->handle()->ExecuteBundle(bundle->handle().Get()); });
+	auto buffers = commandBuffers | std::ranges::to<std::vector>();
+
+	if (std::ranges::any_of(buffers, [](const auto& commandBuffer) { return !commandBuffer->secondary(); })) [[unlikely]]
+		throw InvalidArgumentException("commandBuffers", "Unable to execute a primary command buffer on another command buffer. At least one of the provided command buffers is a primary command buffer.");
+
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
+	std::ranges::for_each(buffers, [this](const SharedPtr<const DirectX12CommandBuffer>& bundle) { 
+		bundle->end();
+		this->handle()->ExecuteBundle(bundle->handle().Get()); 
+	});
+
+	m_impl->m_trackedResources.SecondaryCommandBuffers.append_range(buffers);
 }
 
 void DirectX12CommandBuffer::releaseSharedState() const
 {
-	m_impl->m_trackedResources.Resources.clear();
-	m_impl->m_trackedResources.DescriptorSets.clear();
+	m_impl->m_trackedResources = {};
 }
 
 void DirectX12CommandBuffer::buildAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
@@ -725,16 +790,20 @@ void DirectX12CommandBuffer::updateAccelerationStructure(DirectX12TopLevelAccele
 
 void DirectX12CommandBuffer::copyAccelerationStructure(const DirectX12BottomLevelAccelerationStructure& from, const DirectX12BottomLevelAccelerationStructure& to, bool compress) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->CopyRaytracingAccelerationStructure(to.buffer()->virtualAddress() + to.offset(), from.buffer()->virtualAddress() + from.offset(), compress ? D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_COMPACT : D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_CLONE);
 }
 
 void DirectX12CommandBuffer::copyAccelerationStructure(const DirectX12TopLevelAccelerationStructure& from, const DirectX12TopLevelAccelerationStructure& to, bool compress) const noexcept
 {
+	assert(m_impl->m_recording);
 	this->handle()->CopyRaytracingAccelerationStructure(to.buffer()->virtualAddress() + to.offset(), from.buffer()->virtualAddress() + from.offset(), compress ? D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_COMPACT : D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_CLONE);
 }
 
 void DirectX12CommandBuffer::traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IDirectX12Buffer& rayGenerationShaderBindingTable, const IDirectX12Buffer* missShaderBindingTable, const IDirectX12Buffer* hitShaderBindingTable, const IDirectX12Buffer* callableShaderBindingTable) const noexcept
 {
+	assert(m_impl->m_recording);
+
 	D3D12_DISPATCH_RAYS_DESC rayDesc = {
 		.RayGenerationShaderRecord = {
 			.StartAddress = rayGenerationShaderBindingTable.virtualAddress() + offsets.RayGenerationGroupOffset,

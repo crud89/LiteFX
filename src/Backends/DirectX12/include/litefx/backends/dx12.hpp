@@ -1323,6 +1323,8 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>, public ComResource<ID3D12GraphicsCommandList7> {
         LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
         friend struct SharedObject::Allocator<DirectX12CommandBuffer>;
+        friend class DirectX12Queue;
+        friend class DirectX12RenderPass;
 
     public:
         using base_type = CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>;
@@ -1346,9 +1348,8 @@ namespace LiteFX::Rendering::Backends {
         /// @brief Initializes the command buffer from a command queue.
         ///
         /// @param queue The parent command queue, the buffer gets submitted to.
-        /// @param begin If set to `true`, the command buffer automatically starts recording by calling @ref begin.
         /// @param primary `true`, if the command buffer is a primary command buffer.
-        explicit DirectX12CommandBuffer(const DirectX12Queue& queue, bool begin = false, bool primary = true);
+        explicit DirectX12CommandBuffer(const DirectX12Queue& queue, bool primary = true);
 
     private:
         DirectX12CommandBuffer(DirectX12CommandBuffer&&) noexcept = delete;
@@ -1363,22 +1364,19 @@ namespace LiteFX::Rendering::Backends {
         /// @brief Initializes the command buffer from a command queue.
         ///
         /// @param queue The parent command queue, the buffer gets submitted to.
-        /// @param begin If set to `true`, the command buffer automatically starts recording by calling @ref begin.
         /// @param primary `true`, if the command buffer is a primary command buffer.
-        static inline SharedPtr<DirectX12CommandBuffer> create(const DirectX12Queue& queue, bool begin = false, bool primary = true) {
-            return SharedObject::create<DirectX12CommandBuffer>(queue, begin, primary);
+        static inline SharedPtr<DirectX12CommandBuffer> create(const DirectX12Queue& queue, bool primary = true) {
+            return SharedObject::create<DirectX12CommandBuffer>(queue, primary);
         }
+
+        // DirectX 12 Command Buffer interface.
+    private:
+        void end() const;
 
         // CommandBuffer interface.
     public:
         /// @copydoc ICommandBuffer::queue
         SharedPtr<const DirectX12Queue> queue() const noexcept;
-
-        /// @copydoc ICommandBuffer::begin
-        void begin() const override;
-
-        /// @copydoc ICommandBuffer::end
-        void end() const override;
 
         /// @copydoc ICommandBuffer::trackedResources
         const TrackedResources& trackedResources() const noexcept override;
@@ -1574,6 +1572,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12Queue final : public CommandQueue<DirectX12CommandBuffer>, public ComResource<ID3D12CommandQueue> {
         LITEFX_IMPLEMENTATION(DirectX12QueueImpl);
         friend struct SharedObject::Allocator<DirectX12Queue>;
+        friend class DirectX12CommandBuffer;
 
     public:
         using base_type = CommandQueue<DirectX12CommandBuffer>;
@@ -1594,7 +1593,7 @@ namespace LiteFX::Rendering::Backends {
         DirectX12Queue& operator=(const DirectX12Queue&) = delete;
 
     public:
-        ~DirectX12Queue() noexcept override;
+        ~DirectX12Queue() noexcept override = default;
 
     public:
         /// @brief Creates the DirectX 12 command queue.
@@ -1608,6 +1607,9 @@ namespace LiteFX::Rendering::Backends {
         }
 
         // DirectX12Queue interface.
+    private:
+        UniquePtr<IDirectX12CommandAllocatorHandle> acquireCommandAllocator(bool secondaryCommandBuffer) const;
+
     public:
         /// @brief Returns a pointer to the device that provides this queue or `nullptr`, if the device has already been released.
         ///

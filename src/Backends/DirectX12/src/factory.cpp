@@ -130,7 +130,7 @@ private:
 
 	D3D12MA::DefragmentationContext* m_defragmentationContext{ nullptr };
 	D3D12MA::DEFRAGMENTATION_PASS_MOVE_INFO m_defragmentationPass{};
-	SharedPtr<DirectX12CommandBuffer> m_defragmentationCommandBuffer{ nullptr };
+	WeakPtr<const DirectX12Queue> m_defragmentationQueue{};
 	Queue<DefragResource> m_destroyedResources{};
 	UInt64 m_defragmentationFence{ 0u };
 	Array<SharedPtr<IDeviceMemory>> m_defragmentationPassResources{};
@@ -261,8 +261,13 @@ void DirectX12GraphicsFactory::beginDefragmentation(const ICommandQueue& queue, 
 
 	m_impl->m_allocator->BeginDefragmentation(&defragDesc, &m_impl->m_defragmentationContext);
 
-	// Allocate a command buffer to record the transfer commands to.
-	m_impl->m_defragmentationCommandBuffer = std::dynamic_pointer_cast<DirectX12CommandBuffer>(queue.createCommandBuffer(false));
+	// Store a weak pointer to the queue that executes the defragmentation commands
+	auto d3d12Queue = std::dynamic_pointer_cast<const DirectX12Queue>(queue.shared_from_this());
+
+	if (d3d12Queue == nullptr) [[unlikely]]
+		throw InvalidArgumentException("queue", "The queue must be a DirectX 12 queue.");
+	else
+		m_impl->m_defragmentationQueue = d3d12Queue;
 }
 
 UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
@@ -320,12 +325,16 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 		return 0u;
 	}
 
-	// Begin the command buffer.
-	auto& commandBuffer = *m_impl->m_defragmentationCommandBuffer;
-	commandBuffer.begin();
+	// Create a command buffer for the movement commands.
+	auto commandQueue = m_impl->m_defragmentationQueue.lock();
+
+	if (commandQueue == nullptr)
+		throw RuntimeException("Unable to begin defragmentation pass on a released command queue.");
+
+	auto commandBuffer = DirectX12CommandBuffer::create(*commandQueue);
 
 	// Issue a barrier to transition the resources that requested it.
-	commandBuffer.barrier(barrier);
+	commandBuffer->barrier(barrier);
 
 	// Perform the actual move operations.
 	for (UInt32 i{ 0u }; i < pass.MoveCount; ++i)
@@ -346,7 +355,7 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 		{
 			auto oldHandle = std::as_const(*buffer).handle();
 
-			if (DirectX12Buffer::move(buffer->shared_from_this(), targetAllocation, commandBuffer))
+			if (DirectX12Buffer::move(buffer->shared_from_this(), targetAllocation, *commandBuffer))
 				m_impl->m_destroyedResources.emplace(std::move(oldHandle), buffer->shared_from_this());
 			else {
 				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -363,7 +372,7 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 			{
 				auto oldHandle = std::as_const(*image).handle();
 
-				if (DirectX12Image::move(image->shared_from_this(), targetAllocation, commandBuffer))
+				if (DirectX12Image::move(image->shared_from_this(), targetAllocation, *commandBuffer))
 					m_impl->m_destroyedResources.emplace(std::move(oldHandle), image->shared_from_this());
 				else {
 					pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -376,11 +385,11 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 	}
 
 	// Submit de command buffer and store the fence.
-	auto fence = m_impl->m_defragmentationFence = commandBuffer.submit();
+	auto fence = m_impl->m_defragmentationFence = commandBuffer->submit();
 
 	// Invoke the `moving` event.
 	for (auto resource : resources)
-		resource->moving(this, { commandBuffer.queue(), fence });
+		resource->moving(this, { commandQueue, fence });
 
 	// Return the current fence value.
 	return fence;
@@ -391,7 +400,13 @@ bool DirectX12GraphicsFactory::endDefragmentationPass() const
 	if (!m_impl->m_defragmentationContext) [[unlikely]]
 		throw RuntimeException("There is currently no active defragmentation process.");
 
-	m_impl->m_defragmentationCommandBuffer->queue()->waitFor(m_impl->m_defragmentationFence);
+	// Create a command buffer for the movement commands.
+	auto commandQueue = m_impl->m_defragmentationQueue.lock();
+
+	if (commandQueue == nullptr)
+		throw RuntimeException("Unable to end defragmentation pass on a released command queue.");
+
+	commandQueue->waitFor(m_impl->m_defragmentationFence);
 
 	Array<ComPtr<ID3D12Resource>> resources{};
 

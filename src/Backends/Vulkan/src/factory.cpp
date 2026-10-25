@@ -25,7 +25,7 @@ private:
 
 	VmaDefragmentationContext m_defragmentationContext{ nullptr };
 	VmaDefragmentationPassMoveInfo m_defragmentationPass{};
-	WeakPtr<VulkanQueue> m_defragmentationQueue{};
+	WeakPtr<const VulkanQueue> m_defragmentationQueue{};
 	Queue<DefragResource> m_destroyedResources{};
 	UInt64 m_defragmentationFence{ 0u };
 	Array<SharedPtr<IDeviceMemory>> m_defragmentationPassResources{};
@@ -408,7 +408,7 @@ void VulkanGraphicsFactory::beginDefragmentation(const ICommandQueue& queue, Def
 		throw VulkanPlatformException(result, "Unable to start defragmentation process.");
 
 	// Store a weak pointer to the queue that executes the defragmentation commands
-	vulkanQueue = std::dynamic_pointer_cast<const VulkanQueue>(queue.shared_from_this());
+	auto vulkanQueue = std::dynamic_pointer_cast<const VulkanQueue>(queue.shared_from_this());
 
 	if (vulkanQueue == nullptr) [[unlikely]]
 		throw InvalidArgumentException("queue", "The queue must be a Vulkan queue.");

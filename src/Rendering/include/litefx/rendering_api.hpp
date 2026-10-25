@@ -8174,10 +8174,13 @@ namespace LiteFX::Rendering {
         /// @brief Creates a command buffer that can be used to allocate commands on the queue.
         ///
         /// Specifying @p secondary allows to create secondary command buffers (aka. bundles). Those are intended to be used as efficient pre-recorded command buffers that are re-used multiple times. Using such a
-        /// command buffer allows drivers to pre-apply optimizations, which causes a one-time cost during setup, but reduces cost when re-applying the command buffer multiple times. Ideally they are used as
-        /// small chunks of re-occurring workloads.
+        /// command buffer allows drivers to pre-apply optimizations, which causes a one-time cost during setup, but reduces cost when re-applying the command buffer multiple times. Ideally they are used as small 
+        /// chunks of re-occurring workloads.
         ///
         /// A secondary command buffer must not be submitted to a queue, but rather to a primary command buffer by calling @ref ICommandBuffer::execute.
+        /// 
+        /// Note that Vulkan does not forbid secondary command buffers to be created for arbitrary queues, while under DirectX 12, those must be created on a @ref QueueType::Graphics queue. For portable code, 
+        /// refrain from using secondary command buffers on other queue types.
         ///
         /// @param secondary If set to `true`, the method will create a secondary command buffer/bundle.
         /// @return The instance of the command buffer.

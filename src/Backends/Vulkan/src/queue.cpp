@@ -40,7 +40,7 @@ public:
 	VulkanCommandAllocatorPool& operator=(const VulkanCommandAllocatorPool&) = delete;
 	VulkanCommandAllocatorPool& operator=(VulkanCommandAllocatorPool&&) noexcept = delete;
 
-	~VulkanCommandAllocatorPool() noexcept
+	~VulkanCommandAllocatorPool() noexcept // NOLINT(bugprone-exception-escape)
 	{
 		// Destroy the command pools. Since the allocators hold a shared pointer to the allocator pool, there's only free allocators left.
 		auto device = m_device.lock();
@@ -60,7 +60,7 @@ public:
 public:
 	UniquePtr<IVulkanCommandAllocatorHandle> acquire(bool secondary);
 
-	void release(UniquePtr<Allocator>&& allocator) noexcept
+	void release(UniquePtr<Allocator>&& allocator) noexcept // NOLINT(bugprone-exception-escape)
 	{
 		allocator->Dirty = true;
 
@@ -367,6 +367,11 @@ QueuePriority VulkanQueue::priority() const noexcept
 
 SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(bool secondary) const
 {
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
+	if (secondary && m_impl->m_type != QueueType::Graphics)
+		LITEFX_WARNING(VULKAN_LOG, "Secondary command buffers are only allowed on the graphics queue in DirectX 12. To keep your code portable refrain from using secondary command buffers on other queue types.");
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
+
 	return VulkanCommandBuffer::create(*this, !secondary);
 }
 
@@ -468,17 +473,19 @@ UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> comm
 	if (device == nullptr) [[unlikely]]
 		throw RuntimeException("Cannot submit command buffer to a queue on a released device instance.");
 
-	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return buffer != nullptr; })) [[unlikely]]
+	auto buffers = commandBuffers | std::ranges::to<std::vector>();
+
+	if (!std::ranges::all_of(buffers, [](const auto& buffer) { return buffer != nullptr; })) [[unlikely]]
 		throw InvalidArgumentException("commandBuffers", "At least one command buffer is not initialized.");
 
-	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return !buffer->secondary(); })) [[unlikely]]
+	if (!std::ranges::all_of(buffers, [](const auto& buffer) { return !buffer->secondary(); })) [[unlikely]]
 		throw InvalidArgumentException("commandBuffers", "At least one command buffer is a secondary command buffer, which is not allowed to be submitted to a command queue.");
 
-	if (std::ranges::any_of(commandBuffers, [](const auto& buffer) { return !buffer->recording(); })) [[unlikely]]
+	if (std::ranges::any_of(buffers, [](const auto& buffer) { return !buffer->recording(); })) [[unlikely]]
 		throw InvalidArgumentException("commandBuffers", "At least one command buffer has already been submitted.");
 
 	// Begin event.
-	this->submitting(this, { commandBuffers 
+	this->submitting(this, { buffers
 		| std::views::transform([](const SharedPtr<const VulkanCommandBuffer>& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); })
 		| std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>() });
 
@@ -490,20 +497,20 @@ UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> comm
 	m_impl->releaseCommandBuffers(*this, completedValue);
 
 	// End the command buffer.
-	auto commandBufferInfos = commandBuffers | std::views::transform([](const SharedPtr<const VulkanCommandBuffer>& buffer) {
+	auto commandBufferInfos = buffers | std::views::transform([](const SharedPtr<const VulkanCommandBuffer>& buffer) {
 		buffer->end();
 
-		return VkCommandBufferSubmitInfo {
+		return VkCommandBufferSubmitInfo{
 			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
 			.commandBuffer = buffer->handle()
 		};
-	}) | std::ranges::to<Array<VkCommandBufferSubmitInfo>>();
+		}) | std::ranges::to<Array<VkCommandBufferSubmitInfo>>();
 
 	// Submit the command buffer. Here we wait for the current fence on the queue, which enforces command buffers to be executed sequentially. This isn't necessary in Vulkan, but it 
 	// matches the D3D12 behavior. This allows us to make portable assumptions for barriers (e.g., first-use barriers can use ResourceAccess::None, etc.).
 	auto currentFence = m_impl->m_fenceValue.fetch_add(1u);
 	auto signalFence = currentFence + 1u;
-	
+
 	VkSemaphoreSubmitInfo waitSemaphoreInfo = {
 		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
 		.semaphore = m_impl->m_timelineSemaphore,
@@ -544,7 +551,7 @@ UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> comm
 	}
 
 	// Add the command buffers to the submitted command buffers list.
-	std::ranges::for_each(commandBuffers, [this, &signalFence](const SharedPtr<const VulkanCommandBuffer>& buffer) { m_impl->m_submittedCommandBuffers.emplace_back(signalFence, buffer); });
+	std::ranges::for_each(buffers, [this, &signalFence](const SharedPtr<const VulkanCommandBuffer>& buffer) { m_impl->m_submittedCommandBuffers.emplace_back(signalFence, buffer); });
 
 	// Clear the wait list.
 	m_impl->m_crossQueueWaitInfos.clear();
@@ -587,7 +594,7 @@ void VulkanQueue::waitFor(UInt64 fence) const
 void VulkanQueue::waitFor(const VulkanQueue& queue, UInt64 fence) const
 {
 	// Waiting for a future fence value is possible, but most certainly not intended, since there's a risk of deadlocking the queue, if the fence never is submitted.
-	if (fence > queue.currentFence()) [[unlikely]] 
+	if (fence > queue.currentFence()) [[unlikely]]
 		LITEFX_WARNING(VULKAN_LOG, "Waiting for fence {0} which has not been submitted to the queue yet. The current fence is at {1}.", fence, queue.currentFence());
 	else if (fence == 0)
 		return;

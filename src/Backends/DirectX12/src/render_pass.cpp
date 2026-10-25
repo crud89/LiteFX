@@ -92,45 +92,13 @@ public:
         m_inputAttachments.assign(std::begin(inputAttachments), std::end(inputAttachments));
     }
 
-    void registerFrameBuffer([[maybe_unused]] const DirectX12RenderPass& renderPass, const DirectX12Queue& queue, const DirectX12FrameBuffer& frameBuffer)
+    void registerFrameBuffer([[maybe_unused]] const DirectX12RenderPass& renderPass, const DirectX12FrameBuffer& frameBuffer)
     {
         // If the frame buffer is not yet registered, do so by listening for its release.
         auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
 
         if (!m_frameBufferTokens.contains(interfacePointer)) [[unlikely]]
-        {
             m_frameBufferTokens[interfacePointer] = frameBuffer.released.add(std::bind(&DirectX12RenderPassImpl::onFrameBufferRelease, this, std::placeholders::_1, std::placeholders::_2));
-
-            // Create begin command buffers.
-            {
-                auto commandBuffer = queue.createCommandBuffer(false);
-#ifndef NDEBUG
-                std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} Begin Commands {1}", renderPass.name(), m_beginCommandBuffers.size())).c_str());
-#endif
-                m_beginCommandBuffers[interfacePointer] = commandBuffer;
-            }
-
-            // Create end command buffers.
-            {
-                auto commandBuffer = queue.createCommandBuffer(false);
-#ifndef NDEBUG
-                std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} End Commands {1}", renderPass.name(), m_endCommandBuffers.size())).c_str());
-#endif
-                m_endCommandBuffers[interfacePointer] = commandBuffer;
-            }
-
-            // Create secondary command buffers.
-            m_secondaryCommandBuffers[interfacePointer] = std::views::iota(0u, m_secondaryCommandBufferCount) |
-                std::views::transform([&queue, &renderPass]([[maybe_unused]] UInt32 i) {
-                    auto commandBuffer = queue.createCommandBuffer(false);
-#ifdef NDEBUG
-                    (void)renderPass;
-#else
-                    std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} Secondary Commands {1}", renderPass.name(), i)).c_str());
-#endif
-                    return commandBuffer;
-                }) | std::ranges::to<Array<SharedPtr<DirectX12CommandBuffer>>>();
-        }
 
         // Store the active frame buffer pointer.
         m_activeFrameBuffer = frameBuffer.shared_from_this();
@@ -351,14 +319,18 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
         throw RuntimeException("Unable to begin a render pass, that is already running. End the current pass first.");
 
     // Register the frame buffer.
-    m_impl->registerFrameBuffer(*this, *m_impl->m_queue, frameBuffer);
+    m_impl->registerFrameBuffer(*this, frameBuffer);
 
     // Initialize the render pass context.
     auto& context = m_impl->renderTargetContext(frameBuffer);
 
     // Begin the command recording on the frame buffers command buffer. Before we can do that, we need to make sure it has not being executed anymore.
-    auto beginCommandBuffer = m_impl->getBeginCommandBuffer(frameBuffer);
-    beginCommandBuffer->begin();
+    const auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
+    auto beginCommandBuffer = m_impl->m_queue->createCommandBuffer();
+#ifndef NDEBUG
+    std::as_const(*beginCommandBuffer).handle()->SetName(Widen(std::format("{0} Primary Commands", this->name())).c_str());
+#endif
+    m_impl->m_beginCommandBuffers[interfacePointer] = beginCommandBuffer;
 
     // Declare render pass input transition barriers for render targets and input attachments.
     DirectX12Barrier 
@@ -394,13 +366,18 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
     // NOLINTBEGIN(bugprone-unchecked-optional-access)
     std::as_const(*beginCommandBuffer).handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
     std::as_const(*beginCommandBuffer).handle()->EndRenderPass();
-    std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [&](auto& commandBuffer) { 
-        commandBuffer->begin(); 
-        std::as_const(*commandBuffer).handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS | D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
 
-        // Set the view mask.
-        std::as_const(*commandBuffer).handle()->SetViewInstanceMask(m_impl->m_viewMask);
-    });
+    // Create the secondary command buffers.
+    m_impl->m_secondaryCommandBuffers[interfacePointer] = std::views::iota(0u, m_impl->m_secondaryCommandBufferCount) 
+        | std::views::transform([&]([[maybe_unused]] UInt32 i) {
+            auto commandBuffer = m_impl->m_queue->createCommandBuffer();
+#ifndef NDEBUG
+            std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} Secondary Commands {1}", this->name(), i)).c_str());
+#endif
+            std::as_const(*commandBuffer).handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS | D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
+            std::as_const(*commandBuffer).handle()->SetViewInstanceMask(m_impl->m_viewMask);
+            return commandBuffer;
+        }) | std::ranges::to<Array<SharedPtr<DirectX12CommandBuffer>>>();
     // NOLINTEND(bugprone-unchecked-optional-access)
 
     // Publish beginning event.
@@ -417,13 +394,14 @@ UInt64 DirectX12RenderPass::end() const
     this->ending(this, { });
 
     auto& frameBuffer = *m_impl->m_activeFrameBuffer;
+    const auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
     const auto& swapChain = m_impl->m_device->swapChain();
 
     // Resume and end the render pass.
     const auto& context = m_impl->m_activeContext;
-    auto endCommandBuffer = m_impl->getEndCommandBuffer(frameBuffer);
+    auto endCommandBuffer = m_impl->m_queue->createCommandBuffer();
+    m_impl->m_endCommandBuffers[interfacePointer] = endCommandBuffer;
     std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [](auto& commandBuffer) { std::as_const(*commandBuffer).handle()->EndRenderPass(); });
-    endCommandBuffer->begin();
     std::as_const(*endCommandBuffer).handle()->BeginRenderPass(static_cast<UInt32>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_RESUMING_PASS); // NOLINT(bugprone-unchecked-optional-access)
     std::as_const(*endCommandBuffer).handle()->EndRenderPass();
 
