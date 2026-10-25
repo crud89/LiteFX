@@ -73,7 +73,7 @@ to *read* an image, but not to write it, so the image is transitioned into the `
 
 ```cpp
 auto& computeQueue = m_device->defaultQueue(QueueType::Compute);
-auto commandBuffer = computeQueue.createCommandBuffer(true);
+auto commandBuffer = computeQueue.createCommandBuffer();
 commandBuffer->use(postPipeline);
 
 auto& image = frameBuffer["Color Target"];

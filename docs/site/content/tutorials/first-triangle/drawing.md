@@ -19,7 +19,7 @@ void MyApp::onStartup()
 
     // Create a command buffer on the transfer queue.
     auto& transferQueue = m_device->defaultQueue(QueueType::Transfer);
-    auto transferCommands = transferQueue.createCommandBuffer(true);
+    auto transferCommands = transferQueue.createCommandBuffer();
 
     // Create the vertex buffer and copy the vertices into it.
     auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(m_vertices.size()));
@@ -48,7 +48,8 @@ Step by step:
 1. **The layouts** of both buffers are defined by the input assembler, which you configured in the [previous part](pipeline.md). It is
    stored in the render pipeline, which you get from the device state by its name. The device state returns a general pipeline, so it is cast
    to a render pipeline first, which provides the input assembler.
-2. **The command buffer** is created on the *transfer queue*, which is meant for copying data. The argument `true` starts recording right away.
+2. **The command buffer** is created on the *transfer queue*, which is meant for copying data. It is ready to record commands right away, and
+   it can only be submitted once: work that is submitted later gets a new command buffer.
 3. **The buffers** are created by the device's *factory*. `ResourceHeap::Resource` places them in GPU memory, where they can be accessed
    fastest while drawing.
 4. **The `transfer` commands** copy the data from the application's memory into the buffers.
@@ -292,7 +293,7 @@ if you reverse it, the triangle faces away from the viewer and is culled.
 
         // Create a command buffer on the transfer queue.
         auto& transferQueue = m_device->defaultQueue(QueueType::Transfer);
-        auto transferCommands = transferQueue.createCommandBuffer(true);
+        auto transferCommands = transferQueue.createCommandBuffer();
 
         // Create the vertex buffer and copy the vertices into it.
         auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(m_vertices.size()));

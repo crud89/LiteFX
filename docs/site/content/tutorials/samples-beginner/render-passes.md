@@ -80,28 +80,72 @@ The screen-filling quad of the second pass needs no depth test and no culling at
 
 ## Drawing the passes
 
-Each pass is begun and ended in turn. Because the passes write into the same frame buffer, the engine knows their dependencies and inserts
-the necessary barriers (see [render passes and frames](../../guides/synchronization/render-passes-and-frames.md) in the synchronization guide):
+Each pass could submit on its own when it ends, as in the basic rendering sample. Instead, the sample records all three into one command
+buffer and submits that once. This saves two submissions per frame, and lets the GPU overlap work of consecutive passes where no barrier
+orders it:
 
 ```cpp
-firstPass.begin(frameBuffer);
-// ... draw the geometry as in the basic rendering sample ...
-firstPass.end();
+auto& graphicsQueue = m_device->defaultQueue(QueueType::Graphics);
+graphicsQueue.waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
+auto commandBuffer = graphicsQueue.createCommandBuffer();
+```
 
-secondPass.begin(frameBuffer);
-auto commandBuffer = secondPass.commandBuffer(0);
-commandBuffer->use(secondPipeline);
-commandBuffer->setViewports(m_viewport.get());
-commandBuffer->setScissors(m_scissor.get());
-commandBuffer->bind(viewPlaneVertexBuffer);
-commandBuffer->bind(viewPlaneIndexBuffer);
-commandBuffer->drawIndexed(viewPlaneIndexBuffer.elements());
+Each pass is then begun on that command buffer. The draw calls go into the pass's own secondary command buffer, which the pass executes in
+the shared one when it ends:
+
+```cpp
+firstPass.begin(frameBuffer, *commandBuffer);
+auto secondary = firstPass.commandBuffer(0);
+// ... draw the geometry as in the basic rendering sample ...
+firstPass.end();   // Does not submit, as the command buffer is ours.
+
+secondPass.begin(frameBuffer, *commandBuffer);
+secondary = secondPass.commandBuffer(0);
+secondary->use(secondPipeline);
+secondary->setViewports(m_viewport.get());
+secondary->setScissors(m_scissor.get());
+secondary->bind(viewPlaneVertexBuffer);
+secondary->bind(viewPlaneIndexBuffer);
+secondary->drawIndexed(viewPlaneIndexBuffer.elements());
 secondPass.end();
 
-thirdPass.begin(frameBuffer);
+thirdPass.begin(frameBuffer, *commandBuffer);
 // ... draw the geometry again ...
 thirdPass.end();
 ```
+
+Because the passes write into the same frame buffer, the engine knows their dependencies and inserts the necessary barriers, also when they
+share a command buffer. Pipeline and binding state does not carry over from one pass to the next, so each pass binds its pipeline and
+buffers again.
+
+Since no pass submits, none presents either, although the third pass writes into the present target. The sample submits the command buffer
+and presents the frame itself:
+
+```cpp
+auto fence = graphicsQueue.submit(commandBuffer);
+m_device->swapChain().present(fence);
+```
+
+The guide covers this in detail under [sharing a command buffer between render
+passes](../../guides/synchronization/render-passes-and-frames.md#sharing-a-command-buffer-between-render-passes).
+
+### One transform per draw call
+
+The first and the third pass both draw the geometry, each with its own transform. The transform is written by the CPU with `map`, which
+happens immediately, while the draw calls read it only when the GPU executes them. If both passes used the same element, both draw calls
+would see whichever transform the CPU wrote last.
+
+The sample therefore allocates two elements per frame in flight, and one descriptor set for each:
+
+```cpp
+auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, ResourceHeap::Dynamic, 6);
+auto transformBindings = std::views::iota(0u, 6u)
+    | std::views::transform([&](UInt32 i) { return transformBindingLayout.allocate({ { .binding = 0, .resource = *transformBuffer, .firstElement = i, .elements = 1 } }); })
+    | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
+```
+
+The first pass uses the element `backBuffer * 2`, the third pass the element `backBuffer * 2 + 1`. The same applies to any per-frame data
+that several draw calls of one submission write: each needs its own copy.
 
 The quad is drawn from its own vertex and index buffers, built from four vertices with texture coordinates that cover the whole screen.
 

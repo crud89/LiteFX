@@ -9,7 +9,7 @@ Upload long-lived buffers on the transfer queue, and let the first queue that us
 
 ```cpp
 auto& transferQueue = m_device->defaultQueue(QueueType::Transfer);
-auto commandBuffer = transferQueue.createCommandBuffer(true);
+auto commandBuffer = transferQueue.createCommandBuffer();
 commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(Vertex), *vertexBuffer, 0, static_cast<UInt32>(vertices.size()));
 m_transferFence = commandBuffer->submit();
 
@@ -43,7 +43,7 @@ The Vulkan backend generates mip maps with blits, which require a graphics queue
 
 ```cpp
 auto& graphicsQueue = m_device->defaultQueue(QueueType::Graphics);
-auto commandBuffer = graphicsQueue.createCommandBuffer(true);
+auto commandBuffer = graphicsQueue.createCommandBuffer();
 
 auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::Transfer);
 barrier->transition(*texture, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::Common);
@@ -199,6 +199,10 @@ even when the shader only reads it. DirectX 12 reports this as an error, Vulkan 
 
 **Modifying a barrier after recording it.** `commandBuffer->barrier(*barrier)` records the barrier's current transitions. Transitions added
 afterwards are only recorded the next time the barrier is executed.
+
+**Keeping a command buffer for the next frame.** Command buffers are used once: after `submit`, recording into one or submitting it again
+throws. Create a new command buffer for each submission, which is cheap. See [one command buffer per
+submission](command-buffers.md#one-command-buffer-per-submission).
 
 **Combining a stage of `None` with an access other than `None`.** If nothing is waited for, nothing can be made visible. Use a real stage, or
 `ResourceAccess::None`.
