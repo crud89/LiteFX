@@ -224,11 +224,7 @@ public:
             commandBuffer.barrier(depthStencilBarrier);
             commandBuffer.barrier(inputAttachmentBarrier);
 
-            // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
             // NOLINTBEGIN(bugprone-unchecked-optional-access)
-            commandBuffer.handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
-            commandBuffer.handle()->EndRenderPass();
-
             // Create the secondary command buffers.
             auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
             m_secondaryCommandBuffers[interfacePointer] = std::views::iota(0u, m_secondaryCommandBufferCount) 
@@ -241,10 +237,11 @@ public:
                     std::as_const(*secondaryCommandBuffer).handle()->SetViewInstanceMask(m_viewMask);
                     return secondaryCommandBuffer;
                 }) | std::ranges::to<Array<SharedPtr<DirectX12CommandBuffer>>>();
-            // NOLINTEND(bugprone-unchecked-optional-access)
 
-            if (!external && !renderPass.name().empty())
-                m_queue->beginDebugRegion(std::format("{0} Render Pass", renderPass.name()));
+            // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
+            commandBuffer.handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
+            commandBuffer.handle()->EndRenderPass();
+            // NOLINTEND(bugprone-unchecked-optional-access)
 
             // Store the primary command buffer.
             m_activeCommandBuffer = commandBuffer.shared_from_this();
@@ -252,6 +249,9 @@ public:
 
             // Publish beginning event.
             renderPass.beginning(&renderPass, { frameBuffer });
+
+            if (!external && !renderPass.name().empty())
+                m_queue->beginDebugRegion(std::format("{0} Render Pass", renderPass.name()));
         }
         catch (...)
         {
@@ -415,7 +415,6 @@ UInt64 DirectX12RenderPass::end() const
     this->ending(this, { });
 
     auto& frameBuffer = *m_impl->m_activeFrameBuffer;
-    const auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
     const auto& swapChain = m_impl->m_device->swapChain();
 
     // Resume and end the render pass.
@@ -435,14 +434,13 @@ UInt64 DirectX12RenderPass::end() const
     // Add another barrier for the back buffer image, if required.
     auto syncAfter = m_impl->m_external ? PipelineStage::All : PipelineStage::None;
     auto accessAfter = m_impl->m_external ? ResourceAccess::Common : ResourceAccess::None;
-    auto beforeAccess = m_impl->m_external ? ResourceAccess::Common : ResourceAccess::None;
 
     if (requiresResolve)
     {
         auto& multiSampledImage = frameBuffer[*m_impl->m_presentTarget]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
         DirectX12Barrier beginPresentBarrier(PipelineStage::RenderTarget, PipelineStage::Resolve);
-        beginPresentBarrier.transition(backBufferImage, beforeAccess, ResourceAccess::ResolveWrite, ImageLayout::Present, ImageLayout::ResolveDestination);
+        beginPresentBarrier.transition(backBufferImage, ResourceAccess::None, ResourceAccess::ResolveWrite, ImageLayout::Present, ImageLayout::ResolveDestination);
         beginPresentBarrier.transition(multiSampledImage, ResourceAccess::RenderTarget, ResourceAccess::ResolveRead, ImageLayout::RenderTarget, ImageLayout::ResolveSource);
         commandBuffer->barrier(beginPresentBarrier);
 
@@ -460,7 +458,7 @@ UInt64 DirectX12RenderPass::end() const
 
         DirectX12Barrier beginPresentBarrier(PipelineStage::RenderTarget, PipelineStage::Transfer);
         beginPresentBarrier.transition(presentTarget, ResourceAccess::RenderTarget, ResourceAccess::TransferRead, ImageLayout::RenderTarget, ImageLayout::CopySource);
-        beginPresentBarrier.transition(backBufferImage, beforeAccess, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
+        beginPresentBarrier.transition(backBufferImage, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
         commandBuffer->barrier(beginPresentBarrier);
 
         commandBuffer->transfer(presentTarget, backBufferImage);

@@ -320,12 +320,12 @@ public:
             // Begin the render pass on the primary command buffer.
             ::vkCmdBeginRendering(primaryCommandBuffer.handle(), &renderingInfo);
 
+            // Publish beginning event.
+            renderPass.beginning(&renderPass, { frameBuffer });
+
             // Store the primary command buffer.
             m_activeCommandBuffer = primaryCommandBuffer.shared_from_this();
             m_external = external;
-
-            // Publish beginning event.
-            renderPass.beginning(&renderPass, { frameBuffer });
         }
         catch (...)
         {
@@ -505,7 +505,6 @@ UInt64 VulkanRenderPass::end() const
     // Add another barrier for the back buffer image, if required.
     auto syncAfter = m_impl->m_external ? PipelineStage::All : PipelineStage::None;
     auto accessAfter = m_impl->m_external ? ResourceAccess::Common : ResourceAccess::None;
-    auto beforeAccess = m_impl->m_external ? ResourceAccess::Common : ResourceAccess::None;
 
     if (requiresResolve)
     {
@@ -519,7 +518,7 @@ UInt64 VulkanRenderPass::end() const
         // Copy the contents from the frame buffer image into the swap chain back buffer.
         VulkanBarrier beginPresentBarrier(PipelineStage::RenderTarget, PipelineStage::Transfer);
         beginPresentBarrier.transition(*presentImage, ResourceAccess::RenderTarget, ResourceAccess::TransferRead, ImageLayout::RenderTarget, ImageLayout::CopySource);
-        beginPresentBarrier.transition(backBufferImage, beforeAccess, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
+        beginPresentBarrier.transition(backBufferImage, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
         primaryCommandBuffer->barrier(beginPresentBarrier);
 
         primaryCommandBuffer->transfer(*presentImage, backBufferImage);

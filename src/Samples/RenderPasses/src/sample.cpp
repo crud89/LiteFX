@@ -196,15 +196,13 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraBuffer);
 
-    // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
-    // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
+    // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight and draw
+    // two objects, create a buffer with six elements and bind the appropriate element to the descriptor set for every frame and object.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, ResourceHeap::Dynamic, 3);
-    auto transformBindings = transformBindingLayout.allocate(3, {
-        { {.binding = 0, .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
-        { {.binding = 0, .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
-        { {.binding = 0, .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
-    }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
+    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, ResourceHeap::Dynamic, 6); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    auto transformBindings = std::views::iota(0u, 6u) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        | std::views::transform([&](UInt32 i) { return transformBindingLayout.allocate({ { .binding = 0, .resource = *transformBuffer, .firstElement = i, .elements = 1 } }); })
+        | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 
     // Create buffers for lighting pass, i.e. the view plane vertex and index buffers.
     auto viewPlaneVertexBuffer = m_device->factory().createVertexBuffer("View Plane Vertices", m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(viewPlaneVertices.size()));
@@ -446,46 +444,56 @@ void SampleApp::drawFrame()
     // Swap the back buffers for the next frame.
     auto backBuffer = m_device->swapChain().swapBackBuffer();
     auto& frameBuffer = m_device->state().frameBuffer(std::format("Frame Buffer {0}", backBuffer));
-    UInt64 fence = 0;
+    auto& graphicsQueue = m_device->defaultQueue(QueueType::Graphics);
+
+    // Wait for all transfers to finish and record all three render passes into a common command buffer. There are two ways of synchronizing render passes:
+    // 
+    // 1. Use fences returned by `IRenderPass::end` to let the queue underlying a render pass wait. This can be used to split render passes over multiple queues.
+    // 2. Re-use a command buffer over multiple render passes. This has two benefits: it prevents flushes on the graphics queue and it allows the GPU to overlap
+    //    work that is not synchronized by barriers. This often allows for better GPU utilization.
+    // 
+    // Note that with the second approach, an explicit `ISwapChain::present` is required, while a render pass that renders into a `Present` render target does
+    // implicitly present when it is ended.
+    graphicsQueue.waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
+    auto commandBuffer = graphicsQueue.createCommandBuffer();
+
+    auto now = std::chrono::high_resolution_clock::now();
+    auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
     {
         // Query state.
+        const auto firstElement = backBuffer * 2u; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         auto& renderPass = m_device->state().renderPass("First Pass");
         auto& pipeline = m_device->state().pipeline("First Pass Pipeline");
         auto& transformBuffer = m_device->state().buffer("Transform");
         auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
-        auto& transformBindings = m_device->state().descriptorSet(std::format("Transform Bindings {0}", backBuffer));
+        auto& transformBindings = m_device->state().descriptorSet(std::format("Transform Bindings {0}", firstElement));
         auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
         auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
-        // Wait for all transfers to finish.
-        renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
-
         // Begin rendering on the render pass and use the only pipeline we've created for it.
-        renderPass.begin(frameBuffer);
-        auto commandBuffer = renderPass.commandBuffer(0);
-        commandBuffer->use(pipeline);
-        commandBuffer->setViewports(m_viewport.get());
-        commandBuffer->setScissors(m_scissor.get());
-
-        // Get the amount of time that has passed since the first frame.
-        auto now = std::chrono::high_resolution_clock::now();
-        auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+        renderPass.begin(frameBuffer, *commandBuffer);
+        auto secondary = renderPass.commandBuffer(0);
+        secondary->use(pipeline);
+        secondary->setViewports(m_viewport.get());
+        secondary->setScissors(m_scissor.get());
 
         // Compute world transform and update the transform buffer.
         transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 0.0f, 0.0f)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-        transformBuffer.map(static_cast<const void*>(&transform), sizeof(transform), backBuffer);
+        transformBuffer.map(static_cast<const void*>(&transform), sizeof(transform), firstElement);
 
         // Bind both descriptor sets to the pipeline.
-        commandBuffer->bind({ &cameraBindings, &transformBindings });
+        secondary->bind({ &cameraBindings, &transformBindings });
 
         // Bind the vertex and index buffers.
-        commandBuffer->bind(vertexBuffer);
-        commandBuffer->bind(indexBuffer);
+        secondary->bind(vertexBuffer);
+        secondary->bind(indexBuffer);
 
         // Draw the object and end the render pass.
-        commandBuffer->drawIndexed(indexBuffer.elements());
-        fence = renderPass.end();
+        secondary->drawIndexed(indexBuffer.elements());
+
+        // End the render pass. Since we supplied an external command buffer to `begin` earlier, this call doesn't submit and always returns `0`, which we can ignore.
+        renderPass.end();
     }
 
     {
@@ -496,57 +504,56 @@ void SampleApp::drawFrame()
         auto& viewPlaneIndexBuffer = m_device->state().indexBuffer("View Plane Indices");
 
         // Start the lighting pass.
-        renderPass.commandQueue().waitFor(fence);
-        renderPass.begin(frameBuffer);
-        auto commandBuffer = renderPass.commandBuffer(0);
-        commandBuffer->use(pipeline);
-        commandBuffer->setViewports(m_viewport.get());
-        commandBuffer->setScissors(m_scissor.get());
+        renderPass.begin(frameBuffer, *commandBuffer);
+        auto secondary = renderPass.commandBuffer(0);
+        secondary->use(pipeline);
+        secondary->setViewports(m_viewport.get());
+        secondary->setScissors(m_scissor.get());
 
         // Draw the view plane.
-        commandBuffer->bind(viewPlaneVertexBuffer);
-        commandBuffer->bind(viewPlaneIndexBuffer);
-        commandBuffer->drawIndexed(viewPlaneIndexBuffer.elements());
+        secondary->bind(viewPlaneVertexBuffer);
+        secondary->bind(viewPlaneIndexBuffer);
+        secondary->drawIndexed(viewPlaneIndexBuffer.elements());
 
         // End the lighting pass.
-        fence = renderPass.end();
+        renderPass.end();
     }
 
     {
         // Query state.
+        const auto firstElement = backBuffer * 2u + 1u; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         auto& renderPass = m_device->state().renderPass("Third Pass");
         auto& pipeline = m_device->state().pipeline("Third Pass Pipeline");
         auto& transformBuffer = m_device->state().buffer("Transform");
         auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
-        auto& transformBindings = m_device->state().descriptorSet(std::format("Transform Bindings {0}", backBuffer));
+        auto& transformBindings = m_device->state().descriptorSet(std::format("Transform Bindings {0}", firstElement));
         auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
         auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
         // Begin rendering on the render pass and use the only pipeline we've created for it.
-        renderPass.commandQueue().waitFor(fence);
-        renderPass.begin(frameBuffer);
-        auto commandBuffer = renderPass.commandBuffer(0);
-        commandBuffer->use(pipeline);
-        commandBuffer->setViewports(m_viewport.get());
-        commandBuffer->setScissors(m_scissor.get());
-
-        // Get the amount of time that has passed since the first frame.
-        auto now = std::chrono::high_resolution_clock::now();
-        auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+        renderPass.begin(frameBuffer, *commandBuffer);
+        auto secondary = renderPass.commandBuffer(0);
+        secondary->use(pipeline);
+        secondary->setViewports(m_viewport.get());
+        secondary->setScissors(m_scissor.get());
 
         // Bind both descriptor sets to the pipeline.
-        commandBuffer->bind({ &cameraBindings, &transformBindings });
+        secondary->bind({ &cameraBindings, &transformBindings });
 
         // Bind the vertex and index buffers.
-        commandBuffer->bind(vertexBuffer);
-        commandBuffer->bind(indexBuffer);
+        secondary->bind(vertexBuffer);
+        secondary->bind(indexBuffer);
 
         // Draw an additional instance of the object on top of the existing contents.
         transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-        transformBuffer.map(static_cast<const void*>(&transform), sizeof(transform), backBuffer);
-        commandBuffer->drawIndexed(indexBuffer.elements());
+        transformBuffer.map(static_cast<const void*>(&transform), sizeof(transform), firstElement);
+        secondary->drawIndexed(indexBuffer.elements());
 
-        // Present the frame by ending the render pass.
+        // End the last render pass.
         renderPass.end();
     }
+
+    // Submit all passes at once and present the result of the third pass.
+    auto fence = graphicsQueue.submit(commandBuffer);
+    m_device->swapChain().present(fence);
 }
