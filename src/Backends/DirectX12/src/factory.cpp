@@ -287,7 +287,7 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 	Array<IDeviceMemory*> resources;
 
 	// Prepare the move operation on each resource, i.e., create a barrier to allow then to synchronize the move with their current usage.
-	DirectX12Barrier barrier(PipelineStage::All, PipelineStage::Transfer);
+	DirectX12Barrier barrier(PipelineStage::None, PipelineStage::Transfer);
 	IDeviceMemory::PrepareMoveEventArgs eventArgs(barrier);
 	UInt32 moves{ 0u };
 
@@ -300,9 +300,16 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 		auto deviceMemory = static_cast<IDeviceMemory*>(sourceAllocation->GetPrivateData());
 
 		// Ignore moves on the heaps that aren't Resource, as the GPU can't perform those or the CPU-side manages them through the application anyway, we gain
-		// little by supporting this scenario.
+		// little by supporting this scenario. Also ignore render targets.
 		if (deviceMemory->heap() != ResourceHeap::Resource)
 		{
+			pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			continue;
+		}
+		else if (auto image = dynamic_cast<DirectX12Image*>(deviceMemory); image != nullptr && LITEFX_FLAG_IS_SET(image->usage(), ResourceUsage::RenderTarget))
+		{
+			// TODO: Moving render targets is currently unsupported, as it introduces way to many unpredictable synchronization issues. We should 
+			//       improve this in the future. As an alternative, we could create render targets from a separate pool.
 			pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			continue;
 		}
@@ -364,20 +371,13 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 		}
 		else if (auto image = dynamic_cast<DirectX12Image*>(deviceMemory); image != nullptr)
 		{
-			// TODO: Moving render targets is currently unsupported, as it introduces way to many unpredictable synchronization issues. We should 
-			//       improve this in the future. As an alternative, we could create render targets from a separate pool.
-			if (LITEFX_FLAG_IS_SET(image->usage(), ResourceUsage::RenderTarget))
-				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			else
-			{
-				auto oldHandle = std::as_const(*image).handle();
+			auto oldHandle = std::as_const(*image).handle();
 
-				if (DirectX12Image::move(image->shared_from_this(), targetAllocation, *commandBuffer))
-					m_impl->m_destroyedResources.emplace(std::move(oldHandle), image->shared_from_this());
-				else {
-					pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-					continue;
-				}
+			if (DirectX12Image::move(image->shared_from_this(), targetAllocation, *commandBuffer))
+				m_impl->m_destroyedResources.emplace(std::move(oldHandle), image->shared_from_this());
+			else {
+				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+				continue;
 			}
 		}
 

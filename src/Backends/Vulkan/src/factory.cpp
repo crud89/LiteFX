@@ -434,7 +434,7 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 	Array<IDeviceMemory*> resources;
 
 	// Prepare the move operation on each resource, i.e., create a barrier to allow then to synchronize the move with their current usage.
-	VulkanBarrier barrier(PipelineStage::All, PipelineStage::Transfer);
+	VulkanBarrier barrier(PipelineStage::None, PipelineStage::Transfer);
 	IDeviceMemory::PrepareMoveEventArgs eventArgs(barrier);
 	UInt32 moves{ 0u };
 
@@ -451,9 +451,16 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 		auto deviceMemory = static_cast<IDeviceMemory*>(allocationInfo.pUserData);
 
 		// Ignore moves on the heaps that aren't Resource, as the GPU can't perform those or the CPU-side manages them through the application anyway, we gain
-		// little by supporting this scenario.
+		// little by supporting this scenario. Also ignore render targets.
 		if (deviceMemory->heap() != ResourceHeap::Resource)
 		{
+			pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			continue;
+		}
+		else if (auto image = dynamic_cast<VulkanImage*>(deviceMemory); image != nullptr && LITEFX_FLAG_IS_SET(image->usage(), ResourceUsage::RenderTarget))
+		{
+			// TODO: Moving render targets is currently unsupported, as it introduces way to many unpredictable synchronization issues. We should 
+			//       improve this in the future. As an alternative, we could create render targets from a separate pool.
 			pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			continue;
 		}
@@ -517,20 +524,13 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 		}
 		else if (auto image = dynamic_cast<VulkanImage*>(deviceMemory); image != nullptr)
 		{
-			// TODO: Moving render targets is currently unsupported, as it introduces way to many unpredictable synchronization issues. We should 
-			//       improve this in the future. As an alternative, we could create render targets from a separate pool.
-			if (LITEFX_FLAG_IS_SET(image->usage(), ResourceUsage::RenderTarget))
-				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			else
-			{
-				auto oldHandle = std::as_const(*image).handle();
+			auto oldHandle = std::as_const(*image).handle();
 
-				if (VulkanImage::move(image->shared_from_this(), targetAllocation, *commandBuffer))
-					m_impl->m_destroyedResources.emplace([oldHandle](VkDevice device) { ::vkDestroyImage(device, oldHandle, nullptr); }, image->shared_from_this());
-				else {
-					pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-					continue;
-				}
+			if (VulkanImage::move(image->shared_from_this(), targetAllocation, *commandBuffer))
+				m_impl->m_destroyedResources.emplace([oldHandle](VkDevice device) { ::vkDestroyImage(device, oldHandle, nullptr); }, image->shared_from_this());
+			else {
+				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+				continue;
 			}
 		}
 

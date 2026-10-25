@@ -169,6 +169,11 @@ UniquePtr<IVulkanCommandAllocatorHandle> VulkanCommandAllocatorPool::acquire(boo
 			raiseIfFailed(::vkAllocateCommandBuffers(device->handle(), &bufferInfo, &commandBuffer), "Unable to allocate command buffer.");
 		}
 
+#ifndef NDEBUG
+		// Reset the name of the command buffer, such that they don't leak into re-used ones.
+		device->setDebugName(commandBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER, "Unnamed command buffer");
+#endif
+
 		return makeUnique<VulkanCommandAllocatorHandle>(this->shared_from_this(), std::move(allocator), commandBuffer);
 	}
 	catch (...)

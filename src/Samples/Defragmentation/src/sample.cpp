@@ -268,6 +268,8 @@ void SampleApp::onInit()
     };
 
     auto stopCallback = [this]<typename TBackend>(TBackend* backend) {
+        m_device->wait();
+
         // Release the camera bindings, so that they don't leak.
         m_cameraBindings.reset();
 
@@ -420,6 +422,9 @@ void SampleApp::handleEvents()
 void SampleApp::drawFrame()
 {
     // Generate new resources.
+    Array<SharedPtr<const IImage>> createdImages;
+    auto imageCreateBarrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::None);
+
     {
         // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
         static std::uniform_int_distribution<std::mt19937::result_type> imageDice(0, 2); // Generate between 0 and 2 images per frame.
@@ -439,7 +444,15 @@ void SampleApp::drawFrame()
         for (UInt32 i{}; i < images && allocations.size() < maxResources; ++i)
         {
             auto& allocation = allocations.emplace_back(m_device->factory().createTexture(Format::R8G8B8A8_SRGB, { resolutionDice(rng), resolutionDice(rng) , 1u }), frameDice(rng));
-            ::setupMoveHandlers(std::get<SharedPtr<IImage>>(allocation.resource));
+            auto image = std::get<SharedPtr<IImage>>(allocation.resource);
+            ::setupMoveHandlers(image);
+
+            // NOTE: All image resources are expected to be in `Common` layout, but start out in `Undefined`, so we need a transition here.
+            imageCreateBarrier->transition(*image, ResourceAccess::None, ResourceAccess::None, ImageLayout::Undefined, ImageLayout::Common);
+
+            // We track newly created images on the command buffer that transitions them from `Undefined` later, such that they aren't accidentally removed
+            // before they are transitioned.
+            createdImages.push_back(image);
         }
 
         // Generate new buffers.
@@ -468,6 +481,13 @@ void SampleApp::drawFrame()
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
     auto& transferQueue = m_device->defaultQueue(QueueType::Transfer);
     auto& renderQueue = renderPass.commandQueue();
+
+    if (!createdImages.empty()) {
+        auto commandBuffer = transferQueue.createCommandBuffer();
+        commandBuffer->barrier(*imageCreateBarrier);
+        std::ranges::for_each(createdImages, [&](const auto& image) { commandBuffer->track(image); });
+        commandBuffer->submit();
+    }
 
     // NOTE: Defragmentation is a sequential process. The process is started by calling `beginDefragmentation` and then executes multiple passes. During each of those passes,
     //       resources are copied. In order for the rendering to pick up the up-to-date resources, it must be synchronized with the queue that handles defragmentation. For 

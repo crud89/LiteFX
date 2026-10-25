@@ -373,7 +373,7 @@ bool VulkanImage::move(SharedPtr<IVulkanImage> image, VmaAllocation to, const Vu
 	if (!image->volatileMove())
 	{
 		// We need to include a barrier for initialization first.
-		static VkImageMemoryBarrier2 imageInitialization = {
+		VkImageMemoryBarrier2 imageInitialization = {
 			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
 			.srcStageMask = Vk::getPipelineStage(PipelineStage::None),
 			.srcAccessMask = Vk::getResourceAccess(ResourceAccess::None),
@@ -394,7 +394,7 @@ bool VulkanImage::move(SharedPtr<IVulkanImage> image, VmaAllocation to, const Vu
 			.layerCount = image->layers()
 		};
 
-		static const VkDependencyInfo barrier = {
+		const VkDependencyInfo barrier = {
 			.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
 			.imageMemoryBarrierCount = 1u,
 			.pImageMemoryBarriers = &imageInitialization

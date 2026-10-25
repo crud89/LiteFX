@@ -127,7 +127,12 @@ UniquePtr<IDirectX12CommandAllocatorHandle> DirectX12CommandAllocatorPool::acqui
 			raiseIfFailed(device->handle()->CreateCommandList(0, m_type, allocator->CommandAllocator.Get(), nullptr, IID_PPV_ARGS(&allocator->CommandList)), "Unable to create command list.");
 		else
 			raiseIfFailed(allocator->CommandList->Reset(allocator->CommandAllocator.Get(), nullptr), "Unable to reset command list.");
-		
+
+#ifndef NDEBUG
+		// Reset the name of the command buffer, such that they don't leak into re-used ones.
+		allocator->CommandList->SetName(L"Unnamed command buffer");
+#endif
+
 		opened = true;
 		return makeUnique<DirectX12CommandAllocatorHandle>(this->shared_from_this(), std::move(allocator));
 	}
