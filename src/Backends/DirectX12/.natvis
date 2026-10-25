@@ -547,6 +547,38 @@
 		</Expand>
 	</Type>
 
+	<!-- Command Allocator Pool -->
+	<Type Name="DirectX12CommandAllocatorPool">
+		<DisplayString>DirectX12CommandAllocatorPool {{ Type = { m_type,en }, { m_freeAllocators._Mypair._Myval2._Mylast - m_freeAllocators._Mypair._Myval2._Myfirst } Free Allocators }}</DisplayString>
+
+		<Expand>
+			<Item Name="Command List Type">m_type,en</Item>
+			<Item Name="Free Allocators">m_freeAllocators,view(simple)</Item>
+			<Item Name="Parent Device">m_device</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="DirectX12CommandAllocatorPool::Allocator">
+		<DisplayString>{{ Allocator = { CommandAllocator }, Command List = { CommandList }, Dirty = { Dirty } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Command Allocator">CommandAllocator</Item>
+			<Item Name="Command List">CommandList</Item>
+			<Item Name="Dirty">Dirty</Item>
+		</Expand>
+	</Type>
+
+	<!-- Command Allocator Handle -->
+	<Type Name="DirectX12CommandAllocatorHandle">
+		<DisplayString Condition="m_allocator._Mypair._Myval2 == 0">DirectX12CommandAllocatorHandle {{ released }}</DisplayString>
+		<DisplayString Condition="m_allocator._Mypair._Myval2 != 0">DirectX12CommandAllocatorHandle {{ Command List = { m_allocator._Mypair._Myval2->CommandList } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Allocator" Condition="m_allocator._Mypair._Myval2 != 0">*m_allocator._Mypair._Myval2</Item>
+			<Item Name="Pool">m_pool</Item>
+		</Expand>
+	</Type>
+
 	<!-- Command Buffer -->
 	<Type Name="LiteFX::Rendering::Backends::DirectX12CommandBuffer">
 		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
@@ -557,7 +589,9 @@
 			<Item Name="Queue">impl()->m_queue</Item>
 			<Item Name="Recording">impl()->m_recording</Item>
 			<Item Name="Secondary">impl()->m_secondary</Item>
-			<Item Name="Shared Resources">impl()->m_sharedResources,view(simple)</Item>
+			<Item Name="Tracked Resources">impl()->m_trackedResources</Item>
+			<Item Name="Allocator" Condition="impl()->m_allocatorHandle._Mypair._Myval2 != 0">(DirectX12CommandAllocatorHandle*)impl()->m_allocatorHandle._Mypair._Myval2</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;Microsoft::WRL::ComPtr&lt;ID3D12GraphicsCommandList7&gt; &gt;*)this</Item>
 			<Item Name="Parent Device">impl()->m_queue._Ptr->m_impl.m_ptr._Ptr->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
@@ -574,6 +608,8 @@
 			<Item Name="Priority">impl()->m_priority,en</Item>
 			<Item Name="Last Fence">impl()->m_fenceValue</Item>
 			<Item Name="Submitted Command Buffers">impl()->m_submittedCommandBuffers,view(simple)</Item>
+			<Item Name="Command Allocators">impl()->m_allocators</Item>
+			<Item Name="Bundle Allocators">impl()->m_bundleAllocators</Item>
 			<Item Name="Parent Device">impl()->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
@@ -617,7 +653,11 @@
 			<Item Name="Active Frame Buffer">impl()->m_activeFrameBuffer</Item>
 			<Item Name="Present Target">impl()->m_presentTarget</Item>
 			<Item Name="Depth/Stencil Target">impl()->m_depthStencilTarget</Item>
-			<Item Name="Secondary Command Buffers">impl()->m_secondaryCommandBufferCount</Item>
+			<Item Name="Secondary Command Buffer Count">impl()->m_secondaryCommandBufferCount</Item>
+			<Item Name="View Mask">impl()->m_viewMask,x</Item>
+			<Item Name="Begin Command Buffers">impl()->m_beginCommandBuffers,view(simple)</Item>
+			<Item Name="Secondary Command Buffers">impl()->m_secondaryCommandBuffers,view(simple)</Item>
+			<Item Name="End Command Buffers">impl()->m_endCommandBuffers,view(simple)</Item>
 			<Item Name="Command Queue">impl()->m_queue</Item>
 			<Item Name="Parent Device">impl()->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>
@@ -649,11 +689,24 @@
 	<Type Name="LiteFX::Rendering::Backends::DirectX12GraphicsFactory">
 		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
 		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
-		<DisplayString Condition="impl() != 0">DirectX12GraphicsFactory {{ }}</DisplayString>
+		<DisplayString Condition="impl() != 0 &amp;&amp; impl()->m_defragmentationContext == 0">DirectX12GraphicsFactory {{ }}</DisplayString>
+		<DisplayString Condition="impl() != 0 &amp;&amp; impl()->m_defragmentationContext != 0">DirectX12GraphicsFactory {{ Defragmenting }}</DisplayString>
 
 		<Expand>
 			<Item Name="Device">impl()->m_device</Item>
 			<Item Name="Allocator">impl()->m_allocator</Item>
+			<Synthetic Name="Defragmentation" Condition="impl()->m_defragmentationContext != 0">
+				<DisplayString>{{ Fence = { impl()->m_defragmentationFence } }}</DisplayString>
+
+				<Expand>
+					<Item Name="Context">impl()->m_defragmentationContext</Item>
+					<Item Name="Queue">impl()->m_defragmentationQueue</Item>
+					<Item Name="Fence">impl()->m_defragmentationFence</Item>
+					<Item Name="Current Pass">impl()->m_defragmentationPass</Item>
+					<Item Name="Pass Resources">impl()->m_defragmentationPassResources,view(simple)</Item>
+					<Item Name="Pending Releases">impl()->m_destroyedResources</Item>
+				</Expand>
+			</Synthetic>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>

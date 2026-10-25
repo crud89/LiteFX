@@ -230,6 +230,18 @@
 		</Expand>
 	</Type>
 
+	<!-- Tracked Command Buffer Resources -->
+	<Type Name="LiteFX::Rendering::ICommandBuffer::TrackedResources">
+		<DisplayString>{{ { Resources._Mypair._Myval2._Mylast - Resources._Mypair._Myval2._Myfirst } Resources, { DescriptorSets._Mypair._Myval2._Mylast - DescriptorSets._Mypair._Myval2._Myfirst } Descriptor Sets, { DescriptorRanges._Mypair._Myval2._Mylast - DescriptorRanges._Mypair._Myval2._Myfirst } Descriptor Ranges, { SecondaryCommandBuffers._Mypair._Myval2._Mylast - SecondaryCommandBuffers._Mypair._Myval2._Myfirst } Secondary Command Buffers }}</DisplayString>
+
+		<Expand>
+			<Item Name="Resources">Resources,view(simple)</Item>
+			<Item Name="Descriptor Sets">DescriptorSets,view(simple)</Item>
+			<Item Name="Descriptor Ranges">DescriptorRanges,view(simple)</Item>
+			<Item Name="Secondary Command Buffers">SecondaryCommandBuffers,view(simple)</Item>
+		</Expand>
+	</Type>
+
 	<!-- Global Descriptor Heaps -->
 	<Type Name="LiteFX::Rendering::GlobalDescriptorHeaps">
 		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />

@@ -602,6 +602,40 @@
 		</Expand>
 	</Type>
 
+	<!-- Command Allocator Pool -->
+	<Type Name="VulkanCommandAllocatorPool">
+		<DisplayString>VulkanCommandAllocatorPool {{ Queue Family = { m_queueFamily }, { m_freeAllocators._Mypair._Myval2._Mylast - m_freeAllocators._Mypair._Myval2._Myfirst } Free Allocators }}</DisplayString>
+
+		<Expand>
+			<Item Name="Queue Family">m_queueFamily</Item>
+			<Item Name="Free Allocators">m_freeAllocators,view(simple)</Item>
+			<Item Name="Parent Device">m_device</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="VulkanCommandAllocatorPool::Allocator">
+		<DisplayString>{{ Pool = { Pool }, Primary = { Primary }, Secondary = { Secondary }, Dirty = { Dirty } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Command Pool">Pool</Item>
+			<Item Name="Primary Command Buffer">Primary</Item>
+			<Item Name="Secondary Command Buffer">Secondary</Item>
+			<Item Name="Dirty">Dirty</Item>
+		</Expand>
+	</Type>
+
+	<!-- Command Allocator Handle -->
+	<Type Name="VulkanCommandAllocatorHandle">
+		<DisplayString Condition="m_allocator._Mypair._Myval2 == 0">VulkanCommandAllocatorHandle {{ released }}</DisplayString>
+		<DisplayString Condition="m_allocator._Mypair._Myval2 != 0">VulkanCommandAllocatorHandle {{ Command Buffer = { m_commandBuffer }, Command Pool = { m_allocator._Mypair._Myval2->Pool } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Command Buffer">m_commandBuffer</Item>
+			<Item Name="Allocator" Condition="m_allocator._Mypair._Myval2 != 0">*m_allocator._Mypair._Myval2</Item>
+			<Item Name="Pool">m_pool</Item>
+		</Expand>
+	</Type>
+
 	<!-- Command Buffer -->
 	<Type Name="LiteFX::Rendering::Backends::VulkanCommandBuffer">
 		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
@@ -612,7 +646,8 @@
 			<Item Name="Queue">impl()->m_queue</Item>
 			<Item Name="Recording">impl()->m_recording</Item>
 			<Item Name="Secondary">impl()->m_secondary</Item>
-			<Item Name="Shared Resources">impl()->m_sharedResources,view(simple)</Item>
+			<Item Name="Tracked Resources">impl()->m_trackedResources</Item>
+			<Item Name="Allocator" Condition="impl()->m_allocatorHandle._Mypair._Myval2 != 0">(VulkanCommandAllocatorHandle*)impl()->m_allocatorHandle._Mypair._Myval2</Item>
 			<Item Name="Parent Device">impl()->m_queue._Ptr->m_impl.m_ptr._Ptr->m_device</Item>
 			<Item Name="[Resource]">(LiteFX::Resource&lt;VkCommandBuffer_T *&gt;*)this</Item>
 			<Item Name="[m_impl]">m_impl</Item>
@@ -632,6 +667,8 @@
 			<Item Name="Queue ID">impl()->m_queueId</Item>
 			<Item Name="Last Fence">impl()->m_fenceValue</Item>
 			<Item Name="Submitted Command Buffers">impl()->m_submittedCommandBuffers,view(simple)</Item>
+			<Item Name="Pending Queue Waits">impl()->m_crossQueueWaitInfos,view(simple)</Item>
+			<Item Name="Command Allocators">impl()->m_allocators</Item>
 			<Item Name="Parent Device">impl()->m_device</Item>
 			<Item Name="[Resource]">(LiteFX::Resource&lt;VkQueue_T *&gt;*)this</Item>
 			<Item Name="[m_impl]">m_impl</Item>
@@ -710,12 +747,38 @@
 	<Type Name="LiteFX::Rendering::Backends::VulkanGraphicsFactory">
 		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />
 		<DisplayString Condition="impl() == 0">uninitialized</DisplayString>
-		<DisplayString Condition="impl() != 0">VulkanGraphicsFactory {{ }}</DisplayString>
+		<DisplayString Condition="impl() != 0 &amp;&amp; impl()->m_defragmentationContext == 0">VulkanGraphicsFactory {{ }}</DisplayString>
+		<DisplayString Condition="impl() != 0 &amp;&amp; impl()->m_defragmentationContext != 0">VulkanGraphicsFactory {{ Defragmenting }}</DisplayString>
 
 		<Expand>
 			<Item Name="Device">impl()->m_device</Item>
 			<Item Name="Allocator">impl()->m_allocator</Item>
+			<Synthetic Name="Defragmentation" Condition="impl()->m_defragmentationContext != 0">
+				<DisplayString>{{ Fence = { impl()->m_defragmentationFence } }}</DisplayString>
+
+				<Expand>
+					<Item Name="Context">impl()->m_defragmentationContext</Item>
+					<Item Name="Queue">impl()->m_defragmentationQueue</Item>
+					<Item Name="Fence">impl()->m_defragmentationFence</Item>
+					<Item Name="Current Pass">impl()->m_defragmentationPass</Item>
+					<Item Name="Pass Resources">impl()->m_defragmentationPassResources,view(simple)</Item>
+					<Item Name="Pending Releases">impl()->m_destroyedResources</Item>
+				</Expand>
+			</Synthetic>
 			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Queue Family -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanDevice::VulkanDeviceImpl::QueueFamily">
+		<DisplayString>QueueFamily {{ ID = { m_id }, Type = { m_type,en }, { m_queues._Mypair._Myval2._Mylast - m_queues._Mypair._Myval2._Myfirst }/{ m_queueCount } Queues }}</DisplayString>
+
+		<Expand>
+			<Item Name="ID">m_id</Item>
+			<Item Name="Type">m_type,en</Item>
+			<Item Name="Queue Count">m_queueCount</Item>
+			<Item Name="Queues">m_queues,view(simple)</Item>
+			<Item Name="Queue Mutexes">m_queueMutexes,view(simple)</Item>
 		</Expand>
 	</Type>
 
@@ -739,6 +802,7 @@
 					<Item Name="Compute Queue">impl()->m_computeQueue</Item>
 				</Expand>
 			</Synthetic>
+			<Item Name="Queue Families">impl()->m_families,view(simple)</Item>
 			<Item Name="Extensions">impl()->m_extensions,view(simple)</Item>
 			<Synthetic Name="Global Descriptor Heaps">
 				<DisplayString>2 Elements</DisplayString>
