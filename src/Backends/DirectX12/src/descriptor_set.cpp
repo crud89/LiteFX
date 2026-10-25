@@ -88,6 +88,7 @@ public:
 
     UInt32 updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, UInt32 descriptor, const IDirectX12Sampler& sampler)
     {
+        sampler.validateBinding(descriptorLayout.descriptorType());
         auto binding = descriptorLayout.binding();
 
         if (descriptor >= parent.capacity(binding)) [[unlikely]]

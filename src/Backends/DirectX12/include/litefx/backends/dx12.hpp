@@ -2575,6 +2575,12 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc GraphicsDevice::factory
         const DirectX12GraphicsFactory& factory() const noexcept override;
 
+        /// @copydoc IGraphicsDevice::supportsTexelBufferFormat 
+        bool supportsTexelBufferFormat(Format format, bool writable) const override;
+
+        /// @copydoc IGraphicsDevice::supportsStorageImageFormat 
+        bool supportsStorageImageFormat(Format format) const override;
+
         /// @copydoc GraphicsDevice::defaultQueue
         const DirectX12Queue& defaultQueue(QueueType type) const override;
 

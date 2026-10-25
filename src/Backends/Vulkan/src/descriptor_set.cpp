@@ -79,6 +79,7 @@ public:
 
     UInt32 updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, UInt32 descriptor, const IVulkanSampler& sampler)
     {
+        sampler.validateBinding(descriptorLayout.descriptorType());
         auto binding = descriptorLayout.binding();
 
         if (descriptor >= parent.capacity(binding)) [[unlikely]]

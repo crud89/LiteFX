@@ -172,9 +172,9 @@ public:
 			alignment = device->adapter().limits().minStorageBufferOffsetAlignment;
 			break;
 		case BufferType::Texel:
+			bufferDescription.usage |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
+
 			if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite))
-				bufferDescription.usage |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
-			else
 				bufferDescription.usage |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
 
 			alignment = device->adapter().limits().minTexelBufferOffsetAlignment;

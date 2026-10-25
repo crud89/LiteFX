@@ -964,6 +964,23 @@ const VulkanGraphicsFactory& VulkanDevice::factory() const noexcept
     return *m_impl->m_factory;
 }
 
+bool VulkanDevice::supportsTexelBufferFormat(Format format, bool writable) const
+{
+    VkFormatProperties properties{};
+    ::vkGetPhysicalDeviceFormatProperties(m_impl->m_adapter->handle(), Vk::getFormat(format), &properties);
+
+    const VkFormatFeatureFlags required = writable ? VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT : VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT;
+    return (properties.bufferFeatures & required) == required;
+}
+
+bool VulkanDevice::supportsStorageImageFormat(Format format) const
+{
+    VkFormatProperties properties{};
+    ::vkGetPhysicalDeviceFormatProperties(m_impl->m_adapter->handle(), Vk::getFormat(format), &properties);
+
+    return (properties.optimalTilingFeatures & VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT) == VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;
+}
+
 const VulkanQueue& VulkanDevice::defaultQueue(QueueType type) const
 {
     // If the type contains the graphics flag, always return the graphics queue.

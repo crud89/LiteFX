@@ -2699,6 +2699,12 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc GraphicsDevice::factory
         const VulkanGraphicsFactory& factory() const noexcept override;
 
+        /// @copydoc IGraphicsDevice::supportsTexelBufferFormat 
+        bool supportsTexelBufferFormat(Format format, bool writable) const override;
+
+        /// @copydoc IGraphicsDevice::supportsStorageImageFormat 
+        bool supportsStorageImageFormat(Format format) const override;
+
         /// @copydoc GraphicsDevice::defaultQueue
         const VulkanQueue& defaultQueue(QueueType type) const override;
 

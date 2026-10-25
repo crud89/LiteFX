@@ -30,25 +30,65 @@ namespace LiteFX::Rendering::Backends {
         if (firstElement + count > buffer.elements()) [[unlikely]]
             throw ArgumentOutOfRangeException("targets", "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), count, firstElement);
 
+        // Validate the descriptor binding.
+        buffer.validateBinding(type);
+
+        // Validate additional buffer rules.
+        const auto& limits = device.adapter().limits();
+        size_t alignedSize = buffer.alignedElementSize();
+        bool texelBuffer{ false };
         VkDescriptorType descriptorType{};
+
+        auto requireAlignment = [&](UInt64 alignment) {
+            if (alignment > 1 && (buffer.virtualAddress() % alignment != 0 || alignedSize % alignment != 0)) [[unlikely]]
+                throw InvalidArgumentException("buffer", "{0} descriptors require an offset alignment of {1} bytes, but the buffer uses an element size of {2} bytes.", type, alignment, alignedSize);
+        };
 
         switch (type)
         {
-        case DescriptorType::ConstantBuffer:      descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; break;
+        case DescriptorType::ConstantBuffer:
+            requireAlignment(limits.minUniformBufferOffsetAlignment);
+
+            if (buffer.elementSize() > limits.maxUniformBufferRange) [[unlikely]]
+                throw InvalidArgumentException("buffer", "Constant buffer descriptors must not exceed {0} bytes, but the buffer uses an element size of {1} bytes.", limits.maxUniformBufferRange, buffer.elementSize());
+            
+            descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            break;
+        case DescriptorType::StructuredBuffer:
+        case DescriptorType::RWStructuredBuffer:
         case DescriptorType::ByteAddressBuffer:
         case DescriptorType::RWByteAddressBuffer:
-        case DescriptorType::StructuredBuffer:
-        case DescriptorType::RWStructuredBuffer:  descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; break;
-        case DescriptorType::Buffer:              descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER; break;
-        case DescriptorType::RWBuffer:            descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER; break;
+            requireAlignment(limits.minStorageBufferOffsetAlignment);
+
+            if (buffer.elementSize() > limits.maxStorageBufferRange) [[unlikely]]
+                throw InvalidArgumentException("buffer", "Storage buffer descriptors must not exceed {0} bytes, but the buffer uses an element size of {1} bytes.", limits.maxStorageBufferRange, buffer.elementSize());
+
+            descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            break;
+        case DescriptorType::Buffer:
+        case DescriptorType::RWBuffer:
+            if (texelFormat == Format::None) [[unlikely]]
+                throw InvalidArgumentException("texelFormat", "Texel buffer descriptors require a texel format.");
+
+            if (!device.supportsTexelBufferFormat(texelFormat, type == DescriptorType::RWBuffer)) [[unlikely]]
+                throw InvalidArgumentException("texelFormat", "The format {0} is not supported for {1} descriptors on this device.", texelFormat, type);
+
+            auto texelSize = getSize(texelFormat);
+
+            if (alignedSize % texelSize != 0) [[unlikely]]
+                throw InvalidArgumentException("texelFormat", "The buffer element size of {0} bytes is not a multiple of the texel size of {1} bytes.", alignedSize, texelSize);
+
+            if (alignedSize / texelSize > limits.maxTexelBufferElements) [[unlikely]]
+                throw InvalidArgumentException("buffer", "The buffer elements contain more texels than supported by the device ({1} > {0}).", limits.maxTexelBufferElements, static_cast<size_t>(alignedSize) / texelSize);
+
+            requireAlignment(limits.minTexelBufferOffsetAlignment);
+
+            descriptorType = type == DescriptorType::RWBuffer ? VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER : VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+            texelBuffer = true;
+            break;
         default: [[unlikely]]
             throw InvalidArgumentException("type", "Invalid descriptor type. The descriptor type {0} does not describe a buffer.", type);
         }
-
-        bool texelBuffer = type == DescriptorType::Buffer || type == DescriptorType::RWBuffer;
-
-        if (texelBuffer && texelFormat == Format::None) [[unlikely]]
-            throw InvalidArgumentException("texelFormat", "Texel buffer descriptors require a texel format.");
 
         // The info structures reference each other, so reserve up front to keep the pointers stable.
         Array<VkDeviceAddressRangeEXT> ranges;
@@ -60,11 +100,11 @@ namespace LiteFX::Rendering::Backends {
 
         for (UInt32 i{ 0 }; i < count; ++i)
         {
-            auto& range = ranges.emplace_back(buffer.virtualAddress() + (firstElement + i) * buffer.alignedElementSize(), buffer.alignedElementSize());
+            auto& range = ranges.emplace_back(buffer.virtualAddress() + (firstElement + i) * alignedSize, buffer.elementSize());
             auto& info = infos.emplace_back(VkResourceDescriptorInfoEXT{ .sType = VK_STRUCTURE_TYPE_RESOURCE_DESCRIPTOR_INFO_EXT, .type = descriptorType });
 
             if (texelBuffer)
-                info.data.pTexelBuffer = &texelInfos.emplace_back(VkTexelBufferDescriptorInfoEXT{
+                info.data.pTexelBuffer = &texelInfos.emplace_back(VkTexelBufferDescriptorInfoEXT {
                     .sType = VK_STRUCTURE_TYPE_TEXEL_BUFFER_DESCRIPTOR_INFO_EXT,
                     .format = Vk::getFormat(texelFormat),
                     .addressRange = range
@@ -78,6 +118,9 @@ namespace LiteFX::Rendering::Backends {
 
     inline void writeImageDescriptor(const VulkanDevice& device, DescriptorType type, const IVulkanImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers, VkHostAddressRangeEXT addressRange)
     {
+        // Validate the descriptor binding.
+        image.validateBinding(type, firstLevel, levels, firstLayer, layers);
+
         VkDescriptorType descriptorType{};
 
         switch (type)
@@ -89,41 +132,39 @@ namespace LiteFX::Rendering::Backends {
             throw InvalidArgumentException("type", "Invalid descriptor type. The descriptor type {0} does not describe an image.", type);
         }
 
+        if (type == DescriptorType::RWTexture && !device.supportsStorageImageFormat(image.format())) [[unlikely]]
+            throw InvalidArgumentException("image", "The device does not support the format {0} to be bound onto a writable image descriptor.", image.format());
+
         const UInt32 numLevels = levels == 0 ? image.levels() - firstLevel : levels;
         const UInt32 numLayers = layers == 0 ? image.layers() - firstLayer : layers;
-
-        if (firstLevel + numLevels > image.levels() || firstLayer + numLayers > image.layers()) [[unlikely]]
-            throw ArgumentOutOfRangeException("levels", "The requested sub-resource range (levels {0}-{1}, layers {2}-{3}) exceeds the image ({4} levels, {5} layers).", 
-                firstLevel, firstLevel + numLevels, firstLayer, firstLayer + numLayers, image.levels(), image.layers());
+        const auto imageLevels = image.levels();
+        const auto imageLayers = image.layers();
+        const auto imageDimensions = image.dimensions();
 
         VkImageViewCreateInfo imageViewDesc = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .image = image.handle(),
-            .viewType = Vk::getImageViewType(image.dimensions(), numLayers), // TODO: What if we want to bind an array with one layer only, though?!... `DescriptorLayout` should get an "isArray" property.
+            .viewType = Vk::getImageViewType(imageDimensions, imageLayers),
             .format = Vk::getFormat(image.format()),
             .components = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY },
-            .subresourceRange = { .baseMipLevel = firstLevel, .levelCount = numLevels, .baseArrayLayer = firstLayer, .layerCount = numLayers }
+            .subresourceRange = { 
+                .baseMipLevel = firstLevel, 
+                .levelCount = type == DescriptorType::RWTexture ? 1u : numLevels, // Storage images only support a single mip map level (in both backends).
+                .baseArrayLayer = imageDimensions == ImageDimensions::DIM_3 ? 0u : firstLayer,
+                .layerCount = imageDimensions == ImageDimensions::DIM_3 ? 1u : numLayers
+            }
         };
 
-        if (!::hasDepth(image.format()) && !::hasStencil(image.format()))
-            imageViewDesc.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        else
-        {
-            // TODO: This probably wont work, instead we need separate views here. Maybe we could add a "plane" parameter that addresses the depth/stencil view.
-            if (::hasDepth(image.format()))
-                imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
+        // Views used in descriptors must not combine depth and stencil. Read the depth plane only, as in the DX12 backend.
+        imageViewDesc.subresourceRange.aspectMask = ::hasDepth(image.format()) ? VK_IMAGE_ASPECT_DEPTH_BIT : (::hasStencil(image.format()) ? VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_COLOR_BIT);
 
-            if (::hasStencil(image.format()))
-                imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
-        }
-
-        VkImageDescriptorInfoEXT imageInfo{
+        VkImageDescriptorInfoEXT imageInfo {
             .sType = VK_STRUCTURE_TYPE_IMAGE_DESCRIPTOR_INFO_EXT,
             .pView = &imageViewDesc,
-            .layout = type == DescriptorType::RWTexture ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            .layout = VK_IMAGE_LAYOUT_GENERAL
         };
 
-        VkResourceDescriptorInfoEXT info{
+        VkResourceDescriptorInfoEXT info {
             .sType = VK_STRUCTURE_TYPE_RESOURCE_DESCRIPTOR_INFO_EXT,
             .type = descriptorType,
             .data = { .pImage = &imageInfo }
