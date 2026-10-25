@@ -20,6 +20,12 @@ private:
 	TrackedResources m_trackedResources{};
 	UniquePtr<IDirectX12CommandAllocatorHandle> m_allocatorHandle{};
 
+	// NOTE: Render passes are split over multiple command list submissions, but when using an external command buffer to record a render pass, the command 
+	//       buffer instance passed by the client must remain valid. For this particular reason, the D3D12 command buffer becomes a chain of buffers and
+	//       stores the previous command lists in the following arrays.
+	Array<UniquePtr<IDirectX12CommandAllocatorHandle>> m_closedSegments;
+	Array<ComPtr<ID3D12GraphicsCommandList7>> m_previousCommandLists;
+
 public:
 	DirectX12CommandBufferImpl(const DirectX12Queue& queue, bool primary) :
 		m_secondary(!primary), m_queue(queue.weak_from_this()), m_device(queue.device()), 
@@ -145,7 +151,6 @@ DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, bool
 {
 	m_impl->initialize(queue);
 	m_impl->m_allocatorHandle = queue.acquireCommandAllocator(!primary);
-	this->handle() = m_impl->m_allocatorHandle->commandBuffer();
 	m_impl->m_recording = true;
 
 	try
@@ -174,6 +179,11 @@ DirectX12CommandBuffer::~DirectX12CommandBuffer() noexcept // NOLINT(bugprone-ex
 	}
 }
 
+const ComPtr<ID3D12GraphicsCommandList7>& DirectX12CommandBuffer::handle() const noexcept
+{
+	return m_impl->m_allocatorHandle->commandBuffer();
+}
+
 SharedPtr<const DirectX12Queue> DirectX12CommandBuffer::queue() const noexcept
 {
 	return m_impl->m_queue.lock();
@@ -186,6 +196,50 @@ void DirectX12CommandBuffer::end() const
 		raiseIfFailed(this->handle()->Close(), "Unable to close command buffer for recording.");
 
 	m_impl->m_recording = false;
+}
+
+void DirectX12CommandBuffer::continueWith(Span<const SharedPtr<const DirectX12CommandBuffer>> lists) const
+{
+	if (!m_impl->m_recording) [[unlikely]]
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
+	auto queue = m_impl->m_queue.lock();
+
+	if (queue == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot continue a command buffer on a released queue.");
+
+	// Acquire a new command buffer.
+	auto next = queue->acquireCommandAllocator(false);
+
+	// Close the current command list and append it to the previous lists.
+	raiseIfFailed(this->handle()->Close(), "Unable to close command list segment.");
+
+	m_impl->m_previousCommandLists.push_back(this->handle());
+	m_impl->m_closedSegments.push_back(std::exchange(m_impl->m_allocatorHandle, std::move(next)));
+
+	// Append all the provided lists.
+	for (const auto& list : lists)
+	{
+		list->end();
+		m_impl->m_previousCommandLists.push_back(list->handle());
+		m_impl->m_trackedResources.SecondaryCommandBuffers.push_back(list);
+	}
+
+	// Reset pipeline and re-bind the descriptor heaps.
+	m_impl->m_lastPipeline = nullptr;
+	m_impl->bindDescriptorHeaps(*this);
+}
+
+Enumerable<ID3D12CommandList*> DirectX12CommandBuffer::commandLists() const
+{
+	using list_type = ComPtr<ID3D12GraphicsCommandList7>;
+
+	auto previous = std::span<const list_type>(m_impl->m_previousCommandLists);
+	auto current  = std::span<const list_type>(std::addressof(this->handle()), 1);
+
+	return std::array{ previous, current }
+		| std::views::join
+		| std::views::transform([](const list_type& list) -> ID3D12CommandList* { return list.Get(); });
 }
 
 const ICommandBuffer::TrackedResources& DirectX12CommandBuffer::trackedResources() const noexcept

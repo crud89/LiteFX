@@ -591,6 +591,8 @@
 			<Item Name="Secondary">impl()->m_secondary</Item>
 			<Item Name="Tracked Resources">impl()->m_trackedResources</Item>
 			<Item Name="Allocator" Condition="impl()->m_allocatorHandle._Mypair._Myval2 != 0">(DirectX12CommandAllocatorHandle*)impl()->m_allocatorHandle._Mypair._Myval2</Item>
+			<Item Name="Previous Command Lists">impl()->m_previousCommandLists,view(simple)</Item>
+			<Item Name="Closed Segments">impl()->m_closedSegments,view(simple)</Item>
 			<Item Name="[Resource]">(LiteFX::Resource&lt;Microsoft::WRL::ComPtr&lt;ID3D12GraphicsCommandList7&gt; &gt;*)this</Item>
 			<Item Name="Parent Device">impl()->m_queue._Ptr->m_impl.m_ptr._Ptr->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>
@@ -655,9 +657,9 @@
 			<Item Name="Depth/Stencil Target">impl()->m_depthStencilTarget</Item>
 			<Item Name="Secondary Command Buffer Count">impl()->m_secondaryCommandBufferCount</Item>
 			<Item Name="View Mask">impl()->m_viewMask,x</Item>
-			<Item Name="Begin Command Buffers">impl()->m_beginCommandBuffers,view(simple)</Item>
 			<Item Name="Secondary Command Buffers">impl()->m_secondaryCommandBuffers,view(simple)</Item>
-			<Item Name="End Command Buffers">impl()->m_endCommandBuffers,view(simple)</Item>
+			<Item Name="Active Command Buffer">impl()->m_activeCommandBuffer</Item>
+			<Item Name="External">impl()->m_external</Item>
 			<Item Name="Command Queue">impl()->m_queue</Item>
 			<Item Name="Parent Device">impl()->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>

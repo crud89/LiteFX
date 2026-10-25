@@ -713,8 +713,9 @@
 			<Item Name="Active Frame Buffer">impl()->m_activeFrameBuffer</Item>
 			<Item Name="Present Target">impl()->m_presentTarget</Item>
 			<Item Name="Depth/Stencil Target">impl()->m_depthStencilTarget</Item>
-			<Item Name="Primary Command Buffers">impl()->m_primaryCommandBuffers,view(simple)</Item>
 			<Item Name="Secondary Command Buffers">impl()->m_secondaryCommandBuffers,view(simple)</Item>
+			<Item Name="Active Command Buffer">impl()->m_activeCommandBuffer</Item>
+			<Item Name="External">impl()->m_external</Item>
 			<Item Name="Swap Chain Views">impl()->m_swapChainViews,view(simple)</Item>
 			<Item Name="Command Queue">impl()->m_queue</Item>
 			<Item Name="Parent Device">impl()->m_device</Item>

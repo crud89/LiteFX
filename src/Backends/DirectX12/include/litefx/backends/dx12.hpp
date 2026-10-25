@@ -1314,7 +1314,7 @@ namespace LiteFX::Rendering::Backends {
         /// @brief Returns the handle of the underlying command buffer associated with the allocator.
         /// 
         /// @return The handle of the underlying command buffer associated with the allocator.
-        virtual ComPtr<ID3D12GraphicsCommandList7> commandBuffer() const noexcept = 0;
+        virtual const ComPtr<ID3D12GraphicsCommandList7>& commandBuffer() const noexcept = 0;
     };
 
     /// @brief Records commands for a @ref DirectX12Queue
@@ -1372,6 +1372,10 @@ namespace LiteFX::Rendering::Backends {
         // DirectX 12 Command Buffer interface.
     private:
         void end() const;
+
+        void continueWith(Span<const SharedPtr<const DirectX12CommandBuffer>> lists) const;
+
+        Enumerable<ID3D12CommandList*> commandLists() const;
 
         // CommandBuffer interface.
     public:
@@ -1557,6 +1561,10 @@ namespace LiteFX::Rendering::Backends {
 
         /// @copydoc CommandBuffer::traceRays(UInt32, UInt32, UInt32, const ShaderBindingTableOffsets&, const buffer_type&, const buffer_type*, const buffer_type*, const buffer_type*) const
         void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IDirectX12Buffer& rayGenerationShaderBindingTable, const IDirectX12Buffer* missShaderBindingTable, const IDirectX12Buffer* hitShaderBindingTable, const IDirectX12Buffer* callableShaderBindingTable) const noexcept override;
+
+        // Resource interface.
+    public:
+        const ComPtr<ID3D12GraphicsCommandList7>& handle() const noexcept override;
 
     private:
         inline SharedPtr<const ICommandQueue> getQueue() const noexcept override {

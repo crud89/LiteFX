@@ -79,7 +79,7 @@ public:
 		m_pool->release(std::move(m_allocator));
 	}
 
-	ComPtr<ID3D12GraphicsCommandList7> commandBuffer() const noexcept override
+	const ComPtr<ID3D12GraphicsCommandList7>& commandBuffer() const noexcept override
 	{
 		return m_allocator->CommandList;
 	}
@@ -332,8 +332,8 @@ UInt64 DirectX12Queue::submit(const SharedPtr<const DirectX12CommandBuffer>& com
 	commandBuffer->end();
 	
 	// Submit the command buffer.
-	Array<ID3D12CommandList*> commandBuffers{ commandBuffer->handle().Get() };
-	this->handle()->ExecuteCommandLists(1, commandBuffers.data());
+	auto handles = commandBuffer->commandLists() | std::ranges::to<Array<ID3D12CommandList*>>();
+	this->handle()->ExecuteCommandLists(static_cast<UInt32>(handles.size()), handles.data());
 
 	// Insert a fence and return the value.
 	auto fence = m_impl->m_fenceValue.fetch_add(1u) + 1u;
@@ -378,7 +378,8 @@ UInt64 DirectX12Queue::submit(Enumerable<SharedPtr<const DirectX12CommandBuffer>
 		(*buffer)->end();
 
 	auto handles = buffers
-		| std::views::transform([](const SharedPtr<const DirectX12CommandBuffer>& buffer) { return buffer->handle().Get(); })
+		| std::views::transform([](const SharedPtr<const DirectX12CommandBuffer>& buffer) { return buffer->commandLists(); })
+		| std::views::join
 		| std::ranges::to<Array<ID3D12CommandList*>>();
 
 	this->handle()->ExecuteCommandLists(static_cast<UInt32>(handles.size()), handles.data());
