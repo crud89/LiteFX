@@ -302,7 +302,7 @@ public:
             // Create secondary command buffers.
             const auto frameBufferPointer = static_cast<const IFrameBuffer*>(&frameBuffer);
             m_secondaryCommandBuffers[frameBufferPointer] = std::views::iota(0u, m_secondaryCommandBufferCount)
-                | std::views::transform([&](UInt32 i) { 
+                | std::views::transform([&]([[maybe_unused]] UInt32 i) { 
 #ifndef NDEBUG
                         auto commandBuffer = VulkanCommandBuffer::create(*m_queue, renderPass);
                         m_device->setDebugName(std::as_const(*commandBuffer).handle(), VK_OBJECT_TYPE_COMMAND_BUFFER, std::format("{0} Secondary Commands {1}", renderPass.name(), i).c_str());
