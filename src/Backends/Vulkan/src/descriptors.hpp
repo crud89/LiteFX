@@ -23,7 +23,7 @@ namespace LiteFX::Rendering::Backends {
         return count;
     }
 
-    inline void writeBufferDescriptors(const VulkanDevice& device, DescriptorType type, const IVulkanBuffer& buffer, UInt32 firstElement, Format texelFormat, Span<const VkHostAddressRangeEXT> addressRanges)
+    inline void writeBufferDescriptors(const VulkanDevice& device, DescriptorType type, const IVulkanBuffer& buffer, UInt32 firstElement, Format texelFormat, UInt32 structureStride, Span<const VkHostAddressRangeEXT> addressRanges)
     {
         auto count = static_cast<UInt32>(addressRanges.size());
 
@@ -31,11 +31,12 @@ namespace LiteFX::Rendering::Backends {
             throw ArgumentOutOfRangeException("targets", "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), count, firstElement);
 
         // Validate the descriptor binding.
-        buffer.validateBinding(type);
+        buffer.validateBinding(type, structureStride);
 
         // Validate additional buffer rules.
         const auto& limits = device.adapter().limits();
         size_t alignedSize = buffer.alignedElementSize();
+        size_t elementSize = buffer.elementSize();
         bool texelBuffer{ false };
         VkDescriptorType descriptorType{};
 
@@ -47,26 +48,31 @@ namespace LiteFX::Rendering::Backends {
         switch (type)
         {
         case DescriptorType::ConstantBuffer:
+        {
             requireAlignment(limits.minUniformBufferOffsetAlignment);
 
-            if (buffer.elementSize() > limits.maxUniformBufferRange) [[unlikely]]
-                throw InvalidArgumentException("buffer", "Constant buffer descriptors must not exceed {0} bytes, but the buffer uses an element size of {1} bytes.", limits.maxUniformBufferRange, buffer.elementSize());
-            
+            if (elementSize > limits.maxUniformBufferRange) [[unlikely]]
+                throw InvalidArgumentException("buffer", "Constant buffer descriptors must not exceed {0} bytes, but the buffer uses an element size of {1} bytes.", limits.maxUniformBufferRange, elementSize);
+
             descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             break;
+        }
         case DescriptorType::StructuredBuffer:
         case DescriptorType::RWStructuredBuffer:
         case DescriptorType::ByteAddressBuffer:
         case DescriptorType::RWByteAddressBuffer:
+        {
             requireAlignment(limits.minStorageBufferOffsetAlignment);
 
-            if (buffer.elementSize() > limits.maxStorageBufferRange) [[unlikely]]
-                throw InvalidArgumentException("buffer", "Storage buffer descriptors must not exceed {0} bytes, but the buffer uses an element size of {1} bytes.", limits.maxStorageBufferRange, buffer.elementSize());
+            if (elementSize > limits.maxStorageBufferRange) [[unlikely]]
+                throw InvalidArgumentException("buffer", "Storage buffer descriptors must not exceed {0} bytes, but the buffer uses an element size of {1} bytes.", limits.maxStorageBufferRange, elementSize);
 
             descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
             break;
+        }
         case DescriptorType::Buffer:
         case DescriptorType::RWBuffer:
+        {
             if (texelFormat == Format::None) [[unlikely]]
                 throw InvalidArgumentException("texelFormat", "Texel buffer descriptors require a texel format.");
 
@@ -75,17 +81,18 @@ namespace LiteFX::Rendering::Backends {
 
             auto texelSize = getSize(texelFormat);
 
-            if (alignedSize % texelSize != 0) [[unlikely]]
-                throw InvalidArgumentException("texelFormat", "The buffer element size of {0} bytes is not a multiple of the texel size of {1} bytes.", alignedSize, texelSize);
+            if (elementSize % texelSize != 0 || alignedSize % texelSize != 0) [[unlikely]]
+                throw InvalidArgumentException("texelFormat", "The buffer element size of {0} bytes (aligned: {1} bytes) is not a multiple of the texel size of {2} bytes.", elementSize, alignedSize, texelSize);
 
-            if (alignedSize / texelSize > limits.maxTexelBufferElements) [[unlikely]]
-                throw InvalidArgumentException("buffer", "The buffer elements contain more texels than supported by the device ({1} > {0}).", limits.maxTexelBufferElements, static_cast<size_t>(alignedSize) / texelSize);
+            if (elementSize / texelSize > limits.maxTexelBufferElements) [[unlikely]]
+                throw InvalidArgumentException("buffer", "The buffer elements contain more texels than supported by the device ({1} > {0}).", limits.maxTexelBufferElements, static_cast<size_t>(elementSize) / texelSize);
 
             requireAlignment(limits.minTexelBufferOffsetAlignment);
 
             descriptorType = type == DescriptorType::RWBuffer ? VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER : VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
             texelBuffer = true;
             break;
+        }
         default: [[unlikely]]
             throw InvalidArgumentException("type", "Invalid descriptor type. The descriptor type {0} does not describe a buffer.", type);
         }
@@ -100,15 +107,12 @@ namespace LiteFX::Rendering::Backends {
 
         for (UInt32 i{ 0 }; i < count; ++i)
         {
-            auto& range = ranges.emplace_back(buffer.virtualAddress() + (firstElement + i) * alignedSize, buffer.elementSize());
-            auto& info = infos.emplace_back(VkResourceDescriptorInfoEXT{ .sType = VK_STRUCTURE_TYPE_RESOURCE_DESCRIPTOR_INFO_EXT, .type = descriptorType });
+            const UInt64 offset = static_cast<UInt64>(firstElement + i) * alignedSize;
+            auto& range = ranges.emplace_back(static_cast<VkDeviceAddress>(buffer.virtualAddress() + offset), static_cast<VkDeviceSize>(elementSize));
+            auto& info = infos.emplace_back(static_cast<VkStructureType>(VK_STRUCTURE_TYPE_RESOURCE_DESCRIPTOR_INFO_EXT), nullptr, descriptorType, VkResourceDescriptorDataEXT{});
 
             if (texelBuffer)
-                info.data.pTexelBuffer = &texelInfos.emplace_back(VkTexelBufferDescriptorInfoEXT {
-                    .sType = VK_STRUCTURE_TYPE_TEXEL_BUFFER_DESCRIPTOR_INFO_EXT,
-                    .format = Vk::getFormat(texelFormat),
-                    .addressRange = range
-                });
+                info.data.pTexelBuffer = &texelInfos.emplace_back(static_cast<VkStructureType>(VK_STRUCTURE_TYPE_TEXEL_BUFFER_DESCRIPTOR_INFO_EXT), nullptr, Vk::getFormat(texelFormat), range);
             else
                 info.data.pAddressRange = &range;
         }
@@ -137,7 +141,6 @@ namespace LiteFX::Rendering::Backends {
 
         const UInt32 numLevels = levels == 0 ? image.levels() - firstLevel : levels;
         const UInt32 numLayers = layers == 0 ? image.layers() - firstLayer : layers;
-        const auto imageLevels = image.levels();
         const auto imageLayers = image.layers();
         const auto imageDimensions = image.dimensions();
 

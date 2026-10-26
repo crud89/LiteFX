@@ -116,12 +116,12 @@ UInt32 DirectX12DescriptorRange::globalIndex(UInt32 element) const
     return static_cast<UInt32>(m_impl->m_allocation.Allocation.Offset) + element;
 }
 
-void DirectX12DescriptorRange::update(UInt32 element, DescriptorType bindingType, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const
+void DirectX12DescriptorRange::update(UInt32 element, DescriptorType bindingType, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat, UInt32 stride) const
 {
     auto count = bufferElements(buffer, bufferElement, elements);
     m_impl->validate(element, count, DescriptorHeapType::Resource);
 
-    writeBufferDescriptors(*m_impl->m_device, bindingType, buffer, bufferElement, count, texelFormat, m_impl->target(element));
+    writeBufferDescriptors(*m_impl->m_device, bindingType, buffer, bufferElement, count, texelFormat, stride, m_impl->target(element));
     m_impl->flush(element, count);
 }
 

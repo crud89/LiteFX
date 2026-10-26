@@ -91,7 +91,7 @@ UInt32 VulkanDescriptorRange::globalIndex(UInt32 element) const
     return static_cast<UInt32>(m_impl->m_allocation.Allocation.Offset) + element;
 }
 
-void VulkanDescriptorRange::update(UInt32 element, DescriptorType bindingType, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const 
+void VulkanDescriptorRange::update(UInt32 element, DescriptorType bindingType, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat, UInt32 stride) const
 {
     auto count = bufferElements(buffer, bufferElement, elements);
     m_impl->validate(element, count, DescriptorHeapType::Resource);
@@ -100,7 +100,7 @@ void VulkanDescriptorRange::update(UInt32 element, DescriptorType bindingType, c
         | std::views::transform([this](UInt32 e) { return m_impl->targetAddressRange(e); }) 
         | std::ranges::to<Array<VkHostAddressRangeEXT>>();
 
-    writeBufferDescriptors(*m_impl->m_device, bindingType, buffer, bufferElement, texelFormat, targets);
+    writeBufferDescriptors(*m_impl->m_device, bindingType, buffer, bufferElement, texelFormat, stride, targets);
     m_impl->flush(element, count);
 }
 

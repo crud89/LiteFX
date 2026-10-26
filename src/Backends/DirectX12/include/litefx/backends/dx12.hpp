@@ -643,8 +643,8 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc IDescriptorSet::globalHeapAllocation
         DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const override;
 
-        /// @copydoc DescriptorSet::update(UInt32, const buffer_type&, UInt32, UInt32, UInt32, Format) const
-        void update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None) const override;
+        /// @copydoc DescriptorSet::update(UInt32, const buffer_type&, UInt32, UInt32, UInt32, Format, UInt32) const
+        void update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None, UInt32 stride = 0) const override;
 
         /// @copydoc DescriptorSet::update(UInt32, const image_type&, UInt32, UInt32, UInt32, UInt32, UInt32) const
         void update(UInt32 binding, const IDirectX12Image& texture, UInt32 descriptor = 0, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const override;
@@ -711,8 +711,8 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc IDescriptorRange::globalIndex
         UInt32 globalIndex(UInt32 element = 0) const override;
 
-        /// @copydoc IDescriptorRange::update(UInt32, DescriptorType, const IBuffer&, UInt32, UInt32, Format)
-        void update(UInt32 element, DescriptorType bindingType, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const;
+        /// @copydoc IDescriptorRange::update(UInt32, DescriptorType, const IBuffer&, UInt32, UInt32, Format, UInt32)
+        void update(UInt32 element, DescriptorType bindingType, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None, UInt32 stride = 0) const;
 
         /// @copydoc IDescriptorRange::update(UInt32, DescriptorType, const IImage&, UInt32, UInt32, UInt32, UInt32)
         void update(UInt32 element, DescriptorType bindingType, const IDirectX12Image& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const;
@@ -724,8 +724,8 @@ namespace LiteFX::Rendering::Backends {
         void update(UInt32 element, const IDirectX12AccelerationStructure& accelerationStructure) const;
 
     private:
-        inline void doUpdate(UInt32 element, DescriptorType bindingType, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const override {
-            return this->update(element, bindingType, dynamic_cast<const IDirectX12Buffer&>(buffer), bufferElement, elements, texelFormat);
+        inline void doUpdate(UInt32 element, DescriptorType bindingType, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat, UInt32 stride) const override {
+            return this->update(element, bindingType, dynamic_cast<const IDirectX12Buffer&>(buffer), bufferElement, elements, texelFormat, stride);
         }
 
         inline void doUpdate(UInt32 element, DescriptorType bindingType, const IImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const override {

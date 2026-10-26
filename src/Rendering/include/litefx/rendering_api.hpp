@@ -21,6 +21,7 @@ namespace LiteFX::Rendering {
     class IIndexBufferLayout;
     class IDescriptorLayout;
     class IMappable;
+    class IBindable;
     class IDeviceMemory;
     class IBuffer;
     class IImage;
@@ -4103,16 +4104,18 @@ namespace LiteFX::Rendering {
     public:
         /// @copydoc IBindable::validateBinding
         inline void validateBinding(DescriptorType type) const override {
+            // TODO: Move enums into a separate header, so that we can include the formatters here for better error messages.
+            
             // Require the buffer type to match a series of allowed types.
             auto requireType = [&](std::initializer_list<BufferType> allowed) {
                 if (std::ranges::find(allowed, this->type()) == allowed.end()) [[unlikely]]
-                    throw InvalidArgumentException("buffer", "A buffer of type {0} cannot be bound to a {1} descriptor.", this->type(), type);
+                    throw InvalidArgumentException("buffer", "A buffer of type {0} cannot be bound to a {1} descriptor.", std::to_underlying(this->type()), std::to_underlying(type));
             };
 
             // Require the buffer to be writable.
             auto requireWritable = [&]() {
                 if (!LITEFX_FLAG_IS_SET(this->usage(), ResourceUsage::AllowWrite)) [[unlikely]]
-                    throw InvalidArgumentException("buffer", "The buffer is not writable and cannot be bound to a {0} descriptor. Create it with `ResourceUsage::AllowWrite`.", type);
+                    throw InvalidArgumentException("buffer", "The buffer is not writable and cannot be bound to a {0} descriptor. Create it with `ResourceUsage::AllowWrite`.", std::to_underlying(type));
             };
 
             switch (type)
@@ -4137,8 +4140,27 @@ namespace LiteFX::Rendering {
                 requireWritable();
                 break;
             default: [[unlikely]]
-                throw InvalidArgumentException("type", "Invalid descriptor type: the descriptor type {0} does not bind a buffer.", type);
+                throw InvalidArgumentException("type", "Invalid descriptor type: the descriptor type {0} does not bind a buffer.", std::to_underlying(type));
             }
+        }
+
+        /// @copydoc IBindable::validateBinding
+        /// 
+        /// @param stride The size of a single structure in bytes for structured buffers, or `0` to treat each buffer element as one structure.
+        inline void validateBinding(DescriptorType type, UInt32 stride) const {
+            this->validateBinding(type);
+
+            if (type != DescriptorType::StructuredBuffer && type != DescriptorType::RWStructuredBuffer)
+                return;
+
+            if (stride == 0)
+                return;
+
+            if (this->elementSize() % stride != 0) [[unlikely]]
+                throw InvalidArgumentException("stride", "The buffer element size of {0} bytes is not a multiple of the structure stride of {1} bytes.", this->elementSize(), stride);
+
+            if (this->alignedElementSize() % stride != 0) [[unlikely]]
+                throw InvalidArgumentException("stride", "The aligned buffer element size of {0} bytes is not a multiple of the structure stride of {1} bytes, so elements cannot be addressed individually.", this->alignedElementSize(), stride);
         }
     };
 
@@ -4218,7 +4240,7 @@ namespace LiteFX::Rendering {
         /// @copydoc IBindable::validateBinding
         inline void validateBinding(DescriptorType type) const override {
             if (type != DescriptorType::Texture && type != DescriptorType::RWTexture && type != DescriptorType::InputAttachment) [[unlikely]]
-                throw InvalidArgumentException("type", "Invalid descriptor type. The descriptor type {0} does not describe an image.", type);
+                throw InvalidArgumentException("type", "Invalid descriptor type. The descriptor type {0} does not describe an image.", std::to_underlying(type));
 
             if (type == DescriptorType::RWTexture && !LITEFX_FLAG_IS_SET(this->usage(), ResourceUsage::AllowWrite)) [[unlikely]]
                 throw InvalidArgumentException("image", "The image is not writable and cannot be bound to a read/write descriptor.");
@@ -5125,8 +5147,10 @@ namespace LiteFX::Rendering {
         /// @param elements The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at @p bufferElement.
         /// @param firstDescriptor The index of the first descriptor in the descriptor array to update.
         /// @param texelFormat The format used to read a texel buffer. Required if @p binding binds a texel buffer and ignored otherwise.
-        inline void update(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None) const {
-            this->doUpdate(binding, buffer, bufferElement, elements, firstDescriptor, texelFormat);
+        /// @param stride If @p binding binds a @ref DescriptorType::StructuredBuffer or @ref DescriptorType::RWStructuredBuffer, this value defines the size (in bytes) of a single structure within a buffer 
+        ///               element. A value of `0` treats each buffer element as a single structure. Must divide the buffer's element size.
+        inline void update(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None, UInt32 stride = 0) const {
+            this->doUpdate(binding, buffer, bufferElement, elements, firstDescriptor, texelFormat, stride);
         }
 
         /// @brief Updates one or more texture descriptors within the current descriptor set.
@@ -5169,7 +5193,7 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        virtual void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat) const = 0;
+        virtual void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat, UInt32 stride) const = 0;
         virtual void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
         virtual void doUpdate(UInt32 binding, const ISampler& sampler, UInt32 descriptor) const = 0;
         virtual void doUpdate(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor) const = 0;
@@ -5229,6 +5253,16 @@ namespace LiteFX::Rendering {
         ///
         /// This property is ignored, if the resource is a @ref ISampler or @ref IBuffer.
         UInt32 levels = 0;
+
+        /// @brief The stride of a structure in a structured buffer.
+        ///
+        /// This property is ignored, if the resource binds to a descriptor other than @ref DescriptorType::StructuredBuffer or @ref DescriptorType::RWStructuredBuffer.
+        UInt32 stride = 0;
+
+        /// @brief The format for a texel in a texel buffer.
+        ///
+        /// This property is ignored, if the resource binds to a descriptor other than @ref DescriptorType::Buffer or @ref DescriptorType::RWBuffer.
+        Format texelFormat = Format::None;
     };
 
     /// @brief The interface for a descriptor set layout.
@@ -5573,8 +5607,10 @@ namespace LiteFX::Rendering {
         /// @param bufferElement The index of the first element in the buffer to bind to the descriptor set.
         /// @param elements The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at @p bufferElement.
         /// @param texelFormat The format used to read a texel buffer. Required if @p bindingType binds a texel buffer and ignored otherwise.
-        inline void update(UInt32 element, DescriptorType bindingType, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const {
-            this->doUpdate(element, bindingType, buffer, bufferElement, elements, texelFormat);
+        /// @param stride If @p binding binds a @ref DescriptorType::StructuredBuffer or @ref DescriptorType::RWStructuredBuffer, this value defines the size (in bytes) of a single structure within a buffer 
+        ///               element. A value of `0` treats each buffer element as a single structure. Must divide the buffer's element size.
+        inline void update(UInt32 element, DescriptorType bindingType, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None, UInt32 stride = 0) const {
+            this->doUpdate(element, bindingType, buffer, bufferElement, elements, texelFormat, stride);
         }
 
         /// @brief Updates one or more texture descriptors within the current descriptor range.
@@ -5615,7 +5651,7 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        virtual void doUpdate(UInt32 element, DescriptorType bindingType, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const = 0;
+        virtual void doUpdate(UInt32 element, DescriptorType bindingType, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat, UInt32 stride) const = 0;
         virtual void doUpdate(UInt32 element, DescriptorType bindingType, const IImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
         virtual void doUpdate(UInt32 element, const ISampler& sampler) const = 0;
         virtual void doUpdate(UInt32 element, const IAccelerationStructure& accelerationStructure) const = 0;
