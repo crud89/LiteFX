@@ -76,6 +76,9 @@ namespace LiteFX::Rendering::Backends {
         case DescriptorType::ByteAddressBuffer:
         case DescriptorType::RWByteAddressBuffer:
         {
+            if (elementSize % sizeof(DWORD) != 0) [[unlikely]]
+                throw InvalidArgumentException("buffer", "Byte address buffer elements must be a multiple of {0} bytes, but the buffer uses an element size of {1} bytes.", sizeof(DWORD), elementSize);
+
             if (alignedSize % D3D12_RAW_UAV_SRV_BYTE_ALIGNMENT != 0) [[unlikely]]
                 throw InvalidArgumentException("buffer", "The provided buffer (element size: {0} bytes) is not aligned to the required placement rules for byte address buffers ({1} bytes).", alignedSize, D3D12_RAW_UAV_SRV_BYTE_ALIGNMENT);
 

@@ -975,10 +975,12 @@ bool VulkanDevice::supportsTexelBufferFormat(Format format, bool writable) const
 
 bool VulkanDevice::supportsStorageImageFormat(Format format) const
 {
-    VkFormatProperties properties{};
-    ::vkGetPhysicalDeviceFormatProperties(m_impl->m_adapter->handle(), Vk::getFormat(format), &properties);
+    VkFormatProperties3 properties3{ .sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3 };
+    VkFormatProperties2 properties{ .sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2, .pNext = &properties3 };
+    ::vkGetPhysicalDeviceFormatProperties2(m_impl->m_adapter->handle(), Vk::getFormat(format), &properties);
 
-    return (properties.optimalTilingFeatures & VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT) == VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;
+    constexpr VkFormatFeatureFlags2 required = VK_FORMAT_FEATURE_2_STORAGE_IMAGE_BIT | VK_FORMAT_FEATURE_2_STORAGE_READ_WITHOUT_FORMAT_BIT | VK_FORMAT_FEATURE_2_STORAGE_WRITE_WITHOUT_FORMAT_BIT;
+    return (properties3.optimalTilingFeatures & required) == required;
 }
 
 const VulkanQueue& VulkanDevice::defaultQueue(QueueType type) const
