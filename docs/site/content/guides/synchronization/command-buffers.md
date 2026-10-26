@@ -8,7 +8,7 @@ and only reach the GPU when the command buffer is submitted.
 Command buffers are created by the queue they are submitted to:
 
 ```cpp
-auto commandBuffer = computeQueue.createCommandBuffer(true);   // `true` begins recording right away.
+auto commandBuffer = computeQueue.createCommandBuffer();
 
 commandBuffer->use(pipeline);
 commandBuffer->bind(*bindings);
@@ -17,14 +17,15 @@ commandBuffer->dispatch({ 64, 64, 1 });
 UInt64 fence = commandBuffer->submit();
 ```
 
-A command buffer goes through these states:
+A command buffer is a one-time object, which goes through these states:
 
-1. **Initial.** Created with `createCommandBuffer(false)`. Call `begin` to start recording.
-2. **Recording.** Commands can be added. `createCommandBuffer(true)` returns a command buffer in this state.
-3. **Executable.** `end` closes the command buffer. You rarely call it yourself, because submitting a recording command buffer closes it
-   implicitly.
-4. **Pending.** After `submit`, the queue owns the command buffer until the GPU has executed it, that is, until the queue has passed the
-   returned fence.
+1. **Recording.** A new command buffer is ready to receive commands right away. `ICommandBuffer::recording` returns `true` in this state.
+2. **Pending.** `submit` ends the recording and hands the command buffer to the queue, which owns it until the GPU has executed it, that is,
+   until the queue has passed the returned fence.
+3. **Released.** Once the command buffer has been executed and no one holds a reference to it anymore, it is released.
+
+There is no way back into the recording state. After a command buffer has been submitted, recording further commands into it throws an
+exception, and so does submitting it a second time.
 
 Inside a submission, i.e. within one command buffer and across the command buffers passed to the same `submit` call, commands *start* in
 the order they were recorded. They do not necessarily *finish* in that order, and later commands may run in parallel with earlier ones.
@@ -34,31 +35,38 @@ are in the same command buffer.
 Between submissions, no barrier is needed: a queue only starts a submission once the previous one has [finished](queues-and-fences.md#submissions-run-one-after-another).
 Splitting work into several submissions is therefore a valid, if slower, alternative to a barrier.
 
-## Reusing command buffers
+## One command buffer per submission
 
-There are two ways to deal with command buffers that you need repeatedly, for example in every frame:
+Since command buffers are used once, work that repeats, for example in every frame, creates a new command buffer for each submission. This is
+cheap: the engine recycles the memory of executed command buffers internally, so creating one rarely allocates anything.
 
-- **Create a new one for each submission.** This is the simplest approach. The queue keeps a reference to the submitted command buffer until
-  it has executed, so you can let go of your own reference right after submitting.
-- **Record the same one again.** Call `begin` on it once it is no longer pending, i.e. after the queue has passed the fence of its last
-  submission. Recording a pending command buffer is undefined behavior. With frames in flight, keep one command buffer per frame and check
-  the fence before you reuse it.
+The queue keeps a reference to a submitted command buffer until it has been executed, so you can let go of your own reference right after
+submitting. There is also no need to keep one command buffer per frame in flight, or to check fences before recording.
 
 ## Secondary command buffers
 
-`createCommandBuffer(false, true)` creates a *secondary* command buffer, also called a *bundle*. It cannot be submitted to a queue. Instead, a
-primary command buffer executes it:
+`createCommandBuffer(true)` creates a *secondary* command buffer, also called a *bundle*. It cannot be submitted to a queue. Instead, a primary
+command buffer executes it:
 
 ```cpp
 primaryCommandBuffer->execute(secondaryCommandBuffer);
 ```
 
+Executing a secondary command buffer ends its recording. Unlike a primary command buffer, it can then be executed again, by the same or by
+other primary command buffers, which is what makes bundles useful for small workloads that recur often.
+
 Secondary command buffers do not introduce any synchronization of their own. Their commands behave exactly as if they were recorded into the
 primary command buffer at the point of the `execute` call.
 
+!!! warning "Create secondary command buffers on graphics queues"
+    Vulkan allows secondary command buffers on any queue, but DirectX 12 only on graphics queues. For code that works with both backends,
+    only create them from a `QueueType::Graphics` queue.
+
 Render passes use secondary command buffers to let several threads record draw calls in parallel. `IRenderPass::commandBuffer(index)` returns
 them, and `IRenderPass::end` executes all of them in the order of their index. See the [multithreading
-sample](../../tutorials/samples-beginner/multithreading.md) for an example.
+sample](../../tutorials/samples-beginner/multithreading.md) for an example, and [render passes and
+frames](render-passes-and-frames.md#sharing-a-command-buffer-between-render-passes) for how a render pass can record into a command buffer
+of yours.
 
 ## Threads
 
@@ -81,8 +89,8 @@ commandBuffer->submit();
 
 - **`transfer` overloads that take a `SharedPtr`** to the source track it automatically.
 - **`transfer` overloads that take raw memory** create a staging buffer internally and track it the same way.
-- **`track`** lets you hand over any buffer, image, sampler or descriptor set yourself, for example a descriptor set you allocated only for one
-  dispatch:
+- **`track`** lets you hand over any buffer, image, sampler, descriptor set or descriptor range yourself, for example a descriptor set you
+  allocated only for one dispatch:
 
 ```cpp
 commandBuffer->bind(*bindings);
@@ -90,9 +98,10 @@ commandBuffer->dispatch({ 16, 16, 1 });
 commandBuffer->track(std::move(bindings));
 ```
 
-The queue releases tracked resources once the command buffer has been executed. This happens lazily, the next time the CPU waits for a fence
-on that queue at or past the submission, or when the command buffer is recorded again. In applications that never wait on a queue, tracked
-resources therefore live longer than strictly necessary, but never shorter.
+The queue releases tracked resources once the command buffer has been executed. This happens lazily: the next time something is submitted to
+the same queue, or the CPU waits for a fence on it, the queue releases the resources of all submissions that have been executed by then.
+Tracked resources therefore live longer than strictly necessary, but never shorter. `ICommandBuffer::trackedResources` shows what a command
+buffer currently keeps alive, which can be useful when debugging resource lifetimes.
 
 !!! tip
     Tracking only delays destruction. It does not order any work: if a later submission on another queue uses the same resource, it still has

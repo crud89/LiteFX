@@ -111,7 +111,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto preferredDynamicHeap = m_device->factory().supportsResizableBaseAddressRegister() ? ResourceHeap::GPUUpload : ResourceHeap::Dynamic;
 
     // Get a command buffer
-    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
+    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer();
 
     // Create the vertex buffer and transfer the staging buffer into it.
     auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
@@ -262,7 +262,7 @@ void SampleApp::onResize(const void* /*sender*/, const ResizeEventArgs& e)
 
     // Also update the camera.
     auto& cameraBuffer = m_device->state().buffer("Camera");
-    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
+    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer();
     this->updateCamera(*commandBuffer, cameraBuffer);
     m_transferFence = commandBuffer->submit();
 }

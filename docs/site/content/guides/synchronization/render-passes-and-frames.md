@@ -6,13 +6,16 @@ responsibility ends.
 
 ## What a render pass does
 
-`IRenderPass::begin` and `IRenderPass::end` record barriers into the render pass's own command buffers. Between the two calls, you only record
-draw calls.
+`IRenderPass::begin` and `IRenderPass::end` record barriers into a primary command buffer. By default, the render pass creates that command
+buffer itself and submits it when it ends; alternatively, it can record into a command buffer of yours, as described
+[below](#sharing-a-command-buffer-between-render-passes). Between the two calls, you only record draw calls, into the secondary command
+buffers returned by `IRenderPass::commandBuffer`.
 
 When the render pass **begins**:
 
 - **Render targets that are cleared** are transitioned from `Undefined`, which discards their previous contents. They can be in any state
-  before.
+  before. When the render pass records into a shared command buffer, they are transitioned from `Common` instead, so they must be in the
+  default state.
 - **Render targets that are loaded**, i.e. created without the clear flag, are transitioned from `Common`. Their contents are preserved.
 - **Depth/stencil targets** are handled per aspect: the depth aspect follows `clearBuffer`, the stencil aspect follows `clearStencil`. You
   can, for example, clear the stencil buffer while keeping the depth values of a previous pass.
@@ -23,11 +26,50 @@ When the render pass **ends**:
 - **All render targets and input attachments are transitioned back to `Common`.** Their writes are complete, but not yet visible to any
   later access; the barrier that starts the next use takes care of that.
 - **The present target is copied to the swap chain** or resolved into it, and presented, if the render pass has one.
-- **The command buffers are submitted** to `renderPass.commandQueue()`, and `end` returns the fence of the submission.
+- **The command buffer is submitted** to `renderPass.commandQueue()`, and `end` returns the fence of the submission. With a shared command
+  buffer, nothing is submitted, and `end` returns `0`.
 
-A render pass is a submission of its own, so everything submitted to its queue before has finished when it begins. As a result, render
-passes that use the same frame buffer on the same queue need no further synchronization. This is what the [render passes
-sample](../../tutorials/samples-beginner/render-passes.md) relies on.
+By default, a render pass is a submission of its own, so everything submitted to its queue before has finished when it begins. As a result,
+render passes that use the same frame buffer on the same queue need no further synchronization.
+
+## Sharing a command buffer between render passes
+
+Instead of submitting each render pass separately, several render passes can record into one command buffer that you submit yourself. Pass
+it to `begin`:
+
+```cpp
+auto& graphicsQueue = m_device->defaultQueue(QueueType::Graphics);
+auto commandBuffer = graphicsQueue.createCommandBuffer();
+
+firstPass.begin(frameBuffer, *commandBuffer);
+auto secondary = firstPass.commandBuffer(0);
+// ... record draw calls into `secondary` ...
+firstPass.end();                                    // Does not submit, and returns `0`.
+
+secondPass.begin(frameBuffer, *commandBuffer);
+// ...
+secondPass.end();
+
+auto fence = graphicsQueue.submit(commandBuffer);
+m_device->swapChain().present(fence);
+```
+
+This saves a submission per render pass, and it lets the GPU overlap work of consecutive render passes that is not ordered by a barrier,
+which often improves GPU utilization. In exchange, a few things are your responsibility:
+
+- **The command buffer must be a recording primary command buffer** created from the render pass's queue (`renderPass.commandQueue()`).
+- **Submit it yourself**, after the last render pass has ended. `end` neither submits nor returns a fence.
+- **Present explicitly.** A render pass with a present target only presents on its own when it submits. With a shared command buffer, submit
+  it and call `ISwapChain::present` with the returned fence.
+- **Pipeline and binding state is not preserved** across render pass boundaries. Bind pipelines, descriptor sets and buffers again in each
+  render pass.
+
+Since the render passes now share a submission, their order is no longer guaranteed by the [submission
+order](queues-and-fences.md#submissions-run-one-after-another). The render passes take care of it themselves: in this mode, their barriers
+wait for all work recorded before them in the command buffer. Commands that you record into the command buffer between two render passes
+still need [barriers](barriers.md) of their own, as described in the next section.
+
+The [render passes sample](../../tutorials/samples-beginner/render-passes.md) records its three passes into one command buffer in this way.
 
 ## Using render targets outside of render passes
 
@@ -52,6 +94,11 @@ Neither barrier needs to wait for anything outside of this command buffer: the r
 this submission starts, and the next render pass will only start after this submission has finished. If you record more commands that use
 the image after the post barrier *in the same submission*, use their stages and access as after values instead of `None`.
 
+The same applies, if the render pass recorded into the same command buffer as your commands (see [sharing a command
+buffer](#sharing-a-command-buffer-between-render-passes)). Then the render pass is part of the same submission, and the first barrier has to
+wait for it: use the stages and access of the render pass's writes, for example `PipelineStage::RenderTarget` and
+`ResourceAccess::RenderTarget`, as before values instead of `None`.
+
 If this happens on a different queue than the render pass, the queue has to [wait for the fence](queues-and-fences.md#waiting-on-another-queue)
 returned by `end` first, and the render pass that uses the image next has to wait for the fence of your work. The [compute
 sample](../../tutorials/samples-intermediate/compute.md) shows the complete chain.
@@ -67,7 +114,8 @@ UInt32 backBuffer = m_device->swapChain().swapBackBuffer();
 `swapBackBuffer` blocks until the back buffer can be drawn into again, i.e. until the frame that last used it has been presented. It returns the
 index of the back buffer, which you use to pick the resources of the frame.
 
-A render pass with a present target presents the frame on its own when it ends. If you produce the final image in a different way, for example
+A render pass with a present target presents the frame on its own when it ends, unless it records into a [shared command
+buffer](#sharing-a-command-buffer-between-render-passes). If you produce the final image in a different way, for example
 by copying the result of a compute shader into the back buffer, transition the back buffer to `ImageLayout::Present` after your last write, and
 present it with the fence of the submission that contains that write:
 
@@ -88,7 +136,9 @@ overwrite each other's data:
 - **Per-frame buffers**, such as the transform buffer of the [basic rendering sample](../../tutorials/samples-beginner/basic-rendering.md), either as
   separate buffers or as one buffer with one element per back buffer.
 - **Descriptor sets** that point to per-frame resources.
-- **Command buffers** that you [reuse](command-buffers.md#reusing-command-buffers).
+
+Command buffers are not on this list: since they are [used once](command-buffers.md#one-command-buffer-per-submission), each frame creates its
+own.
 
 Index all of them with the back buffer index returned by `swapBackBuffer`. Once `swapBackBuffer` returns, everything that was submitted for the
 previous frame with the same index on the presenting queue has finished, so the resources of that index can be written again without any

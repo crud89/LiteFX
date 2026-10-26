@@ -171,7 +171,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 void SampleApp::initBuffers(IRenderBackend* /*backend*/)
 {
     // Get a command buffer
-    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
+    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer();
 
     // Create the staging buffer.
     // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
@@ -506,7 +506,7 @@ void SampleApp::drawFrame()
     queue.waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
 
     // Create a command buffer to execute the cull pass on.
-    auto cullCommands = queue.createCommandBuffer(true);
+    auto cullCommands = queue.createCommandBuffer();
 
     // Start by updating the camera.
     this->updateCamera(cameraBuffer, backBuffer);

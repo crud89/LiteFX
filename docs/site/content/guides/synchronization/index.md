@@ -33,7 +33,7 @@ to do: a queue executes its submissions one after another, so every submission s
 | # | Page | Topic |
 |:-:|---|---|
 | 1 | [Queues and fences](queues-and-fences.md) | Queue types, submitting work, waiting on the CPU and on other queues |
-| 2 | [Command buffers](command-buffers.md) | Recording, submitting and reusing command buffers, secondary command buffers, resource lifetime |
+| 2 | [Command buffers](command-buffers.md) | Recording and submitting one-time command buffers, secondary command buffers, resource lifetime |
 | 3 | [Barriers](barriers.md) | Pipeline stages, resource access, image layouts and the default state |
 | 4 | [Render passes and frames](render-passes-and-frames.md) | What render passes and the swap chain synchronize, and frames in flight |
 | 5 | [Patterns and pitfalls](patterns.md) | Recipes for common situations, typical mistakes and how to debug them |

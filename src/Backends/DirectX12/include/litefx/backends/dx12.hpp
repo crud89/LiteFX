@@ -1298,12 +1298,33 @@ namespace LiteFX::Rendering::Backends {
         virtual void use(const DirectX12CommandBuffer& commandBuffer) const = 0;
     };
 
+    /// @brief Implement a DirectX 12 @ref ICommandAllocatorHandle.
+    class LITEFX_DIRECTX12_API IDirectX12CommandAllocatorHandle : public ICommandAllocatorHandle {
+    protected:
+        IDirectX12CommandAllocatorHandle() = default;
+        IDirectX12CommandAllocatorHandle(const IDirectX12CommandAllocatorHandle&) = delete;
+        IDirectX12CommandAllocatorHandle(IDirectX12CommandAllocatorHandle&&) noexcept = delete;
+        IDirectX12CommandAllocatorHandle& operator=(const IDirectX12CommandAllocatorHandle&) = delete;
+        IDirectX12CommandAllocatorHandle& operator=(IDirectX12CommandAllocatorHandle&&) noexcept = delete;
+
+    public:
+        ~IDirectX12CommandAllocatorHandle() noexcept override = default;
+
+    public:
+        /// @brief Returns the handle of the underlying command buffer associated with the allocator.
+        /// 
+        /// @return The handle of the underlying command buffer associated with the allocator.
+        virtual const ComPtr<ID3D12GraphicsCommandList7>& commandBuffer() const noexcept = 0;
+    };
+
     /// @brief Records commands for a @ref DirectX12Queue
     ///
     /// @see @ref DirectX12Queue
     class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>, public ComResource<ID3D12GraphicsCommandList7> {
         LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
         friend struct SharedObject::Allocator<DirectX12CommandBuffer>;
+        friend class DirectX12Queue;
+        friend class DirectX12RenderPass;
 
     public:
         using base_type = CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>;
@@ -1327,9 +1348,8 @@ namespace LiteFX::Rendering::Backends {
         /// @brief Initializes the command buffer from a command queue.
         ///
         /// @param queue The parent command queue, the buffer gets submitted to.
-        /// @param begin If set to `true`, the command buffer automatically starts recording by calling @ref begin.
         /// @param primary `true`, if the command buffer is a primary command buffer.
-        explicit DirectX12CommandBuffer(const DirectX12Queue& queue, bool begin = false, bool primary = true);
+        explicit DirectX12CommandBuffer(const DirectX12Queue& queue, bool primary = true);
 
     private:
         DirectX12CommandBuffer(DirectX12CommandBuffer&&) noexcept = delete;
@@ -1344,22 +1364,26 @@ namespace LiteFX::Rendering::Backends {
         /// @brief Initializes the command buffer from a command queue.
         ///
         /// @param queue The parent command queue, the buffer gets submitted to.
-        /// @param begin If set to `true`, the command buffer automatically starts recording by calling @ref begin.
         /// @param primary `true`, if the command buffer is a primary command buffer.
-        static inline SharedPtr<DirectX12CommandBuffer> create(const DirectX12Queue& queue, bool begin = false, bool primary = true) {
-            return SharedObject::create<DirectX12CommandBuffer>(queue, begin, primary);
+        static inline SharedPtr<DirectX12CommandBuffer> create(const DirectX12Queue& queue, bool primary = true) {
+            return SharedObject::create<DirectX12CommandBuffer>(queue, primary);
         }
+
+        // DirectX 12 Command Buffer interface.
+    private:
+        void end() const;
+
+        void continueWith(Span<const SharedPtr<const DirectX12CommandBuffer>> lists) const;
+
+        Enumerable<ID3D12CommandList*> commandLists() const;
 
         // CommandBuffer interface.
     public:
         /// @copydoc ICommandBuffer::queue
         SharedPtr<const DirectX12Queue> queue() const noexcept;
 
-        /// @copydoc ICommandBuffer::begin
-        void begin() const override;
-
-        /// @copydoc ICommandBuffer::end
-        void end() const override;
+        /// @copydoc ICommandBuffer::trackedResources
+        const TrackedResources& trackedResources() const noexcept override;
 
         /// @copydoc ICommandBuffer::track(SharedPtr<const IBuffer>) const
         void track(SharedPtr<const IBuffer> buffer) const override;
@@ -1373,8 +1397,14 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc ICommandBuffer::track(UniquePtr<const IDescriptorSet>&&) const
         void track(UniquePtr<const IDescriptorSet>&& descriptorSet) const override;
 
-        /// @copydoc ICommandBuffer::isSecondary
-        bool isSecondary() const noexcept override;
+        /// @copydoc ICommandBuffer::track(UniquePtr<const IDescriptorRange>&&) const
+        void track(UniquePtr<const IDescriptorRange>&& descriptorRange) const override;
+
+        /// @copydoc ICommandBuffer::secondary
+        bool secondary() const noexcept override;
+
+        /// @copydoc ICommandBuffer::recording
+        bool recording() const noexcept override;
 
         /// @copydoc ICommandBuffer::setViewports(Span<const IViewport*>) const
         void setViewports(Span<const IViewport*> viewports) const override;
@@ -1532,6 +1562,10 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc CommandBuffer::traceRays(UInt32, UInt32, UInt32, const ShaderBindingTableOffsets&, const buffer_type&, const buffer_type*, const buffer_type*, const buffer_type*) const
         void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IDirectX12Buffer& rayGenerationShaderBindingTable, const IDirectX12Buffer* missShaderBindingTable, const IDirectX12Buffer* hitShaderBindingTable, const IDirectX12Buffer* callableShaderBindingTable) const noexcept override;
 
+        // Resource interface.
+    public:
+        const ComPtr<ID3D12GraphicsCommandList7>& handle() const noexcept override;
+
     private:
         inline SharedPtr<const ICommandQueue> getQueue() const noexcept override {
             return std::static_pointer_cast<const ICommandQueue>(this->queue());
@@ -1546,6 +1580,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12Queue final : public CommandQueue<DirectX12CommandBuffer>, public ComResource<ID3D12CommandQueue> {
         LITEFX_IMPLEMENTATION(DirectX12QueueImpl);
         friend struct SharedObject::Allocator<DirectX12Queue>;
+        friend class DirectX12CommandBuffer;
 
     public:
         using base_type = CommandQueue<DirectX12CommandBuffer>;
@@ -1566,7 +1601,7 @@ namespace LiteFX::Rendering::Backends {
         DirectX12Queue& operator=(const DirectX12Queue&) = delete;
 
     public:
-        ~DirectX12Queue() noexcept override;
+        ~DirectX12Queue() noexcept override = default;
 
     public:
         /// @brief Creates the DirectX 12 command queue.
@@ -1580,6 +1615,9 @@ namespace LiteFX::Rendering::Backends {
         }
 
         // DirectX12Queue interface.
+    private:
+        UniquePtr<IDirectX12CommandAllocatorHandle> acquireCommandAllocator(bool secondaryCommandBuffer) const;
+
     public:
         /// @brief Returns a pointer to the device that provides this queue or `nullptr`, if the device has already been released.
         ///
@@ -1597,18 +1635,18 @@ namespace LiteFX::Rendering::Backends {
 #if defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
     public:
         /// @copydoc ICommandQueue::beginDebugRegion
-        void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept override;
+        void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const override;
 
         /// @copydoc ICommandQueue::endDebugRegion
-        void endDebugRegion() const noexcept override;
+        void endDebugRegion() const override;
 
         /// @copydoc ICommandQueue::setDebugMarker
-        void setDebugMarker(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept override;
+        void setDebugMarker(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const override;
 #endif // defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
 
     public:
         /// @copydoc CommandQueue::createCommandBuffer
-        SharedPtr<DirectX12CommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const override;
+        SharedPtr<DirectX12CommandBuffer> createCommandBuffer(bool secondary = false) const override;
 
         /// @copydoc CommandQueue::submit(const SharedPtr<const command_buffer_type>&) const
         UInt64 submit(const SharedPtr<const DirectX12CommandBuffer>& commandBuffer) const override;
@@ -1620,7 +1658,7 @@ namespace LiteFX::Rendering::Backends {
         void waitFor(UInt64 fence) const override;
 
         /// @copydoc ICommandQueue::waitFor(const ICommandQueue&, UInt64) const
-        void waitFor(const DirectX12Queue& queue, UInt64 fence) const noexcept;
+        void waitFor(const DirectX12Queue& queue, UInt64 fence) const;
 
         /// @copydoc ICommandQueue::currentFence
         UInt64 currentFence() const noexcept override;
@@ -2153,8 +2191,11 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc IRenderPass::inputAttachmentSamplerBinding
         const Optional<DescriptorBindingPoint>& inputAttachmentSamplerBinding() const noexcept override;
 
-        /// @copydoc RenderPass::begin
+        /// @copydoc IRenderPass::begin(const IFrameBuffer&)
         void begin(const DirectX12FrameBuffer& frameBuffer) const override;
+
+        /// @copydoc IRenderPass::begin(const IFrameBuffer&, const ICommandBuffer&)
+        void begin(const DirectX12FrameBuffer& frameBuffer, const DirectX12CommandBuffer& commandBuffer) const override;
 
         /// @copydoc IRenderPass::end
         UInt64 end() const override;

@@ -6281,10 +6281,38 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<const IPipelineLayout> getLayout() const noexcept = 0;
     };
 
+    /// @brief An opaque interface that stores the command allocator used by a @ref ICommandBuffer.
+    class LITEFX_RENDERING_API ICommandAllocatorHandle {
+    protected:
+        ICommandAllocatorHandle() = default;
+        ICommandAllocatorHandle(const ICommandAllocatorHandle&) = delete;
+        ICommandAllocatorHandle(ICommandAllocatorHandle&&) noexcept = delete;
+        ICommandAllocatorHandle& operator=(const ICommandAllocatorHandle&) = delete;
+        ICommandAllocatorHandle& operator=(ICommandAllocatorHandle&&) noexcept = delete;
+
+    public:
+        virtual ~ICommandAllocatorHandle() noexcept = default;
+    };
+
     /// @brief The interface for a command buffer.
     class LITEFX_RENDERING_API ICommandBuffer : public SharedObject {
     public:
         friend class ICommandQueue;
+
+        /// @brief Stores the resources that are tracked by the command buffer until they can be safely released.
+        struct TrackedResources final {
+            /// @brief Stores secondary command buffers executed by the owning command buffer.
+            Array<SharedPtr<const ICommandBuffer>> SecondaryCommandBuffers{};
+
+            /// @brief Stores tracked resources, such as buffers, images or samplers.
+            Array<SharedPtr<const IStateResource>> Resources{};
+
+            /// @brief Stores tracked descriptor sets.
+            Array<UniquePtr<const IDescriptorSet>> DescriptorSets{};
+
+            /// @brief Stores tracked descriptor ranges.
+            Array<UniquePtr<const IDescriptorRange>> DescriptorRanges{};
+        };
 
     protected:
         ICommandBuffer() noexcept = default;
@@ -6297,25 +6325,20 @@ namespace LiteFX::Rendering {
         ~ICommandBuffer() noexcept override = default;
 
     public:
-        /// @brief Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent @ref CommandQueue.
-        ///
-        /// Note that you have to wait for a command buffer to be executed on the parent @ref CommandQueue before you can begin recording on it again.
-        ///
-        /// @throws RuntimeException Thrown, if the command buffer is already recording.
-        /// @see @ref end
-        virtual void begin() const = 0;
-
-        /// @brief Ends recording commands on the command buffer.
-        ///
-        /// It is valid to call this method multiple times. If a command buffer is already closed, nothing will happen.
-        ///
-        /// @see @ref begin
-        virtual void end() const = 0;
-
         /// @brief Returns `true`, if the command buffer is a secondary command buffer, or `false` otherwise.
         ///
         /// @return `true`, if the command buffer is a secondary command buffer, or `false` otherwise.
-        virtual bool isSecondary() const noexcept = 0;
+        virtual bool secondary() const noexcept = 0;
+
+        /// @brief Returns `true`, if the command buffer is currently recording and `false` otherwise.
+        /// 
+        /// @return `true`, if the command buffer is currently recording and `false` otherwise.
+        virtual bool recording() const noexcept = 0;
+
+        /// @brief Returns the resources that are currently tracked by the command buffer.
+        /// 
+        /// @return A reference to the tracked resources container.
+        virtual const TrackedResources& trackedResources() const noexcept = 0;
 
         /// @brief Sets up tracking for a buffer, so that it will not be destroyed until the command buffer has been executed.
         ///
@@ -6350,6 +6373,11 @@ namespace LiteFX::Rendering {
         ///
         /// @param descriptorSet The descriptor set to track.
         virtual void track(UniquePtr<const IDescriptorSet>&& descriptorSet) const = 0;
+
+        /// @brief Sets up tracking for a descriptor range, so that descriptors within it aren't released until the command buffer has been executed.
+        ///
+        /// @param descriptorRange The descriptor range to track.
+        virtual void track(UniquePtr<const IDescriptorRange>&& descriptorRange) const = 0;
 
     public:
         /// @brief Gets a pointer to the command queue that this command buffer was allocated from or `nullptr`, if the queue has already been released.
@@ -7788,11 +7816,26 @@ namespace LiteFX::Rendering {
             this->beginRenderPass(frameBuffer);
         };
 
+        /// @brief Begins the render pass by recording into the external primary command buffer provided by @p commandBuffer.
+        ///
+        /// With this overload, the render pass does not submit @p commandBuffer. Ending it with @ref end only records commands and returns `0`. If the 
+        /// render pass has a present target, submit @p commandBuffer and call @ref ISwapChain::present with the returned fence afterwards. The command 
+        /// buffer must be a recording primary command buffer that was created from @ref commandQueue. 
+        /// 
+        /// Note that pipeline and binding state is not preserved across the render pass boundaries!
+        ///
+        /// @param frameBuffer The frame buffer to obtain input attachments and render targets from.
+        /// @param commandBuffer The primary command buffer to record the render pass into.
+        /// @throws InvalidArgumentException Thrown, if @p commandBuffer is not a recording primary command buffer of the render pass queue.
+        inline void begin(const IFrameBuffer& frameBuffer, const ICommandBuffer& commandBuffer) const {
+            this->beginRenderPass(frameBuffer, commandBuffer);
+        }
+
         /// @brief Ends the render pass.
         ///
         /// If the frame buffer has a present render target, this causes the render pass to synchronize with the swap chain and issue a present command.
         ///
-        /// @return The value of the fence that indicates the end of the render pass.
+        /// @return The value of the fence that indicates the end of the render pass, or `0` if the render pass was recorded on an external command buffer.
         virtual UInt64 end() const = 0;
 
         /// @brief Returns the mask that identifies the views that are enabled during rendering.
@@ -7804,6 +7847,7 @@ namespace LiteFX::Rendering {
     private:
         virtual SharedPtr<const IFrameBuffer> getActiveFrameBuffer() const noexcept = 0;
         virtual void beginRenderPass(const IFrameBuffer& frameBuffer) const = 0;
+        virtual void beginRenderPass(const IFrameBuffer& frameBuffer, const ICommandBuffer& commandBuffer) const = 0;
         virtual const ICommandQueue& getCommandQueue() const noexcept = 0;
         virtual SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept = 0;
         virtual Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const = 0;
@@ -8121,12 +8165,12 @@ namespace LiteFX::Rendering {
         ///
         /// @param label The name of the debug region.
         /// @param color The color of the debug region.
-        virtual void beginDebugRegion([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept { };
+        virtual void beginDebugRegion([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const { };
         
         /// @brief Ends the current debug region.
         ///
         /// This is a debug helper, that is not required to be implemented. In the built-in backends, it will no-op by default in non-debug builds.
-        virtual void endDebugRegion() const noexcept { };
+        virtual void endDebugRegion() const { };
 
         /// @brief Inserts a debug marker.
         ///
@@ -8134,7 +8178,7 @@ namespace LiteFX::Rendering {
         ///
         /// @param label The name of the debug marker.
         /// @param color The color of the debug marker.
-        virtual void setDebugMarker([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept { };
+        virtual void setDebugMarker([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const { };
 
     public:
         /// @brief Invoked, when one or more command buffers are submitted to the queue.
@@ -8146,16 +8190,18 @@ namespace LiteFX::Rendering {
         /// @brief Creates a command buffer that can be used to allocate commands on the queue.
         ///
         /// Specifying @p secondary allows to create secondary command buffers (aka. bundles). Those are intended to be used as efficient pre-recorded command buffers that are re-used multiple times. Using such a
-        /// command buffer allows drivers to pre-apply optimizations, which causes a one-time cost during setup, but reduces cost when re- applying the command buffer multiple times. Ideally they are used as
-        /// small chunks of re-occurring workloads.
+        /// command buffer allows drivers to pre-apply optimizations, which causes a one-time cost during setup, but reduces cost when re-applying the command buffer multiple times. Ideally they are used as small 
+        /// chunks of re-occurring workloads.
         ///
         /// A secondary command buffer must not be submitted to a queue, but rather to a primary command buffer by calling @ref ICommandBuffer::execute.
+        /// 
+        /// Note that Vulkan does not forbid secondary command buffers to be created for arbitrary queues, while under DirectX 12, those must be created on a @ref QueueType::Graphics queue. For portable code, 
+        /// refrain from using secondary command buffers on other queue types.
         ///
-        /// @param beginRecording If set to `true`, the command buffer will be initialized in recording state and can receive commands straight away.
         /// @param secondary If set to `true`, the method will create a secondary command buffer/bundle.
         /// @return The instance of the command buffer.
-        inline SharedPtr<ICommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const {
-            return this->getCommandBuffer(beginRecording, secondary);
+        inline SharedPtr<ICommandBuffer> createCommandBuffer(bool secondary = false) const {
+            return this->getCommandBuffer( secondary);
         }
 
         /// @brief Submits a single command buffer with shared ownership and inserts a fence to wait for it.
@@ -8209,6 +8255,9 @@ namespace LiteFX::Rendering {
         ///
         /// This overload performs a GPU-side wait, i.e., the current command queue waits until @p queue has passed the fence value provided by the @p fence parameter. This overload does return immediately and
         /// does not block the CPU.
+        /// 
+        /// Waiting for a @p fence that is larger than @ref ICommandQueue::currentFence on @p queue logs a warning, since it would wait for a future submission, that may be blocked by another wait. This can
+        /// cause deadlocks and should be avoided. A @p fence value of `0` is a no-op, as it is always satisfied.
         ///
         /// @param queue The queue to wait upon.
         /// @param fence The value of the fence to wait upon on the other queue.
@@ -8230,7 +8279,7 @@ namespace LiteFX::Rendering {
         virtual UInt64 lastCompletedFence() const noexcept = 0;
 
     private:
-        virtual SharedPtr<ICommandBuffer> getCommandBuffer(bool beginRecording, bool secondary) const = 0;
+        virtual SharedPtr<ICommandBuffer> getCommandBuffer(bool secondary) const = 0;
         virtual UInt64 submitCommandBuffer(const SharedPtr<const ICommandBuffer>& commandBuffer) const = 0;
         virtual UInt64 submitCommandBuffers(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const = 0;
         virtual void waitForQueue(const ICommandQueue& queue, UInt64 fence) const = 0;

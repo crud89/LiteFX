@@ -53,6 +53,7 @@ namespace LiteFX::Rendering::Backends {
     class IVulkanImage;
     class IVulkanSampler;
     class IVulkanAccelerationStructure;
+    class IVulkanCommandAllocatorHandle;
     class VulkanBottomLevelAccelerationStructure;
     class VulkanTopLevelAccelerationStructure;
 

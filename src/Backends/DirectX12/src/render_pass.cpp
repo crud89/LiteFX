@@ -23,9 +23,9 @@ private:
     Array<RenderTarget> m_renderTargets;
     Array<RenderPassDependency> m_inputAttachments;
     Dictionary<const IFrameBuffer*, size_t> m_frameBufferTokens;
-    Dictionary<const IFrameBuffer*, SharedPtr<DirectX12CommandBuffer>> m_beginCommandBuffers;
-    Dictionary<const IFrameBuffer*, SharedPtr<DirectX12CommandBuffer>> m_endCommandBuffers;
     Dictionary<const IFrameBuffer*, Array<SharedPtr<DirectX12CommandBuffer>>> m_secondaryCommandBuffers;
+    SharedPtr<const DirectX12CommandBuffer> m_activeCommandBuffer{};
+    bool m_external{ false };
     UInt32 m_secondaryCommandBufferCount = 0;
     SharedPtr<const DirectX12FrameBuffer> m_activeFrameBuffer = nullptr;
     RenderPassContext m_activeContext;
@@ -92,45 +92,13 @@ public:
         m_inputAttachments.assign(std::begin(inputAttachments), std::end(inputAttachments));
     }
 
-    void registerFrameBuffer([[maybe_unused]] const DirectX12RenderPass& renderPass, const DirectX12Queue& queue, const DirectX12FrameBuffer& frameBuffer)
+    void registerFrameBuffer([[maybe_unused]] const DirectX12RenderPass& renderPass, const DirectX12FrameBuffer& frameBuffer)
     {
         // If the frame buffer is not yet registered, do so by listening for its release.
         auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
 
         if (!m_frameBufferTokens.contains(interfacePointer)) [[unlikely]]
-        {
             m_frameBufferTokens[interfacePointer] = frameBuffer.released.add(std::bind(&DirectX12RenderPassImpl::onFrameBufferRelease, this, std::placeholders::_1, std::placeholders::_2));
-
-            // Create begin command buffers.
-            {
-                auto commandBuffer = queue.createCommandBuffer(false);
-#ifndef NDEBUG
-                std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} Begin Commands {1}", renderPass.name(), m_beginCommandBuffers.size())).c_str());
-#endif
-                m_beginCommandBuffers[interfacePointer] = commandBuffer;
-            }
-
-            // Create end command buffers.
-            {
-                auto commandBuffer = queue.createCommandBuffer(false);
-#ifndef NDEBUG
-                std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} End Commands {1}", renderPass.name(), m_endCommandBuffers.size())).c_str());
-#endif
-                m_endCommandBuffers[interfacePointer] = commandBuffer;
-            }
-
-            // Create secondary command buffers.
-            m_secondaryCommandBuffers[interfacePointer] = std::views::iota(0u, m_secondaryCommandBufferCount) |
-                std::views::transform([&queue, &renderPass]([[maybe_unused]] UInt32 i) {
-                    auto commandBuffer = queue.createCommandBuffer(false);
-#ifdef NDEBUG
-                    (void)renderPass;
-#else
-                    std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} Secondary Commands {1}", renderPass.name(), i)).c_str());
-#endif
-                    return commandBuffer;
-                }) | std::ranges::to<Array<SharedPtr<DirectX12CommandBuffer>>>();
-        }
 
         // Store the active frame buffer pointer.
         m_activeFrameBuffer = frameBuffer.shared_from_this();
@@ -144,8 +112,6 @@ public:
         if (static_cast<const IFrameBuffer*>(m_activeFrameBuffer.get()) == interfacePointer) [[unlikely]]
             throw RuntimeException("A frame buffer that is currently in use on a render pass cannot be released.");
 
-        m_beginCommandBuffers.erase(interfacePointer);
-        m_endCommandBuffers.erase(interfacePointer);
         m_secondaryCommandBuffers.erase(interfacePointer);
 
         // Release the token.
@@ -208,19 +174,91 @@ public:
         return m_activeContext;
     }
 
-    inline SharedPtr<DirectX12CommandBuffer> getBeginCommandBuffer(const DirectX12FrameBuffer& frameBuffer)
-    {
-        return m_beginCommandBuffers.at(static_cast<const IFrameBuffer*>(&frameBuffer));
-    }
-
-    inline SharedPtr<DirectX12CommandBuffer> getEndCommandBuffer(const DirectX12FrameBuffer& frameBuffer)
-    {
-        return m_endCommandBuffers.at(static_cast<const IFrameBuffer*>(&frameBuffer));
-    }
-
     inline Array<SharedPtr<DirectX12CommandBuffer>>& getSecondaryCommandBuffers(const DirectX12FrameBuffer& frameBuffer)
     {
         return m_secondaryCommandBuffers.at(static_cast<const IFrameBuffer*>(&frameBuffer));
+    }
+
+    void begin(const DirectX12RenderPass& renderPass, const DirectX12FrameBuffer& frameBuffer, const DirectX12CommandBuffer& commandBuffer, bool external)
+    {
+        // Only begin, if we are currently not running.
+        if (m_activeFrameBuffer != nullptr) [[unlikely]]
+            throw RuntimeException("Unable to begin a render pass, that is already running. End the current pass first.");
+
+        // Register the frame buffer.
+        registerFrameBuffer(renderPass, frameBuffer);
+
+        try
+        {
+            // Initialize the render pass context.
+            auto& context = renderTargetContext(frameBuffer);
+
+            // Declare render pass input transition barriers for render targets and input attachments.
+            auto syncBefore = external ? PipelineStage::All : PipelineStage::None;
+            auto accessBefore = external ? ResourceAccess::Common : ResourceAccess::None;
+            auto layoutBefore = [external](bool clear) { return clear && !external ? ImageLayout::Undefined : ImageLayout::Common; };
+
+            DirectX12Barrier 
+                renderTargetBarrier(syncBefore, PipelineStage::RenderTarget), 
+                depthStencilBarrier(syncBefore, PipelineStage::DepthStencil),
+                inputAttachmentBarrier(syncBefore, PipelineStage::Pixel);
+
+            std::ranges::for_each(m_renderTargets, [&](const RenderTarget& renderTarget) {
+                auto& image = frameBuffer[renderTarget]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+
+                if (renderTarget.type() == RenderTargetType::DepthStencil) {
+                    if (hasDepth(renderTarget.format()))
+                        depthStencilBarrier.transition(image, 0u, image.levels(), 0u, image.layers(), 0u, accessBefore, ResourceAccess::DepthStencil, layoutBefore(renderTarget.clearBuffer()), ImageLayout::DepthWrite);
+                    if (hasStencil(renderTarget.format()))
+                        depthStencilBarrier.transition(image, 0u, image.levels(), 0u, image.layers(), 1u, accessBefore, ResourceAccess::DepthStencil, layoutBefore(renderTarget.clearStencil()), ImageLayout::DepthWrite);
+                }
+                else
+                    renderTargetBarrier.transition(image, accessBefore, ResourceAccess::RenderTarget, layoutBefore(renderTarget.clearBuffer()), ImageLayout::RenderTarget);
+            });
+
+            std::ranges::for_each(m_inputAttachments, [&](const RenderPassDependency& dependency) {
+                inputAttachmentBarrier.transition(frameBuffer[dependency.renderTarget()], accessBefore, ResourceAccess::ShaderRead, ImageLayout::Common, ImageLayout::ShaderResource); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+            });
+
+            commandBuffer.barrier(renderTargetBarrier);
+            commandBuffer.barrier(depthStencilBarrier);
+            commandBuffer.barrier(inputAttachmentBarrier);
+
+            // NOLINTBEGIN(bugprone-unchecked-optional-access)
+            // Create the secondary command buffers.
+            auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
+            m_secondaryCommandBuffers[interfacePointer] = std::views::iota(0u, m_secondaryCommandBufferCount) 
+                | std::views::transform([&]([[maybe_unused]] UInt32 i) {
+                    auto secondaryCommandBuffer = m_queue->createCommandBuffer();
+#ifndef NDEBUG
+                    std::as_const(*secondaryCommandBuffer).handle()->SetName(Widen(std::format("{0} Secondary Commands {1}", renderPass.name(), i)).c_str());
+#endif
+                    std::as_const(*secondaryCommandBuffer).handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS | D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
+                    std::as_const(*secondaryCommandBuffer).handle()->SetViewInstanceMask(m_viewMask);
+                    return secondaryCommandBuffer;
+                }) | std::ranges::to<Array<SharedPtr<DirectX12CommandBuffer>>>();
+
+            // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
+            commandBuffer.handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
+            commandBuffer.handle()->EndRenderPass();
+            // NOLINTEND(bugprone-unchecked-optional-access)
+
+            // Store the primary command buffer.
+            m_activeCommandBuffer = commandBuffer.shared_from_this();
+            m_external = external;
+
+            // Publish beginning event.
+            renderPass.beginning(&renderPass, { frameBuffer });
+
+            if (!external && !renderPass.name().empty())
+                m_queue->beginDebugRegion(std::format("{0} Render Pass", renderPass.name()));
+        }
+        catch (...)
+        {
+            m_activeFrameBuffer.reset();
+            m_external = false;
+            throw;
+        }
     }
 };
 
@@ -346,65 +384,25 @@ UInt32 DirectX12RenderPass::viewMask() const noexcept
 
 void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
 {
-    // Only begin, if we are currently not running.
-    if (m_impl->m_activeFrameBuffer != nullptr) [[unlikely]]
-        throw RuntimeException("Unable to begin a render pass, that is already running. End the current pass first.");
+    // Create the primary command buffer for the render pass.
+    auto primaryCommandBuffer = m_impl->m_queue->createCommandBuffer(false);
 
-    // Register the frame buffer.
-    m_impl->registerFrameBuffer(*this, *m_impl->m_queue, frameBuffer);
+#ifndef NDEBUG
+    std::as_const(*primaryCommandBuffer).handle()->SetName(Widen(std::format("{0} Primary Commands", this->name())).c_str());
+#endif
 
-    // Initialize the render pass context.
-    auto& context = m_impl->renderTargetContext(frameBuffer);
+    m_impl->begin(*this, frameBuffer, *primaryCommandBuffer, false);
+}
 
-    // Begin the command recording on the frame buffers command buffer. Before we can do that, we need to make sure it has not being executed anymore.
-    auto beginCommandBuffer = m_impl->getBeginCommandBuffer(frameBuffer);
-    beginCommandBuffer->begin();
+void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer, const DirectX12CommandBuffer& commandBuffer) const
+{
+    if (commandBuffer.secondary() || !commandBuffer.recording()) [[unlikely]]
+        throw InvalidArgumentException("commandBuffer", "The command buffer must be a primary command buffer that is still recording.");
 
-    // Declare render pass input transition barriers for render targets and input attachments.
-    DirectX12Barrier 
-        renderTargetBarrier(PipelineStage::None, PipelineStage::RenderTarget), 
-        depthStencilBarrier(PipelineStage::None, PipelineStage::DepthStencil),
-        inputAttachmentBarrier(PipelineStage::None, PipelineStage::Pixel);
+    if (commandBuffer.queue().get() != m_impl->m_queue.get()) [[unlikely]]
+        throw InvalidArgumentException("commandBuffer", "The command buffer must be created from the render pass queue.");
 
-    std::ranges::for_each(m_impl->m_renderTargets, [&renderTargetBarrier, &depthStencilBarrier, &frameBuffer](const RenderTarget& renderTarget) {
-        auto& image = frameBuffer[renderTarget]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
-
-        if (renderTarget.type() == RenderTargetType::DepthStencil) {
-            if (hasDepth(renderTarget.format()))
-                depthStencilBarrier.transition(image, 0u, image.levels(), 0u, image.layers(), 0u, ResourceAccess::None, ResourceAccess::DepthStencil, renderTarget.clearBuffer() ? ImageLayout::Undefined : ImageLayout::Common, ImageLayout::DepthWrite);
-            if (hasStencil(renderTarget.format()))
-                depthStencilBarrier.transition(image, 0u, image.levels(), 0u, image.layers(), 1u, ResourceAccess::None, ResourceAccess::DepthStencil, renderTarget.clearStencil() ? ImageLayout::Undefined : ImageLayout::Common, ImageLayout::DepthWrite);
-        }
-        else
-            renderTargetBarrier.transition(image, ResourceAccess::None, ResourceAccess::RenderTarget, renderTarget.clearBuffer() ? ImageLayout::Undefined : ImageLayout::Common, ImageLayout::RenderTarget);
-    });
-
-    std::ranges::for_each(m_impl->m_inputAttachments, [&inputAttachmentBarrier, &frameBuffer](const RenderPassDependency& dependency) {
-        inputAttachmentBarrier.transition(frameBuffer[dependency.renderTarget()], ResourceAccess::None, ResourceAccess::ShaderRead, ImageLayout::Common, ImageLayout::ShaderResource); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
-    });
-
-    beginCommandBuffer->barrier(renderTargetBarrier);
-    beginCommandBuffer->barrier(depthStencilBarrier);
-    beginCommandBuffer->barrier(inputAttachmentBarrier);
-
-    if (!this->name().empty())
-        m_impl->m_queue->beginDebugRegion(std::format("{0} Render Pass", this->name()));
-
-    // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
-    // NOLINTBEGIN(bugprone-unchecked-optional-access)
-    std::as_const(*beginCommandBuffer).handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
-    std::as_const(*beginCommandBuffer).handle()->EndRenderPass();
-    std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [&](auto& commandBuffer) { 
-        commandBuffer->begin(); 
-        std::as_const(*commandBuffer).handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS | D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
-
-        // Set the view mask.
-        std::as_const(*commandBuffer).handle()->SetViewInstanceMask(m_impl->m_viewMask);
-    });
-    // NOLINTEND(bugprone-unchecked-optional-access)
-
-    // Publish beginning event.
-    this->beginning(this, { frameBuffer });
+    m_impl->begin(*this, frameBuffer, commandBuffer, true);
 }
 
 UInt64 DirectX12RenderPass::end() const
@@ -421,17 +419,22 @@ UInt64 DirectX12RenderPass::end() const
 
     // Resume and end the render pass.
     const auto& context = m_impl->m_activeContext;
-    auto endCommandBuffer = m_impl->getEndCommandBuffer(frameBuffer);
-    std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [](auto& commandBuffer) { std::as_const(*commandBuffer).handle()->EndRenderPass(); });
-    endCommandBuffer->begin();
-    std::as_const(*endCommandBuffer).handle()->BeginRenderPass(static_cast<UInt32>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_RESUMING_PASS); // NOLINT(bugprone-unchecked-optional-access)
-    std::as_const(*endCommandBuffer).handle()->EndRenderPass();
+    auto secondaries = m_impl->getSecondaryCommandBuffers(frameBuffer) | std::ranges::to<Array<SharedPtr<const DirectX12CommandBuffer>>>();
+    std::ranges::for_each(secondaries, [](auto& commandBuffer) { std::as_const(*commandBuffer).handle()->EndRenderPass(); });
+
+    auto commandBuffer = m_impl->m_activeCommandBuffer;
+    commandBuffer->continueWith(secondaries);
+    std::as_const(*commandBuffer).handle()->BeginRenderPass(static_cast<UInt32>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_RESUMING_PASS); // NOLINT(bugprone-unchecked-optional-access)
+    std::as_const(*commandBuffer).handle()->EndRenderPass();
 
     // If the present target is multi-sampled, we need to resolve it to the back buffer.
     const auto& backBufferImage = swapChain.image();
     bool requiresResolve{ this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1 }; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
     // Add another barrier for the back buffer image, if required.
+    auto syncAfter = m_impl->m_external ? PipelineStage::All : PipelineStage::None;
+    auto accessAfter = m_impl->m_external ? ResourceAccess::Common : ResourceAccess::None;
+
     if (requiresResolve)
     {
         auto& multiSampledImage = frameBuffer[*m_impl->m_presentTarget]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
@@ -439,15 +442,15 @@ UInt64 DirectX12RenderPass::end() const
         DirectX12Barrier beginPresentBarrier(PipelineStage::RenderTarget, PipelineStage::Resolve);
         beginPresentBarrier.transition(backBufferImage, ResourceAccess::None, ResourceAccess::ResolveWrite, ImageLayout::Present, ImageLayout::ResolveDestination);
         beginPresentBarrier.transition(multiSampledImage, ResourceAccess::RenderTarget, ResourceAccess::ResolveRead, ImageLayout::RenderTarget, ImageLayout::ResolveSource);
-        endCommandBuffer->barrier(beginPresentBarrier);
+        commandBuffer->barrier(beginPresentBarrier);
 
-        std::as_const(*endCommandBuffer).handle()->ResolveSubresource(backBufferImage.handle().Get(), 0, multiSampledImage.handle().Get(), 0, DX12::getFormat(multiSampledImage.format()));
+        std::as_const(*commandBuffer).handle()->ResolveSubresource(backBufferImage.handle().Get(), 0, multiSampledImage.handle().Get(), 0, DX12::getFormat(multiSampledImage.format()));
 
         // Transition the present target back to the present state.
-        DirectX12Barrier endPresentBarrier(PipelineStage::Resolve, PipelineStage::None);
-        endPresentBarrier.transition(backBufferImage, ResourceAccess::ResolveWrite, ResourceAccess::None, ImageLayout::ResolveDestination, ImageLayout::Present);
-        endPresentBarrier.transition(multiSampledImage, ResourceAccess::ResolveRead, ResourceAccess::None, ImageLayout::ResolveSource, ImageLayout::Common);
-        endCommandBuffer->barrier(endPresentBarrier);
+        DirectX12Barrier endPresentBarrier(PipelineStage::Resolve, syncAfter);
+        endPresentBarrier.transition(backBufferImage, ResourceAccess::ResolveWrite, accessAfter, ImageLayout::ResolveDestination, ImageLayout::Present);
+        endPresentBarrier.transition(multiSampledImage, ResourceAccess::ResolveRead, accessAfter, ImageLayout::ResolveSource, ImageLayout::Common);
+        commandBuffer->barrier(endPresentBarrier);
     }
     else if (this->hasPresentTarget())
     {
@@ -456,65 +459,66 @@ UInt64 DirectX12RenderPass::end() const
         DirectX12Barrier beginPresentBarrier(PipelineStage::RenderTarget, PipelineStage::Transfer);
         beginPresentBarrier.transition(presentTarget, ResourceAccess::RenderTarget, ResourceAccess::TransferRead, ImageLayout::RenderTarget, ImageLayout::CopySource);
         beginPresentBarrier.transition(backBufferImage, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
-        endCommandBuffer->barrier(beginPresentBarrier);
+        commandBuffer->barrier(beginPresentBarrier);
 
-        endCommandBuffer->transfer(presentTarget, backBufferImage);
+        commandBuffer->transfer(presentTarget, backBufferImage);
 
-        DirectX12Barrier endPresentBarrier(PipelineStage::Transfer, PipelineStage::None);
-        endPresentBarrier.transition(presentTarget, ResourceAccess::TransferRead, ResourceAccess::None, ImageLayout::CopySource, ImageLayout::Common);
-        endPresentBarrier.transition(backBufferImage, ResourceAccess::TransferWrite, ResourceAccess::None, ImageLayout::CopyDestination, ImageLayout::Present);
-        endCommandBuffer->barrier(endPresentBarrier);
+        DirectX12Barrier endPresentBarrier(PipelineStage::Transfer, syncAfter);
+        endPresentBarrier.transition(presentTarget, ResourceAccess::TransferRead, accessAfter, ImageLayout::CopySource, ImageLayout::Common);
+        endPresentBarrier.transition(backBufferImage, ResourceAccess::TransferWrite, accessAfter, ImageLayout::CopyDestination, ImageLayout::Present);
+        commandBuffer->barrier(endPresentBarrier);
     }
 
     // Transition render targets and input attachments.
     DirectX12Barrier
-        colorTargetsBarrier(PipelineStage::RenderTarget, PipelineStage::None),
-        depthStencilBarrier(PipelineStage::DepthStencil, PipelineStage::None),
-        inputAttachmentBarrier(PipelineStage::Fragment, PipelineStage::None);
+        colorTargetsBarrier(PipelineStage::RenderTarget, syncAfter),
+        depthStencilBarrier(PipelineStage::DepthStencil, syncAfter),
+        inputAttachmentBarrier(PipelineStage::Fragment, syncAfter);
 
     std::ranges::for_each(m_impl->m_renderTargets, [&](const RenderTarget& renderTarget) {
         // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         if (renderTarget.type() == RenderTargetType::DepthStencil)
-            depthStencilBarrier.transition(frameBuffer[renderTarget], ResourceAccess::DepthStencilWrite, ResourceAccess::None, ImageLayout::DepthWrite, ImageLayout::Common);
+            depthStencilBarrier.transition(frameBuffer[renderTarget], ResourceAccess::DepthStencilWrite, accessAfter, ImageLayout::DepthWrite, ImageLayout::Common);
         else if (renderTarget.type() != RenderTargetType::Present) // No need to transition the present target again.
-            colorTargetsBarrier.transition(frameBuffer[renderTarget], ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::RenderTarget, ImageLayout::Common);
+            colorTargetsBarrier.transition(frameBuffer[renderTarget], ResourceAccess::RenderTarget, accessAfter, ImageLayout::RenderTarget, ImageLayout::Common);
         // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
     });
 
     std::ranges::for_each(m_impl->m_inputAttachments, [&](const RenderPassDependency& dependency) {
-        inputAttachmentBarrier.transition(frameBuffer[dependency.renderTarget()], ResourceAccess::ShaderRead, ResourceAccess::None, ImageLayout::ShaderResource, ImageLayout::Common); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+        inputAttachmentBarrier.transition(frameBuffer[dependency.renderTarget()], ResourceAccess::ShaderRead, accessAfter, ImageLayout::ShaderResource, ImageLayout::Common); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
     });
 
     // Execute the barriers.
-    endCommandBuffer->barrier(colorTargetsBarrier);
-    endCommandBuffer->barrier(depthStencilBarrier);
-    endCommandBuffer->barrier(inputAttachmentBarrier);
+    commandBuffer->barrier(colorTargetsBarrier);
+    commandBuffer->barrier(depthStencilBarrier);
+    commandBuffer->barrier(inputAttachmentBarrier);
 
     // If there is a present target, allow the swap chain to resolve queries for the current heap.
     if (m_impl->m_presentTarget != nullptr)
-        swapChain.resolveQueryHeaps(*endCommandBuffer);
+        swapChain.resolveQueryHeaps(*commandBuffer);
 
-    // End the command buffer recording and submit all command buffers.
-    // NOTE: In order to suspend/resume render passes, we need to pass them to the queue in one `ExecuteCommandLists` (i.e. submit) call. The order we pass them to the call is 
-    //       important, since the first command list also gets executed first.
-    auto commandBuffers = m_impl->getSecondaryCommandBuffers(frameBuffer);
-    commandBuffers.insert(commandBuffers.begin(), m_impl->getBeginCommandBuffer(frameBuffer));
-    commandBuffers.push_back(endCommandBuffer);
+    // The external path does not submit the command buffer, nor does it present.
+    UInt64 fence{ 0ull };
 
-    // Submit and store the fence.
-    auto fence = m_impl->m_queue->submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const DirectX12CommandBuffer>>>());
+    if (!m_impl->m_external)
+    {
+        // Submit and store the fence.
+        fence = m_impl->m_queue->submit(commandBuffer);
 
-    if (!this->name().empty())
-        m_impl->m_queue->endDebugRegion();
+        if (!this->name().empty())
+            m_impl->m_queue->endDebugRegion();
 
-    // NOTE: No need to wait for the fence here, since `Present` will wait for the back buffer to be ready. If we have multiple frames in flight, this will block until the first
-    //       frame in the queue has been drawn and the back buffer can be written again.
-    //       Instead of blocking, we could also use a wait-able swap chain (https://www.gamedev.net/forums/topic/677527-dx12-fences-and-swap-chain-present/).
-    if (m_impl->m_presentTarget != nullptr)
-        swapChain.present(fence);
+        // NOTE: No need to wait for the fence here, since `Present` will wait for the back buffer to be ready. If we have multiple frames in flight, this will block until the first
+        //       frame in the queue has been drawn and the back buffer can be written again.
+        //       Instead of blocking, we could also use a wait-able swap chain (https://www.gamedev.net/forums/topic/677527-dx12-fences-and-swap-chain-present/).
+        if (m_impl->m_presentTarget != nullptr)
+            swapChain.present(fence);
+    }
 
     // Reset the frame buffer.
     m_impl->m_activeFrameBuffer = nullptr;
+    m_impl->m_activeCommandBuffer = nullptr;
+    m_impl->m_external = false;
 
     // Return the last fence of the frame buffer.
     return fence;

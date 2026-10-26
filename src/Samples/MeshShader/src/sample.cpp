@@ -90,7 +90,7 @@ void initRenderGraph(TRenderBackend* backend)
 void SampleApp::initBuffers(IRenderBackend* /*backend*/)
 {
     // Get a command buffer
-    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
+    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer();
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
@@ -231,7 +231,7 @@ void SampleApp::onResize(const void* /*sender*/, const ResizeEventArgs& e)
 
     // Also update the camera.
     auto& cameraBuffer = m_device->state().buffer("Camera");
-    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
+    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer();
     this->updateCamera(*commandBuffer, cameraBuffer);
     m_transferFence = commandBuffer->submit();
 }

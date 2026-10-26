@@ -124,7 +124,9 @@ graphicsQueue.submit(renderCommands);
 
 The wait is attached to the next submission to this queue. As submissions on a queue run one after another, every later submission waits as
 well. So call it before you submit the work that depends on the other queue, and before `IRenderPass::end` at the latest if the dependent
-work is a render pass, which submits when it ends. Calling it before `begin` makes the intent clearer:
+work is a render pass, which submits when it ends (unless it records into a [shared command
+buffer](render-passes-and-frames.md#sharing-a-command-buffer-between-render-passes), in which case the wait applies to the submission of that
+command buffer). Calling it before `begin` makes the intent clearer:
 
 ```cpp
 renderPass.commandQueue().waitFor(transferQueue, m_transferFence);
@@ -137,7 +139,11 @@ access](barriers.md#accessing-resources-from-multiple-queues).
 
 !!! warning "Avoid waits that can never complete"
     A queue that waits for a fence nobody submits blocks forever, and so does every queue that waits for it. Only wait for fences that have
-    already been returned by a `submit` call, and never let two queues wait for each other.
+    already been returned by a `submit` call, and never let two queues wait for each other. `waitFor` logs a warning, if the fence is beyond
+    the other queue's `currentFence`, i.e. if it belongs to a submission that has not happened yet.
+
+A fence of `0` is always satisfied, so waiting for it does nothing. This is convenient for fences that are only set under some conditions,
+for example an upload that may not have happened yet: initialize them with `0`, and wait for them unconditionally.
 
 ## Queue events and debug regions
 

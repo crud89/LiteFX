@@ -277,6 +277,14 @@ public:
 
 	void present(UInt64 fence) 
 	{
+		// Prevent other threads from submitting to the present queue.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot present on a released device instance.");
+
+		std::lock_guard<std::mutex> lock{ device->queueMutex(m_presentQueue->familyId(), m_presentQueue->queueId()) };
+
 		// Draw the frame, if the result of the render pass it should be presented to the swap chain.
 		auto swapChains = std::array { m_handle };
 		const auto bufferIndex = m_currentImage;

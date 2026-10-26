@@ -28,14 +28,14 @@ void TestApp::onInit()
         auto scissor1 = Scissor(RectF { FRAMEBUFFER_WIDTH - 100, FRAMEBUFFER_HEIGHT - 100, 100, 100 });
 
         // Create a command buffer, set the scissor and submit.
-        auto commandBuffer1 = _device->defaultQueue(QueueType::Graphics).createCommandBuffer(true);
+        auto commandBuffer1 = _device->defaultQueue(QueueType::Graphics).createCommandBuffer();
         commandBuffer1->setScissors(&scissor1);
         commandBuffer1->submit();
 
         // Repeat the trest, but with multiple scissor rects.
         auto scissor2 = Scissor(RectF{ FRAMEBUFFER_WIDTH - 200, FRAMEBUFFER_HEIGHT - 200, 200, 200 });
         auto scissors = std::array<const IScissor*, 2> { &scissor1, &scissor2 };
-        auto commandBuffer2 = _device->defaultQueue(QueueType::Graphics).createCommandBuffer(true);
+        auto commandBuffer2 = _device->defaultQueue(QueueType::Graphics).createCommandBuffer();
         commandBuffer2->setScissors(scissors);
         commandBuffer2->submit();
 

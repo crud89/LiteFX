@@ -26,7 +26,10 @@ Each worker then records into its own buffer, which it gets by index:
 auto commandBuffer = renderPass->commandBuffer(index);
 ```
 
-The render pass submits all of its command buffers in order when it ends, so the result is the same as if one thread had recorded them.
+These are *secondary* command buffers. When the render pass ends, it executes them in the order of their index within its primary command
+buffer, and submits that, so the result is the same as if one thread had recorded them. The render pass creates a new set of them each time
+it begins, so the workers never record into a command buffer that the GPU might still use (see [command
+buffers](../../guides/synchronization/command-buffers.md#secondary-command-buffers) in the synchronization guide).
 
 ## Resources per thread
 

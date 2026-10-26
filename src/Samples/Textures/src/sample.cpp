@@ -129,7 +129,7 @@ void loadTexture(TDevice& device, SharedPtr<typename TDevice::image_type>& textu
     texture = device.factory().createTexture("Texture", Format::R8G8B8A8_UNORM, Size2d(width, height), ImageDimensions::DIM_2, 6, 1, MultiSamplingLevel::x1, ResourceUsage::MipMapTarget); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
     // Transfer the texture using the graphics queue (since we want to be able to generate mip maps, which is done on the graphics queue in Vulkan and a compute-capable queue in D3D12).
-    auto commandBuffer = device.defaultQueue(QueueType::Graphics).createCommandBuffer(true);
+    auto commandBuffer = device.defaultQueue(QueueType::Graphics).createCommandBuffer();
     UniquePtr<TBarrier> barrier = device.buildBarrier()
         .waitFor(PipelineStage::None)
         .toContinueWith(PipelineStage::Transfer)
@@ -162,7 +162,7 @@ UInt64 initBuffers(SampleApp& app, TDevice& device, const SharedPtr<IInputAssemb
     using sampler_type = TDevice::sampler_type;
 
     // Get a command buffer
-    auto commandBuffer = device.defaultQueue(QueueType::Transfer).createCommandBuffer(true);
+    auto commandBuffer = device.defaultQueue(QueueType::Transfer).createCommandBuffer();
 
     // Create the vertex buffer and transfer the staging buffer into it.
     auto vertexBuffer = device.factory().createVertexBuffer("Vertex Buffer", inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
@@ -326,7 +326,7 @@ void SampleApp::onResize(const void* /*sender*/, const ResizeEventArgs& e)
 
     // Also update the camera.
     auto& cameraBuffer = m_device->state().buffer("Camera");
-    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
+    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer();
     this->updateCamera(*commandBuffer, cameraBuffer);
     m_transferFence = commandBuffer->submit();
 }
