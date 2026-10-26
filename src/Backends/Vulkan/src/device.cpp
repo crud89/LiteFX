@@ -56,6 +56,7 @@ private:
         UInt32 active() const noexcept { return static_cast<UInt32>(m_queues.size()); }
         UInt32 id() const noexcept { return m_id; }
         const Array<SharedPtr<VulkanQueue>>& queues() const noexcept { return m_queues; }
+        const Array<Float>& priorities() const noexcept { return m_queuePriorities; }
         std::mutex& mutex(UInt32 queueId) { return m_queueMutexes.at(queueId); }
 
     public:
@@ -98,7 +99,7 @@ private:
             auto left = std::ranges::lower_bound(m_queuePriorities, static_cast<Float>(priority) / 100.0f, std::greater<float>{});
             auto right = std::ranges::upper_bound(m_queuePriorities, static_cast<Float>(priority) / 100.0f, std::greater<float>{});
 
-            if (left == std::end(m_queuePriorities)) [[unlikely]]
+            if (left == right) [[unlikely]]
             {
                 QueuePriority nextPriority{ QueuePriority::Normal };
 
@@ -311,17 +312,13 @@ public:
         // which case it should not matter, that we created them in the first place. On NVidia it seems that all queues from one family are virtualized into a single queue
         // anyway, which is similar to D3D12. On AMD it appears that there is only one queue per family in the first place. Regarding queue priority, we assign the highest 
         // priority to the first queue in each family (as they are used for default queues).
-        auto maxQueueCount = std::ranges::max(m_families | std::views::transform([](auto& family) { return family.total(); }));
-        Array<Float> priorities(maxQueueCount);
-        std::ranges::generate(priorities, [i = 0]() mutable { return static_cast<Float>(i++ == 0 ? QueuePriority::High : QueuePriority::Normal) / 100.0f; });
-
         auto const queueCreateInfos = m_families |
-            std::views::transform([&priorities](auto& family) {
-                return VkDeviceQueueCreateInfo{
+            std::views::transform([](const auto& family) {
+                return VkDeviceQueueCreateInfo {
                     .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
                     .queueFamilyIndex = family.id(),
                     .queueCount = family.total(),
-                    .pQueuePriorities = priorities.data()
+                    .pQueuePriorities = family.priorities().data()
                 };
             }) | std::ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
@@ -754,7 +751,10 @@ void VulkanDevice::setDebugName([[maybe_unused]] VkObjectType type, [[maybe_unus
 
 std::mutex& VulkanDevice::queueMutex(UInt32 queueFamily, UInt32 queueId) const
 {
-    return m_impl->m_families.at(queueFamily).mutex(queueId);
+    if (auto family = std::ranges::find_if(m_impl->m_families, [queueFamily](const auto& family) { return family.id() == queueFamily; }); family != m_impl->m_families.end()) [[likely]]
+        return family->mutex(queueId);
+    else
+        throw ArgumentOutOfRangeException("queueFamily", "The device does not contain a queue family with the index {0}.", queueFamily);
 }
 
 Enumerable<UInt32> VulkanDevice::queueFamilyIndices(QueueType type) const
