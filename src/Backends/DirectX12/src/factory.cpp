@@ -301,6 +301,7 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 
 		// Ignore moves on the heaps that aren't Resource, as the GPU can't perform those or the CPU-side manages them through the application anyway, we gain
 		// little by supporting this scenario. Also ignore render targets.
+		// NOLINTBEGIN(bugprone-branch-clone)
 		if (deviceMemory->heap() != ResourceHeap::Resource)
 		{
 			pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -313,6 +314,7 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 			pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			continue;
 		}
+		// NOLINTEND(bugprone-branch-clone)
 
 		// Keep the resource (and with it the source allocation) alive until the pass has ended, even if the app releases it in between.
 		if (auto buffer = dynamic_cast<DirectX12Buffer*>(deviceMemory); buffer != nullptr)
