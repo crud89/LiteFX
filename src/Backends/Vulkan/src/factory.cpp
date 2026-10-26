@@ -452,6 +452,7 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 
 		// Ignore moves on the heaps that aren't Resource, as the GPU can't perform those or the CPU-side manages them through the application anyway, we gain
 		// little by supporting this scenario. Also ignore render targets.
+		// NOLINTBEGIN(bugprone-branch-clone)
 		if (deviceMemory->heap() != ResourceHeap::Resource)
 		{
 			pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -464,6 +465,7 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 			pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			continue;
 		}
+		// NOLINTEND(bugprone-branch-clone)
 
 		if (auto buffer = dynamic_cast<VulkanBuffer*>(deviceMemory); buffer != nullptr)
 			m_impl->m_defragmentationPassResources.emplace_back(buffer->shared_from_this());
