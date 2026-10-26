@@ -22,4 +22,13 @@ to come back to, while the [tutorials](../tutorials/index.md) teach the engine s
 
     [:octicons-arrow-right-24: Read the guide](synchronization/index.md)
 
+-   :material-link-variant:{ .lg .middle } __Descriptor bindings__
+
+    ---
+
+    Which resources can be bound to which descriptors, how buffer elements are aligned, and how to bind arrays, texel buffers and writable
+    images.
+
+    [:octicons-arrow-right-24: Read the guide](descriptor-bindings.md)
+
 </div>

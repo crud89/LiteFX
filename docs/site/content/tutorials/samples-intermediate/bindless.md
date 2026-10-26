@@ -54,8 +54,21 @@ The buffer holds all instances, and a single descriptor set covers the whole arr
 auto& instanceBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::InstanceData);
 auto instanceBuffer = m_device->factory().createBuffer("Instance Buffer", instanceBindingLayout, 0, ResourceHeap::Resource, sizeof(InstanceBuffer), NUM_INSTANCES);
 auto instanceBinding = instanceBindingLayout.allocate(NUM_INSTANCES, { { 0, *instanceBuffer } });
-commandBuffer->transfer(static_cast<const void*>(&instanceData), sizeof(instanceData), *instanceBuffer, 0, NUM_INSTANCES);
 ```
+
+The elements of the buffer are aligned to the GPU's requirements for structured buffers, so they are not necessarily packed as tightly as
+the C++ array. The instances are therefore uploaded element by element, as in the [uniform
+arrays](../samples-beginner/uniform-arrays.md) sample, which places each one at its aligned offset:
+
+```cpp
+auto instances = instanceData
+    | std::views::transform([](const InstanceBuffer& instance) { return static_cast<const void*>(&instance); })
+    | std::ranges::to<Array<const void*>>();
+commandBuffer->transfer(instances, sizeof(InstanceBuffer), *instanceBuffer, 0);
+```
+
+Copying the whole array at once would only work as long as the element size happens to match the alignment, which differs between
+backends and devices (see [buffer layout](../../guides/descriptor-bindings.md#buffer-layout)).
 
 The array occupies a contiguous range of the global descriptor heap, so its size is only limited by the heap's capacity. The set is allocated
 once and bound to every command buffer, because the instance buffer never changes. If it did, the sample would either need one set per frame

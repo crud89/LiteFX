@@ -116,6 +116,7 @@ nav:
           - Barriers: guides/synchronization/barriers.md
           - Render Passes and Frames: guides/synchronization/render-passes-and-frames.md
           - Patterns and Pitfalls: guides/synchronization/patterns.md
+      - Descriptor Bindings: guides/descriptor-bindings.md
   - Tutorials:
       - tutorials/index.md
       - Your First Triangle:

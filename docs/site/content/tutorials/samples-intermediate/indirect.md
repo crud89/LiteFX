@@ -23,6 +23,18 @@ auto indirectCounterBuffer = m_device->factory().createBuffer("Indirect Counter"
 `IndirectIndexedBatch` is the engine's structure for the arguments of an indexed draw call: index count, instance count, the first index, the
 vertex offset and the first instance. Both buffers exist once per frame in flight, since each frame culls on its own.
 
+Each element of the commands buffer holds all draw commands of one frame, while the culling shader accesses it as a structured buffer of
+individual commands. The descriptor therefore needs to know the size of a single structure within the element, which is passed as `stride`
+when binding:
+
+```cpp
+{ .resource = *indirectCommandsBuffer, .firstElement = 0, .elements = 1, .stride = sizeof(IndirectIndexedBatch) }
+```
+
+Without a stride, the whole element would be treated as one structure. The objects buffer is bound the same way, with
+`.stride = sizeof(ObjectBuffer)`, as it also holds an array that the shader indexes. See [structured
+buffers](../../guides/descriptor-bindings.md#structured-buffers) for the rules a stride has to follow.
+
 Indirect drawing is an optional device feature:
 
 ```cpp
