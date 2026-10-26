@@ -475,7 +475,9 @@ bool DirectX12Device::supportsStorageImageFormat(Format format) const
 	if (FAILED(this->handle()->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &support, sizeof(support))))
 		return false;
 
-	if (!LITEFX_FLAG_IS_SET(support.Support1, D3D12_FORMAT_SUPPORT1_TYPED_UNORDERED_ACCESS_VIEW) || !LITEFX_FLAG_IS_SET(support.Support2, D3D12_FORMAT_SUPPORT2_UAV_TYPED_STORE))
+	if (!LITEFX_FLAG_IS_SET(support.Support1, D3D12_FORMAT_SUPPORT1_TYPED_UNORDERED_ACCESS_VIEW) || 
+		!LITEFX_FLAG_IS_SET(support.Support2, D3D12_FORMAT_SUPPORT2_UAV_TYPED_STORE) || 
+		!LITEFX_FLAG_IS_SET(support.Support2, D3D12_FORMAT_SUPPORT2_UAV_TYPED_LOAD))
 		return false;
 
 	return true;
