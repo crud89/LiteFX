@@ -78,7 +78,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create a geometry render pass.
     SharedPtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
-        .renderTarget("Color Target", RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f }) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        .renderTarget("Color Target", RenderTargetType::Color, Format::R8G8B8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f }) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
     // Map all render targets to the frame buffer.
@@ -233,7 +233,8 @@ void SampleApp::onInit()
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.
-        m_device = std::addressof(backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3, false));
+        // NOTE: We use RGBA instead of BGRA here, since this sample writes to the present target through a RWTexture and BGRA is not a required writable format for Vulkan.
+        m_device = std::addressof(backend->createDevice("Default", *adapter, std::move(surface), Format::R8G8B8A8_UNORM, m_viewport->getRectangle().extent(), 3, false));
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);

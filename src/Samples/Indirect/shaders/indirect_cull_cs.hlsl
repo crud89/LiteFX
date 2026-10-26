@@ -37,7 +37,7 @@ ConstantBuffer<Camera>                      camera       : register(b0, space0);
 StructuredBuffer<Object>                    objects      : register(t0, space1);
 
 // NOTE: Traditionally one would use an AppendStructuredBuffer here, however binding to the counter resource is somewhat convoluted and requires separate bindings
-//       in Vulkan anyway. Using and RWByteAddressBuffer and explicitly calling `InterlockedAdd` is the more portable solution and should not result in performance
+//       in Vulkan anyway. Using a RWByteAddressBuffer and explicitly calling `InterlockedAdd` is the more portable solution and should not result in performance
 //       degradation on modern GPUs.
 RWByteAddressBuffer                         drawCounter  : register(u0, space2);
 RWStructuredBuffer<IndirectDrawCommand>     drawCommands : register(u1, space2);

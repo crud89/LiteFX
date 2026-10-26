@@ -266,7 +266,14 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto& materialBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::Materials));
     auto materialBuffer = m_device->factory().createBuffer("Material Buffer", materialBindingsLayout, 0, ResourceHeap::Dynamic, sizeof(MaterialData), NUM_INSTANCES);
     auto materialBindings = materialBindingsLayout.allocate(NUM_INSTANCES, { { .resource = *materialBuffer } });
-    materialBuffer->map(static_cast<const void*>(&materials[0]), sizeof(MaterialData) * NUM_INSTANCES);
+
+    // Upload the material data. On D3D12, the UAV buffer alignment rules require a 16 byte alignment, which matches with the `MaterialData` layout, so mapping could be expressed using a simple copy:
+    // materialBuffer->map(static_cast<const void*>(&materials[0]), sizeof(MaterialData) * NUM_INSTANCES);
+    // However, in Vulkan this alignment is not guaranteed, so instead we map each element individually here to keep the code portable.
+    auto materialPointers = materials 
+        | std::views::transform([](const auto& material) { return static_cast<const void*>(&material); }) 
+        | std::ranges::to<Array<const void*>>();
+    materialBuffer->map(materialPointers, sizeof(MaterialData));
 
     // End and submit the command buffer and wait for it to finish.
     auto fence = commandBuffer->submit();

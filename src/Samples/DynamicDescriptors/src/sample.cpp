@@ -178,7 +178,12 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // We store the base index of the first instance buffer here and supply it later as a base offset for the draw call. This way, we do not need to pass the resource 
     // index by other means (e.g., a push constant or buffer).
     m_instanceBaseIndex = m_instanceDescriptors->globalIndex();
-    commandBuffer->transfer(static_cast<const void*>(&instanceData), sizeof(instanceData), *instanceBuffer, 0, NUM_INSTANCES);
+    
+    // Upload the instances element-wise, so that each instance is placed at the buffer's aligned element offset.
+    auto instances = instanceData
+        | std::views::transform([](const InstanceBuffer& instance) { return static_cast<const void*>(&instance); })
+        | std::ranges::to<Array<const void*>>();
+    commandBuffer->transfer(instances, sizeof(InstanceBuffer), *instanceBuffer, 0);
 
     // End and submit the command buffer.
     m_transferFence = commandBuffer->submit();
