@@ -418,6 +418,8 @@
       
         
       
+        
+      
     
     
     
@@ -1179,6 +1181,8 @@
       
         
           
+        
+      
         
       
         
@@ -3058,6 +3062,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -4746,6 +4754,72 @@
       
         
       
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../IBindable/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IBindable
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
         
       
         
@@ -4822,6 +4896,8 @@
       
         
           
+        
+      
         
       
         
@@ -5948,6 +6024,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -6112,6 +6192,8 @@
       
         
           
+        
+      
         
       
         
@@ -7794,6 +7876,8 @@
       
         
       
+        
+      
     
     
     
@@ -7807,7 +7891,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2_6_97" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2_6_98" checked>
         
           
           <div class="md-nav__link md-nav__container">
@@ -7829,14 +7913,14 @@
             </a>
             
               
-              <label class="md-nav__link md-nav__link--active" for="__nav_4_2_6_97" id="__nav_4_2_6_97_label" tabindex="0">
+              <label class="md-nav__link md-nav__link--active" for="__nav_4_2_6_98" id="__nav_4_2_6_98_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_4_2_6_97_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4_2_6_97">
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_4_2_6_98_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_2_6_98">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -8277,6 +8361,34 @@
   
 
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="validateBinding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    validateBinding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -15702,9 +15814,10 @@
 <h1 id="litefxrenderingisampler"><code>LiteFX::Rendering::ISampler</code><a class="headerlink" href="#litefxrenderingisampler" title="Permanent link">&para;</a></h1>
 <p>Describes a texture sampler.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/61f6e7b7f6b1ed1ee3c157c5eaa4b804f791b457/src/Rendering/include/litefx/rendering_api.hpp#L4182">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/8549d981b653b973bca4ed88e346c5693fd627da/src/Rendering/include/litefx/rendering_api.hpp#L4312">litefx/rendering_api.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="nc">ISampler</span><span class="w">
 </span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../IStateResource/"><span class="n">IStateResource</span></a><span class="w">
+</span><span class="w">    </span><span class="p">,</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><a href="../IBindable/"><span class="n">IBindable</span></a><span class="w">
 </span><span class="w">    </span><span class="p">,</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><a href="../../SharedObject/"><span class="n">SharedObject</span></a></code></pre></div>
 
 <h2 id="base-classes">Base Classes<a class="headerlink" href="#base-classes" title="Permanent link">&para;</a></h2>
@@ -15712,6 +15825,7 @@
 <thead><tr><th>Name</th><th>Description</th></tr></thead>
 <tbody>
 <tr><td><code><a href="../IStateResource/">IStateResource</a></code></td><td>The interface for a state resource.</td></tr>
+<tr><td><code><a href="../IBindable/">IBindable</a></code></td><td>An interface for a resource that can be bound to a descriptor.</td></tr>
 <tr><td><code><a href="../../SharedObject/">SharedObject</a></code></td><td>Base class for an object that can be shared.</td></tr>
 </tbody>
 </table></div>
@@ -15741,6 +15855,7 @@
 <tr><td><a href="getMipMapMode/"><code>getMipMapMode</code></a>  <span class="small">[virtual]</span></td><td>Gets the mip-map selection mode.</td></tr>
 <tr><td><a href="../IStateResource/name/"><code>name</code></a>  <span class="small">[virtual]</span></td><td>Returns the name of the resource.</td></tr>
 <tr><td><a href="../../SharedObject/shared_from_this-0d/"><code>shared_from_this</code></a> </td><td>Returns a shared pointer to the current object instance.</td></tr>
+<tr><td><a href="validateBinding/"><code>validateBinding</code></a>  <span class="small">[virtual]</span></td><td>Validates if the resource can be bound to a descriptor of <code>type.</code> This method is expected to throw, if validation fails.</td></tr>
 <tr><td><a href="../../SharedObject/weak_from_this-05/"><code>weak_from_this</code></a> </td><td>Returns a weak pointer to the current object instance.</td></tr>
 </tbody>
 </table></div>

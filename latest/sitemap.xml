@@ -6389,11 +6389,11 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorRange/update-02/</loc>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorRange/update-03/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorRange/update-06/</loc>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorRange/update-08/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -6481,27 +6481,23 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorSet/update-01/</loc>
-         <lastmod>2026-10-26</lastmod>
-    </url>
-    <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorSet/update-02/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorSet/update-04/</loc>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorSet/update-040/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorSet/update-0651/</loc>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorSet/update-042/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorSet/update-065e/</loc>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorSet/update-065/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorSet/update-07/</loc>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorSet/update-06f/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -6509,7 +6505,11 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorSet/update-0f/</loc>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorSet/update-0f3/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12DescriptorSet/update-0f5/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -7138,6 +7138,14 @@
     </url>
     <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12Device/state/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12Device/supportsStorageImageFormat/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/DirectX12Device/supportsTexelBufferFormat/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -11397,15 +11405,15 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorRange/update-0385/</loc>
-         <lastmod>2026-10-26</lastmod>
-    </url>
-    <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorRange/update-0a/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorRange/update-0d/</loc>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorRange/update-0d6/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorRange/update-0db/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -11481,6 +11489,10 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorSet/update-00/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorSet/update-02/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
@@ -11489,19 +11501,15 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorSet/update-06/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorSet/update-08/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorSet/update-0b/</loc>
-         <lastmod>2026-10-26</lastmod>
-    </url>
-    <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorSet/update-0d3/</loc>
-         <lastmod>2026-10-26</lastmod>
-    </url>
-    <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorSet/update-0de/</loc>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorSet/update-0d/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -11513,7 +11521,7 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorSet/update-0f/</loc>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorSet/update-0ea/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -12158,6 +12166,14 @@
     </url>
     <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDevice/state/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDevice/supportsStorageImageFormat/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDevice/supportsTexelBufferFormat/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -15393,6 +15409,14 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/DescriptorBinding/stride/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/DescriptorBinding/texelFormat/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/DescriptorBindingPoint/Register/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
@@ -15457,7 +15481,7 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/DescriptorSet-09/update-007/</loc>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/DescriptorSet-09/update-05/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -15465,15 +15489,15 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/DescriptorSet-09/update-0a7/</loc>
-         <lastmod>2026-10-26</lastmod>
-    </url>
-    <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/DescriptorSet-09/update-0aa/</loc>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/DescriptorSet-09/update-0a/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/DescriptorSet-09/update-0b/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/DescriptorSet-09/update-0c/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -16609,6 +16633,34 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBindable/2constructor-00/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBindable/2constructor-01/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBindable/2constructor-05/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBindable/2destructor/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBindable/operator_assign-02/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBindable/operator_assign-0b/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBindable/validateBinding/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBottomLevelAccelerationStructure/2constructor-05/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
@@ -16762,6 +16814,14 @@
     </url>
     <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBuffer/type/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBuffer/validateBinding-0c1/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBuffer/validateBinding-0cb/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -17413,7 +17473,7 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IDescriptorRange/update-0f/</loc>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IDescriptorRange/update-0d/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -17449,10 +17509,6 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IDescriptorSet/update-02/</loc>
-         <lastmod>2026-10-26</lastmod>
-    </url>
-    <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IDescriptorSet/update-0b/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
@@ -17462,6 +17518,10 @@
     </url>
     <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IDescriptorSet/update-0c6/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IDescriptorSet/update-0e/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -18085,6 +18145,14 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IGraphicsDevice/supportsStorageImageFormat/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IGraphicsDevice/supportsTexelBufferFormat/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IGraphicsDevice/surface/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
@@ -18398,6 +18466,14 @@
     </url>
     <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IImage/subresourceId/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IImage/validateBinding-05/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IImage/validateBinding-08/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -19174,6 +19250,10 @@
     </url>
     <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/ISampler/operator_assign-0f/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/ISampler/validateBinding/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -21973,6 +22053,10 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
+         <loc>https://litefx.crudolph.io/latest/guides/descriptor-bindings/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
          <loc>https://litefx.crudolph.io/latest/guides/getting-started/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
@@ -23242,6 +23326,10 @@
     </url>
     <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBarrier/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBindable/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -24921,7 +25009,7 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorRange/update-038d/</loc>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/Backends/VulkanDescriptorRange/update-03/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -25637,7 +25725,7 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
-         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/DescriptorSet-09/update-00c/</loc>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/DescriptorSet-09/update-00/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -25817,6 +25905,14 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBindable/2constructor-02/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBindable/operator_assign-01/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBottomLevelAccelerationStructure/2constructor-08/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
@@ -25866,6 +25962,10 @@
     </url>
     <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBuffer/operator_assign-0a/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IBuffer/validateBinding-0a/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
@@ -26234,6 +26334,10 @@
     </url>
     <url>
          <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IImage/size-0c/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://litefx.crudolph.io/latest/api/LiteFX/Rendering/IImage/validateBinding-0c/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>

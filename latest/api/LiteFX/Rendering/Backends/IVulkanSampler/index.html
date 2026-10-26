@@ -418,6 +418,8 @@
       
         
       
+        
+      
     
     
     
@@ -1179,6 +1181,8 @@
       
         
           
+        
+      
         
       
         
@@ -3487,6 +3491,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -9066,6 +9074,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -12964,6 +12976,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -14652,6 +14668,72 @@
       
         
       
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../IBindable/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IBindable
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
         
       
         
@@ -14728,6 +14810,8 @@
       
         
           
+        
+      
         
       
         
@@ -15854,6 +15938,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -16018,6 +16106,8 @@
       
         
           
+        
+      
         
       
         
@@ -17670,6 +17760,8 @@
       
         
           
+        
+      
         
       
         
@@ -25173,7 +25265,7 @@
 <h1 id="litefxrenderingbackendsivulkansampler"><code>LiteFX::Rendering::Backends::IVulkanSampler</code><a class="headerlink" href="#litefxrenderingbackendsivulkansampler" title="Permanent link">&para;</a></h1>
 <p>Represents a Vulkan sampler.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/61f6e7b7f6b1ed1ee3c157c5eaa4b804f791b457/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L246">litefx/backends/vulkan.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/8549d981b653b973bca4ed88e346c5693fd627da/src/Backends/Vulkan/include/litefx/backends/vulkan.hpp#L246">litefx/backends/vulkan.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="nc">IVulkanSampler</span><span class="w">
 </span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../ISampler/"><span class="n">ISampler</span></a><span class="w">
 </span><span class="w">    </span><span class="p">,</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../../IResource-0af/"><span class="n">IResource</span><span class="o">&lt;</span><span class="n">VkSampler</span><span class="o">&gt;</span></a></code></pre></div>
@@ -25214,6 +25306,7 @@
 <tr><td><a href="handle-02/"><code>handle</code></a>  <span class="small">[virtual]</span></td><td>Returns the resource managed by the class.</td></tr>
 <tr><td><a href="../../IStateResource/name/"><code>name</code></a>  <span class="small">[virtual]</span></td><td>Returns the name of the resource.</td></tr>
 <tr><td><a href="../../../SharedObject/shared_from_this-0d/"><code>shared_from_this</code></a> </td><td>Returns a shared pointer to the current object instance.</td></tr>
+<tr><td><a href="../../ISampler/validateBinding/"><code>validateBinding</code></a>  <span class="small">[virtual]</span></td><td>Validates if the resource can be bound to a descriptor of <code>type.</code> This method is expected to throw, if validation fails.</td></tr>
 <tr><td><a href="../../../SharedObject/weak_from_this-05/"><code>weak_from_this</code></a> </td><td>Returns a weak pointer to the current object instance.</td></tr>
 </tbody>
 </table></div>

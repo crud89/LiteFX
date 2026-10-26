@@ -418,6 +418,8 @@
       
         
       
+        
+      
     
     
     
@@ -1179,6 +1181,8 @@
       
         
           
+        
+      
         
       
         
@@ -3487,6 +3491,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -8908,6 +8916,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -12806,6 +12818,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -14494,6 +14510,72 @@
       
         
       
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../IBindable/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IBindable
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
         
       
         
@@ -14570,6 +14652,8 @@
       
         
           
+        
+      
         
       
         
@@ -15696,6 +15780,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -15860,6 +15948,8 @@
       
         
           
+        
+      
         
       
         
@@ -17512,6 +17602,8 @@
       
         
           
+        
+      
         
       
         
@@ -25015,7 +25107,7 @@
 <h1 id="litefxrenderingbackendsdirectx12image"><code>LiteFX::Rendering::Backends::DirectX12Image</code><a class="headerlink" href="#litefxrenderingbackendsdirectx12image" title="Permanent link">&para;</a></h1>
 <p>Implements a DirectX12 <a href="../../IImage/"><code>IImage</code></a>.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/61f6e7b7f6b1ed1ee3c157c5eaa4b804f791b457/src/Backends/DirectX12/src/image.h#L14">image.h</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/8549d981b653b973bca4ed88e346c5693fd627da/src/Backends/DirectX12/src/image.h#L14">image.h</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DirectX12Image</span><span class="w">
 </span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../IDirectX12Image/"><span class="n">IDirectX12Image</span></a><span class="w">
 </span><span class="w">    </span><span class="p">,</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><a href="../ComResource/"><span class="n">ComResource</span><span class="o">&lt;</span><span class="n">ID3D12Resource</span><span class="o">&gt;</span></a><span class="w">
@@ -25075,6 +25167,8 @@
 <tr><td><a href="../../IImage/size-0e/"><code>size</code></a>  <span class="small">[virtual]</span></td><td>Returns the size (in bytes) of an image at a specified mip map level. If the image does not contain the provided mip map level, the method returns <code>0</code>.</td></tr>
 <tr><td><a href="../../IImage/subresourceId/"><code>subresourceId</code></a>  <span class="small">[virtual]</span></td><td>Returns the sub-resource ID for a combination of mip-map <code>level,</code> array <code>layer</code> and <code>plane.</code></td></tr>
 <tr><td><a href="../../IDeviceMemory/usage/"><code>usage</code></a>  <span class="small">[virtual]</span></td><td>Returns the usage flags for the resource.</td></tr>
+<tr><td><a href="../../IImage/validateBinding-05/"><code>validateBinding</code></a>  <span class="small">[virtual]</span></td><td>Validates if the resource can be bound to a descriptor of <code>type.</code> This method is expected to throw, if validation fails.</td></tr>
+<tr><td><a href="../../IImage/validateBinding-08/"><code>validateBinding</code></a> </td><td>Validates if the resource can be bound to a descriptor of <code>type.</code> This method is expected to throw, if validation fails.</td></tr>
 <tr><td><a href="../../IDeviceMemory/virtualAddress/"><code>virtualAddress</code></a>  <span class="small">[virtual]</span></td><td>Gets the address of the resource in GPU memory.</td></tr>
 <tr><td><a href="../../IDeviceMemory/volatileMove/"><code>volatileMove</code></a>  <span class="small">[virtual]</span></td><td>Returns <code>true</code>, if the contents of the resource should not be copied during a move.</td></tr>
 <tr><td><a href="../../../SharedObject/weak_from_this-0b/"><code>weak_from_this</code></a> </td><td></td></tr>
@@ -25114,12 +25208,14 @@
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
 <thead><tr><th>Name</th><th>Description</th></tr></thead>
 <tbody>
+<tr><td><a href="../../IBindable/operator_assign-0b/"><code>operator=</code></a>  <span class="small">[deleted]</span></td><td>Copy assignment operator</td></tr>
 <tr><td><a href="../../IDeviceMemory/operator_assign-0d/"><code>operator=</code></a> </td><td>Copy assignment operator</td></tr>
 <tr><td><a href="../IDirectX12Image/operator_assign-00/"><code>operator=</code></a>  <span class="small">[deleted]</span></td><td>Copy assignment operator</td></tr>
 <tr><td><a href="../../IImage/operator_assign-0b/"><code>operator=</code></a>  <span class="small">[deleted]</span></td><td>Copy assignment operator</td></tr>
 <tr><td><a href="../../IStateResource/operator_assign-02/"><code>operator=</code></a>  <span class="small">[deleted]</span></td><td>Copy assignment operator</td></tr>
 <tr><td><a href="../../../SharedObject/operator_assign-06/"><code>operator=</code></a> </td><td>Copy assignment operator</td></tr>
 <tr><td><a href="../../StateResource/operator_assign-0d/"><code>operator=</code></a>  <span class="small">[deleted]</span></td><td>Copy assignment operator</td></tr>
+<tr><td><a href="../../IBindable/operator_assign-02/"><code>operator=</code></a> </td><td>Move assignment operator</td></tr>
 <tr><td><a href="../../IDeviceMemory/operator_assign-00/"><code>operator=</code></a> </td><td>Move assignment operator</td></tr>
 <tr><td><a href="../IDirectX12Image/operator_assign-05/"><code>operator=</code></a> </td><td>Move assignment operator</td></tr>
 <tr><td><a href="../../IImage/operator_assign-0f/"><code>operator=</code></a> </td><td>Move assignment operator</td></tr>
