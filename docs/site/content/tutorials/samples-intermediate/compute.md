@@ -16,7 +16,7 @@ longer a present target, and its image is allocated explicitly:
 
 ```cpp
 SharedPtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
-    .renderTarget("Color Target", RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
+    .renderTarget("Color Target", RenderTargetType::Color, Format::R8G8B8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
     .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
 std::ranges::for_each(frameBuffers, [&renderPass](auto& frameBuffer) {
@@ -26,6 +26,16 @@ std::ranges::for_each(frameBuffers, [&renderPass](auto& frameBuffer) {
 ```
 
 Because no pass writes a present target anymore, the sample presents the frame itself at the end.
+
+The color target uses `R8G8B8A8_UNORM` instead of the `B8G8R8A8_UNORM` of the other samples. The compute shader accesses it as a
+`RWTexture2D`, and binding it to such a descriptor requires a format that supports storage reads and writes. Vulkan does not guarantee this
+for BGRA formats, so binding would fail on some devices (see [storage images](../../guides/descriptor-bindings.md#images)). Since the result
+is later copied into the swap chain image, and copies between images require matching formats, the swap chain uses the same format:
+
+```cpp
+m_device = std::addressof(backend->createDevice("Default", *adapter, std::move(surface), Format::R8G8B8A8_UNORM,
+    m_viewport->getRectangle().extent(), 3, false));
+```
 
 ## The compute pipeline
 

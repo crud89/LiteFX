@@ -119,7 +119,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create a geometry render pass.
     SharedPtr<RenderPass> renderPass = device->buildRenderPass("Deferred")
-        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f }) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        .renderTarget("Color Target", RenderTargetType::Present, Format::R8G8B8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f }) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
     // Map all render targets to the frame buffer.
@@ -258,7 +258,14 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto& materialBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::Materials));
     auto materialBuffer = m_device->factory().createBuffer("Material Buffer", materialBindingsLayout, 0, ResourceHeap::Dynamic, sizeof(MaterialData), NUM_INSTANCES);
     auto materialBindings = materialBindingsLayout.allocate(NUM_INSTANCES, { { .resource = *materialBuffer } });
-    materialBuffer->map(static_cast<const void*>(&materials[0]), sizeof(MaterialData) * NUM_INSTANCES);
+
+    // Upload the material data. On D3D12, the UAV buffer alignment rules require a 16 byte alignment, which matches with the `MaterialData` layout, so mapping could be expressed using a simple copy:
+    // materialBuffer->map(static_cast<const void*>(&materials[0]), sizeof(MaterialData) * NUM_INSTANCES);
+    // However, in Vulkan this alignment is not guaranteed, so instead we map each element individually here to keep the code portable.
+    auto materialPointers = materials
+        | std::views::transform([](const auto& material) { return static_cast<const void*>(&material); })
+        | std::ranges::to<Array<const void*>>();
+    materialBuffer->map(materialPointers, sizeof(MaterialData));
 
     // End and submit the command buffer and wait for it to finish.
     auto fence = commandBuffer->submit();
@@ -396,7 +403,8 @@ void SampleApp::onInit()
         m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
         // Create the device.
-        m_device = std::addressof(backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, Size2d(width, height), 3, false, GraphicsDeviceFeatures { .RayQueries = true }));
+        // NOTE: We use RGBA instead of BGRA here, since this sample writes to the present target through a RWTexture and BGRA is not a required writable format for Vulkan.
+        m_device = std::addressof(backend->createDevice("Default", *adapter, std::move(surface), Format::R8G8B8A8_UNORM, Size2d(width, height), 3, false, GraphicsDeviceFeatures { .RayQueries = true }));
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);

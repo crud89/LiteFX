@@ -50,7 +50,7 @@ public:
 
 		// Secondary command buffers always require an inheritance info. Those continuing a render pass also inherit its rendering state.
 		VkCommandBufferInheritanceInfo inheritanceInfo{ .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO };
-		VkCommandBufferInheritanceRenderingInfo renderingInfo{ .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDERING_INFO };
+		VkCommandBufferInheritanceRenderingInfo renderingInfo{ .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDERING_INFO, .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT };
 		Array<VkFormat> colorFormats{};
 
 		if (m_secondary)

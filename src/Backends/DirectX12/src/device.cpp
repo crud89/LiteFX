@@ -445,6 +445,44 @@ const DirectX12GraphicsFactory& DirectX12Device::factory() const noexcept
 	return *m_impl->m_factory;
 }
 
+bool DirectX12Device::supportsTexelBufferFormat(Format format, bool writable) const
+{
+	D3D12_FEATURE_DATA_FORMAT_SUPPORT support{ .Format = DX12::getFormat(format) };
+
+	if (FAILED(this->handle()->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &support, sizeof(support))))
+		return false;
+
+	if (!LITEFX_FLAG_IS_SET(support.Support1, D3D12_FORMAT_SUPPORT1_BUFFER))
+		return false;
+
+	if (!writable)
+		return true;
+
+	if (!LITEFX_FLAG_IS_SET(support.Support1, D3D12_FORMAT_SUPPORT1_TYPED_UNORDERED_ACCESS_VIEW) || !LITEFX_FLAG_IS_SET(support.Support2, D3D12_FORMAT_SUPPORT2_UAV_TYPED_STORE))
+		return false;
+
+	// Typed loads are only guaranteed for R32_FLOAT, R32_UINT and R32_SINT. Write-only access works without them, so we only warn here.
+	if (!LITEFX_FLAG_IS_SET(support.Support2, D3D12_FORMAT_SUPPORT2_UAV_TYPED_LOAD))
+		LITEFX_WARNING(DIRECTX12_LOG, "The format {0} does not support typed UAV loads. Reading from a RWBuffer with this format results in undefined values.", format);
+
+	return true;
+}
+
+bool DirectX12Device::supportsStorageImageFormat(Format format) const
+{
+	D3D12_FEATURE_DATA_FORMAT_SUPPORT support{ .Format = DX12::getFormat(format) };
+
+	if (FAILED(this->handle()->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &support, sizeof(support))))
+		return false;
+
+	if (!LITEFX_FLAG_IS_SET(support.Support1, D3D12_FORMAT_SUPPORT1_TYPED_UNORDERED_ACCESS_VIEW) || 
+		!LITEFX_FLAG_IS_SET(support.Support2, D3D12_FORMAT_SUPPORT2_UAV_TYPED_STORE) || 
+		!LITEFX_FLAG_IS_SET(support.Support2, D3D12_FORMAT_SUPPORT2_UAV_TYPED_LOAD))
+		return false;
+
+	return true;
+}
+
 const DirectX12Queue& DirectX12Device::defaultQueue(QueueType type) const
 {
 	// If the type contains the graphics flag, always return the graphics queue.

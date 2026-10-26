@@ -123,8 +123,8 @@ namespace LiteFX::Rendering {
         ~DescriptorSet() noexcept override = default;
 
     public:
-        /// @copydoc IDescriptorSet::update(UInt32, const IBuffer&, UInt32, UInt32, UInt32, Format)
-        virtual void update(UInt32 binding, const buffer_type& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None) const = 0;
+        /// @copydoc IDescriptorSet::update(UInt32, const IBuffer&, UInt32, UInt32, UInt32, Format, UInt32)
+        virtual void update(UInt32 binding, const buffer_type& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None, UInt32 stride = 0) const = 0;
 
         /// @copydoc IDescriptorSet::update(UInt32, const IImage&, UInt32, UInt32, UInt32, UInt32, UInt32)
         virtual void update(UInt32 binding, const image_type& texture, UInt32 descriptor = 0, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const = 0;
@@ -136,8 +136,8 @@ namespace LiteFX::Rendering {
         virtual void update(UInt32 binding, const acceleration_structure_type& accelerationStructure, UInt32 descriptor = 0) const = 0;
 
     private:
-        void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat) const override {
-            this->update(binding, dynamic_cast<const buffer_type&>(buffer), bufferElement, elements, firstDescriptor, texelFormat);
+        void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat, UInt32 stride) const override {
+            this->update(binding, dynamic_cast<const buffer_type&>(buffer), bufferElement, elements, firstDescriptor, texelFormat, stride);
         }
 
         void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const override {
@@ -283,7 +283,7 @@ namespace LiteFX::Rendering {
                 std::visit(type_switch {
                     [](const std::monostate&) {}, // Default: don't bind anything.
                     [&](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
-                    [&](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
+                    [&](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor, binding.texelFormat, binding.stride); },
                     [&](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
                     [&](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
                 }, binding.resource);

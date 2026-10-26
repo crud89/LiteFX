@@ -209,18 +209,20 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
         { { .resource = *cameraBuffer, .firstElement = 2, .elements = 1 } }
     }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 
-    // Next, we create the objects buffer.
+    // Next, we create the objects buffer. Notice that we set the stride for the object buffer bindings here! We do this, because the buffer contains an array 
+    // (which is accessed through a StructuredBuffer), but only binds to a single descriptor. Offsetting into the array is done in the shader, where an index 
+    // is multiplied with the structure's stride to obtain the correct offset.
     auto& objectsCullBindingLayout = cullPipeline.layout()->descriptorSet(DescriptorSets::Constant);
     auto& objectsGeometryBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
     auto objectsStagingBuffer = m_device->factory().createBuffer(objectsGeometryBindingLayout, 0, ResourceHeap::Staging, sizeof(ObjectBuffer) * NUM_INSTANCES, 1);
     auto objectsBuffer = m_device->factory().createBuffer("Objects Buffer", objectsGeometryBindingLayout, 0, ResourceHeap::Resource, sizeof(ObjectBuffer) * NUM_INSTANCES, 1);
-    auto objectsCullBinding = objectsCullBindingLayout.allocate({ { .resource = *objectsBuffer } });
-    auto objectsGeometryBinding = objectsGeometryBindingLayout.allocate({ { .resource = *objectsBuffer } });
+    auto objectsCullBinding = objectsCullBindingLayout.allocate({ { .resource = *objectsBuffer, .stride = sizeof(ObjectBuffer) } });
+    auto objectsGeometryBinding = objectsGeometryBindingLayout.allocate({ { .resource = *objectsBuffer, .stride = sizeof(ObjectBuffer) } });
 
     objectsStagingBuffer->map(objects, sizeof(ObjectBuffer) * NUM_INSTANCES); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
     commandBuffer->transfer(std::move(objectsStagingBuffer), *objectsBuffer);
 
-    // Create a buffer for recording the indirect draw calls.
+    // Create a buffer for recording the indirect draw calls. 
     // 
     // NOTE: Reflection cannot determine, that the buffer records indirect commands, so we need to explicitly state the usage.
     // NOTE: We allocate a fourth element in the counter variable, which will always be zeroed out and acts as a copy source for resetting the counter.
@@ -228,9 +230,9 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto indirectCounterBuffer = m_device->factory().createBuffer("Indirect Counter", BufferType::Indirect, ResourceHeap::Resource, sizeof(UInt32), 4, ResourceUsage::Default | ResourceUsage::AllowWrite);
     auto indirectCommandsBuffer = m_device->factory().createBuffer("Indirect Commands", BufferType::Indirect, ResourceHeap::Resource, sizeof(IndirectIndexedBatch) * NUM_INSTANCES, 3, ResourceUsage::AllowWrite);
     auto indirectBindings = indirectBindingLayout.allocate(3, {
-        { { .resource = *indirectCounterBuffer, .firstElement = 0, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 0, .elements = 1 } },
-        { { .resource = *indirectCounterBuffer, .firstElement = 1, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 1, .elements = 1 } },
-        { { .resource = *indirectCounterBuffer, .firstElement = 2, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 2, .elements = 1 } }
+        { { .resource = *indirectCounterBuffer, .firstElement = 0, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 0, .elements = 1, .stride = sizeof(IndirectIndexedBatch) } },
+        { { .resource = *indirectCounterBuffer, .firstElement = 1, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 1, .elements = 1, .stride = sizeof(IndirectIndexedBatch) } },
+        { { .resource = *indirectCounterBuffer, .firstElement = 2, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 2, .elements = 1, .stride = sizeof(IndirectIndexedBatch) } }
     }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 
     // End and submit the command buffer.

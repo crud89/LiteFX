@@ -53,18 +53,25 @@ public:
         return { heap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(slot), increment };
     }
 
-    UInt32 updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 firstDescriptor, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat)
+    UInt32 updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 firstDescriptor, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat, UInt32 stride)
     {
         auto binding = descriptorLayout.binding();
         auto elementCount = bufferElements(buffer, bufferElement, elements);
 
         if (firstDescriptor + elementCount > parent.capacity(binding)) [[unlikely]]
             throw InvalidArgumentException("firstDescriptor", "The descriptor array only has {0} elements, however there are {1} elements starting at descriptor {2} specified.", parent.capacity(binding), elementCount, firstDescriptor);
+        
+        // The reflected element size of a structured buffer is the shader's structure stride. A mismatch means that the shader reads the buffer with a different layout.
+        stride = stride > 0 ? stride : static_cast<UInt32>(buffer.elementSize());
+
+        if ((bindingType == DescriptorType::StructuredBuffer || bindingType == DescriptorType::RWStructuredBuffer) && 
+            descriptorLayout.elementSize() > 0 && descriptorLayout.elementSize() != stride) [[unlikely]]
+            throw InvalidArgumentException("structureStride", "The shader expects a structure stride of {0} bytes at binding {1}, but the buffer is bound with a stride of {2} bytes.", descriptorLayout.elementSize(), descriptorLayout.binding(), stride);
 
         auto device = m_layout->device();
         auto offset = m_layout->getDescriptorOffset(binding, firstDescriptor);
 
-        writeBufferDescriptors(*device, bindingType, buffer, bufferElement, elementCount, texelFormat, this->localHandle(DescriptorHeapType::Resource, offset));
+        writeBufferDescriptors(*device, bindingType, buffer, bufferElement, elementCount, texelFormat, stride, this->localHandle(DescriptorHeapType::Resource, offset));
         device->updateGlobalDescriptors(parent, binding, firstDescriptor, elementCount);
 
         return static_cast<UInt32>(m_resourceHeap.Allocation.Allocation.Offset) + offset;
@@ -88,6 +95,7 @@ public:
 
     UInt32 updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, UInt32 descriptor, const IDirectX12Sampler& sampler)
     {
+        sampler.validateBinding(descriptorLayout.descriptorType());
         auto binding = descriptorLayout.binding();
 
         if (descriptor >= parent.capacity(binding)) [[unlikely]]
@@ -154,7 +162,7 @@ DescriptorHeapAllocation DirectX12DescriptorSet::globalHeapAllocation(Descriptor
     return m_impl->globalHeapAllocation(heapType);
 }
 
-void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat) const
+void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat, UInt32 stride) const
 {
     // Find the descriptor.
     auto descriptors = m_impl->m_layout->descriptors();
@@ -167,7 +175,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
     }
 
     // Update the binding.
-    m_impl->updateBinding(*this, (*match), match->descriptorType(), firstDescriptor, buffer, bufferElement, elements, texelFormat);
+    m_impl->updateBinding(*this, (*match), match->descriptorType(), firstDescriptor, buffer, bufferElement, elements, texelFormat, stride);
 }
 
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const

@@ -178,7 +178,12 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // Since we are using an unstructured storage buffer, we need to specify the element size manually.
     auto instanceBuffer = m_device->factory().createBuffer("Instance Buffer", instanceBindingLayout, 0, ResourceHeap::Resource, sizeof(InstanceBuffer), NUM_INSTANCES);
     auto instanceBinding = instanceBindingLayout.allocate(NUM_INSTANCES, { { 0, *instanceBuffer } });
-    commandBuffer->transfer(static_cast<const void*>(&instanceData), sizeof(instanceData), *instanceBuffer, 0, NUM_INSTANCES);
+
+    // Upload the instances element-wise, so that each instance is placed at the buffer's aligned element offset.
+    auto instances = instanceData
+        | std::views::transform([](const InstanceBuffer& instance) { return static_cast<const void*>(&instance); })
+        | std::ranges::to<Array<const void*>>();
+    commandBuffer->transfer(instances, sizeof(InstanceBuffer), *instanceBuffer, 0);
 
     // End and submit the command buffer.
     m_transferFence = commandBuffer->submit();
