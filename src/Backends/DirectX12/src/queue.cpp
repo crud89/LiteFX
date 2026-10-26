@@ -400,24 +400,8 @@ UInt64 DirectX12Queue::submit(Enumerable<SharedPtr<const DirectX12CommandBuffer>
 
 void DirectX12Queue::waitFor(UInt64 fence) const
 {
-	auto device = m_impl->m_device.lock();
-
-	if (device == nullptr) [[unlikely]]
-		throw RuntimeException("Cannot wait for fence on a released device instance.");
-
-	auto completedValue = m_impl->m_fence->GetCompletedValue();
-
-	if (completedValue < fence)
-	{
-		HANDLE eventHandle = ::CreateEvent(nullptr, false, false, nullptr);
-		HRESULT hr = m_impl->m_fence->SetEventOnCompletion(fence, eventHandle);
-
-		if (SUCCEEDED(hr))
-			::WaitForSingleObject(eventHandle, INFINITE);
-
-		::CloseHandle(eventHandle);
-		raiseIfFailed(hr, "Unable to register fence completion event.");
-	}
+	if (m_impl->m_fence->GetCompletedValue() < fence)
+		raiseIfFailed(m_impl->m_fence->SetEventOnCompletion(fence, nullptr), "Unable to register fence completion event.");
 
 	// Synchronize command buffer release.
 	std::lock_guard<std::mutex> lock{ m_impl->m_mutex };
