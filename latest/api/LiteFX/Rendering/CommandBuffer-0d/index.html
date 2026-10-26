@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1517,6 +1517,8 @@
       
         
       
+        
+      
     
     
     
@@ -1582,6 +1584,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -6511,6 +6517,72 @@
       
         
           
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../ICommandAllocatorHandle/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ICommandAllocatorHandle
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
         
       
         
@@ -16736,7 +16808,7 @@
 <h1 id="litefxrenderingcommandbuffer"><code>LiteFX::Rendering::CommandBuffer</code><a class="headerlink" href="#litefxrenderingcommandbuffer" title="Permanent link">&para;</a></h1>
 <p>Represents a command buffer, that buffers commands that should be submitted to a <a href="../CommandQueue-0b/"><code>CommandQueue</code></a>.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/7ed63e973434d90f8dc00be6570e20a7348ec00c/src/Rendering/include/litefx/rendering.hpp#L601">litefx/rendering.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/61f6e7b7f6b1ed1ee3c157c5eaa4b804f791b457/src/Rendering/include/litefx/rendering.hpp#L601">litefx/rendering.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="w">
 </span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TCommandBuffer</span><span class="p">,</span><span class="w">
 </span><span class="w">    </span><span class="k">typename</span><span class="w"> </span><span class="nc">TBuffer</span><span class="p">,</span><span class="w">
@@ -16760,6 +16832,14 @@
 <thead><tr><th>Name</th><th>Description</th></tr></thead>
 <tbody>
 <tr><td><code><a href="../ICommandBuffer/">ICommandBuffer</a></code></td><td>The interface for a command buffer.</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="types">Types<a class="headerlink" href="#types" title="Permanent link">&para;</a></h2>
+<div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
+<thead><tr><th>Name</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><a href="../ICommandBuffer/TrackedResources-04/"><code>TrackedResources</code></a> </td><td>Stores the resources that are tracked by the command buffer until they can be safely released.</td></tr>
 </tbody>
 </table></div>
 
@@ -16790,7 +16870,6 @@
 <tbody>
 <tr><td><a href="2destructor/"><code>~CommandBuffer</code></a> <span class="small">[destructor]</span> <span class="small">[virtual]</span></td><td>Destructor</td></tr>
 <tr><td><a href="barrier-08/"><code>barrier</code></a> </td><td>Executes the transitions that have been added to <code>barrier.</code></td></tr>
-<tr><td><a href="../ICommandBuffer/begin/"><code>begin</code></a>  <span class="small">[virtual]</span></td><td>Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <a href="../CommandQueue-0b/"><code>CommandQueue</code></a>.</td></tr>
 <tr><td><a href="bind-06/"><code>bind</code></a> </td><td><code>bind</code> overloads</td></tr>
 <tr><td><a href="buildAccelerationStructure-06/"><code>buildAccelerationStructure</code></a> </td><td><code>buildAccelerationStructure</code> overloads</td></tr>
 <tr><td><a href="copyAccelerationStructure-079/"><code>copyAccelerationStructure</code></a> </td><td>Copies the acceleration structure <code>from</code> into the acceleration structure <code>to.</code></td></tr>
@@ -16802,12 +16881,12 @@
 <tr><td><a href="drawIndexed-05/"><code>drawIndexed</code></a> </td><td><code>drawIndexed</code> overloads</td></tr>
 <tr><td><a href="drawIndexedIndirect-05/"><code>drawIndexedIndirect</code></a> </td><td>Executes a set of indirect indexed draw calls.</td></tr>
 <tr><td><a href="drawIndirect-05/"><code>drawIndirect</code></a> </td><td>Executes a set of indirect non-indexed draw calls.</td></tr>
-<tr><td><a href="../ICommandBuffer/end/"><code>end</code></a>  <span class="small">[virtual]</span></td><td>Ends recording commands on the command buffer.</td></tr>
 <tr><td><a href="execute-04/"><code>execute</code></a> </td><td><code>execute</code> overloads</td></tr>
-<tr><td><a href="../ICommandBuffer/isSecondary/"><code>isSecondary</code></a>  <span class="small">[virtual]</span></td><td>Returns <code>true</code>, if the command buffer is a secondary command buffer, or <code>false</code> otherwise.</td></tr>
 <tr><td><a href="makeBarrier/"><code>makeBarrier</code></a>  <span class="small">[virtual]</span></td><td>Creates a new barrier instance.</td></tr>
 <tr><td><a href="pushConstants-09/"><code>pushConstants</code></a> </td><td>Pushes a block of memory into the push constants backing memory.</td></tr>
 <tr><td><a href="../ICommandBuffer/queue/"><code>queue</code></a> </td><td>Gets a pointer to the command queue that this command buffer was allocated from or <code>nullptr</code>, if the queue has already been released.</td></tr>
+<tr><td><a href="../ICommandBuffer/recording/"><code>recording</code></a>  <span class="small">[virtual]</span></td><td>Returns <code>true</code>, if the command buffer is currently recording and <code>false</code> otherwise.</td></tr>
+<tr><td><a href="../ICommandBuffer/secondary/"><code>secondary</code></a>  <span class="small">[virtual]</span></td><td>Returns <code>true</code>, if the command buffer is a secondary command buffer, or <code>false</code> otherwise.</td></tr>
 <tr><td><a href="../ICommandBuffer/setBlendFactors/"><code>setBlendFactors</code></a>  <span class="small">[virtual]</span></td><td>Sets the blend factors for the subsequent draw calls.</td></tr>
 <tr><td><a href="../ICommandBuffer/setDepthBounds/"><code>setDepthBounds</code></a>  <span class="small">[virtual]</span></td><td>Sets the depth range for the depth bounds test.</td></tr>
 <tr><td><a href="../ICommandBuffer/setScissors-0c/"><code>setScissors</code></a> </td><td><code>setScissors</code> overloads</td></tr>
@@ -16816,7 +16895,8 @@
 <tr><td><a href="../../SharedObject/shared_from_this-0d/"><code>shared_from_this</code></a> </td><td>Returns a shared pointer to the current object instance.</td></tr>
 <tr><td><a href="../ICommandBuffer/submit/"><code>submit</code></a>  <span class="small">[virtual]</span></td><td>Submits the command buffer to parent command</td></tr>
 <tr><td><a href="traceRays-0f/"><code>traceRays</code></a> </td><td>Executes a query on a ray-tracing pipeline.</td></tr>
-<tr><td><a href="../ICommandBuffer/track-04/"><code>track</code></a> </td><td><code>track</code> overloads</td></tr>
+<tr><td><a href="../ICommandBuffer/track-049/"><code>track</code></a> </td><td><code>track</code> overloads</td></tr>
+<tr><td><a href="../ICommandBuffer/trackedResources-0a/"><code>trackedResources</code></a>  <span class="small">[virtual]</span></td><td>Returns the resources that are currently tracked by the command buffer.</td></tr>
 <tr><td><a href="transfer-0d/"><code>transfer</code></a> </td><td><code>transfer</code> overloads</td></tr>
 <tr><td><a href="updateAccelerationStructure-0c/"><code>updateAccelerationStructure</code></a> </td><td><code>updateAccelerationStructure</code> overloads</td></tr>
 <tr><td><a href="use-01/"><code>use</code></a> </td><td>Sets the active pipeline state.</td></tr>
@@ -17035,10 +17115,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.path", "navigation.prune", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow", "toc.integrate"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.path", "navigation.prune", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow", "toc.integrate"], "search": "../../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../../../assets/javascripts/bundle.c21346df.min.js"></script>
       
     
   </body>

@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -831,6 +831,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Drawing the passes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#one-transform-per-draw-call" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One transform per draw call
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1347,6 +1364,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Drawing the passes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#one-transform-per-draw-call" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One transform per draw call
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1498,26 +1532,56 @@ one. The third pass reuses that depth buffer to test its geometry against, but m
 </code></pre></div>
 <p>The screen-filling quad of the second pass needs no depth test and no culling at all, so its pipeline uses <code>CullMode::Disabled</code>.</p>
 <h2 id="drawing-the-passes">Drawing the passes<a class="headerlink" href="#drawing-the-passes" title="Permanent link">&para;</a></h2>
-<p>Each pass is begun and ended in turn. Because the passes write into the same frame buffer, the engine knows their dependencies and inserts
-the necessary barriers (see <a href="../../../guides/synchronization/render-passes-and-frames/">render passes and frames</a> in the synchronization guide):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">firstPass</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">frameBuffer</span><span class="p">);</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1">// ... draw the geometry as in the basic rendering sample ...</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">firstPass</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">secondPass</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">frameBuffer</span><span class="p">);</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="k">auto</span><span class="w"> </span><span class="n">commandBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">secondPass</span><span class="p">.</span><span class="n">commandBuffer</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">use</span><span class="p">(</span><span class="n">secondPipeline</span><span class="p">);</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">setViewports</span><span class="p">(</span><span class="n">m_viewport</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">setScissors</span><span class="p">(</span><span class="n">m_scissor</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">bind</span><span class="p">(</span><span class="n">viewPlaneVertexBuffer</span><span class="p">);</span>
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">bind</span><span class="p">(</span><span class="n">viewPlaneIndexBuffer</span><span class="p">);</span>
-<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">drawIndexed</span><span class="p">(</span><span class="n">viewPlaneIndexBuffer</span><span class="p">.</span><span class="n">elements</span><span class="p">());</span>
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="n">secondPass</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
-<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>
-<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="n">thirdPass</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">frameBuffer</span><span class="p">);</span>
-<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="c1">// ... draw the geometry again ...</span>
-<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="n">thirdPass</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
+<p>Each pass could submit on its own when it ends, as in the basic rendering sample. Instead, the sample records all three into one command
+buffer and submits that once. This saves two submissions per frame, and lets the GPU overlap work of consecutive passes where no barrier
+orders it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">graphicsQueue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">defaultQueue</span><span class="p">(</span><span class="n">QueueType</span><span class="o">::</span><span class="n">Graphics</span><span class="p">);</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">graphicsQueue</span><span class="p">.</span><span class="n">waitFor</span><span class="p">(</span><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">defaultQueue</span><span class="p">(</span><span class="n">QueueType</span><span class="o">::</span><span class="n">Transfer</span><span class="p">),</span><span class="w"> </span><span class="n">m_transferFence</span><span class="p">);</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">auto</span><span class="w"> </span><span class="n">commandBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">graphicsQueue</span><span class="p">.</span><span class="n">createCommandBuffer</span><span class="p">();</span>
 </code></pre></div>
+<p>Each pass is then begun on that command buffer. The draw calls go into the pass's own secondary command buffer, which the pass executes in
+the shared one when it ends:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">firstPass</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">frameBuffer</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">commandBuffer</span><span class="p">);</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">auto</span><span class="w"> </span><span class="n">secondary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">firstPass</span><span class="p">.</span><span class="n">commandBuffer</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1">// ... draw the geometry as in the basic rendering sample ...</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">firstPass</span><span class="p">.</span><span class="n">end</span><span class="p">();</span><span class="w">   </span><span class="c1">// Does not submit, as the command buffer is ours.</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="n">secondPass</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">frameBuffer</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">commandBuffer</span><span class="p">);</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="n">secondary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">secondPass</span><span class="p">.</span><span class="n">commandBuffer</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="n">secondary</span><span class="o">-&gt;</span><span class="n">use</span><span class="p">(</span><span class="n">secondPipeline</span><span class="p">);</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="n">secondary</span><span class="o">-&gt;</span><span class="n">setViewports</span><span class="p">(</span><span class="n">m_viewport</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="n">secondary</span><span class="o">-&gt;</span><span class="n">setScissors</span><span class="p">(</span><span class="n">m_scissor</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="n">secondary</span><span class="o">-&gt;</span><span class="n">bind</span><span class="p">(</span><span class="n">viewPlaneVertexBuffer</span><span class="p">);</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="n">secondary</span><span class="o">-&gt;</span><span class="n">bind</span><span class="p">(</span><span class="n">viewPlaneIndexBuffer</span><span class="p">);</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="n">secondary</span><span class="o">-&gt;</span><span class="n">drawIndexed</span><span class="p">(</span><span class="n">viewPlaneIndexBuffer</span><span class="p">.</span><span class="n">elements</span><span class="p">());</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="n">secondPass</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="n">thirdPass</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">frameBuffer</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">commandBuffer</span><span class="p">);</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="c1">// ... draw the geometry again ...</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="n">thirdPass</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
+</code></pre></div>
+<p>Because the passes write into the same frame buffer, the engine knows their dependencies and inserts the necessary barriers, also when they
+share a command buffer. Pipeline and binding state does not carry over from one pass to the next, so each pass binds its pipeline and
+buffers again.</p>
+<p>Since no pass submits, none presents either, although the third pass writes into the present target. The sample submits the command buffer
+and presents the frame itself:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">auto</span><span class="w"> </span><span class="n">fence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">graphicsQueue</span><span class="p">.</span><span class="n">submit</span><span class="p">(</span><span class="n">commandBuffer</span><span class="p">);</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">swapChain</span><span class="p">().</span><span class="n">present</span><span class="p">(</span><span class="n">fence</span><span class="p">);</span>
+</code></pre></div>
+<p>The guide covers this in detail under <a href="../../../guides/synchronization/render-passes-and-frames/#sharing-a-command-buffer-between-render-passes">sharing a command buffer between render
+passes</a>.</p>
+<h3 id="one-transform-per-draw-call">One transform per draw call<a class="headerlink" href="#one-transform-per-draw-call" title="Permanent link">&para;</a></h3>
+<p>The first and the third pass both draw the geometry, each with its own transform. The transform is written by the CPU with <code>map</code>, which
+happens immediately, while the draw calls read it only when the GPU executes them. If both passes used the same element, both draw calls
+would see whichever transform the CPU wrote last.</p>
+<p>The sample therefore allocates two elements per frame in flight, and one descriptor set for each:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">auto</span><span class="w"> </span><span class="n">transformBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">factory</span><span class="p">().</span><span class="n">createBuffer</span><span class="p">(</span><span class="s">"Transform"</span><span class="p">,</span><span class="w"> </span><span class="n">transformBindingLayout</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceHeap</span><span class="o">::</span><span class="n">Dynamic</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">);</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">auto</span><span class="w"> </span><span class="n">transformBindings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">views</span><span class="o">::</span><span class="n">iota</span><span class="p">(</span><span class="mi">0u</span><span class="p">,</span><span class="w"> </span><span class="mi">6u</span><span class="p">)</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="o">|</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">views</span><span class="o">::</span><span class="n">transform</span><span class="p">([</span><span class="o">&amp;</span><span class="p">](</span><span class="n">UInt32</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">transformBindingLayout</span><span class="p">.</span><span class="n">allocate</span><span class="p">({</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">.</span><span class="n">binding</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">resource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="n">transformBuffer</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">firstElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">elements</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">});</span><span class="w"> </span><span class="p">})</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="o">|</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">ranges</span><span class="o">::</span><span class="n">to</span><span class="o">&lt;</span><span class="n">Array</span><span class="o">&lt;</span><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">IDescriptorSet</span><span class="o">&gt;&gt;&gt;</span><span class="p">();</span>
+</code></pre></div>
+<p>The first pass uses the element <code>backBuffer * 2</code>, the third pass the element <code>backBuffer * 2 + 1</code>. The same applies to any per-frame data
+that several draw calls of one submission write: each needs its own copy.</p>
 <p>The quad is drawn from its own vertex and index buffers, built from four vertices with texture coordinates that cover the whole screen.</p>
 <div class="admonition tip">
 <p class="admonition-title">Transient images</p>
@@ -1652,10 +1716,10 @@ lifetimes do not overlap can share the same memory.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.path", "navigation.prune", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.path", "navigation.prune", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.c21346df.min.js"></script>
       
     
   </body>

@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -722,10 +722,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#reusing-command-buffers" class="md-nav__link">
+  <a href="#one-command-buffer-per-submission" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reusing command buffers
+        One command buffer per submission
       
     </span>
   </a>
@@ -1105,10 +1105,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#reusing-command-buffers" class="md-nav__link">
+  <a href="#one-command-buffer-per-submission" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reusing command buffers
+        One command buffer per submission
       
     </span>
   </a>
@@ -1283,7 +1283,7 @@
 and only reach the GPU when the command buffer is submitted.</p>
 <h2 id="recording-and-submitting">Recording and submitting<a class="headerlink" href="#recording-and-submitting" title="Permanent link">&para;</a></h2>
 <p>Command buffers are created by the queue they are submitted to:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">auto</span><span class="w"> </span><span class="n">commandBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">computeQueue</span><span class="p">.</span><span class="n">createCommandBuffer</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span><span class="w">   </span><span class="c1">// `true` begins recording right away.</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">auto</span><span class="w"> </span><span class="n">commandBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">computeQueue</span><span class="p">.</span><span class="n">createCommandBuffer</span><span class="p">();</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">use</span><span class="p">(</span><span class="n">pipeline</span><span class="p">);</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">bind</span><span class="p">(</span><span class="o">*</span><span class="n">bindings</span><span class="p">);</span>
@@ -1291,40 +1291,45 @@ and only reach the GPU when the command buffer is submitted.</p>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">UInt64</span><span class="w"> </span><span class="n">fence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">submit</span><span class="p">();</span>
 </code></pre></div>
-<p>A command buffer goes through these states:</p>
+<p>A command buffer is a one-time object, which goes through these states:</p>
 <ol>
-<li><strong>Initial.</strong> Created with <code>createCommandBuffer(false)</code>. Call <code>begin</code> to start recording.</li>
-<li><strong>Recording.</strong> Commands can be added. <code>createCommandBuffer(true)</code> returns a command buffer in this state.</li>
-<li><strong>Executable.</strong> <code>end</code> closes the command buffer. You rarely call it yourself, because submitting a recording command buffer closes it
-   implicitly.</li>
-<li><strong>Pending.</strong> After <code>submit</code>, the queue owns the command buffer until the GPU has executed it, that is, until the queue has passed the
-   returned fence.</li>
+<li><strong>Recording.</strong> A new command buffer is ready to receive commands right away. <code>ICommandBuffer::recording</code> returns <code>true</code> in this state.</li>
+<li><strong>Pending.</strong> <code>submit</code> ends the recording and hands the command buffer to the queue, which owns it until the GPU has executed it, that is,
+   until the queue has passed the returned fence.</li>
+<li><strong>Released.</strong> Once the command buffer has been executed and no one holds a reference to it anymore, it is released.</li>
 </ol>
+<p>There is no way back into the recording state. After a command buffer has been submitted, recording further commands into it throws an
+exception, and so does submitting it a second time.</p>
 <p>Inside a submission, i.e. within one command buffer and across the command buffers passed to the same <code>submit</code> call, commands <em>start</em> in
 the order they were recorded. They do not necessarily <em>finish</em> in that order, and later commands may run in parallel with earlier ones.
 Whenever a command depends on the result of a previous one in the same submission, a <a href="../barriers/">barrier</a> has to order them, even if both
 are in the same command buffer.</p>
 <p>Between submissions, no barrier is needed: a queue only starts a submission once the previous one has <a href="../queues-and-fences/#submissions-run-one-after-another">finished</a>.
 Splitting work into several submissions is therefore a valid, if slower, alternative to a barrier.</p>
-<h2 id="reusing-command-buffers">Reusing command buffers<a class="headerlink" href="#reusing-command-buffers" title="Permanent link">&para;</a></h2>
-<p>There are two ways to deal with command buffers that you need repeatedly, for example in every frame:</p>
-<ul>
-<li><strong>Create a new one for each submission.</strong> This is the simplest approach. The queue keeps a reference to the submitted command buffer until
-  it has executed, so you can let go of your own reference right after submitting.</li>
-<li><strong>Record the same one again.</strong> Call <code>begin</code> on it once it is no longer pending, i.e. after the queue has passed the fence of its last
-  submission. Recording a pending command buffer is undefined behavior. With frames in flight, keep one command buffer per frame and check
-  the fence before you reuse it.</li>
-</ul>
+<h2 id="one-command-buffer-per-submission">One command buffer per submission<a class="headerlink" href="#one-command-buffer-per-submission" title="Permanent link">&para;</a></h2>
+<p>Since command buffers are used once, work that repeats, for example in every frame, creates a new command buffer for each submission. This is
+cheap: the engine recycles the memory of executed command buffers internally, so creating one rarely allocates anything.</p>
+<p>The queue keeps a reference to a submitted command buffer until it has been executed, so you can let go of your own reference right after
+submitting. There is also no need to keep one command buffer per frame in flight, or to check fences before recording.</p>
 <h2 id="secondary-command-buffers">Secondary command buffers<a class="headerlink" href="#secondary-command-buffers" title="Permanent link">&para;</a></h2>
-<p><code>createCommandBuffer(false, true)</code> creates a <em>secondary</em> command buffer, also called a <em>bundle</em>. It cannot be submitted to a queue. Instead, a
-primary command buffer executes it:</p>
+<p><code>createCommandBuffer(true)</code> creates a <em>secondary</em> command buffer, also called a <em>bundle</em>. It cannot be submitted to a queue. Instead, a primary
+command buffer executes it:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">primaryCommandBuffer</span><span class="o">-&gt;</span><span class="n">execute</span><span class="p">(</span><span class="n">secondaryCommandBuffer</span><span class="p">);</span>
 </code></pre></div>
+<p>Executing a secondary command buffer ends its recording. Unlike a primary command buffer, it can then be executed again, by the same or by
+other primary command buffers, which is what makes bundles useful for small workloads that recur often.</p>
 <p>Secondary command buffers do not introduce any synchronization of their own. Their commands behave exactly as if they were recorded into the
 primary command buffer at the point of the <code>execute</code> call.</p>
+<div class="admonition warning">
+<p class="admonition-title">Create secondary command buffers on graphics queues</p>
+<p>Vulkan allows secondary command buffers on any queue, but DirectX 12 only on graphics queues. For code that works with both backends,
+only create them from a <code>QueueType::Graphics</code> queue.</p>
+</div>
 <p>Render passes use secondary command buffers to let several threads record draw calls in parallel. <code>IRenderPass::commandBuffer(index)</code> returns
 them, and <code>IRenderPass::end</code> executes all of them in the order of their index. See the <a href="../../../tutorials/samples-beginner/multithreading/">multithreading
-sample</a> for an example.</p>
+sample</a> for an example, and <a href="../render-passes-and-frames/#sharing-a-command-buffer-between-render-passes">render passes and
+frames</a> for how a render pass can record into a command buffer
+of yours.</p>
 <h2 id="threads">Threads<a class="headerlink" href="#threads" title="Permanent link">&para;</a></h2>
 <p>A command buffer must only be recorded by one thread at a time. Different command buffers can be recorded on different threads in parallel,
 which is the main reason they exist. Submitting is thread-safe, as described on the <a href="../queues-and-fences/#thread-safety">previous page</a>.</p>
@@ -1341,16 +1346,17 @@ reads, the result is undefined. LiteFX helps you here: a command buffer can keep
 <ul>
 <li><strong><code>transfer</code> overloads that take a <code>SharedPtr</code></strong> to the source track it automatically.</li>
 <li><strong><code>transfer</code> overloads that take raw memory</strong> create a staging buffer internally and track it the same way.</li>
-<li><strong><code>track</code></strong> lets you hand over any buffer, image, sampler or descriptor set yourself, for example a descriptor set you allocated only for one
-  dispatch:</li>
+<li><strong><code>track</code></strong> lets you hand over any buffer, image, sampler, descriptor set or descriptor range yourself, for example a descriptor set you
+  allocated only for one dispatch:</li>
 </ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">bind</span><span class="p">(</span><span class="o">*</span><span class="n">bindings</span><span class="p">);</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">dispatch</span><span class="p">({</span><span class="w"> </span><span class="mi">16</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">});</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">track</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">bindings</span><span class="p">));</span>
 </code></pre></div>
-<p>The queue releases tracked resources once the command buffer has been executed. This happens lazily, the next time the CPU waits for a fence
-on that queue at or past the submission, or when the command buffer is recorded again. In applications that never wait on a queue, tracked
-resources therefore live longer than strictly necessary, but never shorter.</p>
+<p>The queue releases tracked resources once the command buffer has been executed. This happens lazily: the next time something is submitted to
+the same queue, or the CPU waits for a fence on it, the queue releases the resources of all submissions that have been executed by then.
+Tracked resources therefore live longer than strictly necessary, but never shorter. <code>ICommandBuffer::trackedResources</code> shows what a command
+buffer currently keeps alive, which can be useful when debugging resource lifetimes.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>Tracking only delays destruction. It does not order any work: if a later submission on another queue uses the same resource, it still has
@@ -1497,10 +1503,10 @@ of the submission that contains the transfer on the CPU, as shown in the <a href
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.path", "navigation.prune", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.path", "navigation.prune", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.c21346df.min.js"></script>
       
     
   </body>

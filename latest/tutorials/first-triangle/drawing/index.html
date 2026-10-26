@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1449,7 +1449,7 @@ the device.</p>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="c1">// Create a command buffer on the transfer queue.</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">transferQueue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">defaultQueue</span><span class="p">(</span><span class="n">QueueType</span><span class="o">::</span><span class="n">Transfer</span><span class="p">);</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">transferCommands</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">transferQueue</span><span class="p">.</span><span class="n">createCommandBuffer</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">transferCommands</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">transferQueue</span><span class="p">.</span><span class="n">createCommandBuffer</span><span class="p">();</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="c1">// Create the vertex buffer and copy the vertices into it.</span>
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">vertexBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">factory</span><span class="p">().</span><span class="n">createVertexBuffer</span><span class="p">(</span><span class="s">"Vertex Buffer"</span><span class="p">,</span><span class="w"> </span><span class="n">inputAssembler</span><span class="o">-&gt;</span><span class="n">vertexBufferLayout</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span><span class="w"> </span><span class="n">ResourceHeap</span><span class="o">::</span><span class="n">Resource</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">UInt32</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m_vertices</span><span class="p">.</span><span class="n">size</span><span class="p">()));</span>
@@ -1477,7 +1477,8 @@ the device.</p>
 <li><strong>The layouts</strong> of both buffers are defined by the input assembler, which you configured in the <a href="../pipeline/">previous part</a>. It is
    stored in the render pipeline, which you get from the device state by its name. The device state returns a general pipeline, so it is cast
    to a render pipeline first, which provides the input assembler.</li>
-<li><strong>The command buffer</strong> is created on the <em>transfer queue</em>, which is meant for copying data. The argument <code>true</code> starts recording right away.</li>
+<li><strong>The command buffer</strong> is created on the <em>transfer queue</em>, which is meant for copying data. It is ready to record commands right away, and
+   it can only be submitted once: work that is submitted later gets a new command buffer.</li>
 <li><strong>The buffers</strong> are created by the device's <em>factory</em>. <code>ResourceHeap::Resource</code> places them in GPU memory, where they can be accessed
    fastest while drawing.</li>
 <li><strong>The <code>transfer</code> commands</strong> copy the data from the application's memory into the buffers.</li>
@@ -1710,7 +1711,7 @@ if you reverse it, the triangle faces away from the viewer and is culled.</p>
 <a id="__codelineno-3-151" name="__codelineno-3-151" href="#__codelineno-3-151"></a>
 <a id="__codelineno-3-152" name="__codelineno-3-152" href="#__codelineno-3-152"></a><span class="w">    </span><span class="c1">// Create a command buffer on the transfer queue.</span>
 <a id="__codelineno-3-153" name="__codelineno-3-153" href="#__codelineno-3-153"></a><span class="w">    </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">transferQueue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">defaultQueue</span><span class="p">(</span><span class="n">QueueType</span><span class="o">::</span><span class="n">Transfer</span><span class="p">);</span>
-<a id="__codelineno-3-154" name="__codelineno-3-154" href="#__codelineno-3-154"></a><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">transferCommands</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">transferQueue</span><span class="p">.</span><span class="n">createCommandBuffer</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<a id="__codelineno-3-154" name="__codelineno-3-154" href="#__codelineno-3-154"></a><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">transferCommands</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">transferQueue</span><span class="p">.</span><span class="n">createCommandBuffer</span><span class="p">();</span>
 <a id="__codelineno-3-155" name="__codelineno-3-155" href="#__codelineno-3-155"></a>
 <a id="__codelineno-3-156" name="__codelineno-3-156" href="#__codelineno-3-156"></a><span class="w">    </span><span class="c1">// Create the vertex buffer and copy the vertices into it.</span>
 <a id="__codelineno-3-157" name="__codelineno-3-157" href="#__codelineno-3-157"></a><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">vertexBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">factory</span><span class="p">().</span><span class="n">createVertexBuffer</span><span class="p">(</span><span class="s">"Vertex Buffer"</span><span class="p">,</span><span class="w"> </span><span class="n">inputAssembler</span><span class="o">-&gt;</span><span class="n">vertexBufferLayout</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span><span class="w"> </span><span class="n">ResourceHeap</span><span class="o">::</span><span class="n">Resource</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">UInt32</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m_vertices</span><span class="p">.</span><span class="n">size</span><span class="p">()));</span>
@@ -1944,10 +1945,10 @@ pipelines. The <a href="https://github.com/crud89/LiteFX/tree/main/src/Samples/"
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.path", "navigation.prune", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.path", "navigation.prune", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.c21346df.min.js"></script>
       
     
   </body>

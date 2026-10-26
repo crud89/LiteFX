@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1360,7 +1360,7 @@ follows the <a href="../barriers/#the-default-state">default state</a>: images s
 <h2 id="uploading-buffers">Uploading buffers<a class="headerlink" href="#uploading-buffers" title="Permanent link">&para;</a></h2>
 <p>Upload long-lived buffers on the transfer queue, and let the first queue that uses them wait for the fence:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">transferQueue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">defaultQueue</span><span class="p">(</span><span class="n">QueueType</span><span class="o">::</span><span class="n">Transfer</span><span class="p">);</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">auto</span><span class="w"> </span><span class="n">commandBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">transferQueue</span><span class="p">.</span><span class="n">createCommandBuffer</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">auto</span><span class="w"> </span><span class="n">commandBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">transferQueue</span><span class="p">.</span><span class="n">createCommandBuffer</span><span class="p">();</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">transfer</span><span class="p">(</span><span class="n">vertices</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">vertices</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">Vertex</span><span class="p">),</span><span class="w"> </span><span class="o">*</span><span class="n">vertexBuffer</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">UInt32</span><span class="o">&gt;</span><span class="p">(</span><span class="n">vertices</span><span class="p">.</span><span class="n">size</span><span class="p">()));</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">m_transferFence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">submit</span><span class="p">();</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
@@ -1384,7 +1384,7 @@ on the CPU instead works as well, but blocks your application until the copy has
 <h2 id="textures-with-mip-maps">Textures with mip maps<a class="headerlink" href="#textures-with-mip-maps" title="Permanent link">&para;</a></h2>
 <p>The Vulkan backend generates mip maps with blits, which require a graphics queue, so the whole upload happens there:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">graphicsQueue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">defaultQueue</span><span class="p">(</span><span class="n">QueueType</span><span class="o">::</span><span class="n">Graphics</span><span class="p">);</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">auto</span><span class="w"> </span><span class="n">commandBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">graphicsQueue</span><span class="p">.</span><span class="n">createCommandBuffer</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">auto</span><span class="w"> </span><span class="n">commandBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">graphicsQueue</span><span class="p">.</span><span class="n">createCommandBuffer</span><span class="p">();</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">auto</span><span class="w"> </span><span class="n">barrier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">makeBarrier</span><span class="p">(</span><span class="n">PipelineStage</span><span class="o">::</span><span class="n">None</span><span class="p">,</span><span class="w"> </span><span class="n">PipelineStage</span><span class="o">::</span><span class="n">Transfer</span><span class="p">);</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">barrier</span><span class="o">-&gt;</span><span class="n">transition</span><span class="p">(</span><span class="o">*</span><span class="n">texture</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceAccess</span><span class="o">::</span><span class="n">None</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceAccess</span><span class="o">::</span><span class="n">TransferWrite</span><span class="p">,</span><span class="w"> </span><span class="n">ImageLayout</span><span class="o">::</span><span class="n">Undefined</span><span class="p">,</span><span class="w"> </span><span class="n">ImageLayout</span><span class="o">::</span><span class="n">Common</span><span class="p">);</span>
@@ -1499,6 +1499,9 @@ even when the shader only reads it. DirectX 12 reports this as an error, Vulkan 
 <p><strong>Waiting for a fence of the wrong queue.</strong> Fence values only mean something on their own queue. Store fences together with their queue.</p>
 <p><strong>Modifying a barrier after recording it.</strong> <code>commandBuffer-&gt;barrier(*barrier)</code> records the barrier's current transitions. Transitions added
 afterwards are only recorded the next time the barrier is executed.</p>
+<p><strong>Keeping a command buffer for the next frame.</strong> Command buffers are used once: after <code>submit</code>, recording into one or submitting it again
+throws. Create a new command buffer for each submission, which is cheap. See <a href="../command-buffers/#one-command-buffer-per-submission">one command buffer per
+submission</a>.</p>
 <p><strong>Combining a stage of <code>None</code> with an access other than <code>None</code>.</strong> If nothing is waited for, nothing can be made visible. Use a real stage, or
 <code>ResourceAccess::None</code>.</p>
 <p><strong>Using <code>PipelineStage::None</code> in the middle of a submission.</strong> <code>None</code> as before value is only correct if no earlier command <em>in the same
@@ -1662,10 +1665,10 @@ These tools help to find them early:</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.path", "navigation.prune", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.path", "navigation.prune", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.c21346df.min.js"></script>
       
     
   </body>

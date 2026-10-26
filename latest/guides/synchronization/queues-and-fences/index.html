@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1403,7 +1403,9 @@ the CPU; the wait happens on the GPU:</p>
 </code></pre></div>
 <p>The wait is attached to the next submission to this queue. As submissions on a queue run one after another, every later submission waits as
 well. So call it before you submit the work that depends on the other queue, and before <code>IRenderPass::end</code> at the latest if the dependent
-work is a render pass, which submits when it ends. Calling it before <code>begin</code> makes the intent clearer:</p>
+work is a render pass, which submits when it ends (unless it records into a <a href="../render-passes-and-frames/#sharing-a-command-buffer-between-render-passes">shared command
+buffer</a>, in which case the wait applies to the submission of that
+command buffer). Calling it before <code>begin</code> makes the intent clearer:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">renderPass</span><span class="p">.</span><span class="n">commandQueue</span><span class="p">().</span><span class="n">waitFor</span><span class="p">(</span><span class="n">transferQueue</span><span class="p">,</span><span class="w"> </span><span class="n">m_transferFence</span><span class="p">);</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">renderPass</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">frameBuffer</span><span class="p">);</span>
 </code></pre></div>
@@ -1413,8 +1415,11 @@ access</a>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Avoid waits that can never complete</p>
 <p>A queue that waits for a fence nobody submits blocks forever, and so does every queue that waits for it. Only wait for fences that have
-already been returned by a <code>submit</code> call, and never let two queues wait for each other.</p>
+already been returned by a <code>submit</code> call, and never let two queues wait for each other. <code>waitFor</code> logs a warning, if the fence is beyond
+the other queue's <code>currentFence</code>, i.e. if it belongs to a submission that has not happened yet.</p>
 </div>
+<p>A fence of <code>0</code> is always satisfied, so waiting for it does nothing. This is convenient for fences that are only set under some conditions,
+for example an upload that may not have happened yet: initialize them with <code>0</code>, and wait for them unconditionally.</p>
 <h2 id="queue-events-and-debug-regions">Queue events and debug regions<a class="headerlink" href="#queue-events-and-debug-regions" title="Permanent link">&para;</a></h2>
 <p>Every queue raises a <code>submitting</code> event before and a <code>submitted</code> event after a submission. The latter contains the fence, which makes it a
 convenient place to collect fences in systems that do not submit work themselves.</p>
@@ -1556,10 +1561,10 @@ order the calls yourself. Recording into command buffers is covered on the <a hr
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.path", "navigation.prune", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.path", "navigation.prune", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.c21346df.min.js"></script>
       
     
   </body>

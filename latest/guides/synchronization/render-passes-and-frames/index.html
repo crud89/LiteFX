@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -778,6 +778,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#sharing-a-command-buffer-between-render-passes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sharing a command buffer between render passes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#using-render-targets-outside-of-render-passes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1066,6 +1077,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#sharing-a-command-buffer-between-render-passes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sharing a command buffer between render passes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#using-render-targets-outside-of-render-passes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1205,12 +1227,15 @@
 that you never draw into an image that is still on screen. This page explains what they do, what they expect from you, and where their
 responsibility ends.</p>
 <h2 id="what-a-render-pass-does">What a render pass does<a class="headerlink" href="#what-a-render-pass-does" title="Permanent link">&para;</a></h2>
-<p><code>IRenderPass::begin</code> and <code>IRenderPass::end</code> record barriers into the render pass's own command buffers. Between the two calls, you only record
-draw calls.</p>
+<p><code>IRenderPass::begin</code> and <code>IRenderPass::end</code> record barriers into a primary command buffer. By default, the render pass creates that command
+buffer itself and submits it when it ends; alternatively, it can record into a command buffer of yours, as described
+<a href="#sharing-a-command-buffer-between-render-passes">below</a>. Between the two calls, you only record draw calls, into the secondary command
+buffers returned by <code>IRenderPass::commandBuffer</code>.</p>
 <p>When the render pass <strong>begins</strong>:</p>
 <ul>
 <li><strong>Render targets that are cleared</strong> are transitioned from <code>Undefined</code>, which discards their previous contents. They can be in any state
-  before.</li>
+  before. When the render pass records into a shared command buffer, they are transitioned from <code>Common</code> instead, so they must be in the
+  default state.</li>
 <li><strong>Render targets that are loaded</strong>, i.e. created without the clear flag, are transitioned from <code>Common</code>. Their contents are preserved.</li>
 <li><strong>Depth/stencil targets</strong> are handled per aspect: the depth aspect follows <code>clearBuffer</code>, the stencil aspect follows <code>clearStencil</code>. You
   can, for example, clear the stencil buffer while keeping the depth values of a previous pass.</li>
@@ -1221,43 +1246,81 @@ draw calls.</p>
 <li><strong>All render targets and input attachments are transitioned back to <code>Common</code>.</strong> Their writes are complete, but not yet visible to any
   later access; the barrier that starts the next use takes care of that.</li>
 <li><strong>The present target is copied to the swap chain</strong> or resolved into it, and presented, if the render pass has one.</li>
-<li><strong>The command buffers are submitted</strong> to <code>renderPass.commandQueue()</code>, and <code>end</code> returns the fence of the submission.</li>
+<li><strong>The command buffer is submitted</strong> to <code>renderPass.commandQueue()</code>, and <code>end</code> returns the fence of the submission. With a shared command
+  buffer, nothing is submitted, and <code>end</code> returns <code>0</code>.</li>
 </ul>
-<p>A render pass is a submission of its own, so everything submitted to its queue before has finished when it begins. As a result, render
-passes that use the same frame buffer on the same queue need no further synchronization. This is what the <a href="../../../tutorials/samples-beginner/render-passes/">render passes
-sample</a> relies on.</p>
+<p>By default, a render pass is a submission of its own, so everything submitted to its queue before has finished when it begins. As a result,
+render passes that use the same frame buffer on the same queue need no further synchronization.</p>
+<h2 id="sharing-a-command-buffer-between-render-passes">Sharing a command buffer between render passes<a class="headerlink" href="#sharing-a-command-buffer-between-render-passes" title="Permanent link">&para;</a></h2>
+<p>Instead of submitting each render pass separately, several render passes can record into one command buffer that you submit yourself. Pass
+it to <code>begin</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">graphicsQueue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">defaultQueue</span><span class="p">(</span><span class="n">QueueType</span><span class="o">::</span><span class="n">Graphics</span><span class="p">);</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">auto</span><span class="w"> </span><span class="n">commandBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">graphicsQueue</span><span class="p">.</span><span class="n">createCommandBuffer</span><span class="p">();</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">firstPass</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">frameBuffer</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">commandBuffer</span><span class="p">);</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">auto</span><span class="w"> </span><span class="n">secondary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">firstPass</span><span class="p">.</span><span class="n">commandBuffer</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1">// ... record draw calls into `secondary` ...</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">firstPass</span><span class="p">.</span><span class="n">end</span><span class="p">();</span><span class="w">                                    </span><span class="c1">// Does not submit, and returns `0`.</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">secondPass</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">frameBuffer</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">commandBuffer</span><span class="p">);</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1">// ...</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">secondPass</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="k">auto</span><span class="w"> </span><span class="n">fence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">graphicsQueue</span><span class="p">.</span><span class="n">submit</span><span class="p">(</span><span class="n">commandBuffer</span><span class="p">);</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">swapChain</span><span class="p">().</span><span class="n">present</span><span class="p">(</span><span class="n">fence</span><span class="p">);</span>
+</code></pre></div>
+<p>This saves a submission per render pass, and it lets the GPU overlap work of consecutive render passes that is not ordered by a barrier,
+which often improves GPU utilization. In exchange, a few things are your responsibility:</p>
+<ul>
+<li><strong>The command buffer must be a recording primary command buffer</strong> created from the render pass's queue (<code>renderPass.commandQueue()</code>).</li>
+<li><strong>Submit it yourself</strong>, after the last render pass has ended. <code>end</code> neither submits nor returns a fence.</li>
+<li><strong>Present explicitly.</strong> A render pass with a present target only presents on its own when it submits. With a shared command buffer, submit
+  it and call <code>ISwapChain::present</code> with the returned fence.</li>
+<li><strong>Pipeline and binding state is not preserved</strong> across render pass boundaries. Bind pipelines, descriptor sets and buffers again in each
+  render pass.</li>
+</ul>
+<p>Since the render passes now share a submission, their order is no longer guaranteed by the <a href="../queues-and-fences/#submissions-run-one-after-another">submission
+order</a>. The render passes take care of it themselves: in this mode, their barriers
+wait for all work recorded before them in the command buffer. Commands that you record into the command buffer between two render passes
+still need <a href="../barriers/">barriers</a> of their own, as described in the next section.</p>
+<p>The <a href="../../../tutorials/samples-beginner/render-passes/">render passes sample</a> records its three passes into one command buffer in this way.</p>
 <h2 id="using-render-targets-outside-of-render-passes">Using render targets outside of render passes<a class="headerlink" href="#using-render-targets-outside-of-render-passes" title="Permanent link">&para;</a></h2>
 <p>Between render passes, the images of a frame buffer are in the default state. To use one in your own commands, for example in a compute
 shader, transition it out of <code>Common</code> and back:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">colorTarget</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">frameBuffer</span><span class="p">.</span><span class="n">image</span><span class="p">(</span><span class="s">"Color"</span><span class="p">);</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">auto</span><span class="w"> </span><span class="n">preBarrier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">makeBarrier</span><span class="p">(</span><span class="n">PipelineStage</span><span class="o">::</span><span class="n">None</span><span class="p">,</span><span class="w"> </span><span class="n">PipelineStage</span><span class="o">::</span><span class="n">Compute</span><span class="p">);</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">preBarrier</span><span class="o">-&gt;</span><span class="n">transition</span><span class="p">(</span><span class="n">colorTarget</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceAccess</span><span class="o">::</span><span class="n">None</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceAccess</span><span class="o">::</span><span class="n">ShaderReadWrite</span><span class="p">,</span><span class="w"> </span><span class="n">ImageLayout</span><span class="o">::</span><span class="n">Common</span><span class="p">,</span><span class="w"> </span><span class="n">ImageLayout</span><span class="o">::</span><span class="n">ReadWrite</span><span class="p">);</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">barrier</span><span class="p">(</span><span class="o">*</span><span class="n">preBarrier</span><span class="p">);</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1">// ... dispatch ...</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="k">auto</span><span class="w"> </span><span class="n">postBarrier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">makeBarrier</span><span class="p">(</span><span class="n">PipelineStage</span><span class="o">::</span><span class="n">Compute</span><span class="p">,</span><span class="w"> </span><span class="n">PipelineStage</span><span class="o">::</span><span class="n">None</span><span class="p">);</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">postBarrier</span><span class="o">-&gt;</span><span class="n">transition</span><span class="p">(</span><span class="n">colorTarget</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceAccess</span><span class="o">::</span><span class="n">ShaderReadWrite</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceAccess</span><span class="o">::</span><span class="n">None</span><span class="p">,</span><span class="w"> </span><span class="n">ImageLayout</span><span class="o">::</span><span class="n">ReadWrite</span><span class="p">,</span><span class="w"> </span><span class="n">ImageLayout</span><span class="o">::</span><span class="n">Common</span><span class="p">);</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">barrier</span><span class="p">(</span><span class="o">*</span><span class="n">postBarrier</span><span class="p">);</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">colorTarget</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">frameBuffer</span><span class="p">.</span><span class="n">image</span><span class="p">(</span><span class="s">"Color"</span><span class="p">);</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">auto</span><span class="w"> </span><span class="n">preBarrier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">makeBarrier</span><span class="p">(</span><span class="n">PipelineStage</span><span class="o">::</span><span class="n">None</span><span class="p">,</span><span class="w"> </span><span class="n">PipelineStage</span><span class="o">::</span><span class="n">Compute</span><span class="p">);</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">preBarrier</span><span class="o">-&gt;</span><span class="n">transition</span><span class="p">(</span><span class="n">colorTarget</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceAccess</span><span class="o">::</span><span class="n">None</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceAccess</span><span class="o">::</span><span class="n">ShaderReadWrite</span><span class="p">,</span><span class="w"> </span><span class="n">ImageLayout</span><span class="o">::</span><span class="n">Common</span><span class="p">,</span><span class="w"> </span><span class="n">ImageLayout</span><span class="o">::</span><span class="n">ReadWrite</span><span class="p">);</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">barrier</span><span class="p">(</span><span class="o">*</span><span class="n">preBarrier</span><span class="p">);</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1">// ... dispatch ...</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="k">auto</span><span class="w"> </span><span class="n">postBarrier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">makeBarrier</span><span class="p">(</span><span class="n">PipelineStage</span><span class="o">::</span><span class="n">Compute</span><span class="p">,</span><span class="w"> </span><span class="n">PipelineStage</span><span class="o">::</span><span class="n">None</span><span class="p">);</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="n">postBarrier</span><span class="o">-&gt;</span><span class="n">transition</span><span class="p">(</span><span class="n">colorTarget</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceAccess</span><span class="o">::</span><span class="n">ShaderReadWrite</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceAccess</span><span class="o">::</span><span class="n">None</span><span class="p">,</span><span class="w"> </span><span class="n">ImageLayout</span><span class="o">::</span><span class="n">ReadWrite</span><span class="p">,</span><span class="w"> </span><span class="n">ImageLayout</span><span class="o">::</span><span class="n">Common</span><span class="p">);</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="n">commandBuffer</span><span class="o">-&gt;</span><span class="n">barrier</span><span class="p">(</span><span class="o">*</span><span class="n">postBarrier</span><span class="p">);</span>
 </code></pre></div>
 <p>Neither barrier needs to wait for anything outside of this command buffer: the render pass was submitted before, so it has finished when
 this submission starts, and the next render pass will only start after this submission has finished. If you record more commands that use
 the image after the post barrier <em>in the same submission</em>, use their stages and access as after values instead of <code>None</code>.</p>
+<p>The same applies, if the render pass recorded into the same command buffer as your commands (see <a href="#sharing-a-command-buffer-between-render-passes">sharing a command
+buffer</a>). Then the render pass is part of the same submission, and the first barrier has to
+wait for it: use the stages and access of the render pass's writes, for example <code>PipelineStage::RenderTarget</code> and
+<code>ResourceAccess::RenderTarget</code>, as before values instead of <code>None</code>.</p>
 <p>If this happens on a different queue than the render pass, the queue has to <a href="../queues-and-fences/#waiting-on-another-queue">wait for the fence</a>
 returned by <code>end</code> first, and the render pass that uses the image next has to wait for the fence of your work. The <a href="../../../tutorials/samples-intermediate/compute/">compute
 sample</a> shows the complete chain.</p>
 <h2 id="the-swap-chain">The swap chain<a class="headerlink" href="#the-swap-chain" title="Permanent link">&para;</a></h2>
 <p>The swap chain owns the images that are shown on screen, the <em>back buffers</em>. Each frame starts by asking for the next one:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">UInt32</span><span class="w"> </span><span class="n">backBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">swapChain</span><span class="p">().</span><span class="n">swapBackBuffer</span><span class="p">();</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">UInt32</span><span class="w"> </span><span class="n">backBuffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">swapChain</span><span class="p">().</span><span class="n">swapBackBuffer</span><span class="p">();</span>
 </code></pre></div>
 <p><code>swapBackBuffer</code> blocks until the back buffer can be drawn into again, i.e. until the frame that last used it has been presented. It returns the
 index of the back buffer, which you use to pick the resources of the frame.</p>
-<p>A render pass with a present target presents the frame on its own when it ends. If you produce the final image in a different way, for example
+<p>A render pass with a present target presents the frame on its own when it ends, unless it records into a <a href="#sharing-a-command-buffer-between-render-passes">shared command
+buffer</a>. If you produce the final image in a different way, for example
 by copying the result of a compute shader into the back buffer, transition the back buffer to <code>ImageLayout::Present</code> after your last write, and
 present it with the fence of the submission that contains that write:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">auto</span><span class="w"> </span><span class="n">fence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">graphicsQueue</span><span class="p">.</span><span class="n">submit</span><span class="p">(</span><span class="n">commandBuffer</span><span class="p">);</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">swapChain</span><span class="p">().</span><span class="n">present</span><span class="p">(</span><span class="n">fence</span><span class="p">);</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">auto</span><span class="w"> </span><span class="n">fence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">graphicsQueue</span><span class="p">.</span><span class="n">submit</span><span class="p">(</span><span class="n">commandBuffer</span><span class="p">);</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">swapChain</span><span class="p">().</span><span class="n">present</span><span class="p">(</span><span class="n">fence</span><span class="p">);</span>
 </code></pre></div>
 <p>The swap chain waits for the fence on the GPU before it presents, so you do not need to wait for it yourself.</p>
 <h2 id="frames-in-flight">Frames in flight<a class="headerlink" href="#frames-in-flight" title="Permanent link">&para;</a></h2>
@@ -1269,8 +1332,9 @@ overwrite each other's data:</p>
 <li><strong>Per-frame buffers</strong>, such as the transform buffer of the <a href="../../../tutorials/samples-beginner/basic-rendering/">basic rendering sample</a>, either as
   separate buffers or as one buffer with one element per back buffer.</li>
 <li><strong>Descriptor sets</strong> that point to per-frame resources.</li>
-<li><strong>Command buffers</strong> that you <a href="../command-buffers/#reusing-command-buffers">reuse</a>.</li>
 </ul>
+<p>Command buffers are not on this list: since they are <a href="../command-buffers/#one-command-buffer-per-submission">used once</a>, each frame creates its
+own.</p>
 <p>Index all of them with the back buffer index returned by <code>swapBackBuffer</code>. Once <code>swapBackBuffer</code> returns, everything that was submitted for the
 previous frame with the same index on the presenting queue has finished, so the resources of that index can be written again without any
 further wait.</p>
@@ -1285,9 +1349,9 @@ only written by the CPU, such as uniform buffers in the <code>Dynamic</code> hea
 <h2 id="resizing">Resizing<a class="headerlink" href="#resizing" title="Permanent link">&para;</a></h2>
 <p>When the window is resized, frame buffers and the swap chain need to be recreated, while the GPU may still use them. Wait until the device is
 idle first:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">wait</span><span class="p">();</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">swapChain</span><span class="p">().</span><span class="n">reset</span><span class="p">(</span><span class="n">surfaceFormat</span><span class="p">,</span><span class="w"> </span><span class="n">renderArea</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">vsync</span><span class="p">);</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">frameBuffer</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="n">renderArea</span><span class="p">);</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">wait</span><span class="p">();</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">m_device</span><span class="o">-&gt;</span><span class="n">swapChain</span><span class="p">().</span><span class="n">reset</span><span class="p">(</span><span class="n">surfaceFormat</span><span class="p">,</span><span class="w"> </span><span class="n">renderArea</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">vsync</span><span class="p">);</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">frameBuffer</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="n">renderArea</span><span class="p">);</span>
 </code></pre></div>
 <p>The same applies to any other operation that releases resources that are possibly still in use, for example switching scenes or shutting down.</p>
 
@@ -1418,10 +1482,10 @@ idle first:</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.path", "navigation.prune", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.path", "navigation.prune", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.c21346df.min.js"></script>
       
     
   </body>
