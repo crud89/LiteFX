@@ -134,6 +134,7 @@ private:
 	Queue<DefragResource> m_destroyedResources{};
 	UInt64 m_defragmentationFence{ 0u };
 	Array<SharedPtr<IDeviceMemory>> m_defragmentationPassResources{};
+	bool m_inDefragmentationPass{ false };
 
 public:
 	DirectX12GraphicsFactoryImpl(const DirectX12Device& device) :
@@ -154,6 +155,11 @@ public:
 
 		// Listen to swap chain buffer swap events, in order to call `SetCurrentFrameIndex`.
 		device.swapChain().swapped += std::bind(&DirectX12GraphicsFactory::DirectX12GraphicsFactoryImpl::onBackBufferSwap, this, std::placeholders::_1, std::placeholders::_2);
+	}
+
+	~DirectX12GraphicsFactoryImpl() noexcept 
+	{
+		abortDefragmentation();
 	}
 
 private:
@@ -215,6 +221,30 @@ public:
 
 		// Create the image and return.
 		return allocator(std::forward<TArgs>(args)..., name, *device.get(), m_allocator, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, usage, heap, resourceDescription, allocationDescription);
+	}
+
+	void abortDefragmentation() noexcept
+	{
+		// There's nothing to do if no defragmentation is happening.
+		if (m_defragmentationContext == nullptr)
+			return;
+
+		// End the defragmentation pass, if one is active.
+		if (m_inDefragmentationPass)
+		{
+			// Clear destroyed resources just like we do in `endDefragmentationPass`.
+			while (!m_destroyedResources.empty())
+				m_destroyedResources.pop();
+
+			// End the defragmentation pass.
+			m_defragmentationContext->EndPass(&m_defragmentationPass);
+			m_defragmentationPassResources.clear();
+			m_inDefragmentationPass = false;
+		}
+
+		// Reset the defragmentation context.
+		m_defragmentationContext->Release();
+		m_defragmentationContext = nullptr;
 	}
 };
 
@@ -386,6 +416,9 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 		resources.emplace_back(deviceMemory);
 	}
 
+	// Remember that we are now in a defragmentation pass.
+	m_impl->m_inDefragmentationPass = true;
+
 	// Submit de command buffer and store the fence.
 	auto fence = m_impl->m_defragmentationFence = commandBuffer->submit();
 
@@ -431,6 +464,8 @@ bool DirectX12GraphicsFactory::endDefragmentationPass() const
 
 	if (result != S_OK && result != S_FALSE) [[unlikely]]
 		throw DX12PlatformException(result, "Unable to end defragmentation pass.");
+
+	m_impl->m_inDefragmentationPass = false;
 
 	resources.clear();
 	m_impl->m_defragmentationPassResources.clear();
