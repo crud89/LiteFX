@@ -69,7 +69,7 @@ namespace LiteFX::Rendering::Backends {
                 throw InvalidArgumentException("buffer", "The provided buffer (element size: {0} bytes) is not aligned to the required placement rules for constant buffers ({1} bytes).", alignedSize, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 
             if (alignedSize > maxConstantBufferSize) [[unlikely]]
-                throw InvalidArgumentException("buffer", "The provided buffer's elements are too large for a constant buffer ({0} > {1} bytes).", alignedSize, D3D12_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * 16);
+                throw InvalidArgumentException("buffer", "The provided buffer's elements are too large for a constant buffer ({0} > {1} bytes).", alignedSize, D3D12_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * 16); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
             break;
         }

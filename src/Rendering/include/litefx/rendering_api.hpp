@@ -4245,7 +4245,7 @@ namespace LiteFX::Rendering {
             if (type == DescriptorType::RWTexture && !LITEFX_FLAG_IS_SET(this->usage(), ResourceUsage::AllowWrite)) [[unlikely]]
                 throw InvalidArgumentException("image", "The image is not writable and cannot be bound to a read/write descriptor.");
 
-            if (this->dimensions() == ImageDimensions::CUBE && this->layers() > 6) [[unlikely]]
+            if (this->dimensions() == ImageDimensions::CUBE && this->layers() > 6) [[unlikely]] // NOLINT(cppcoreguidelines-avoid-magic-numbers)
                 throw InvalidArgumentException("image", "Cube map arrays are currently not supported.");
         }
 
