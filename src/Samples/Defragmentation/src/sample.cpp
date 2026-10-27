@@ -276,6 +276,8 @@ void SampleApp::onInit()
         // Reset allocations.
         allocations.clear();
         isDefragmenting = false;
+        isInDefragmentationPass = false;
+        defragmentationFence = 0;
 
         // Release the backend device.
         backend->releaseDevice("Default");

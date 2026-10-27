@@ -30,6 +30,7 @@ private:
 	UInt64 m_defragmentationFence{ 0u };
 	Array<SharedPtr<IDeviceMemory>> m_defragmentationPassResources{};
 	Array<UInt32> m_queueIds;
+	bool m_inDefragmentationPass{ false };
 
 public:
 	VulkanGraphicsFactoryImpl(const VulkanDevice& device) :
@@ -69,6 +70,11 @@ public:
 	VulkanGraphicsFactoryImpl& operator=(const VulkanGraphicsFactoryImpl&) = delete;
 
 	~VulkanGraphicsFactoryImpl() {
+		// If we are still in a defragmentation pass, clean up.
+		// NOTE: We assume that the device is idle at this point.
+		abortDefragmentation();
+
+		// Destroy the allocator instance.
 		if (m_allocator != nullptr)
 			::vmaDestroyAllocator(m_allocator);
 	}
@@ -360,6 +366,38 @@ public:
 		VmaAllocationInfo allocationResult{};
 		return allocator(std::forward<TArgs>(args)..., name, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, usage, heap, m_allocator, imageDescription, allocationDescription, &allocationResult);
 	}
+
+	void abortDefragmentation() noexcept // NOLINT(bugprone-exception-escape)
+	{
+		// There's nothing to do if no defragmentation is happening.
+		if (m_defragmentationContext == nullptr)
+			return;
+
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			LITEFX_ERROR(VULKAN_LOG, "Unable to abort defragmentation on a released device.");
+
+		// End the defragmentation pass, if one is active.
+		if (m_inDefragmentationPass)
+		{
+			// Clear destroyed resources just like we do in `endDefragmentationPass`.
+			while (!m_destroyedResources.empty())
+			{
+				m_destroyedResources.front().deleter(std::as_const(*device).handle());
+				m_destroyedResources.pop();
+			}
+
+			// End the defragmentation pass.
+			::vmaEndDefragmentationPass(m_allocator, m_defragmentationContext, &m_defragmentationPass);
+			m_defragmentationPassResources.clear();
+			m_inDefragmentationPass = false;
+		}
+
+		// Reset the defragmentation context.
+		::vmaEndDefragmentation(m_allocator, m_defragmentationContext, nullptr);
+		m_defragmentationContext = nullptr;
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -539,6 +577,9 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 		resources.emplace_back(deviceMemory);
 	}
 
+	// Remember that we are now in a defragmentation pass.
+	m_impl->m_inDefragmentationPass = true;
+
 	// Submit de command buffer and store the fence.
 	auto fence = m_impl->m_defragmentationFence = commandBuffer->submit();
 
@@ -572,6 +613,8 @@ bool VulkanGraphicsFactory::endDefragmentationPass() const
 
 	if (result != VK_SUCCESS && result != VK_INCOMPLETE) [[unlikely]]
 		throw VulkanPlatformException(result, "Unable to end defragmentation pass.");
+
+	m_impl->m_inDefragmentationPass = false;
 
 	while (!m_impl->m_destroyedResources.empty())
 	{
