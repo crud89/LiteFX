@@ -157,6 +157,11 @@ public:
 		device.swapChain().swapped += std::bind(&DirectX12GraphicsFactory::DirectX12GraphicsFactoryImpl::onBackBufferSwap, this, std::placeholders::_1, std::placeholders::_2);
 	}
 
+	DirectX12GraphicsFactoryImpl(DirectX12GraphicsFactoryImpl&&) noexcept = default;
+	DirectX12GraphicsFactoryImpl(const DirectX12GraphicsFactoryImpl&) = delete;
+	DirectX12GraphicsFactoryImpl& operator=(DirectX12GraphicsFactoryImpl&&) noexcept = default;
+	DirectX12GraphicsFactoryImpl& operator=(const DirectX12GraphicsFactoryImpl&) = delete;
+
 	~DirectX12GraphicsFactoryImpl() noexcept 
 	{
 		abortDefragmentation();

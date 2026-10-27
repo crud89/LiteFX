@@ -367,7 +367,7 @@ public:
 		return allocator(std::forward<TArgs>(args)..., name, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, usage, heap, m_allocator, imageDescription, allocationDescription, &allocationResult);
 	}
 
-	void abortDefragmentation() noexcept 
+	void abortDefragmentation() noexcept // NOLINT(bugprone-exception-escape)
 	{
 		// There's nothing to do if no defragmentation is happening.
 		if (m_defragmentationContext == nullptr)
