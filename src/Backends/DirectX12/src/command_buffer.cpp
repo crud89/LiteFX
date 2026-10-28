@@ -3,6 +3,55 @@
 using namespace LiteFX::Rendering::Backends;
 
 // ------------------------------------------------------------------------------------------------
+// Subresource helpers.
+// ------------------------------------------------------------------------------------------------
+
+struct SubresourceLayout final {
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT Footprint{};
+	UInt32 Rows{ 0 };
+	UInt64 RowSize{ 0 };
+
+	UInt64 rowCount() const noexcept
+	{
+		return static_cast<UInt64>(Rows) * Footprint.Footprint.Depth; 
+	}
+
+	UInt64 packedSize() const noexcept
+	{ 
+		return RowSize * this->rowCount(); 
+	}
+
+	UInt64 alignedSize() const noexcept
+	{
+		return this->rowCount() == 0 ? 0 : Footprint.Footprint.RowPitch * (this->rowCount() - 1) + RowSize; 
+	}
+
+	void copyRows(std::byte* target, const std::byte* source) const noexcept
+	{
+		for (UInt64 row = 0; row < this->rowCount(); ++row)
+			std::memcpy(target + Footprint.Offset + row * Footprint.Footprint.RowPitch, source + row * RowSize, static_cast<size_t>(RowSize)); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+	}
+
+	static inline std::pair<Array<SubresourceLayout>, UInt64> getLayouts(const DirectX12Device& device, const IDirectX12Image& image, UInt32 firstSubresource, UInt32 count, UInt64 baseOffset)
+	{
+		const auto& desc = std::as_const(image).handle()->GetDesc();
+
+		Array<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> footprints(count);
+		Array<UInt32> rows(count);
+		Array<UInt64> rowSizes(count);
+		UInt64 totalSize{ 0 };
+
+		device.handle()->GetCopyableFootprints(&desc, firstSubresource, count, baseOffset, footprints.data(), rows.data(), rowSizes.data(), &totalSize);
+
+		auto layouts = std::views::iota(0u, count) 
+			| std::views::transform([&](UInt32 i) { return SubresourceLayout{ footprints[i], rows[i], rowSizes[i] }; }) // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+			| std::ranges::to<Array<SubresourceLayout>>();
+
+		return { std::move(layouts), totalSize };
+	}
+};
+
+// ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
@@ -456,6 +505,9 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDir
 	if (device == nullptr) [[unlikely]]
 		throw RuntimeException("Cannot transfer buffers on a released device instance.");
 
+	if (!LITEFX_FLAG_IS_SET(source.usage(), ResourceUsage::TransferSource)) [[unlikely]]
+		throw InvalidArgumentException("source", "The source buffer's usage does not allow for it to be used as a transfer source.");
+
 	if (!LITEFX_FLAG_IS_SET(target.usage(), ResourceUsage::TransferDestination)) [[unlikely]]
 		throw InvalidArgumentException("target", "The target image's usage does not allow for it to be used as a transfer destination.");
 
@@ -463,21 +515,35 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDir
 		throw ArgumentOutOfRangeException("sourceElement", "The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
 	if (target.elements() < firstSubresource + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("targetElement", "The target image has only {0} sub-resources, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, firstSubresource);
+		throw ArgumentOutOfRangeException("firstSubresource", "The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", target.elements(), elements, firstSubresource);
 
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
-	const auto& targetDesc = std::as_const(target).handle()->GetDesc();
-
-	for (UInt32 sr(0); sr < elements; ++sr)
+	// Transfer each sub-resource individually.
+	for (UInt32 sr{ 0u }; sr < elements; ++sr)
 	{
-		device->handle()->GetCopyableFootprints(&targetDesc, sourceElement + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
-		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), footprint), targetLocation(std::as_const(target).handle().Get(), firstSubresource + sr);
+		// Each buffer element holds one sub-resource. Its offset must satisfy D3D12's placement alignment.
+		auto offset = static_cast<UInt64>(source.alignedElementSize()) * (sourceElement + sr);
+
+		if (offset % D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT != 0) [[unlikely]]
+			throw InvalidArgumentException("source", "Element {0} of the source buffer starts at offset {1}, which is not aligned to {2} bytes, as required for copies into images.", sourceElement + sr, offset, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
+
+		auto [layouts, totalSize] = SubresourceLayout::getLayouts(*device, target, firstSubresource + sr, 1, offset);
+		auto& layout = layouts.front();
+
+		// The buffer can't be repacked here, so its data must already use D3D12's aligned layout. Verify this here.
+		if (source.elementSize() < layout.alignedSize()) [[unlikely]]
+			throw ArgumentOutOfRangeException("source", "Element {0} of the source buffer has {1} bytes, but sub-resource {2} of the target image requires {3} bytes, with {4} rows of {5} bytes, each aligned to {6} bytes.",
+				sourceElement + sr, source.elementSize(), firstSubresource + sr, layout.alignedSize(), layout.rowCount(), layout.RowSize, layout.Footprint.Footprint.RowPitch);
+
+		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), layout.Footprint), targetLocation(std::as_const(target).handle().Get(), firstSubresource + sr);
 		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
 	}
 }
 
 void DirectX12CommandBuffer::transfer(const void* const data, size_t size, const IDirectX12Image& target, UInt32 subresource) const
 {
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -487,14 +553,40 @@ void DirectX12CommandBuffer::transfer(const void* const data, size_t size, const
 	if (!LITEFX_FLAG_IS_SET(target.usage(), ResourceUsage::TransferDestination)) [[unlikely]]
 		throw InvalidArgumentException("target", "The target image's usage does not allow for it to be used as a transfer destination.");
 
-	auto stagingBuffer = device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size);
-	stagingBuffer->map(data, size, 0);
+	if (target.elements() <= subresource) [[unlikely]]
+		throw ArgumentOutOfRangeException("subresource", "The target image has only {0} sub-resources, but sub-resource {1} has been requested.", target.elements(), subresource);
 
-	this->transfer(stagingBuffer, target, 0, subresource, 1);
+	// For sub-resources, D3D12 requires rows to be aligned to 256 bytes. For block-compressed formats, `rows` counts the packed block rows, rather than pixel rows.
+	auto [layouts, totalSize] = SubresourceLayout::getLayouts(*device, target, subresource, 1, 0);
+	auto& layout = layouts.front();
+
+	if (size < layout.packedSize()) [[unlikely]]
+		throw ArgumentOutOfRangeException("size", "Sub-resource {0} requires {1} bytes of tightly packed data, but only {2} bytes have been provided.", subresource, layout.packedSize(), size);
+
+	// Copy the tightly packed rows into the aligned layout.
+	Array<std::byte> staging(static_cast<size_t>(totalSize));
+	layout.copyRows(staging.data(), static_cast<const std::byte*>(data));
+
+	// Create a staging buffer.
+	auto stagingBuffer = device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, staging.size());
+	stagingBuffer->map(staging.data(), staging.size(), 0);
+
+	// Get the copy locations and copy the texture regions.
+	CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(*stagingBuffer).handle().Get(), layout.Footprint), targetLocation(std::as_const(target).handle().Get(), subresource);
+	this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
+
+	// Track the staging buffer.
+	m_impl->m_trackedResources.Resources.push_back(stagingBuffer);
 }
 
 void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IDirectX12Image& target, UInt32 firstSubresource, UInt32 subresources) const
 {
+	// NOTE: `data` is expected to be an array where each element is `elementSize` large. If a mip-map chain is provided, each individual level must still be `elementSize` 
+	//       large, albeit padded with unread data. Alternatively, each mip level can be transferred individually.
+
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
@@ -504,11 +596,40 @@ void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t eleme
 	if (!LITEFX_FLAG_IS_SET(target.usage(), ResourceUsage::TransferDestination)) [[unlikely]]
 		throw InvalidArgumentException("target", "The target image's usage does not allow for it to be used as a transfer destination.");
 
-	auto elements = static_cast<UInt32>(data.size());
-	auto stagingBuffer = device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements);
-	stagingBuffer->map(data, elementSize, 0);
+	if (target.elements() < firstSubresource + subresources) [[unlikely]]
+		throw ArgumentOutOfRangeException("subresources", "The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", target.elements(), subresources, firstSubresource);
 
-	this->transfer(stagingBuffer, target, 0, firstSubresource, subresources);
+	if (data.size() < subresources) [[unlikely]]
+		throw ArgumentOutOfRangeException("data", "{0} sub-resources should be transferred, but data has only been provided for {1} of them.", subresources, data.size());
+
+	// For sub-resources, D3D12 requires rows to be aligned to 256 bytes. For block-compressed formats, `rows` counts the packed block rows, rather than pixel rows.
+	auto [layouts, totalSize] = SubresourceLayout::getLayouts(*device, target, firstSubresource, subresources, 0);
+	Array<std::byte> staging(static_cast<size_t>(totalSize));
+
+	// Copy each sub-resource individually into the staging buffer memory. We need to re-map here to ensure tight packing.
+	for (UInt32 sr{ 0u }; sr < subresources; ++sr)
+	{
+		auto& layout = layouts[sr]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+
+		if (elementSize < layout.packedSize()) [[unlikely]]
+			throw ArgumentOutOfRangeException("elementSize", "Sub-resource {0} requires {1} bytes of tightly packed data, but only {2} bytes per sub-resource have been provided.", firstSubresource + sr, layout.packedSize(), elementSize);
+
+		layout.copyRows(staging.data(), static_cast<const std::byte*>(data[sr])); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+	}
+
+	// Create a staging buffer.
+	auto stagingBuffer = device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, staging.size());
+	stagingBuffer->map(staging.data(), staging.size(), 0);
+
+	// Get the copy locations and copy the texture regions of each sub-resource.
+	for (UInt32 sr{ 0u }; sr < subresources; ++sr)
+	{
+		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(*stagingBuffer).handle().Get(), layouts[sr].Footprint), targetLocation(std::as_const(target).handle().Get(), firstSubresource + sr); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
+	}
+
+	// Track the staging buffer.
+	m_impl->m_trackedResources.Resources.push_back(stagingBuffer);
 }
 
 void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
@@ -528,7 +649,7 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDire
 	if (target.elements() < targetSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("targetElement", "The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resources {2} has been requested.", target.elements(), subresources, targetSubresource);
 
-	for (UInt32 sr(0); sr < subresources; ++sr)
+	for (UInt32 sr{ 0u }; sr < subresources; ++sr)
 	{
 		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), sourceSubresource + sr), targetLocation(std::as_const(target).handle().Get(), targetSubresource + sr);
 		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
@@ -549,19 +670,30 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDire
 	if (!LITEFX_FLAG_IS_SET(source.usage(), ResourceUsage::TransferSource)) [[unlikely]]
 		throw InvalidArgumentException("source", "The source image's usage does not allow for it to be used as a transfer source.");
 
-	if (source.elements() < firstSubresource + subresources) [[unlikely]]
-		throw ArgumentOutOfRangeException("sourceElement", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
+	if (!LITEFX_FLAG_IS_SET(target.usage(), ResourceUsage::TransferDestination)) [[unlikely]]
+		throw InvalidArgumentException("target", "The target buffer's usage does not allow for it to be used as a transfer destination.");
 
-	if (target.elements() <= targetElement + subresources) [[unlikely]]
+	if (source.elements() < firstSubresource + subresources) [[unlikely]]
+		throw ArgumentOutOfRangeException("firstSubresource", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
+
+	if (target.elements() < targetElement + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("targetElement", "The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), subresources, targetElement);
 
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
-	const auto& targetDesc = std::as_const(target).handle()->GetDesc();
-
-	for (UInt32 sr(0); sr < subresources; ++sr)
+	for (UInt32 sr{ 0u }; sr < subresources; ++sr)
 	{
-		device->handle()->GetCopyableFootprints(&targetDesc, firstSubresource + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
-		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), footprint), targetLocation(std::as_const(target).handle().Get(), targetElement + sr);
+		const auto offset = static_cast<UInt64>(target.alignedElementSize()) * (targetElement + sr);
+
+		if (offset % D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT != 0) [[unlikely]]
+			throw InvalidArgumentException("target", "Element {0} of the target buffer starts at offset {1}, which is not aligned to {2} bytes, as required for copies from images.", targetElement + sr, offset, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
+
+		auto [layouts, totalSize] = SubresourceLayout::getLayouts(*device, source, firstSubresource + sr, 1, offset);
+		const auto& layout = layouts.front();
+
+		if (target.elementSize() < layout.alignedSize()) [[unlikely]]
+			throw ArgumentOutOfRangeException("target", "Element {0} of the target buffer has {1} bytes, but sub-resource {2} of the source image requires {3} bytes, with {4} rows of {5} bytes, each aligned to {6} bytes.",
+				targetElement + sr, target.elementSize(), firstSubresource + sr, layout.alignedSize(), layout.rowCount(), layout.RowSize, layout.Footprint.Footprint.RowPitch);
+
+		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), firstSubresource + sr), targetLocation(std::as_const(target).handle().Get(), layout.Footprint);
 		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
 	}
 }

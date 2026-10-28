@@ -49,7 +49,7 @@ public:
         }
         else
         {
-            for (UInt32 i(0); backend.handle()->EnumAdapters1(i, &adapterInterface) != DXGI_ERROR_NOT_FOUND; ++i)
+            for (UInt32 i{ 0u }; backend.handle()->EnumAdapters1(i, &adapterInterface) != DXGI_ERROR_NOT_FOUND; ++i)
             {
                 DXGI_ADAPTER_DESC1 adapterDecriptor;
                 adapterInterface->GetDesc1(&adapterDecriptor);

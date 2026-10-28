@@ -54,7 +54,7 @@ public:
 	VkShaderModule initialize(const Array<char>& fileContents)
 	{
 		// TODO: We may be able to use std::start_lifetime_as here instead.
-		m_bytecode.resize(Math::align(fileContents.size(), sizeof(UInt32)) / sizeof(UInt32));
+		m_bytecode.resize(Math::alignPoT(fileContents.size(), sizeof(UInt32)) / sizeof(UInt32));
 		std::memcpy(m_bytecode.data(), fileContents.data(), fileContents.size());
 
 		VkShaderModuleCreateInfo createInfo = {};

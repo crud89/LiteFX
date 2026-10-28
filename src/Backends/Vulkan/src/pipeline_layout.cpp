@@ -53,7 +53,7 @@ public:
                 pushDataEndOffset = std::max(pushDataEndOffset, range->offset() + range->size());
         }
 
-        pushDataEndOffset = align(pushDataEndOffset, 4u);
+        pushDataEndOffset = alignPoT(pushDataEndOffset, 4u);
 
         // Create a mapping for each descriptor set.
         for (auto& layout : m_descriptorSetLayouts)

@@ -128,13 +128,25 @@ namespace LiteFX::Math {
 	}
 
 	/// @brief Aligns a value @p size to an alignment @p alignment.
-	///
+	/// 
 	/// @tparam T The type of the value to align.
 	/// @param size The value to align.
 	/// @param alignment The alignment to align the value to.
 	/// @return The aligned value.
 	template <typename T = UInt32>
-	static constexpr T align(T size, T alignment) { 
+	static constexpr T align(T size, T alignment) noexcept {
+		return ((size + alignment - 1) / alignment) * alignment;
+	}
+
+	/// @brief Aligns a value @p size to an alignment @p alignment that is a power of two.
+	/// 
+	/// @tparam T The type of the value to align.
+	/// @param size The value to align.
+	/// @param alignment The alignment to align the value to. Must be a power of two.
+	/// @return The aligned value.
+	template <typename T = UInt32>
+	static constexpr T alignPoT(T size, T alignment) {
+		assert(alignment != 0 && (alignment & (alignment - 1)) == 0 && "The alignment must be a power of two.");
 		return (size + alignment - 1) & ~(alignment - 1); 
 	}
 

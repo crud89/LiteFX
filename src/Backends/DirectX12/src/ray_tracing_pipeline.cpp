@@ -388,7 +388,7 @@ public:
 		auto localDataSize = std::ranges::max(m_shaderRecordCollection.shaderRecords() | std::views::filter(filterByGroupType) | std::views::transform([](auto& record) { return record->localDataSize(); }));
 
 		// Compute the record size by aligning the handle and payload sizes.
-		auto recordSize = Math::align<size_t>(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES + static_cast<size_t>(localDataSize), D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
+		auto recordSize = Math::alignPoT<size_t>(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES + static_cast<size_t>(localDataSize), D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
 
 		// Insert empty records at the end of each table so that the table start offsets align with D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT.
 		Dictionary<ShaderBindingGroup, UInt32> alignmentRecords;
