@@ -18,7 +18,7 @@
         <link rel="prev" href="../Vectors/UInt64Vector4/">
       
       
-        <link rel="next" href="../Byte/">
+        <link rel="next" href="../alignPoT/">
       
       
         
@@ -1043,6 +1043,8 @@
       
         
       
+        
+      
     
     
     
@@ -1341,6 +1343,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../alignPoT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    alignPoT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -7528,11 +7558,11 @@
 <h1 id="litefxmathalign"><code>LiteFX::Math::align</code><a class="headerlink" href="#litefxmathalign" title="Permanent link">&para;</a></h1>
 <p>Aligns a value <code>size</code> to an alignment <code>alignment.</code></p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/8549d981b653b973bca4ed88e346c5693fd627da/src/Math/include/litefx/math.hpp#L136">litefx/math.hpp</a>&gt;</code></p>
-<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><a href="../UInt32/"><span class="n">UInt32</span></a><span class="o">&gt;</span><span class="w">
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/cd8015a2efe154ade49822a3b2a7eed5e7dfb3d1/src/Math/include/litefx/math.hpp#L136">litefx/math.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">integral</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><a href="../UInt32/"><span class="n">UInt32</span></a><span class="o">&gt;</span><span class="w">
 </span><span class="k">constexpr</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="n">align</span><span class="p">(</span><span class="w">
 </span><span class="w">    </span><span class="n">T</span><span class="w"> </span><span class="n">size</span><span class="p">,</span><span class="w">
-</span><span class="w">    </span><span class="n">T</span><span class="w"> </span><span class="n">alignment</span><span class="p">)</span><span class="p">;</span></code></pre></div>
+</span><span class="w">    </span><span class="n">T</span><span class="w"> </span><span class="n">alignment</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span></code></pre></div>
 
 <h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h2>
 <p>The aligned value.</p>
@@ -7607,13 +7637,13 @@
         
         
           
-          <a href="../Byte/" class="md-footer__link md-footer__link--next" aria-label="Next: Byte">
+          <a href="../alignPoT/" class="md-footer__link md-footer__link--next" aria-label="Next: alignPoT">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Byte
+                alignPoT
               </div>
             </div>
             <div class="md-footer__button md-icon">

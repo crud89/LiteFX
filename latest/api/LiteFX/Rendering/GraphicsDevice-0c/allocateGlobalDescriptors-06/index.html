@@ -1041,6 +1041,8 @@
       
         
       
+        
+      
     
     
     
@@ -17527,7 +17529,7 @@
 <h1 id="litefxrenderinggraphicsdeviceallocateglobaldescriptors"><code>LiteFX::Rendering::GraphicsDevice::allocateGlobalDescriptors</code><a class="headerlink" href="#litefxrenderinggraphicsdeviceallocateglobaldescriptors" title="Permanent link">&para;</a></h1>
 <p><code>allocateGlobalDescriptors</code> overloads</p>
 <h2 id="synopses">Synopses<a class="headerlink" href="#synopses" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/8549d981b653b973bca4ed88e346c5693fd627da/src/Rendering/include/litefx/rendering.hpp#L1645">litefx/rendering.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/cd8015a2efe154ade49822a3b2a7eed5e7dfb3d1/src/Rendering/include/litefx/rendering.hpp#L1645">litefx/rendering.hpp</a>&gt;</code></p>
 <p>Allocates a descriptor range with a capacity of <code>descriptors</code> from the global descriptor heap indicated by <code>heapType.</code> This overload allocates a raw descriptor range from a global descriptor heap. It is intended for interop purposes, where external libraries need to bind resources, as well as bindless rendering using SM 6.6 dynamic resources (<code>ResourceDescriptorHeap</code>/<code>SamplerDescriptorHeap</code>).</p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="p">[[</span><span class="na">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="k">virtual</span><span class="w"> </span><a href="../../../UniquePtr/"><span class="n">UniquePtr</span><span class="o">&lt;</span><span class="n">descriptor_range_type</span><span class="o">&gt;</span></a><span class="w"> </span><a href="../allocateGlobalDescriptors-03/"><span class="n">allocateGlobalDescriptors</span></a><span class="p">(</span><span class="w">
 </span><span class="w">    </span><a href="../../DescriptorHeapType/"><span class="n">DescriptorHeapType</span></a><span class="w"> </span><span class="n">heapType</span><span class="p">,</span><span class="w">
