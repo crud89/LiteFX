@@ -15,6 +15,78 @@ extern PFN_vkCmdPushDataEXT vkCmdPushData;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
+// Subresource helpers.
+// ------------------------------------------------------------------------------------------------
+
+constexpr std::pair<UInt32, UInt32> getBlockExtent(Format format) noexcept
+{
+	switch (format)
+	{
+	using enum Format;
+	case BC1_RGB_UNORM:
+	case BC1_RGB_SRGB:
+	case BC1_RGBA_UNORM:
+	case BC1_RGBA_SRGB:
+	case BC2_UNORM:
+	case BC2_SRGB:
+	case BC3_UNORM:
+	case BC3_SRGB:
+	case BC4_UNORM:
+	case BC4_SNORM:
+	case BC5_UNORM:
+	case BC5_SNORM:
+	case BC6H_UFLOAT:
+	case BC6H_SFLOAT:
+	case BC7_UNORM:
+	case BC7_SRGB:
+		return { 4u, 4u }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+	default:
+		return { 1u, 1u }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+	}
+}
+
+size_t getPackedSize(const IVulkanImage& image, UInt32 level)
+{
+	// TODO: Handle the plane for depth/stencil formats.
+	auto [blockWidth, blockHeight] = getBlockExtent(image.format());
+	auto extent = image.extent(level);
+
+	UInt64 blocksX = (extent.width() + blockWidth - 1) / blockWidth;
+	UInt64 blocksY = (extent.height() + blockHeight - 1) / blockHeight;
+	UInt64 depth = image.dimensions() == ImageDimensions::DIM_3 ? extent.depth() : 1;
+
+	return static_cast<size_t>(blocksX * blocksY * depth) * ::getSize(image.format());
+}
+
+UInt64 getCopyAlignment(Format format)
+{
+	const UInt64 blockSize = ::getSize(format);
+	return ::hasDepth(format) || ::hasStencil(format) ? std::max<UInt64>(blockSize, sizeof(UInt32)) : blockSize;
+}
+
+VkBufferImageCopy makeCopyRegion(const IVulkanImage& image, UInt32 subresource, UInt64 bufferOffset)
+{
+	UInt32 layer{ 0u }, level{ 0u }, plane{ 0u };
+	image.resolveSubresource(subresource, plane, layer, level);
+	auto extent = image.extent(level);
+
+	return {
+		.bufferOffset = bufferOffset,
+		.imageSubresource = VkImageSubresourceLayers {
+			.aspectMask = image.aspectMask(plane),
+			.mipLevel = level,
+			.baseArrayLayer = layer,
+			.layerCount = 1
+		},
+		.imageExtent = { 
+			static_cast<UInt32>(extent.width()), 
+			static_cast<UInt32>(extent.height()), 
+			static_cast<UInt32>(extent.depth()) 
+		}
+	};
+}
+
+// ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
@@ -503,6 +575,9 @@ void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanIma
 	if (!m_impl->m_recording)
 		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
 
+	if (!LITEFX_FLAG_IS_SET(source.usage(), ResourceUsage::TransferSource)) [[unlikely]]
+		throw InvalidArgumentException("source", "The source buffer's usage does not allow for it to be used as a transfer source.");
+
 	if (!LITEFX_FLAG_IS_SET(target.usage(), ResourceUsage::TransferDestination)) [[unlikely]]
 		throw InvalidArgumentException("target", "The target image's usage does not allow for it to be used as a transfer destination.");
 
@@ -510,27 +585,28 @@ void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanIma
 		throw ArgumentOutOfRangeException("sourceElement", "The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
 	if (target.elements() < firstSubresource + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("targetElement", "The target image has only {0} sub-resources, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, firstSubresource);
+		throw ArgumentOutOfRangeException("firstSubresource", "The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", target.elements(), elements, firstSubresource);
 
-	Array<VkBufferImageCopy> copyInfos(elements);
-	std::ranges::generate(copyInfos, [&, i = firstSubresource]() mutable {
-		UInt32 subresource = i++, layer = 0, level = 0, plane = 0;
-		target.resolveSubresource(subresource, plane, layer, level);
+	auto alignment = getCopyAlignment(target.format());
+	Array<VkBufferImageCopy> copyInfos;
+	copyInfos.reserve(elements);
 
-		return VkBufferImageCopy {
-			.bufferOffset = source.alignedElementSize() * sourceElement,
-			.bufferRowLength = 0,
-			.bufferImageHeight = 0,
-			.imageSubresource = VkImageSubresourceLayers {
-				.aspectMask = target.aspectMask(plane),
-				.mipLevel = level,
-				.baseArrayLayer = layer,
-				.layerCount = 1
-			},
-			.imageOffset = { 0, 0, 0 },
-			.imageExtent = { static_cast<UInt32>(target.extent().width()), static_cast<UInt32>(target.extent().height()), static_cast<UInt32>(target.extent().depth()) }
-		};
-	});
+	for (UInt32 i{ 0u }; i < elements; ++i)
+	{
+		auto subresource = firstSubresource + i;
+		auto offset = static_cast<UInt64>(source.alignedElementSize()) * (sourceElement + i);
+
+		if (offset % alignment != 0) [[unlikely]]
+			throw InvalidArgumentException("source", "Element {0} of the source buffer starts at offset {1}, which is not aligned to {2} bytes, as required for copies into images of this format.", sourceElement + i, offset, alignment);
+
+		auto copyInfo = makeCopyRegion(target, subresource, offset);
+		auto required = getPackedSize(target, copyInfo.imageSubresource.mipLevel);
+
+		if (source.elementSize() < required) [[unlikely]]
+			throw ArgumentOutOfRangeException("source", "Element {0} of the source buffer has {1} bytes, but sub-resource {2} of the target image requires {3} bytes.", sourceElement + i, source.elementSize(), subresource, required);
+
+		copyInfos.push_back(copyInfo);
+	}
 
 	::vkCmdCopyBufferToImage(this->handle(), std::as_const(source).handle(), std::as_const(target).handle(), VK_IMAGE_LAYOUT_GENERAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
@@ -549,8 +625,19 @@ void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IV
 	if (!LITEFX_FLAG_IS_SET(target.usage(), ResourceUsage::TransferDestination)) [[unlikely]]
 		throw InvalidArgumentException("target", "The target image's usage does not allow for it to be used as a transfer destination.");
 
-	auto stagingBuffer = device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size);
-	stagingBuffer->map(data, size, 0);
+	if (target.elements() <= subresource) [[unlikely]]
+		throw ArgumentOutOfRangeException("subresource", "The target image has only {0} sub-resources, but sub-resource {1} has been requested.", target.elements(), subresource);
+
+	UInt32 layer{ 0u }, level{ 0u }, plane{ 0u };
+	target.resolveSubresource(subresource, plane, layer, level);
+
+	auto required = getPackedSize(target, level);
+
+	if (size < required) [[unlikely]]
+		throw ArgumentOutOfRangeException("size", "Sub-resource {0} requires {1} bytes of tightly packed data, but only {2} bytes have been provided.", subresource, required, size);
+
+	auto stagingBuffer = device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, required);
+	stagingBuffer->map(data, required, 0);
 
 	this->transfer(stagingBuffer, target, 0, subresource, 1);
 }
@@ -569,9 +656,28 @@ void VulkanCommandBuffer::transfer(Span<const void* const> data, size_t elementS
 	if (!LITEFX_FLAG_IS_SET(target.usage(), ResourceUsage::TransferDestination)) [[unlikely]]
 		throw InvalidArgumentException("target", "The target image's usage does not allow for it to be used as a transfer destination.");
 
-	auto elements = static_cast<UInt32>(data.size());
-	auto stagingBuffer = device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements);
-	stagingBuffer->map(data, elementSize, 0);
+	if (target.elements() < firstSubresource + subresources) [[unlikely]]
+		throw ArgumentOutOfRangeException("subresources", "The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", target.elements(), subresources, firstSubresource);
+
+	if (data.size() < subresources) [[unlikely]]
+		throw ArgumentOutOfRangeException("data", "{0} sub-resources should be transferred, but data has only been provided for {1} of them.", subresources, data.size());
+
+	for (UInt32 i{ 0u }; i < subresources; ++i)
+	{
+		UInt32 layer{ 0u }, level{ 0u }, plane{ 0u };
+		target.resolveSubresource(firstSubresource + i, plane, layer, level);
+
+		auto required = getPackedSize(target, level);
+
+		if (elementSize < required) [[unlikely]]
+			throw ArgumentOutOfRangeException("elementSize", "Sub-resource {0} requires {1} bytes of tightly packed data, but only {2} bytes per sub-resource have been provided.", firstSubresource + i, required, elementSize);
+	}
+
+	// Pad each element to the copy alignment, so that every sub-resource starts at a valid buffer offset.
+	auto alignedSize = static_cast<size_t>(LiteFX::Math::align<UInt64>(elementSize, getCopyAlignment(target.format())));
+
+	auto stagingBuffer = device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, alignedSize, subresources);
+	stagingBuffer->map(data.subspan(0, subresources), elementSize, 0);
 
 	this->transfer(stagingBuffer, target, 0, firstSubresource, subresources);
 }
@@ -594,14 +700,14 @@ void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanImag
 		throw ArgumentOutOfRangeException("targetElement", "The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resources {2} has been requested.", target.elements(), subresources, targetSubresource);
 
 	Array<VkImageCopy> copyInfos(subresources);
-	std::ranges::generate(copyInfos, [&, i = 0]() mutable {
-		UInt32 sourceRsc = sourceSubresource + i, sourceLayer = 0, sourceLevel = 0, sourcePlane = 0;
-		UInt32 targetRsc = targetSubresource + i, targetLayer = 0, targetLevel = 0, targetPlane = 0;
+	std::ranges::generate(copyInfos, [&, i = 0]() mutable -> VkImageCopy {
+		UInt32 sourceRsc{ sourceSubresource + i }, sourceLayer{ 0u }, sourceLevel{ 0u }, sourcePlane{ 0u };
 		source.resolveSubresource(sourceRsc, sourcePlane, sourceLayer, sourceLevel);
+		UInt32 targetRsc{ targetSubresource + i }, targetLayer{ 0u }, targetLevel{ 0u }, targetPlane{ 0u };
 		target.resolveSubresource(targetRsc, targetPlane, targetLayer, targetLevel);
 		i++;
 
-		return VkImageCopy {
+		return {
 			.srcSubresource = VkImageSubresourceLayers {
 				.aspectMask = source.aspectMask(sourcePlane),
 				.mipLevel = sourceLevel,
@@ -631,32 +737,35 @@ void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanBuff
 	if (!LITEFX_FLAG_IS_SET(source.usage(), ResourceUsage::TransferSource)) [[unlikely]]
 		throw InvalidArgumentException("source", "The source image's usage does not allow for it to be used as a transfer source.");
 
+	if (!LITEFX_FLAG_IS_SET(target.usage(), ResourceUsage::TransferDestination)) [[unlikely]]
+		throw InvalidArgumentException("target", "The target buffer's usage does not allow for it to be used as a transfer destination.");
+
 	if (source.elements() < firstSubresource + subresources) [[unlikely]]
-		throw ArgumentOutOfRangeException("sourceElement", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
+		throw ArgumentOutOfRangeException("firstSubresource", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
 
-	if (target.elements() <= targetElement + subresources) [[unlikely]]
+	if (target.elements() < targetElement + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("targetElement", "The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), subresources, targetElement);
-	
-	// Create a copy command and add it to the command buffer.
-	Array<VkBufferImageCopy> copyInfos(subresources);
-	std::ranges::generate(copyInfos, [&, i = targetElement]() mutable {
-		UInt32 subresource = i++, layer = 0, level = 0, plane = 0;
-		source.resolveSubresource(subresource, plane, layer, level);
 
-		return VkBufferImageCopy {
-			.bufferOffset = target.alignedElementSize() * subresource,
-			.bufferRowLength = 0,
-			.bufferImageHeight = 0,
-			.imageSubresource = VkImageSubresourceLayers {
-				.aspectMask = source.aspectMask(plane),
-				.mipLevel = level,
-				.baseArrayLayer = layer,
-				.layerCount = 1
-			},
-			.imageOffset = { 0, 0, 0 },
-			.imageExtent = { static_cast<UInt32>(source.extent().width()), static_cast<UInt32>(source.extent().height()), static_cast<UInt32>(source.extent().depth()) }
-		};
-	});
+	auto alignment = getCopyAlignment(source.format());
+	Array<VkBufferImageCopy> copyInfos;
+	copyInfos.reserve(subresources);
+
+	for (UInt32 i{ 0u }; i < subresources; ++i)
+	{
+		auto subresource = firstSubresource + i;
+		auto offset = static_cast<UInt64>(target.alignedElementSize()) * (targetElement + i);
+
+		if (offset % alignment != 0) [[unlikely]]
+			throw InvalidArgumentException("target", "Element {0} of the target buffer starts at offset {1}, which is not aligned to {2} bytes, as required for copies from images of this format.", targetElement + i, offset, alignment);
+
+		auto copyInfo = makeCopyRegion(source, subresource, offset);
+		auto required = getPackedSize(source, copyInfo.imageSubresource.mipLevel);
+
+		if (target.elementSize() < required) [[unlikely]]
+			throw ArgumentOutOfRangeException("target", "Element {0} of the target buffer has {1} bytes, but sub-resource {2} of the source image requires {3} bytes.", targetElement + i, target.elementSize(), subresource, required);
+
+		copyInfos.push_back(copyInfo);
+	}
 
 	::vkCmdCopyImageToBuffer(this->handle(), std::as_const(source).handle(), VK_IMAGE_LAYOUT_GENERAL, std::as_const(target).handle(), static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }

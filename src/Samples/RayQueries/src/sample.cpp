@@ -185,7 +185,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     UInt64 opaqueSize{}, opaqueScratchSize{}, reflectiveSize{}, reflectiveScratchSize{};
     m_device->computeAccelerationStructureSizes(*opaque, opaqueSize, opaqueScratchSize);
     m_device->computeAccelerationStructureSizes(*reflective, reflectiveSize, reflectiveScratchSize);
-    UInt64 reflectiveOffset = align<UInt64>(opaqueSize, 256); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    UInt64 reflectiveOffset = alignPoT<UInt64>(opaqueSize, 256); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     auto blasBuffer = m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, static_cast<size_t>(reflectiveOffset + reflectiveSize), 1u, ResourceUsage::AllowWrite);
 
     // Orient instances randomly.
@@ -275,9 +275,9 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     {
         // Get compacted sizes to allocate enough memory in one single buffer.
         // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
-        auto opaqueCompactedSize = Math::align<UInt64>(opaque->size(), 256);
-        auto reflectiveCompactedSize = Math::align<UInt64>(reflective->size(), 256);
-        auto tlasCompactedSize = Math::align<UInt64>(tlas->size(), 256);
+        auto opaqueCompactedSize = Math::alignPoT<UInt64>(opaque->size(), 256);
+        auto reflectiveCompactedSize = Math::alignPoT<UInt64>(reflective->size(), 256);
+        auto tlasCompactedSize = Math::alignPoT<UInt64>(tlas->size(), 256);
         auto overallSize = static_cast<size_t>(opaqueCompactedSize + reflectiveCompactedSize + tlasCompactedSize);
         // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 

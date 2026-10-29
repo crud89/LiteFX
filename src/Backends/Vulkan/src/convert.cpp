@@ -2,605 +2,363 @@
 
 using namespace LiteFX::Rendering::Backends;
 
-Format LiteFX::Rendering::Backends::Vk::getFormat(const VkFormat& format)
+VkFormat LiteFX::Rendering::Backends::Vk::getFormat(Format format)
 {
+	// NOTE: Packed formats follow Vulkan naming (components from the most significant bit down), so they map to the Vulkan format of the same name.
 	switch (format)
 	{
-	case VK_FORMAT_R4G4_UNORM_PACK8:
-		return Format::R4G4_UNORM;
-	case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
-		return Format::R4G4B4A4_UNORM;
-	case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
-		return Format::B4G4R4A4_UNORM;
-	case VK_FORMAT_R5G6B5_UNORM_PACK16:
-		return Format::R5G6B5_UNORM;
-	case VK_FORMAT_B5G6R5_UNORM_PACK16:
-		return Format::B5G6R5_UNORM;
-	case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
-		return Format::R5G5B5A1_UNORM;
-	case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
-		return Format::B5G5R5A1_UNORM;
-	case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-		return Format::A1R5G5B5_UNORM;
-	case VK_FORMAT_R8_UNORM:
-		return Format::R8_UNORM;
-	case VK_FORMAT_R8_SNORM:
-		return Format::R8_SNORM;
-	case VK_FORMAT_R8_USCALED:
-		return Format::R8_USCALED;
-	case VK_FORMAT_R8_SSCALED:
-		return Format::R8_SSCALED;
-	case VK_FORMAT_R8_UINT:
-		return Format::R8_UINT;
-	case VK_FORMAT_R8_SINT:
-		return Format::R8_SINT;
-	case VK_FORMAT_R8_SRGB:
-		return Format::R8_SRGB;
-	case VK_FORMAT_R8G8_UNORM:
-		return Format::R8G8_UNORM;
-	case VK_FORMAT_R8G8_SNORM:
-		return Format::R8G8_SNORM;
-	case VK_FORMAT_R8G8_USCALED:
-		return Format::R8G8_USCALED;
-	case VK_FORMAT_R8G8_SSCALED:
-		return Format::R8G8_SSCALED;
-	case VK_FORMAT_R8G8_UINT:
-		return Format::R8G8_UINT;
-	case VK_FORMAT_R8G8_SINT:
-		return Format::R8G8_SINT;
-	case VK_FORMAT_R8G8_SRGB:
-		return Format::R8G8_SRGB;
-	case VK_FORMAT_R8G8B8_UNORM:
-		return Format::R8G8B8_UNORM;
-	case VK_FORMAT_R8G8B8_SNORM:
-		return Format::R8G8B8_SNORM;
-	case VK_FORMAT_R8G8B8_USCALED:
-		return Format::R8G8B8_USCALED;
-	case VK_FORMAT_R8G8B8_SSCALED:
-		return Format::R8G8B8_SSCALED;
-	case VK_FORMAT_R8G8B8_UINT:
-		return Format::R8G8B8_UINT;
-	case VK_FORMAT_R8G8B8_SINT:
-		return Format::R8G8B8_SINT;
-	case VK_FORMAT_R8G8B8_SRGB:
-		return Format::R8G8B8_SRGB;
-	case VK_FORMAT_B8G8R8_UNORM:
-		return Format::B8G8R8_UNORM;
-	case VK_FORMAT_B8G8R8_SNORM:
-		return Format::B8G8R8_SNORM;
-	case VK_FORMAT_B8G8R8_USCALED:
-		return Format::B8G8R8_USCALED;
-	case VK_FORMAT_B8G8R8_SSCALED:
-		return Format::B8G8R8_SSCALED;
-	case VK_FORMAT_B8G8R8_UINT:
-		return Format::B8G8R8_UINT;
-	case VK_FORMAT_B8G8R8_SINT:
-		return Format::B8G8R8_SINT;
-	case VK_FORMAT_B8G8R8_SRGB:
-		return Format::B8G8R8_SRGB;
-	case VK_FORMAT_R8G8B8A8_UNORM:
-		return Format::R8G8B8A8_UNORM;
-	case VK_FORMAT_R8G8B8A8_SNORM:
-		return Format::R8G8B8A8_SNORM;
-	case VK_FORMAT_R8G8B8A8_USCALED:
-		return Format::R8G8B8A8_USCALED;
-	case VK_FORMAT_R8G8B8A8_SSCALED:
-		return Format::R8G8B8A8_SSCALED;
-	case VK_FORMAT_R8G8B8A8_UINT:
-		return Format::R8G8B8A8_UINT;
-	case VK_FORMAT_R8G8B8A8_SINT:
-		return Format::R8G8B8A8_SINT;
-	case VK_FORMAT_R8G8B8A8_SRGB:
-		return Format::R8G8B8A8_SRGB;
-	case VK_FORMAT_B8G8R8A8_UNORM:
-		return Format::B8G8R8A8_UNORM;
-	case VK_FORMAT_B8G8R8A8_SNORM:
-		return Format::B8G8R8A8_SNORM;
-	case VK_FORMAT_B8G8R8A8_USCALED:
-		return Format::B8G8R8A8_USCALED;
-	case VK_FORMAT_B8G8R8A8_SSCALED:
-		return Format::B8G8R8A8_SSCALED;
-	case VK_FORMAT_B8G8R8A8_UINT:
-		return Format::B8G8R8A8_UINT;
-	case VK_FORMAT_B8G8R8A8_SINT:
-		return Format::B8G8R8A8_SINT;
-	case VK_FORMAT_B8G8R8A8_SRGB:
-		return Format::B8G8R8A8_SRGB;
-	case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-		return Format::A8B8G8R8_UNORM;
-	case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-		return Format::A8B8G8R8_SNORM;
-	case VK_FORMAT_A8B8G8R8_USCALED_PACK32:
-		return Format::A8B8G8R8_USCALED;
-	case VK_FORMAT_A8B8G8R8_SSCALED_PACK32:
-		return Format::A8B8G8R8_SSCALED;
-	case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-		return Format::A8B8G8R8_UINT;
-	case VK_FORMAT_A8B8G8R8_SINT_PACK32:
-		return Format::A8B8G8R8_SINT;
-	case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
-		return Format::A8B8G8R8_SRGB;
-	case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
-		return Format::A2R10G10B10_UNORM;
-	case VK_FORMAT_A2R10G10B10_SNORM_PACK32:
-		return Format::A2R10G10B10_SNORM;
-	case VK_FORMAT_A2R10G10B10_USCALED_PACK32:
-		return Format::A2R10G10B10_USCALED;
-	case VK_FORMAT_A2R10G10B10_SSCALED_PACK32:
-		return Format::A2R10G10B10_SSCALED;
-	case VK_FORMAT_A2R10G10B10_UINT_PACK32:
-		return Format::A2R10G10B10_UINT;
-	case VK_FORMAT_A2R10G10B10_SINT_PACK32:
-		return Format::A2R10G10B10_SINT;
-	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
-		return Format::A2B10G10R10_UNORM;
-	case VK_FORMAT_A2B10G10R10_SNORM_PACK32:
-		return Format::A2B10G10R10_SNORM;
-	case VK_FORMAT_A2B10G10R10_USCALED_PACK32:
-		return Format::A2B10G10R10_USCALED;
-	case VK_FORMAT_A2B10G10R10_SSCALED_PACK32:
-		return Format::A2B10G10R10_SSCALED;
-	case VK_FORMAT_A2B10G10R10_UINT_PACK32:
-		return Format::A2B10G10R10_UINT;
-	case VK_FORMAT_A2B10G10R10_SINT_PACK32:
-		return Format::A2B10G10R10_SINT;
-	case VK_FORMAT_R16_UNORM:
-		return Format::R16_UNORM;
-	case VK_FORMAT_R16_SNORM:
-		return Format::R16_SNORM;
-	case VK_FORMAT_R16_USCALED:
-		return Format::R16_USCALED;
-	case VK_FORMAT_R16_SSCALED:
-		return Format::R16_SSCALED;
-	case VK_FORMAT_R16_UINT:
-		return Format::R16_UINT;
-	case VK_FORMAT_R16_SINT:
-		return Format::R16_SINT;
-	case VK_FORMAT_R16_SFLOAT:
-		return Format::R16_SFLOAT;
-	case VK_FORMAT_R16G16_UNORM:
-		return Format::R16G16_UNORM;
-	case VK_FORMAT_R16G16_SNORM:
-		return Format::R16G16_SNORM;
-	case VK_FORMAT_R16G16_USCALED:
-		return Format::R16G16_USCALED;
-	case VK_FORMAT_R16G16_SSCALED:
-		return Format::R16G16_SSCALED;
-	case VK_FORMAT_R16G16_UINT:
-		return Format::R16G16_UINT;
-	case VK_FORMAT_R16G16_SINT:
-		return Format::R16G16_SINT;
-	case VK_FORMAT_R16G16_SFLOAT:
-		return Format::R16G16_SFLOAT;
-	case VK_FORMAT_R16G16B16_UNORM:
-		return Format::R16G16B16_UNORM;
-	case VK_FORMAT_R16G16B16_SNORM:
-		return Format::R16G16B16_SNORM;
-	case VK_FORMAT_R16G16B16_USCALED:
-		return Format::R16G16B16_USCALED;
-	case VK_FORMAT_R16G16B16_SSCALED:
-		return Format::R16G16B16_SSCALED;
-	case VK_FORMAT_R16G16B16_UINT:
-		return Format::R16G16B16_UINT;
-	case VK_FORMAT_R16G16B16_SINT:
-		return Format::R16G16B16_SINT;
-	case VK_FORMAT_R16G16B16_SFLOAT:
-		return Format::R16G16B16_SFLOAT;
-	case VK_FORMAT_R16G16B16A16_UNORM:
-		return Format::R16G16B16A16_UNORM;
-	case VK_FORMAT_R16G16B16A16_SNORM:
-		return Format::R16G16B16A16_SNORM;
-	case VK_FORMAT_R16G16B16A16_USCALED:
-		return Format::R16G16B16A16_USCALED;
-	case VK_FORMAT_R16G16B16A16_SSCALED:
-		return Format::R16G16B16A16_SSCALED;
-	case VK_FORMAT_R16G16B16A16_UINT:
-		return Format::R16G16B16A16_UINT;
-	case VK_FORMAT_R16G16B16A16_SINT:
-		return Format::R16G16B16A16_SINT;
-	case VK_FORMAT_R16G16B16A16_SFLOAT:
-		return Format::R16G16B16A16_SFLOAT;
-	case VK_FORMAT_R32_UINT:
-		return Format::R32_UINT;
-	case VK_FORMAT_R32_SINT:
-		return Format::R32_SINT;
-	case VK_FORMAT_R32_SFLOAT:
-		return Format::R32_SFLOAT;
-	case VK_FORMAT_R32G32_UINT:
-		return Format::R32G32_UINT;
-	case VK_FORMAT_R32G32_SINT:
-		return Format::R32G32_SINT;
-	case VK_FORMAT_R32G32_SFLOAT:
-		return Format::R32G32_SFLOAT;
-	case VK_FORMAT_R32G32B32_UINT:
-		return Format::R32G32B32_UINT;
-	case VK_FORMAT_R32G32B32_SINT:
-		return Format::R32G32B32_SINT;
-	case VK_FORMAT_R32G32B32_SFLOAT:
-		return Format::R32G32B32_SFLOAT;
-	case VK_FORMAT_R32G32B32A32_UINT:
-		return Format::R32G32B32A32_UINT;
-	case VK_FORMAT_R32G32B32A32_SINT:
-		return Format::R32G32B32A32_SINT;
-	case VK_FORMAT_R32G32B32A32_SFLOAT:
-		return Format::R32G32B32A32_SFLOAT;
-	case VK_FORMAT_R64_UINT:
-		return Format::R64_UINT;
-	case VK_FORMAT_R64_SINT:
-		return Format::R64_SINT;
-	case VK_FORMAT_R64_SFLOAT:
-		return Format::R64_SFLOAT;
-	case VK_FORMAT_R64G64_UINT:
-		return Format::R64G64_UINT;
-	case VK_FORMAT_R64G64_SINT:
-		return Format::R64G64_SINT;
-	case VK_FORMAT_R64G64_SFLOAT:
-		return Format::R64G64_SFLOAT;
-	case VK_FORMAT_R64G64B64_UINT:
-		return Format::R64G64B64_UINT;
-	case VK_FORMAT_R64G64B64_SINT:
-		return Format::R64G64B64_SINT;
-	case VK_FORMAT_R64G64B64_SFLOAT:
-		return Format::R64G64B64_SFLOAT;
-	case VK_FORMAT_R64G64B64A64_UINT:
-		return Format::R64G64B64A64_UINT;
-	case VK_FORMAT_R64G64B64A64_SINT:
-		return Format::R64G64B64A64_SINT;
-	case VK_FORMAT_R64G64B64A64_SFLOAT:
-		return Format::R64G64B64A64_SFLOAT;
-	case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
-		return Format::B10G11R11_UFLOAT;
-	case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
-		return Format::E5B9G9R9_UFLOAT;
-	case VK_FORMAT_D16_UNORM:
-		return Format::D16_UNORM;
-	case VK_FORMAT_X8_D24_UNORM_PACK32:
-		return Format::X8_D24_UNORM;
-	case VK_FORMAT_D32_SFLOAT:
-		return Format::D32_SFLOAT;
-	case VK_FORMAT_S8_UINT:
-		return Format::S8_UINT;
-	case VK_FORMAT_D16_UNORM_S8_UINT:
-		return Format::D16_UNORM_S8_UINT;
-	case VK_FORMAT_D24_UNORM_S8_UINT:
-		return Format::D24_UNORM_S8_UINT;
-	case VK_FORMAT_D32_SFLOAT_S8_UINT:
-		return Format::D32_SFLOAT_S8_UINT;
-	case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
-		return Format::BC1_RGB_UNORM;
-	case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
-		return Format::BC1_RGB_SRGB;
-	case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
-		return Format::BC1_RGBA_UNORM;
-	case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
-		return Format::BC1_RGBA_SRGB;
-	case VK_FORMAT_BC2_UNORM_BLOCK:
-		return Format::BC2_UNORM;
-	case VK_FORMAT_BC2_SRGB_BLOCK:
-		return Format::BC2_SRGB;
-	case VK_FORMAT_BC3_UNORM_BLOCK:
-		return Format::BC3_UNORM;
-	case VK_FORMAT_BC3_SRGB_BLOCK:
-		return Format::BC3_SRGB;
-	case VK_FORMAT_BC4_UNORM_BLOCK:
-		return Format::BC4_UNORM;
-	case VK_FORMAT_BC4_SNORM_BLOCK:
-		return Format::BC4_SNORM;
-	case VK_FORMAT_BC5_UNORM_BLOCK:
-		return Format::BC5_UNORM;
-	case VK_FORMAT_BC5_SNORM_BLOCK:
-		return Format::BC5_SNORM;
-	case VK_FORMAT_BC6H_UFLOAT_BLOCK:
-		return Format::BC6H_UFLOAT;
-	case VK_FORMAT_BC6H_SFLOAT_BLOCK:
-		return Format::BC6H_SFLOAT;
-	case VK_FORMAT_BC7_UNORM_BLOCK:
-		return Format::BC7_UNORM;
-	case VK_FORMAT_BC7_SRGB_BLOCK:
-		return Format::BC7_SRGB;
-	default:
-		return Format::Other;
+	using enum Format;
+
+	case None:                    return VK_FORMAT_UNDEFINED;
+
+	// 4 and 5 bits per channel.
+	case R4G4_UNORM:              return VK_FORMAT_R4G4_UNORM_PACK8;
+	case R4G4B4A4_UNORM:          return VK_FORMAT_R4G4B4A4_UNORM_PACK16;
+	case B4G4R4A4_UNORM:          return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
+	case A4R4G4B4_UNORM:          return VK_FORMAT_A4R4G4B4_UNORM_PACK16;
+	case A4B4G4R4_UNORM:          return VK_FORMAT_A4B4G4R4_UNORM_PACK16;
+	case R5G6B5_UNORM:            return VK_FORMAT_R5G6B5_UNORM_PACK16;
+	case B5G6R5_UNORM:            return VK_FORMAT_B5G6R5_UNORM_PACK16;
+	case R5G5B5A1_UNORM:          return VK_FORMAT_R5G5B5A1_UNORM_PACK16;
+	case B5G5R5A1_UNORM:          return VK_FORMAT_B5G5R5A1_UNORM_PACK16;
+	case A1R5G5B5_UNORM:          return VK_FORMAT_A1R5G5B5_UNORM_PACK16;
+	case A1B5G5R5_UNORM:          return VK_FORMAT_A1B5G5R5_UNORM_PACK16;
+
+	// 8 bits per channel. `A8B8G8R8_*` is a packed 32-bit word, which has the same byte order as `R8G8B8A8_*` on little-endian systems.
+	case A8_UNORM:                return VK_FORMAT_A8_UNORM;
+	case R8_UNORM:                return VK_FORMAT_R8_UNORM;
+	case R8_SNORM:                return VK_FORMAT_R8_SNORM;
+	case R8_USCALED:              return VK_FORMAT_R8_USCALED;
+	case R8_SSCALED:              return VK_FORMAT_R8_SSCALED;
+	case R8_UINT:                 return VK_FORMAT_R8_UINT;
+	case R8_SINT:                 return VK_FORMAT_R8_SINT;
+	case R8_SRGB:                 return VK_FORMAT_R8_SRGB;
+	case R8G8_UNORM:              return VK_FORMAT_R8G8_UNORM;
+	case R8G8_SNORM:              return VK_FORMAT_R8G8_SNORM;
+	case R8G8_USCALED:            return VK_FORMAT_R8G8_USCALED;
+	case R8G8_SSCALED:            return VK_FORMAT_R8G8_SSCALED;
+	case R8G8_UINT:               return VK_FORMAT_R8G8_UINT;
+	case R8G8_SINT:               return VK_FORMAT_R8G8_SINT;
+	case R8G8_SRGB:               return VK_FORMAT_R8G8_SRGB;
+	case R8G8B8_UNORM:            return VK_FORMAT_R8G8B8_UNORM;
+	case R8G8B8_SNORM:            return VK_FORMAT_R8G8B8_SNORM;
+	case R8G8B8_USCALED:          return VK_FORMAT_R8G8B8_USCALED;
+	case R8G8B8_SSCALED:          return VK_FORMAT_R8G8B8_SSCALED;
+	case R8G8B8_UINT:             return VK_FORMAT_R8G8B8_UINT;
+	case R8G8B8_SINT:             return VK_FORMAT_R8G8B8_SINT;
+	case R8G8B8_SRGB:             return VK_FORMAT_R8G8B8_SRGB;
+	case B8G8R8_UNORM:            return VK_FORMAT_B8G8R8_UNORM;
+	case B8G8R8_SNORM:            return VK_FORMAT_B8G8R8_SNORM;
+	case B8G8R8_USCALED:          return VK_FORMAT_B8G8R8_USCALED;
+	case B8G8R8_SSCALED:          return VK_FORMAT_B8G8R8_SSCALED;
+	case B8G8R8_UINT:             return VK_FORMAT_B8G8R8_UINT;
+	case B8G8R8_SINT:             return VK_FORMAT_B8G8R8_SINT;
+	case B8G8R8_SRGB:             return VK_FORMAT_B8G8R8_SRGB;
+	case R8G8B8A8_UNORM:          return VK_FORMAT_R8G8B8A8_UNORM;
+	case R8G8B8A8_SNORM:          return VK_FORMAT_R8G8B8A8_SNORM;
+	case R8G8B8A8_USCALED:        return VK_FORMAT_R8G8B8A8_USCALED;
+	case R8G8B8A8_SSCALED:        return VK_FORMAT_R8G8B8A8_SSCALED;
+	case R8G8B8A8_UINT:           return VK_FORMAT_R8G8B8A8_UINT;
+	case R8G8B8A8_SINT:           return VK_FORMAT_R8G8B8A8_SINT;
+	case R8G8B8A8_SRGB:           return VK_FORMAT_R8G8B8A8_SRGB;
+	case B8G8R8A8_UNORM:          return VK_FORMAT_B8G8R8A8_UNORM;
+	case B8G8R8A8_SNORM:          return VK_FORMAT_B8G8R8A8_SNORM;
+	case B8G8R8A8_USCALED:        return VK_FORMAT_B8G8R8A8_USCALED;
+	case B8G8R8A8_SSCALED:        return VK_FORMAT_B8G8R8A8_SSCALED;
+	case B8G8R8A8_UINT:           return VK_FORMAT_B8G8R8A8_UINT;
+	case B8G8R8A8_SINT:           return VK_FORMAT_B8G8R8A8_SINT;
+	case B8G8R8A8_SRGB:           return VK_FORMAT_B8G8R8A8_SRGB;
+	case A8B8G8R8_UNORM:          return VK_FORMAT_A8B8G8R8_UNORM_PACK32;
+	case A8B8G8R8_SNORM:          return VK_FORMAT_A8B8G8R8_SNORM_PACK32;
+	case A8B8G8R8_USCALED:        return VK_FORMAT_A8B8G8R8_USCALED_PACK32;
+	case A8B8G8R8_SSCALED:        return VK_FORMAT_A8B8G8R8_SSCALED_PACK32;
+	case A8B8G8R8_UINT:           return VK_FORMAT_A8B8G8R8_UINT_PACK32;
+	case A8B8G8R8_SINT:           return VK_FORMAT_A8B8G8R8_SINT_PACK32;
+	case A8B8G8R8_SRGB:           return VK_FORMAT_A8B8G8R8_SRGB_PACK32;
+
+	// 10 bits per channel.
+	case A2R10G10B10_UNORM:       return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
+	case A2R10G10B10_SNORM:       return VK_FORMAT_A2R10G10B10_SNORM_PACK32;
+	case A2R10G10B10_USCALED:     return VK_FORMAT_A2R10G10B10_USCALED_PACK32;
+	case A2R10G10B10_SSCALED:     return VK_FORMAT_A2R10G10B10_SSCALED_PACK32;
+	case A2R10G10B10_UINT:        return VK_FORMAT_A2R10G10B10_UINT_PACK32;
+	case A2R10G10B10_SINT:        return VK_FORMAT_A2R10G10B10_SINT_PACK32;
+	case A2B10G10R10_UNORM:       return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
+	case A2B10G10R10_SNORM:       return VK_FORMAT_A2B10G10R10_SNORM_PACK32;
+	case A2B10G10R10_USCALED:     return VK_FORMAT_A2B10G10R10_USCALED_PACK32;
+	case A2B10G10R10_SSCALED:     return VK_FORMAT_A2B10G10R10_SSCALED_PACK32;
+	case A2B10G10R10_UINT:        return VK_FORMAT_A2B10G10R10_UINT_PACK32;
+	case A2B10G10R10_SINT:        return VK_FORMAT_A2B10G10R10_SINT_PACK32;
+
+	// 16 bits per channel.
+	case R16_UNORM:               return VK_FORMAT_R16_UNORM;
+	case R16_SNORM:               return VK_FORMAT_R16_SNORM;
+	case R16_USCALED:             return VK_FORMAT_R16_USCALED;
+	case R16_SSCALED:             return VK_FORMAT_R16_SSCALED;
+	case R16_UINT:                return VK_FORMAT_R16_UINT;
+	case R16_SINT:                return VK_FORMAT_R16_SINT;
+	case R16_SFLOAT:              return VK_FORMAT_R16_SFLOAT;
+	case R16G16_UNORM:            return VK_FORMAT_R16G16_UNORM;
+	case R16G16_SNORM:            return VK_FORMAT_R16G16_SNORM;
+	case R16G16_USCALED:          return VK_FORMAT_R16G16_USCALED;
+	case R16G16_SSCALED:          return VK_FORMAT_R16G16_SSCALED;
+	case R16G16_UINT:             return VK_FORMAT_R16G16_UINT;
+	case R16G16_SINT:             return VK_FORMAT_R16G16_SINT;
+	case R16G16_SFLOAT:           return VK_FORMAT_R16G16_SFLOAT;
+	case R16G16B16_UNORM:         return VK_FORMAT_R16G16B16_UNORM;
+	case R16G16B16_SNORM:         return VK_FORMAT_R16G16B16_SNORM;
+	case R16G16B16_USCALED:       return VK_FORMAT_R16G16B16_USCALED;
+	case R16G16B16_SSCALED:       return VK_FORMAT_R16G16B16_SSCALED;
+	case R16G16B16_UINT:          return VK_FORMAT_R16G16B16_UINT;
+	case R16G16B16_SINT:          return VK_FORMAT_R16G16B16_SINT;
+	case R16G16B16_SFLOAT:        return VK_FORMAT_R16G16B16_SFLOAT;
+	case R16G16B16A16_UNORM:      return VK_FORMAT_R16G16B16A16_UNORM;
+	case R16G16B16A16_SNORM:      return VK_FORMAT_R16G16B16A16_SNORM;
+	case R16G16B16A16_USCALED:    return VK_FORMAT_R16G16B16A16_USCALED;
+	case R16G16B16A16_SSCALED:    return VK_FORMAT_R16G16B16A16_SSCALED;
+	case R16G16B16A16_UINT:       return VK_FORMAT_R16G16B16A16_UINT;
+	case R16G16B16A16_SINT:       return VK_FORMAT_R16G16B16A16_SINT;
+	case R16G16B16A16_SFLOAT:     return VK_FORMAT_R16G16B16A16_SFLOAT;
+
+	// 32 bits per channel.
+	case R32_UINT:                return VK_FORMAT_R32_UINT;
+	case R32_SINT:                return VK_FORMAT_R32_SINT;
+	case R32_SFLOAT:              return VK_FORMAT_R32_SFLOAT;
+	case R32G32_UINT:             return VK_FORMAT_R32G32_UINT;
+	case R32G32_SINT:             return VK_FORMAT_R32G32_SINT;
+	case R32G32_SFLOAT:           return VK_FORMAT_R32G32_SFLOAT;
+	case R32G32B32_UINT:          return VK_FORMAT_R32G32B32_UINT;
+	case R32G32B32_SINT:          return VK_FORMAT_R32G32B32_SINT;
+	case R32G32B32_SFLOAT:        return VK_FORMAT_R32G32B32_SFLOAT;
+	case R32G32B32A32_UINT:       return VK_FORMAT_R32G32B32A32_UINT;
+	case R32G32B32A32_SINT:       return VK_FORMAT_R32G32B32A32_SINT;
+	case R32G32B32A32_SFLOAT:     return VK_FORMAT_R32G32B32A32_SFLOAT;
+
+	// 64 bits per channel.
+	case R64_UINT:                return VK_FORMAT_R64_UINT;
+	case R64_SINT:                return VK_FORMAT_R64_SINT;
+	case R64_SFLOAT:              return VK_FORMAT_R64_SFLOAT;
+	case R64G64_UINT:             return VK_FORMAT_R64G64_UINT;
+	case R64G64_SINT:             return VK_FORMAT_R64G64_SINT;
+	case R64G64_SFLOAT:           return VK_FORMAT_R64G64_SFLOAT;
+	case R64G64B64_UINT:          return VK_FORMAT_R64G64B64_UINT;
+	case R64G64B64_SINT:          return VK_FORMAT_R64G64B64_SINT;
+	case R64G64B64_SFLOAT:        return VK_FORMAT_R64G64B64_SFLOAT;
+	case R64G64B64A64_UINT:       return VK_FORMAT_R64G64B64A64_UINT;
+	case R64G64B64A64_SINT:       return VK_FORMAT_R64G64B64A64_SINT;
+	case R64G64B64A64_SFLOAT:     return VK_FORMAT_R64G64B64A64_SFLOAT;
+
+	// Packed floating point.
+	case B10G11R11_UFLOAT:        return VK_FORMAT_B10G11R11_UFLOAT_PACK32;
+	case E5B9G9R9_UFLOAT:         return VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;
+
+	// Depth and stencil.
+	case D16_UNORM:               return VK_FORMAT_D16_UNORM;
+	case X8_D24_UNORM:            return VK_FORMAT_X8_D24_UNORM_PACK32;
+	case D32_SFLOAT:              return VK_FORMAT_D32_SFLOAT;
+	case S8_UINT:                 return VK_FORMAT_S8_UINT;
+	case D16_UNORM_S8_UINT:       return VK_FORMAT_D16_UNORM_S8_UINT;
+	case D24_UNORM_S8_UINT:       return VK_FORMAT_D24_UNORM_S8_UINT;
+	case D32_SFLOAT_S8_UINT:      return VK_FORMAT_D32_SFLOAT_S8_UINT;
+
+	// Block compression.
+	case BC1_RGB_UNORM:           return VK_FORMAT_BC1_RGB_UNORM_BLOCK;
+	case BC1_RGB_SRGB:            return VK_FORMAT_BC1_RGB_SRGB_BLOCK;
+	case BC1_RGBA_UNORM:          return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
+	case BC1_RGBA_SRGB:           return VK_FORMAT_BC1_RGBA_SRGB_BLOCK;
+	case BC2_UNORM:               return VK_FORMAT_BC2_UNORM_BLOCK;
+	case BC2_SRGB:                return VK_FORMAT_BC2_SRGB_BLOCK;
+	case BC3_UNORM:               return VK_FORMAT_BC3_UNORM_BLOCK;
+	case BC3_SRGB:                return VK_FORMAT_BC3_SRGB_BLOCK;
+	case BC4_UNORM:               return VK_FORMAT_BC4_UNORM_BLOCK;
+	case BC4_SNORM:               return VK_FORMAT_BC4_SNORM_BLOCK;
+	case BC5_UNORM:               return VK_FORMAT_BC5_UNORM_BLOCK;
+	case BC5_SNORM:               return VK_FORMAT_BC5_SNORM_BLOCK;
+	case BC6H_UFLOAT:             return VK_FORMAT_BC6H_UFLOAT_BLOCK;
+	case BC6H_SFLOAT:             return VK_FORMAT_BC6H_SFLOAT_BLOCK;
+	case BC7_UNORM:               return VK_FORMAT_BC7_UNORM_BLOCK;
+	case BC7_SRGB:                return VK_FORMAT_BC7_SRGB_BLOCK;
+
+	default: [[unlikely]]
+		throw InvalidArgumentException("format", "Unsupported format: {0}.", std::to_underlying(format));
 	}
 }
 
-VkFormat LiteFX::Rendering::Backends::Vk::getFormat(Format format)
+Format LiteFX::Rendering::Backends::Vk::getFormat(const VkFormat& format)
 {
+	// Inverse of the mapping above.
 	switch (format)
 	{
-	case Format::R4G4_UNORM:
-		return VK_FORMAT_R4G4_UNORM_PACK8;
-	case Format::R4G4B4A4_UNORM:
-		return VK_FORMAT_R4G4B4A4_UNORM_PACK16;
-	case Format::B4G4R4A4_UNORM:
-		return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
-	case Format::R5G6B5_UNORM:
-		return VK_FORMAT_R5G6B5_UNORM_PACK16;
-	case Format::B5G6R5_UNORM:
-		return VK_FORMAT_B5G6R5_UNORM_PACK16;
-	case Format::R5G5B5A1_UNORM:
-		return VK_FORMAT_R5G5B5A1_UNORM_PACK16;
-	case Format::B5G5R5A1_UNORM:
-		return VK_FORMAT_B5G5R5A1_UNORM_PACK16;
-	case Format::A1R5G5B5_UNORM:
-		return VK_FORMAT_A1R5G5B5_UNORM_PACK16;
-	case Format::R8_UNORM:
-		return VK_FORMAT_R8_UNORM;
-	case Format::R8_SNORM:
-		return VK_FORMAT_R8_SNORM;
-	case Format::R8_USCALED:
-		return VK_FORMAT_R8_USCALED;
-	case Format::R8_SSCALED:
-		return VK_FORMAT_R8_SSCALED;
-	case Format::R8_UINT:
-		return VK_FORMAT_R8_UINT;
-	case Format::R8_SINT:
-		return VK_FORMAT_R8_SINT;
-	case Format::R8_SRGB:
-		return VK_FORMAT_R8_SRGB;
-	case Format::R8G8_UNORM:
-		return VK_FORMAT_R8G8_UNORM;
-	case Format::R8G8_SNORM:
-		return VK_FORMAT_R8G8_SNORM;
-	case Format::R8G8_USCALED:
-		return VK_FORMAT_R8G8_USCALED;
-	case Format::R8G8_SSCALED:
-		return VK_FORMAT_R8G8_SSCALED;
-	case Format::R8G8_UINT:
-		return VK_FORMAT_R8G8_UINT;
-	case Format::R8G8_SINT:
-		return VK_FORMAT_R8G8_SINT;
-	case Format::R8G8_SRGB:
-		return VK_FORMAT_R8G8_SRGB;
-	case Format::R8G8B8_UNORM:
-		return VK_FORMAT_R8G8B8_UNORM;
-	case Format::R8G8B8_SNORM:
-		return VK_FORMAT_R8G8B8_SNORM;
-	case Format::R8G8B8_USCALED:
-		return VK_FORMAT_R8G8B8_USCALED;
-	case Format::R8G8B8_SSCALED:
-		return VK_FORMAT_R8G8B8_SSCALED;
-	case Format::R8G8B8_UINT:
-		return VK_FORMAT_R8G8B8_UINT;
-	case Format::R8G8B8_SINT:
-		return VK_FORMAT_R8G8B8_SINT;
-	case Format::R8G8B8_SRGB:
-		return VK_FORMAT_R8G8B8_SRGB;
-	case Format::B8G8R8_UNORM:
-		return VK_FORMAT_B8G8R8_UNORM;
-	case Format::B8G8R8_SNORM:
-		return VK_FORMAT_B8G8R8_SNORM;
-	case Format::B8G8R8_USCALED:
-		return VK_FORMAT_B8G8R8_USCALED;
-	case Format::B8G8R8_SSCALED:
-		return VK_FORMAT_B8G8R8_SSCALED;
-	case Format::B8G8R8_UINT:
-		return VK_FORMAT_B8G8R8_UINT;
-	case Format::B8G8R8_SINT:
-		return VK_FORMAT_B8G8R8_SINT;
-	case Format::B8G8R8_SRGB:
-		return VK_FORMAT_B8G8R8_SRGB;
-	case Format::R8G8B8A8_UNORM:
-		return VK_FORMAT_R8G8B8A8_UNORM;
-	case Format::R8G8B8A8_SNORM:
-		return VK_FORMAT_R8G8B8A8_SNORM;
-	case Format::R8G8B8A8_USCALED:
-		return VK_FORMAT_R8G8B8A8_USCALED;
-	case Format::R8G8B8A8_SSCALED:
-		return VK_FORMAT_R8G8B8A8_SSCALED;
-	case Format::R8G8B8A8_UINT:
-		return VK_FORMAT_R8G8B8A8_UINT;
-	case Format::R8G8B8A8_SINT:
-		return VK_FORMAT_R8G8B8A8_SINT;
-	case Format::R8G8B8A8_SRGB:
-		return VK_FORMAT_R8G8B8A8_SRGB;
-	case Format::B8G8R8A8_UNORM:
-		return VK_FORMAT_B8G8R8A8_UNORM;
-	case Format::B8G8R8A8_SNORM:
-		return VK_FORMAT_B8G8R8A8_SNORM;
-	case Format::B8G8R8A8_USCALED:
-		return VK_FORMAT_B8G8R8A8_USCALED;
-	case Format::B8G8R8A8_SSCALED:
-		return VK_FORMAT_B8G8R8A8_SSCALED;
-	case Format::B8G8R8A8_UINT:
-		return VK_FORMAT_B8G8R8A8_UINT;
-	case Format::B8G8R8A8_SINT:
-		return VK_FORMAT_B8G8R8A8_SINT;
-	case Format::B8G8R8A8_SRGB:
-		return VK_FORMAT_B8G8R8A8_SRGB;
-	case Format::A8B8G8R8_UNORM:
-		return VK_FORMAT_A8B8G8R8_UNORM_PACK32;
-	case Format::A8B8G8R8_SNORM:
-		return VK_FORMAT_A8B8G8R8_SNORM_PACK32;
-	case Format::A8B8G8R8_USCALED:
-		return VK_FORMAT_A8B8G8R8_USCALED_PACK32;
-	case Format::A8B8G8R8_SSCALED:
-		return VK_FORMAT_A8B8G8R8_SSCALED_PACK32;
-	case Format::A8B8G8R8_UINT:
-		return VK_FORMAT_A8B8G8R8_UINT_PACK32;
-	case Format::A8B8G8R8_SINT:
-		return VK_FORMAT_A8B8G8R8_SINT_PACK32;
-	case Format::A8B8G8R8_SRGB:
-		return VK_FORMAT_A8B8G8R8_SRGB_PACK32;
-	case Format::A2R10G10B10_UNORM:
-		return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
-	case Format::A2R10G10B10_SNORM:
-		return VK_FORMAT_A2R10G10B10_SNORM_PACK32;
-	case Format::A2R10G10B10_USCALED:
-		return VK_FORMAT_A2R10G10B10_USCALED_PACK32;
-	case Format::A2R10G10B10_SSCALED:
-		return VK_FORMAT_A2R10G10B10_SSCALED_PACK32;
-	case Format::A2R10G10B10_UINT:
-		return VK_FORMAT_A2R10G10B10_UINT_PACK32;
-	case Format::A2R10G10B10_SINT:
-		return VK_FORMAT_A2R10G10B10_SINT_PACK32;
-	case Format::A2B10G10R10_UNORM:
-		return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
-	case Format::A2B10G10R10_SNORM:
-		return VK_FORMAT_A2B10G10R10_SNORM_PACK32;
-	case Format::A2B10G10R10_USCALED:
-		return VK_FORMAT_A2B10G10R10_USCALED_PACK32;
-	case Format::A2B10G10R10_SSCALED:
-		return VK_FORMAT_A2B10G10R10_SSCALED_PACK32;
-	case Format::A2B10G10R10_UINT:
-		return VK_FORMAT_A2B10G10R10_UINT_PACK32;
-	case Format::A2B10G10R10_SINT:
-		return VK_FORMAT_A2B10G10R10_SINT_PACK32;
-	case Format::R16_UNORM:
-		return VK_FORMAT_R16_UNORM;
-	case Format::R16_SNORM:
-		return VK_FORMAT_R16_SNORM;
-	case Format::R16_USCALED:
-		return VK_FORMAT_R16_USCALED;
-	case Format::R16_SSCALED:
-		return VK_FORMAT_R16_SSCALED;
-	case Format::R16_UINT:
-		return VK_FORMAT_R16_UINT;
-	case Format::R16_SINT:
-		return VK_FORMAT_R16_SINT;
-	case Format::R16_SFLOAT:
-		return VK_FORMAT_R16_SFLOAT;
-	case Format::R16G16_UNORM:
-		return VK_FORMAT_R16G16_UNORM;
-	case Format::R16G16_SNORM:
-		return VK_FORMAT_R16G16_SNORM;
-	case Format::R16G16_USCALED:
-		return VK_FORMAT_R16G16_USCALED;
-	case Format::R16G16_SSCALED:
-		return VK_FORMAT_R16G16_SSCALED;
-	case Format::R16G16_UINT:
-		return VK_FORMAT_R16G16_UINT;
-	case Format::R16G16_SINT:
-		return VK_FORMAT_R16G16_SINT;
-	case Format::R16G16_SFLOAT:
-		return VK_FORMAT_R16G16_SFLOAT;
-	case Format::R16G16B16_UNORM:
-		return VK_FORMAT_R16G16B16_UNORM;
-	case Format::R16G16B16_SNORM:
-		return VK_FORMAT_R16G16B16_SNORM;
-	case Format::R16G16B16_USCALED:
-		return VK_FORMAT_R16G16B16_USCALED;
-	case Format::R16G16B16_SSCALED:
-		return VK_FORMAT_R16G16B16_SSCALED;
-	case Format::R16G16B16_UINT:
-		return VK_FORMAT_R16G16B16_UINT;
-	case Format::R16G16B16_SINT:
-		return VK_FORMAT_R16G16B16_SINT;
-	case Format::R16G16B16_SFLOAT:
-		return VK_FORMAT_R16G16B16_SFLOAT;
-	case Format::R16G16B16A16_UNORM:
-		return VK_FORMAT_R16G16B16A16_UNORM;
-	case Format::R16G16B16A16_SNORM:
-		return VK_FORMAT_R16G16B16A16_SNORM;
-	case Format::R16G16B16A16_USCALED:
-		return VK_FORMAT_R16G16B16A16_USCALED;
-	case Format::R16G16B16A16_SSCALED:
-		return VK_FORMAT_R16G16B16A16_SSCALED;
-	case Format::R16G16B16A16_UINT:
-		return VK_FORMAT_R16G16B16A16_UINT;
-	case Format::R16G16B16A16_SINT:
-		return VK_FORMAT_R16G16B16A16_SINT;
-	case Format::R16G16B16A16_SFLOAT:
-		return VK_FORMAT_R16G16B16A16_SFLOAT;
-	case Format::R32_UINT:
-		return VK_FORMAT_R32_UINT;
-	case Format::R32_SINT:
-		return VK_FORMAT_R32_SINT;
-	case Format::R32_SFLOAT:
-		return VK_FORMAT_R32_SFLOAT;
-	case Format::R32G32_UINT:
-		return VK_FORMAT_R32G32_UINT;
-	case Format::R32G32_SINT:
-		return VK_FORMAT_R32G32_SINT;
-	case Format::R32G32_SFLOAT:
-		return VK_FORMAT_R32G32_SFLOAT;
-	case Format::R32G32B32_UINT:
-		return VK_FORMAT_R32G32B32_UINT;
-	case Format::R32G32B32_SINT:
-		return VK_FORMAT_R32G32B32_SINT;
-	case Format::R32G32B32_SFLOAT:
-		return VK_FORMAT_R32G32B32_SFLOAT;
-	case Format::R32G32B32A32_UINT:
-		return VK_FORMAT_R32G32B32A32_UINT;
-	case Format::R32G32B32A32_SINT:
-		return VK_FORMAT_R32G32B32A32_SINT;
-	case Format::R32G32B32A32_SFLOAT:
-		return VK_FORMAT_R32G32B32A32_SFLOAT;
-	case Format::R64_UINT:
-		return VK_FORMAT_R64_UINT;
-	case Format::R64_SINT:
-		return VK_FORMAT_R64_SINT;
-	case Format::R64_SFLOAT:
-		return VK_FORMAT_R64_SFLOAT;
-	case Format::R64G64_UINT:
-		return VK_FORMAT_R64G64_UINT;
-	case Format::R64G64_SINT:
-		return VK_FORMAT_R64G64_SINT;
-	case Format::R64G64_SFLOAT:
-		return VK_FORMAT_R64G64_SFLOAT;
-	case Format::R64G64B64_UINT:
-		return VK_FORMAT_R64G64B64_UINT;
-	case Format::R64G64B64_SINT:
-		return VK_FORMAT_R64G64B64_SINT;
-	case Format::R64G64B64_SFLOAT:
-		return VK_FORMAT_R64G64B64_SFLOAT;
-	case Format::R64G64B64A64_UINT:
-		return VK_FORMAT_R64G64B64A64_UINT;
-	case Format::R64G64B64A64_SINT:
-		return VK_FORMAT_R64G64B64A64_SINT;
-	case Format::R64G64B64A64_SFLOAT:
-		return VK_FORMAT_R64G64B64A64_SFLOAT;
-	case Format::B10G11R11_UFLOAT:
-		return VK_FORMAT_B10G11R11_UFLOAT_PACK32;
-	case Format::E5B9G9R9_UFLOAT:
-		return VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;
-	case Format::D16_UNORM:
-		return VK_FORMAT_D16_UNORM;
-	case Format::X8_D24_UNORM:
-		return VK_FORMAT_X8_D24_UNORM_PACK32;
-	case Format::D32_SFLOAT:
-		return VK_FORMAT_D32_SFLOAT;
-	case Format::S8_UINT:
-		return VK_FORMAT_S8_UINT;
-	case Format::D16_UNORM_S8_UINT:
-		return VK_FORMAT_D16_UNORM_S8_UINT;
-	case Format::D24_UNORM_S8_UINT:
-		return VK_FORMAT_D24_UNORM_S8_UINT;
-	case Format::D32_SFLOAT_S8_UINT:
-		return VK_FORMAT_D32_SFLOAT_S8_UINT;
-	case Format::BC1_RGB_UNORM:
-		return VK_FORMAT_BC1_RGB_UNORM_BLOCK;
-	case Format::BC1_RGB_SRGB:
-		return VK_FORMAT_BC1_RGB_SRGB_BLOCK;
-	case Format::BC1_RGBA_UNORM:
-		return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
-	case Format::BC1_RGBA_SRGB:
-		return VK_FORMAT_BC1_RGBA_SRGB_BLOCK;
-	case Format::BC2_UNORM:
-		return VK_FORMAT_BC2_UNORM_BLOCK;
-	case Format::BC2_SRGB:
-		return VK_FORMAT_BC2_SRGB_BLOCK;
-	case Format::BC3_UNORM:
-		return VK_FORMAT_BC3_UNORM_BLOCK;
-	case Format::BC3_SRGB:
-		return VK_FORMAT_BC3_SRGB_BLOCK;
-	case Format::BC4_UNORM:
-		return VK_FORMAT_BC4_UNORM_BLOCK;
-	case Format::BC4_SNORM:
-		return VK_FORMAT_BC4_SNORM_BLOCK;
-	case Format::BC5_UNORM:
-		return VK_FORMAT_BC5_UNORM_BLOCK;
-	case Format::BC5_SNORM:
-		return VK_FORMAT_BC5_SNORM_BLOCK;
-	case Format::BC6H_UFLOAT:
-		return VK_FORMAT_BC6H_UFLOAT_BLOCK;
-	case Format::BC6H_SFLOAT:
-		return VK_FORMAT_BC6H_SFLOAT_BLOCK;
-	case Format::BC7_UNORM:
-		return VK_FORMAT_BC7_UNORM_BLOCK;
-	case Format::BC7_SRGB:
-		return VK_FORMAT_BC7_SRGB_BLOCK;
-	default:
-		throw std::invalid_argument("Unsupported format.");
+	// 4 and 5 bits per channel.
+	case VK_FORMAT_R4G4_UNORM_PACK8:              return Format::R4G4_UNORM;
+	case VK_FORMAT_R4G4B4A4_UNORM_PACK16:         return Format::R4G4B4A4_UNORM;
+	case VK_FORMAT_B4G4R4A4_UNORM_PACK16:         return Format::B4G4R4A4_UNORM;
+	case VK_FORMAT_A4R4G4B4_UNORM_PACK16:         return Format::A4R4G4B4_UNORM;
+	case VK_FORMAT_A4B4G4R4_UNORM_PACK16:         return Format::A4B4G4R4_UNORM;
+	case VK_FORMAT_R5G6B5_UNORM_PACK16:           return Format::R5G6B5_UNORM;
+	case VK_FORMAT_B5G6R5_UNORM_PACK16:           return Format::B5G6R5_UNORM;
+	case VK_FORMAT_R5G5B5A1_UNORM_PACK16:         return Format::R5G5B5A1_UNORM;
+	case VK_FORMAT_B5G5R5A1_UNORM_PACK16:         return Format::B5G5R5A1_UNORM;
+	case VK_FORMAT_A1R5G5B5_UNORM_PACK16:         return Format::A1R5G5B5_UNORM;
+	case VK_FORMAT_A1B5G5R5_UNORM_PACK16:         return Format::A1B5G5R5_UNORM;
+
+	// 8 bits per channel.
+	case VK_FORMAT_A8_UNORM:                      return Format::A8_UNORM;
+	case VK_FORMAT_R8_UNORM:                      return Format::R8_UNORM;
+	case VK_FORMAT_R8_SNORM:                      return Format::R8_SNORM;
+	case VK_FORMAT_R8_USCALED:                    return Format::R8_USCALED;
+	case VK_FORMAT_R8_SSCALED:                    return Format::R8_SSCALED;
+	case VK_FORMAT_R8_UINT:                       return Format::R8_UINT;
+	case VK_FORMAT_R8_SINT:                       return Format::R8_SINT;
+	case VK_FORMAT_R8_SRGB:                       return Format::R8_SRGB;
+	case VK_FORMAT_R8G8_UNORM:                    return Format::R8G8_UNORM;
+	case VK_FORMAT_R8G8_SNORM:                    return Format::R8G8_SNORM;
+	case VK_FORMAT_R8G8_USCALED:                  return Format::R8G8_USCALED;
+	case VK_FORMAT_R8G8_SSCALED:                  return Format::R8G8_SSCALED;
+	case VK_FORMAT_R8G8_UINT:                     return Format::R8G8_UINT;
+	case VK_FORMAT_R8G8_SINT:                     return Format::R8G8_SINT;
+	case VK_FORMAT_R8G8_SRGB:                     return Format::R8G8_SRGB;
+	case VK_FORMAT_R8G8B8_UNORM:                  return Format::R8G8B8_UNORM;
+	case VK_FORMAT_R8G8B8_SNORM:                  return Format::R8G8B8_SNORM;
+	case VK_FORMAT_R8G8B8_USCALED:                return Format::R8G8B8_USCALED;
+	case VK_FORMAT_R8G8B8_SSCALED:                return Format::R8G8B8_SSCALED;
+	case VK_FORMAT_R8G8B8_UINT:                   return Format::R8G8B8_UINT;
+	case VK_FORMAT_R8G8B8_SINT:                   return Format::R8G8B8_SINT;
+	case VK_FORMAT_R8G8B8_SRGB:                   return Format::R8G8B8_SRGB;
+	case VK_FORMAT_B8G8R8_UNORM:                  return Format::B8G8R8_UNORM;
+	case VK_FORMAT_B8G8R8_SNORM:                  return Format::B8G8R8_SNORM;
+	case VK_FORMAT_B8G8R8_USCALED:                return Format::B8G8R8_USCALED;
+	case VK_FORMAT_B8G8R8_SSCALED:                return Format::B8G8R8_SSCALED;
+	case VK_FORMAT_B8G8R8_UINT:                   return Format::B8G8R8_UINT;
+	case VK_FORMAT_B8G8R8_SINT:                   return Format::B8G8R8_SINT;
+	case VK_FORMAT_B8G8R8_SRGB:                   return Format::B8G8R8_SRGB;
+	case VK_FORMAT_R8G8B8A8_UNORM:                return Format::R8G8B8A8_UNORM;
+	case VK_FORMAT_R8G8B8A8_SNORM:                return Format::R8G8B8A8_SNORM;
+	case VK_FORMAT_R8G8B8A8_USCALED:              return Format::R8G8B8A8_USCALED;
+	case VK_FORMAT_R8G8B8A8_SSCALED:              return Format::R8G8B8A8_SSCALED;
+	case VK_FORMAT_R8G8B8A8_UINT:                 return Format::R8G8B8A8_UINT;
+	case VK_FORMAT_R8G8B8A8_SINT:                 return Format::R8G8B8A8_SINT;
+	case VK_FORMAT_R8G8B8A8_SRGB:                 return Format::R8G8B8A8_SRGB;
+	case VK_FORMAT_B8G8R8A8_UNORM:                return Format::B8G8R8A8_UNORM;
+	case VK_FORMAT_B8G8R8A8_SNORM:                return Format::B8G8R8A8_SNORM;
+	case VK_FORMAT_B8G8R8A8_USCALED:              return Format::B8G8R8A8_USCALED;
+	case VK_FORMAT_B8G8R8A8_SSCALED:              return Format::B8G8R8A8_SSCALED;
+	case VK_FORMAT_B8G8R8A8_UINT:                 return Format::B8G8R8A8_UINT;
+	case VK_FORMAT_B8G8R8A8_SINT:                 return Format::B8G8R8A8_SINT;
+	case VK_FORMAT_B8G8R8A8_SRGB:                 return Format::B8G8R8A8_SRGB;
+	case VK_FORMAT_A8B8G8R8_UNORM_PACK32:         return Format::A8B8G8R8_UNORM;
+	case VK_FORMAT_A8B8G8R8_SNORM_PACK32:         return Format::A8B8G8R8_SNORM;
+	case VK_FORMAT_A8B8G8R8_USCALED_PACK32:       return Format::A8B8G8R8_USCALED;
+	case VK_FORMAT_A8B8G8R8_SSCALED_PACK32:       return Format::A8B8G8R8_SSCALED;
+	case VK_FORMAT_A8B8G8R8_UINT_PACK32:          return Format::A8B8G8R8_UINT;
+	case VK_FORMAT_A8B8G8R8_SINT_PACK32:          return Format::A8B8G8R8_SINT;
+	case VK_FORMAT_A8B8G8R8_SRGB_PACK32:          return Format::A8B8G8R8_SRGB;
+
+	// 10 bits per channel.
+	case VK_FORMAT_A2R10G10B10_UNORM_PACK32:      return Format::A2R10G10B10_UNORM;
+	case VK_FORMAT_A2R10G10B10_SNORM_PACK32:      return Format::A2R10G10B10_SNORM;
+	case VK_FORMAT_A2R10G10B10_USCALED_PACK32:    return Format::A2R10G10B10_USCALED;
+	case VK_FORMAT_A2R10G10B10_SSCALED_PACK32:    return Format::A2R10G10B10_SSCALED;
+	case VK_FORMAT_A2R10G10B10_UINT_PACK32:       return Format::A2R10G10B10_UINT;
+	case VK_FORMAT_A2R10G10B10_SINT_PACK32:       return Format::A2R10G10B10_SINT;
+	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:      return Format::A2B10G10R10_UNORM;
+	case VK_FORMAT_A2B10G10R10_SNORM_PACK32:      return Format::A2B10G10R10_SNORM;
+	case VK_FORMAT_A2B10G10R10_USCALED_PACK32:    return Format::A2B10G10R10_USCALED;
+	case VK_FORMAT_A2B10G10R10_SSCALED_PACK32:    return Format::A2B10G10R10_SSCALED;
+	case VK_FORMAT_A2B10G10R10_UINT_PACK32:       return Format::A2B10G10R10_UINT;
+	case VK_FORMAT_A2B10G10R10_SINT_PACK32:       return Format::A2B10G10R10_SINT;
+
+	// 16 bits per channel.
+	case VK_FORMAT_R16_UNORM:                     return Format::R16_UNORM;
+	case VK_FORMAT_R16_SNORM:                     return Format::R16_SNORM;
+	case VK_FORMAT_R16_USCALED:                   return Format::R16_USCALED;
+	case VK_FORMAT_R16_SSCALED:                   return Format::R16_SSCALED;
+	case VK_FORMAT_R16_UINT:                      return Format::R16_UINT;
+	case VK_FORMAT_R16_SINT:                      return Format::R16_SINT;
+	case VK_FORMAT_R16_SFLOAT:                    return Format::R16_SFLOAT;
+	case VK_FORMAT_R16G16_UNORM:                  return Format::R16G16_UNORM;
+	case VK_FORMAT_R16G16_SNORM:                  return Format::R16G16_SNORM;
+	case VK_FORMAT_R16G16_USCALED:                return Format::R16G16_USCALED;
+	case VK_FORMAT_R16G16_SSCALED:                return Format::R16G16_SSCALED;
+	case VK_FORMAT_R16G16_UINT:                   return Format::R16G16_UINT;
+	case VK_FORMAT_R16G16_SINT:                   return Format::R16G16_SINT;
+	case VK_FORMAT_R16G16_SFLOAT:                 return Format::R16G16_SFLOAT;
+	case VK_FORMAT_R16G16B16_UNORM:               return Format::R16G16B16_UNORM;
+	case VK_FORMAT_R16G16B16_SNORM:               return Format::R16G16B16_SNORM;
+	case VK_FORMAT_R16G16B16_USCALED:             return Format::R16G16B16_USCALED;
+	case VK_FORMAT_R16G16B16_SSCALED:             return Format::R16G16B16_SSCALED;
+	case VK_FORMAT_R16G16B16_UINT:                return Format::R16G16B16_UINT;
+	case VK_FORMAT_R16G16B16_SINT:                return Format::R16G16B16_SINT;
+	case VK_FORMAT_R16G16B16_SFLOAT:              return Format::R16G16B16_SFLOAT;
+	case VK_FORMAT_R16G16B16A16_UNORM:            return Format::R16G16B16A16_UNORM;
+	case VK_FORMAT_R16G16B16A16_SNORM:            return Format::R16G16B16A16_SNORM;
+	case VK_FORMAT_R16G16B16A16_USCALED:          return Format::R16G16B16A16_USCALED;
+	case VK_FORMAT_R16G16B16A16_SSCALED:          return Format::R16G16B16A16_SSCALED;
+	case VK_FORMAT_R16G16B16A16_UINT:             return Format::R16G16B16A16_UINT;
+	case VK_FORMAT_R16G16B16A16_SINT:             return Format::R16G16B16A16_SINT;
+	case VK_FORMAT_R16G16B16A16_SFLOAT:           return Format::R16G16B16A16_SFLOAT;
+
+	// 32 bits per channel.
+	case VK_FORMAT_R32_UINT:                      return Format::R32_UINT;
+	case VK_FORMAT_R32_SINT:                      return Format::R32_SINT;
+	case VK_FORMAT_R32_SFLOAT:                    return Format::R32_SFLOAT;
+	case VK_FORMAT_R32G32_UINT:                   return Format::R32G32_UINT;
+	case VK_FORMAT_R32G32_SINT:                   return Format::R32G32_SINT;
+	case VK_FORMAT_R32G32_SFLOAT:                 return Format::R32G32_SFLOAT;
+	case VK_FORMAT_R32G32B32_UINT:                return Format::R32G32B32_UINT;
+	case VK_FORMAT_R32G32B32_SINT:                return Format::R32G32B32_SINT;
+	case VK_FORMAT_R32G32B32_SFLOAT:              return Format::R32G32B32_SFLOAT;
+	case VK_FORMAT_R32G32B32A32_UINT:             return Format::R32G32B32A32_UINT;
+	case VK_FORMAT_R32G32B32A32_SINT:             return Format::R32G32B32A32_SINT;
+	case VK_FORMAT_R32G32B32A32_SFLOAT:           return Format::R32G32B32A32_SFLOAT;
+
+	// 64 bits per channel.
+	case VK_FORMAT_R64_UINT:                      return Format::R64_UINT;
+	case VK_FORMAT_R64_SINT:                      return Format::R64_SINT;
+	case VK_FORMAT_R64_SFLOAT:                    return Format::R64_SFLOAT;
+	case VK_FORMAT_R64G64_UINT:                   return Format::R64G64_UINT;
+	case VK_FORMAT_R64G64_SINT:                   return Format::R64G64_SINT;
+	case VK_FORMAT_R64G64_SFLOAT:                 return Format::R64G64_SFLOAT;
+	case VK_FORMAT_R64G64B64_UINT:                return Format::R64G64B64_UINT;
+	case VK_FORMAT_R64G64B64_SINT:                return Format::R64G64B64_SINT;
+	case VK_FORMAT_R64G64B64_SFLOAT:              return Format::R64G64B64_SFLOAT;
+	case VK_FORMAT_R64G64B64A64_UINT:             return Format::R64G64B64A64_UINT;
+	case VK_FORMAT_R64G64B64A64_SINT:             return Format::R64G64B64A64_SINT;
+	case VK_FORMAT_R64G64B64A64_SFLOAT:           return Format::R64G64B64A64_SFLOAT;
+
+	// Packed floating point.
+	case VK_FORMAT_B10G11R11_UFLOAT_PACK32:       return Format::B10G11R11_UFLOAT;
+	case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:        return Format::E5B9G9R9_UFLOAT;
+
+	// Depth and stencil.
+	case VK_FORMAT_D16_UNORM:                     return Format::D16_UNORM;
+	case VK_FORMAT_X8_D24_UNORM_PACK32:           return Format::X8_D24_UNORM;
+	case VK_FORMAT_D32_SFLOAT:                    return Format::D32_SFLOAT;
+	case VK_FORMAT_S8_UINT:                       return Format::S8_UINT;
+	case VK_FORMAT_D16_UNORM_S8_UINT:             return Format::D16_UNORM_S8_UINT;
+	case VK_FORMAT_D24_UNORM_S8_UINT:             return Format::D24_UNORM_S8_UINT;
+	case VK_FORMAT_D32_SFLOAT_S8_UINT:            return Format::D32_SFLOAT_S8_UINT;
+
+	// Block compression.
+	case VK_FORMAT_BC1_RGB_UNORM_BLOCK:           return Format::BC1_RGB_UNORM;
+	case VK_FORMAT_BC1_RGB_SRGB_BLOCK:            return Format::BC1_RGB_SRGB;
+	case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:          return Format::BC1_RGBA_UNORM;
+	case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:           return Format::BC1_RGBA_SRGB;
+	case VK_FORMAT_BC2_UNORM_BLOCK:               return Format::BC2_UNORM;
+	case VK_FORMAT_BC2_SRGB_BLOCK:                return Format::BC2_SRGB;
+	case VK_FORMAT_BC3_UNORM_BLOCK:               return Format::BC3_UNORM;
+	case VK_FORMAT_BC3_SRGB_BLOCK:                return Format::BC3_SRGB;
+	case VK_FORMAT_BC4_UNORM_BLOCK:               return Format::BC4_UNORM;
+	case VK_FORMAT_BC4_SNORM_BLOCK:               return Format::BC4_SNORM;
+	case VK_FORMAT_BC5_UNORM_BLOCK:               return Format::BC5_UNORM;
+	case VK_FORMAT_BC5_SNORM_BLOCK:               return Format::BC5_SNORM;
+	case VK_FORMAT_BC6H_UFLOAT_BLOCK:             return Format::BC6H_UFLOAT;
+	case VK_FORMAT_BC6H_SFLOAT_BLOCK:             return Format::BC6H_SFLOAT;
+	case VK_FORMAT_BC7_UNORM_BLOCK:               return Format::BC7_UNORM;
+	case VK_FORMAT_BC7_SRGB_BLOCK:                return Format::BC7_SRGB;
+
+	case VK_FORMAT_UNDEFINED:                     return Format::None;
+	default:                                      return Format::Other;
 	}
 }
 
@@ -608,54 +366,30 @@ VkFormat LiteFX::Rendering::Backends::Vk::getFormat(BufferFormat format)
 {
 	switch (format)
 	{
-	case BufferFormat::X16F:
-		return VK_FORMAT_R16_SFLOAT;
-	case BufferFormat::X16I:
-		return VK_FORMAT_R16_SINT;
-	case BufferFormat::X16U:
-		return VK_FORMAT_R16_UINT;
-	case BufferFormat::XY16F:
-		return VK_FORMAT_R16G16_SFLOAT;
-	case BufferFormat::XY16I:
-		return VK_FORMAT_R16G16_SINT;
-	case BufferFormat::XY16U:
-		return VK_FORMAT_R16G16_UINT;
-	case BufferFormat::XYZ16F:
-		return VK_FORMAT_R16G16B16_SFLOAT;
-	case BufferFormat::XYZ16I:
-		return VK_FORMAT_R16G16B16_SINT;
-	case BufferFormat::XYZ16U:
-		return VK_FORMAT_R16G16B16_UINT;
-	case BufferFormat::XYZW16F:
-		return VK_FORMAT_R16G16B16A16_SFLOAT;
-	case BufferFormat::XYZW16I:
-		return VK_FORMAT_R16G16B16A16_SINT;
-	case BufferFormat::XYZW16U:
-		return VK_FORMAT_R16G16B16A16_UINT;
-	case BufferFormat::X32F:
-		return VK_FORMAT_R32_SFLOAT;
-	case BufferFormat::X32I:
-		return VK_FORMAT_R32_SINT;
-	case BufferFormat::X32U:
-		return VK_FORMAT_R32_UINT;
-	case BufferFormat::XY32F:
-		return VK_FORMAT_R32G32_SFLOAT;
-	case BufferFormat::XY32I:
-		return VK_FORMAT_R32G32_SINT;
-	case BufferFormat::XY32U:
-		return VK_FORMAT_R32G32_UINT;
-	case BufferFormat::XYZ32F:
-		return VK_FORMAT_R32G32B32_SFLOAT;
-	case BufferFormat::XYZ32I:
-		return VK_FORMAT_R32G32B32_SINT;
-	case BufferFormat::XYZ32U:
-		return VK_FORMAT_R32G32B32_UINT;
-	case BufferFormat::XYZW32F:
-		return VK_FORMAT_R32G32B32A32_SFLOAT;
-	case BufferFormat::XYZW32I:
-		return VK_FORMAT_R32G32B32A32_SINT;
-	case BufferFormat::XYZW32U:
-		return VK_FORMAT_R32G32B32A32_UINT;
+	case BufferFormat::X16F:	return VK_FORMAT_R16_SFLOAT;
+	case BufferFormat::X16I:	return VK_FORMAT_R16_SINT;
+	case BufferFormat::X16U:	return VK_FORMAT_R16_UINT;
+	case BufferFormat::XY16F:	return VK_FORMAT_R16G16_SFLOAT;
+	case BufferFormat::XY16I:	return VK_FORMAT_R16G16_SINT;
+	case BufferFormat::XY16U:	return VK_FORMAT_R16G16_UINT;
+	case BufferFormat::XYZ16F:	return VK_FORMAT_R16G16B16_SFLOAT;
+	case BufferFormat::XYZ16I:	return VK_FORMAT_R16G16B16_SINT;
+	case BufferFormat::XYZ16U:	return VK_FORMAT_R16G16B16_UINT;
+	case BufferFormat::XYZW16F:	return VK_FORMAT_R16G16B16A16_SFLOAT;
+	case BufferFormat::XYZW16I:	return VK_FORMAT_R16G16B16A16_SINT;
+	case BufferFormat::XYZW16U:	return VK_FORMAT_R16G16B16A16_UINT;
+	case BufferFormat::X32F:	return VK_FORMAT_R32_SFLOAT;
+	case BufferFormat::X32I:	return VK_FORMAT_R32_SINT;
+	case BufferFormat::X32U:	return VK_FORMAT_R32_UINT;
+	case BufferFormat::XY32F:	return VK_FORMAT_R32G32_SFLOAT;
+	case BufferFormat::XY32I:	return VK_FORMAT_R32G32_SINT;
+	case BufferFormat::XY32U:	return VK_FORMAT_R32G32_UINT;
+	case BufferFormat::XYZ32F:	return VK_FORMAT_R32G32B32_SFLOAT;
+	case BufferFormat::XYZ32I:	return VK_FORMAT_R32G32B32_SINT;
+	case BufferFormat::XYZ32U:	return VK_FORMAT_R32G32B32_UINT;
+	case BufferFormat::XYZW32F:	return VK_FORMAT_R32G32B32A32_SFLOAT;
+	case BufferFormat::XYZW32I:	return VK_FORMAT_R32G32B32A32_SINT;
+	case BufferFormat::XYZW32U:	return VK_FORMAT_R32G32B32A32_UINT;
 	default:
 		throw std::invalid_argument("Unsupported format.");
 	}

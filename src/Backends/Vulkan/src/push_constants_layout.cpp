@@ -18,7 +18,7 @@ private:
 
 public:
     VulkanPushConstantsLayoutImpl(UInt32 size) :
-        m_size(align(size, static_cast<UInt32>(sizeof(UInt32))))
+        m_size(alignPoT(size, static_cast<UInt32>(sizeof(UInt32))))
     {
     }
 

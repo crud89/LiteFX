@@ -190,7 +190,7 @@ public:
         directSamplerHeapAccess  |= LITEFX_FLAG_IS_SET(description->Flags, D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED);
 
         // Iterate the static samplers.
-        for (UInt32 i(0); i < description->NumStaticSamplers; ++i)
+        for (UInt32 i{ 0u }; i < description->NumStaticSamplers; ++i)
         {
             auto staticSampler = description->pStaticSamplers[i]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
@@ -209,7 +209,7 @@ public:
         }
 
         // Iterate the root parameters.
-        for (UInt32 i(0); i < description->NumParameters; ++i)
+        for (UInt32 i{ 0u }; i < description->NumParameters; ++i)
         {
             auto rootParameter = description->pParameters[i]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
@@ -437,7 +437,7 @@ public:
                     functionReflection->GetDesc(&functionDesc);
                     trackDirectHeapAccess(functionDesc.RequiredFeatureFlags);
 
-                    for (UInt32 i(0); i < functionDesc.BoundResources; ++i)
+                    for (UInt32 i{ 0u }; i < functionDesc.BoundResources; ++i)
                     {
                         // Get the bound resource description.
                         D3D12_SHADER_INPUT_BIND_DESC inputDesc;
@@ -463,7 +463,7 @@ public:
                 trackDirectHeapAccess(shaderReflection->GetRequiresFlags());
 
                 // Iterate the bound resources to extract the descriptor sets.
-                for (UInt32 i(0); i < shaderInfo.BoundResources; ++i)
+                for (UInt32 i{ 0u }; i < shaderInfo.BoundResources; ++i)
                 {
                     // Get the bound resource description.
                     D3D12_SHADER_INPUT_BIND_DESC inputDesc;

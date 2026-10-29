@@ -141,101 +141,198 @@ namespace LiteFX::Rendering {
     };
 
     /// @brief Describes a texel format.
+    ///
+    /// Note that not all formats are supported in both backends. Notably the DirectX 12 backend doesn't support the full set of formats.
     enum class Format {
         None = 0x00000000,
         R4G4_UNORM,
         R4G4B4A4_UNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         B4G4R4A4_UNORM,
         R5G6B5_UNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         B5G6R5_UNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R5G5B5A1_UNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         B5G5R5A1_UNORM,
         A1R5G5B5_UNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
+        A1B5G5R5_UNORM,
+        
+        /// @brief Support is optional in Vulkan and must be explicitly enabled through the `VkPhysicalDevice4444FormatsFeaturesEXT` device extension.
+        A4R4G4B4_UNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend. Support is optional in Vulkan and must be explicitly enabled through the `VkPhysicalDevice4444FormatsFeaturesEXT` device extension.
+        A4B4G4R4_UNORM,
+        A8_UNORM,
         R8_UNORM,
         R8_SNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R8_USCALED,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R8_SSCALED,
         R8_UINT,
         R8_SINT,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R8_SRGB,
         R8G8_UNORM,
         R8G8_SNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R8G8_USCALED,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R8G8_SSCALED,
         R8G8_UINT,
         R8G8_SINT,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R8G8_SRGB,
+        
+        /// @brief Unsupported by the DirectX 12 backend.
         R8G8B8_UNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R8G8B8_SNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R8G8B8_USCALED,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R8G8B8_SSCALED,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R8G8B8_UINT,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R8G8B8_SINT,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R8G8B8_SRGB,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         B8G8R8_UNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         B8G8R8_SNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         B8G8R8_USCALED,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         B8G8R8_SSCALED,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         B8G8R8_UINT,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         B8G8R8_SINT,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         B8G8R8_SRGB,
+
         R8G8B8A8_UNORM,
         R8G8B8A8_SNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R8G8B8A8_USCALED,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R8G8B8A8_SSCALED,
         R8G8B8A8_UINT,
         R8G8B8A8_SINT,
         R8G8B8A8_SRGB,
         B8G8R8A8_UNORM,
         B8G8R8A8_SNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         B8G8R8A8_USCALED,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         B8G8R8A8_SSCALED,
         B8G8R8A8_UINT,
         B8G8R8A8_SINT,
         B8G8R8A8_SRGB,
         A8B8G8R8_UNORM,
         A8B8G8R8_SNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         A8B8G8R8_USCALED,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         A8B8G8R8_SSCALED,
         A8B8G8R8_UINT,
         A8B8G8R8_SINT,
         A8B8G8R8_SRGB,
         A2R10G10B10_UNORM,
         A2R10G10B10_SNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         A2R10G10B10_USCALED,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         A2R10G10B10_SSCALED,
         A2R10G10B10_UINT,
         A2R10G10B10_SINT,
         A2B10G10R10_UNORM,
         A2B10G10R10_SNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         A2B10G10R10_USCALED,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         A2B10G10R10_SSCALED,
         A2B10G10R10_UINT,
         A2B10G10R10_SINT,
         R16_UNORM,
         R16_SNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R16_USCALED,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R16_SSCALED,
         R16_UINT,
         R16_SINT,
         R16_SFLOAT,
         R16G16_UNORM,
         R16G16_SNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R16G16_USCALED,
+        
+        /// @brief Unsupported by the DirectX 12 backend.
         R16G16_SSCALED,
         R16G16_UINT,
         R16G16_SINT,
         R16G16_SFLOAT,
         R16G16B16_UNORM,
         R16G16B16_SNORM,
+
+        /// @briefUnsupported by the DirectX 12 backend.
         R16G16B16_USCALED,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R16G16B16_SSCALED,
         R16G16B16_UINT,
         R16G16B16_SINT,
         R16G16B16_SFLOAT,
         R16G16B16A16_UNORM,
         R16G16B16A16_SNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R16G16B16A16_USCALED,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         R16G16B16A16_SSCALED,
         R16G16B16A16_UINT,
         R16G16B16A16_SINT,
@@ -252,24 +349,54 @@ namespace LiteFX::Rendering {
         R32G32B32A32_UINT,
         R32G32B32A32_SINT,
         R32G32B32A32_SFLOAT,
+        
+        /// @brief Unsupported by the DirectX 12 backend.
         R64_UINT,
+        
+        /// @brief Unsupported by the DirectX 12 backend.
         R64_SINT,
+        
+        /// @brief Unsupported by the DirectX 12 backend.
         R64_SFLOAT,
+        
+        /// @brief Unsupported by the DirectX 12 backend.
         R64G64_UINT,
+        
+        /// @brief Unsupported by the DirectX 12 backend.
         R64G64_SINT,
+        
+        /// @brief Unsupported by the DirectX 12 backend.
         R64G64_SFLOAT,
+        
+        /// @brief Unsupported by the DirectX 12 backend.
         R64G64B64_UINT,
+        
+        /// @brief Unsupported by the DirectX 12 backend.
         R64G64B64_SINT,
+        
+        /// @brief Unsupported by the DirectX 12 backend.
         R64G64B64_SFLOAT,
+        
+        /// @brief Unsupported by the DirectX 12 backend.
         R64G64B64A64_UINT,
+        
+        /// @brief Unsupported by the DirectX 12 backend.
         R64G64B64A64_SINT,
+        
+        /// @brief Unsupported by the DirectX 12 backend.
         R64G64B64A64_SFLOAT,
         B10G11R11_UFLOAT,
         E5B9G9R9_UFLOAT,
         D16_UNORM,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         X8_D24_UNORM,
         D32_SFLOAT,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         S8_UINT,
+
+        /// @brief Unsupported by the DirectX 12 backend.
         D16_UNORM_S8_UINT,
         D24_UNORM_S8_UINT,
         D32_SFLOAT_S8_UINT,
@@ -1572,6 +1699,7 @@ namespace LiteFX::Rendering {
         case R8_SINT:
         case R8_SRGB:
         case S8_UINT:
+        case A8_UNORM:
             return 1; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         case R4G4B4A4_UNORM:
         case B4G4R4A4_UNORM:
@@ -1580,6 +1708,9 @@ namespace LiteFX::Rendering {
         case R5G5B5A1_UNORM:
         case B5G5R5A1_UNORM:
         case A1R5G5B5_UNORM:
+        case A1B5G5R5_UNORM:
+        case A4R4G4B4_UNORM:
+        case A4B4G4R4_UNORM:
         case R8G8_UNORM:
         case R8G8_SNORM:
         case R8G8_USCALED:

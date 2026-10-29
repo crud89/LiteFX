@@ -70,11 +70,15 @@ struct LITEFX_RENDERING_API std::formatter<Format> : std::formatter<std::string_
 		case R4G4_UNORM: name = "R4G4_UNORM"; break;
 		case R4G4B4A4_UNORM: name = "R4G4B4A4_UNORM"; break;
 		case B4G4R4A4_UNORM: name = "B4G4R4A4_UNORM"; break;
+		case A4R4G4B4_UNORM: name = "A4R4G4B4_UNORM"; break;
+		case A4B4G4R4_UNORM: name = "A4B4G4R4_UNORM"; break;
 		case R5G6B5_UNORM: name = "R5G6B5_UNORM"; break;
 		case B5G6R5_UNORM: name = "B5G6R5_UNORM"; break;
 		case R5G5B5A1_UNORM: name = "R5G5B5A1_UNORM"; break;
 		case B5G5R5A1_UNORM: name = "B5G5R5A1_UNORM"; break;
 		case A1R5G5B5_UNORM: name = "A1R5G5B5_UNORM"; break;
+		case A1B5G5R5_UNORM: name = "A1B5G5R5_UNORM"; break;
+		case A8_UNORM: name = "A8_UNORM"; break;
 		case R8_UNORM: name = "R8_UNORM"; break;
 		case R8_SNORM: name = "R8_SNORM"; break;
 		case R8_USCALED: name = "R8_USCALED"; break;
