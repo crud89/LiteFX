@@ -45,7 +45,7 @@ constexpr std::pair<UInt32, UInt32> getBlockExtent(Format format) noexcept
 	}
 }
 
-UInt64 getPackedSize(const IVulkanImage& image, UInt32 level)
+size_t getPackedSize(const IVulkanImage& image, UInt32 level)
 {
 	// TODO: Handle the plane for depth/stencil formats.
 	auto [blockWidth, blockHeight] = getBlockExtent(image.format());
@@ -55,7 +55,7 @@ UInt64 getPackedSize(const IVulkanImage& image, UInt32 level)
 	UInt64 blocksY = (extent.height() + blockHeight - 1) / blockHeight;
 	UInt64 depth = image.dimensions() == ImageDimensions::DIM_3 ? extent.depth() : 1;
 
-	return blocksX * blocksY * depth * ::getSize(image.format());
+	return static_cast<size_t>(blocksX * blocksY * depth) * ::getSize(image.format());
 }
 
 UInt64 getCopyAlignment(Format format)
