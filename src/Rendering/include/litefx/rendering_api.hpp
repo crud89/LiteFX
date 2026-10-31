@@ -9442,15 +9442,15 @@ namespace LiteFX::Rendering {
         ///
         /// @param format The format of the texture images.
         /// @param size The dimensions of the textures.
-        /// @param layers The number of layers (slices) in this texture.
         /// @param levels The number of mip map levels of the textures.
+        /// @param layers The number of layers (slices) in this texture.
         /// @param samples The number of samples, the textures should be sampled with.
         /// @param usage The intended usage for the buffer.
         /// @param allocationBehavior The behavior controlling what happens if currently there is not enough memory available for the resource.
         /// @return A generator for texture instances.
         /// @see @ref createTexture
-        inline Generator<SharedPtr<IImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
-            return this->getTextures(format, size, dimension, layers, levels, samples, usage, allocationBehavior);
+        inline Generator<SharedPtr<IImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getTextures(format, size, dimension, levels, layers, samples, usage, allocationBehavior);
         }
 
         /// @brief Creates a texture sampler.
@@ -9592,7 +9592,7 @@ namespace LiteFX::Rendering {
         virtual bool tryGetIndexBuffer(SharedPtr<IIndexBuffer>& buffer, const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
         virtual bool tryGetTexture(SharedPtr<IImage>& image, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
         virtual bool tryGetTexture(SharedPtr<IImage>& image, const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
-        virtual Generator<SharedPtr<IImage>> getTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual Generator<SharedPtr<IImage>> getTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
         virtual SharedPtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
         virtual SharedPtr<ISampler> getSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
         virtual Generator<SharedPtr<ISampler>> getSamplers(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;

@@ -1295,7 +1295,7 @@ namespace LiteFX::Rendering {
         virtual bool tryCreateTexture(SharedPtr<TImage>& image, const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
 
         /// @copydoc IGraphicsFactory::createTextures(Format, const Size3d&, ImageDimensions, UInt32, UInt32, MultiSamplingLevel, ResourceUsage, AllocationBehavior)
-        virtual Generator<SharedPtr<TImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
+        virtual Generator<SharedPtr<TImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
 
         /// @copydoc IGraphicsFactory::createSampler(FilterMode, FilterMode, BorderMode, BorderMode, BorderMode, MipMapMode, Float, Float, Float, Float)
         virtual SharedPtr<TSampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const = 0;
@@ -1411,11 +1411,11 @@ namespace LiteFX::Rendering {
             return result;
         }
 
-        inline Generator<SharedPtr<IImage>> getTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+        inline Generator<SharedPtr<IImage>> getTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
             return [](Generator<SharedPtr<TImage>> gen) -> Generator<SharedPtr<IImage>> {
                 for (auto texture : gen)
                     co_yield std::move(texture);
-            }(this->createTextures(format, size, dimension, layers, levels, samples, usage, allocationBehavior));
+            }(this->createTextures(format, size, dimension, levels, layers, samples, usage, allocationBehavior));
         }
         
         inline SharedPtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
