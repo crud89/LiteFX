@@ -22,13 +22,12 @@ to come back to, while the [tutorials](../tutorials/index.md) teach the engine s
 
     [:octicons-arrow-right-24: Read the guide](synchronization/index.md)
 
--   :material-link-variant:{ .lg .middle } __Descriptor bindings__
+-   :material-database-cog-outline:{ .lg .middle } __Resource management__
 
     ---
 
-    Which resources can be bound to which descriptors, how buffer elements are aligned, and how to bind arrays, texel buffers and writable
-    images.
+    Create buffers, textures and samplers, get data into and out of them, and make them available to shaders through descriptors.
 
-    [:octicons-arrow-right-24: Read the guide](descriptor-bindings.md)
+    [:octicons-arrow-right-24: Read the guide](resource-management/index.md)
 
 </div>

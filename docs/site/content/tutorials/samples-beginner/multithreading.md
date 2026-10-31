@@ -48,7 +48,7 @@ The same applies to descriptor sets: a set that a thread writes to must not be s
 frame in flight, which it fills with a generator:
 
 ```cpp
-auto transformBindings = transformBindingLayout.allocate(3 * NUM_WORKERS, [transformBuffers](UInt32 set) -> Generator<DescriptorBinding> {
+auto transformBindings = transformBindingLayout.allocate(3 * NUM_WORKERS, [transformBuffers](UInt32 set) -> Generator<const DescriptorBinding&> {
     co_yield { .binding = 0, .resource = *transformBuffers[set % NUM_WORKERS], .firstElement = set / NUM_WORKERS, .elements = 1 };
 }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 ```

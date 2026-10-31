@@ -29,7 +29,7 @@ Because no pass writes a present target anymore, the sample presents the frame i
 
 The color target uses `R8G8B8A8_UNORM` instead of the `B8G8R8A8_UNORM` of the other samples. The compute shader accesses it as a
 `RWTexture2D`, and binding it to such a descriptor requires a format that supports storage reads and writes. Vulkan does not guarantee this
-for BGRA formats, so binding would fail on some devices (see [storage images](../../guides/descriptor-bindings.md#images)). Since the result
+for BGRA formats, so binding would fail on some devices (see [storage images](../../guides/resource-management/descriptor-bindings.md#images)). Since the result
 is later copied into the swap chain image, and copies between images require matching formats, the swap chain uses the same format:
 
 ```cpp
