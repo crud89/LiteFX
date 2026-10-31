@@ -5550,6 +5550,17 @@ namespace LiteFX::Rendering {
                 this->updateBinding(i++, binding);
         }
 
+        /// @copydoc update(Span<const DescriptorBinding>)
+        /// 
+        /// Contiguous ranges (like `Array<DescriptorBinding>`) are forwarded to the span overload, which avoids type-erased iteration through an @ref Enumerable.
+        template <std::ranges::contiguous_range TBindings> requires (
+            std::same_as<std::ranges::range_value_t<TBindings>, DescriptorBinding> &&
+            !std::same_as<std::remove_cvref_t<TBindings>, Span<const DescriptorBinding>>
+        )
+        inline void update(TBindings&& bindings) const { // NOLINT(cppcoreguidelines-missing-std-forward)
+            this->update(Span<const DescriptorBinding>{ std::ranges::data(bindings), std::ranges::size(bindings) });
+        }
+
     private:
         virtual void updateBinding(UInt32 index, const DescriptorBinding& binding) const = 0;
     };

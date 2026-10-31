@@ -383,6 +383,31 @@ namespace LiteFX {
         }
     };
 
+    template <typename T>
+    struct Enumerable;
+
+    /// @brief Evaluates, if @p T is an `Enumerable`, or a standard view that directly wraps one.
+    ///
+    /// Such types must be excluded from `Enumerable`'s range constructor before evaluating any range concepts. Checking whether a view over an `Enumerable` is movable considers converting it back into 
+    /// an `Enumerable`, which would recursively evaluate the same constraints.
+    template <typename T>
+    struct is_enumerable : std::false_type {};
+
+    template <typename T>
+    struct is_enumerable<Enumerable<T>> : std::true_type {};
+
+    template <typename T>
+    struct is_enumerable<std::ranges::owning_view<Enumerable<T>>> : std::true_type {};
+
+    template <typename T>
+    struct is_enumerable<std::ranges::ref_view<Enumerable<T>>> : std::true_type {};
+
+    template <typename T>
+    struct is_enumerable<std::ranges::ref_view<const Enumerable<T>>> : std::true_type {};
+
+    template <typename T>
+    inline constexpr bool is_enumerable_v = is_enumerable<std::remove_cvref_t<T>>::value;
+
     /// @brief An input range over another range, where the returned values of type @p T are covariants of the values stored by the underlying range.
     ///
     /// An `Enumerable` is intended to be used as a covariant input range for interfaces that want to expose a range of elements that are also interfaces for the stored elements of the actual range. In the
@@ -583,14 +608,24 @@ namespace LiteFX {
         inline Enumerable& operator=(Enumerable&& range) noexcept = default;
         ~Enumerable() noexcept = default;
 
+        /// @brief Initializes an enumerable from another enumerable with covariant elements, e.g. `Enumerable<const Derived&>` to `Enumerable<const Base&>`.
+        ///
+        /// @tparam TOther The value type of the other enumerable.
+        /// @param other The other enumerable.
+        template <typename TOther> requires 
+            (!std::is_same_v<TOther, T> && is_covariant<TOther, T>)
+        inline Enumerable(Enumerable<TOther> other) {
+            auto view = std::views::all(std::move(other));
+            _range = std::make_shared<range_holder<decltype(view)>>(std::move(view));
+        }
+
         /// @brief Creates a new `Enumerable` instance from an underlying range.
         ///
         /// @tparam TRange The type of the underlying range.
-        /// @tparam enabled Disables the constructor, if @p TRange is equal to the current type, in which case the move constructor should be called.
         /// @param range A reference of the underlying range.
         template <typename TRange> requires (
-            !std::is_same_v<std::remove_cvref_t<TRange>, Enumerable> &&                                                                             // The source range must not be an enumerable as well
-            std::ranges::viewable_range<TRange> && std::ranges::forward_range<TRange> &&                                                            // The source range must be viewable and forward iterable.
+            !is_enumerable_v<std::remove_cvref_t<TRange>> &&
+            std::ranges::viewable_range<TRange>&& std::ranges::forward_range<TRange> &&                                                             // The source range must be viewable and forward iterable.
             std::convertible_to<std::ranges::range_reference_t<decltype(std::views::common(std::declval<TRange>()))>, T> &&                         // The elements of the source range must be convertible to the elements of the enumerable.
             !(std::is_reference_v<T> && !std::is_reference_v<std::ranges::range_reference_t<decltype(std::views::common(std::declval<TRange>()))>>) // The source range must not yield temporaries (they would dangle).
         )
