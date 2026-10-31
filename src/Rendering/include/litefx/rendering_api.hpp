@@ -5295,7 +5295,7 @@ namespace LiteFX::Rendering {
         using resource_container = Variant<std::monostate, Ref<const IBuffer>, Ref<const IImage>, Ref<const ISampler>, Ref<const IAccelerationStructure>>;
 
     public:
-        /// @brief The binding point to bind the resource at. If not provided (i.e., `std::nullopt`), the index within the collection of `DescriptorBindings` is used. Ignored when binding to a @ref IDescriptorRange.
+        /// @brief The binding point to bind the resource at. If not provided (i.e., `std::nullopt`), the index within the collection of `DescriptorBindings` is used.
         Optional<UInt32> binding = std::nullopt;
 
         /// @brief The resource to bind or `std::monostate` if no resource should be bound.
@@ -5311,7 +5311,9 @@ namespace LiteFX::Rendering {
         /// @brief The index of the descriptor in a descriptor array at which binding the resource arrays starts.
         ///
         /// If the resource contains an array, the individual elements (*layers* for images) will be bound, starting at this descriptor. The first element/layer to be bound is identified by @ref firstElement. The
-        /// number of elements/layers to be bound is stored in @ref elements.
+        /// number of elements/layers to be bound is stored in @ref elements. 
+        /// 
+        /// Ignored when binding to a @ref IDescriptorRange.
         ///
         /// @see @ref firstElement
         /// @see @ref elements
@@ -5513,7 +5515,7 @@ namespace LiteFX::Rendering {
         /// 
         /// @param binding The binding to update. If @ref DescriptorBinding::binding is not provided, `0` is assumed.
         inline void update(const DescriptorBinding& binding) const {
-            this->update(0u, binding);
+            this->updateBinding(0u, binding);
         }
 
         /// @brief Updates a series of descriptor bindings.
@@ -5521,7 +5523,7 @@ namespace LiteFX::Rendering {
         /// @param bindings The descriptor bindings to update. If @ref DescriptorBinding::binding is not provided, the index of the element is taken.
         inline void update(Span<const DescriptorBinding> bindings) const {
             for (UInt32 i{ 0u }; auto& binding : bindings)
-                this->update(i++, binding);
+                this->updateBinding(i++, binding);
         }
 
         /// @brief Updates a series of descriptor bindings.
@@ -5529,15 +5531,15 @@ namespace LiteFX::Rendering {
         /// @param bindings The descriptor bindings to update. If @ref DescriptorBinding::binding is not provided, the index of the element is taken.
         inline void update(std::initializer_list<DescriptorBinding> bindings) const {
             for (UInt32 i{ 0u }; auto& binding : bindings)
-                this->update(i++, binding);
+                this->updateBinding(i++, binding);
         }
 
         /// @brief Updates a series of descriptor bindings.
         /// 
         /// @param bindings The descriptor bindings to update. If @ref DescriptorBinding::binding is not provided, the index of the element is taken.
-        inline void update(Enumerable<const DescriptorBinding&> bindings) const {
+        inline void update(Enumerable<const DescriptorBinding&> bindings) const { // NOLINT(performance-unnecessary-value-param)
             for (UInt32 i{ 0u }; auto& binding : bindings)
-                this->update(i++, binding);
+                this->updateBinding(i++, binding);
         }
 
         /// @brief Updates a series of descriptor bindings.
@@ -5545,11 +5547,11 @@ namespace LiteFX::Rendering {
         /// @param bindings The descriptor bindings to update. If @ref DescriptorBinding::binding is not provided, the index of the element is taken.
         inline void update(Generator<const DescriptorBinding&> bindings) const {
             for (UInt32 i{ 0u }; auto& binding : bindings)
-                this->update(i++, binding);
+                this->updateBinding(i++, binding);
         }
 
     private:
-        virtual void update(UInt32 index, const DescriptorBinding& binding) const = 0;
+        virtual void updateBinding(UInt32 index, const DescriptorBinding& binding) const = 0;
     };
 
     /// @brief The interface for a descriptor set layout.
@@ -5890,15 +5892,17 @@ namespace LiteFX::Rendering {
         /// 
         /// @param type The type of the descriptor to bind.
         /// @param binding The binding to update.
-        virtual void update(DescriptorType type, const DescriptorBinding& binding) const = 0;
+        inline void update(DescriptorType type, const DescriptorBinding& binding) const {
+            this->updateBinding(type, 0u, binding);
+        }
 
         /// @brief Updates a series of descriptor bindings.
         /// 
         /// @param type The type of the descriptor to bind.
         /// @param bindings The descriptor bindings to update.
         inline void update(DescriptorType type, Span<const DescriptorBinding> bindings) const {
-            for (auto& binding : bindings)
-                this->update(type, binding);
+            for (UInt32 i{ 0u }; auto& binding : bindings)
+                this->updateBinding(type, i++, binding);
         }
 
         /// @brief Updates a series of descriptor bindings.
@@ -5906,17 +5910,17 @@ namespace LiteFX::Rendering {
         /// @param type The type of the descriptor to bind.
         /// @param bindings The descriptor bindings to update.
         inline void update(DescriptorType type, std::initializer_list<DescriptorBinding> bindings) const {
-            for (auto& binding : bindings)
-                this->update(type, binding);
+            for (UInt32 i{ 0u }; auto& binding : bindings)
+                this->updateBinding(type, i++, binding);
         }
 
         /// @brief Updates a series of descriptor bindings.
         /// 
         /// @param type The type of the descriptor to bind.
         /// @param bindings The descriptor bindings to update.
-        inline void update(DescriptorType type, Enumerable<const DescriptorBinding&> bindings) const {
-            for (auto& binding : bindings)
-                this->update(type, binding);
+        inline void update(DescriptorType type, Enumerable<const DescriptorBinding&> bindings) const { // NOLINT(performance-unnecessary-value-param)
+            for (UInt32 i{ 0u }; auto& binding : bindings)
+                this->updateBinding(type, i++, binding);
         }
 
         /// @brief Updates a series of descriptor bindings.
@@ -5924,9 +5928,12 @@ namespace LiteFX::Rendering {
         /// @param type The type of the descriptor to bind.
         /// @param bindings The descriptor bindings to update.
         inline void update(DescriptorType type, Generator<const DescriptorBinding&> bindings) const {
-            for (auto& binding : bindings)
-                this->update(type, binding);
+            for (UInt32 i{ 0u }; auto& binding : bindings)
+                this->updateBinding(type, i++, binding);
         }
+
+    private:
+        virtual void updateBinding(DescriptorType type, UInt32 index, const DescriptorBinding& binding) const = 0;
     };
 
     /// @brief Describes a record within a shader binding table.

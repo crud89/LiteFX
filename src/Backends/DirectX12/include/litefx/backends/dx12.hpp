@@ -644,7 +644,7 @@ namespace LiteFX::Rendering::Backends {
         DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const override;
 
     private:
-        void update(UInt32 index, const DescriptorBinding& binding) const override;
+        void updateBinding(UInt32 index, const DescriptorBinding& binding) const override;
 
     public:
         /// @brief Returns the local (CPU-visible) heap that contains the set's descriptors.
@@ -701,8 +701,8 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc IDescriptorRange::globalIndex
         UInt32 globalIndex(UInt32 element = 0) const override;
 
-        /// @copydoc IDescriptorRange::update(const DescriptorBinding&)
-        void update(DescriptorType type, const DescriptorBinding& binding) const override;
+    private:
+        void updateBinding(DescriptorType type, UInt32 index, const DescriptorBinding& binding) const override;
     };
 
     /// @brief Implements a DirectX 12 @ref IDescriptorLayout

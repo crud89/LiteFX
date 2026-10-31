@@ -100,14 +100,14 @@ public:
         flush(element, 1u);
     }
     
-    void updateBinding(DescriptorType type, const DescriptorBinding& binding) 
+    void updateBinding(DescriptorType type, UInt32 index, const DescriptorBinding& binding) 
     {
         std::visit(type_switch {
             [](const std::monostate&) {}, // Default: don't bind anything. Can be used to skip a descriptor in a set of bindings.
-            [&](const IBuffer& buffer) { this->updateBinding(binding.firstDescriptor, type, dynamic_cast<const IDirectX12Buffer&>(buffer), binding.firstElement, binding.elements, binding.elementsPerDescriptor, binding.texelFormat, binding.stride); },
-            [&](const IImage& image) { this->updateBinding(binding.firstDescriptor, type, dynamic_cast<const IDirectX12Image&>(image), binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
-            [&](const ISampler& sampler) { this->updateBinding(binding.firstDescriptor, dynamic_cast<const IDirectX12Sampler&>(sampler)); },
-            [&](const IAccelerationStructure& accelerationStructure) { this->updateBinding(binding.firstDescriptor, dynamic_cast<const IDirectX12AccelerationStructure&>(accelerationStructure)); }
+            [&](const IBuffer& buffer) { this->updateBinding(binding.binding.value_or(index), type, dynamic_cast<const IDirectX12Buffer&>(buffer), binding.firstElement, binding.elements, binding.elementsPerDescriptor, binding.texelFormat, binding.stride); },
+            [&](const IImage& image) { this->updateBinding(binding.binding.value_or(index), type, dynamic_cast<const IDirectX12Image&>(image), binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
+            [&](const ISampler& sampler) { this->updateBinding(binding.binding.value_or(index), dynamic_cast<const IDirectX12Sampler&>(sampler)); },
+            [&](const IAccelerationStructure& accelerationStructure) { this->updateBinding(binding.binding.value_or(index), dynamic_cast<const IDirectX12AccelerationStructure&>(accelerationStructure)); }
         }, binding.resource);
     }
 
@@ -160,7 +160,7 @@ UInt32 DirectX12DescriptorRange::globalIndex(UInt32 element) const
     return static_cast<UInt32>(m_impl->m_allocation.Allocation.Offset) + element;
 }
 
-void DirectX12DescriptorRange::update(DescriptorType type, const DescriptorBinding& binding) const
+void DirectX12DescriptorRange::updateBinding(DescriptorType type, UInt32 index, const DescriptorBinding& binding) const
 {
-    m_impl->updateBinding(type, binding);
+    m_impl->updateBinding(type, index, binding);
 }

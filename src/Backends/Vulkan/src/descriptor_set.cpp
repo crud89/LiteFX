@@ -224,7 +224,7 @@ DescriptorHeapAllocation VulkanDescriptorSet::globalHeapAllocation(DescriptorHea
     }
 }
 
-void VulkanDescriptorSet::update(UInt32 index, const DescriptorBinding& binding) const
+void VulkanDescriptorSet::updateBinding(UInt32 index, const DescriptorBinding& binding) const
 {
     m_impl->updateBinding(*this, index, binding);
 }

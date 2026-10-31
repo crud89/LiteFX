@@ -118,7 +118,7 @@ void TestApp::onInit()
         if (throws([&] { range->update(DescriptorType::ByteAddressBuffer, DescriptorBinding::byteAddressBuffer(*storageBuffer, 0, 4, 0).toDescriptor(3)); }))
             LITEFX_TEST_FAIL("Updating a single descriptor at an offset within a range failed.");
 
-        if (!throws([&] { range->update(DescriptorType::StructuredBuffer, DescriptorBinding::structuredBuffer(*storageBuffer, 0, 4).toDescriptor(1)); }))
+        if (!throws([&] { range->update(DescriptorType::StructuredBuffer, DescriptorBinding::structuredBuffer(*storageBuffer, 0, 4).at(1)); }))
             LITEFX_TEST_FAIL("Exceeding the range was not rejected.");
 
         if (!throws([&] { range->update(DescriptorType::Sampler, DescriptorBinding::sampler(*sampler)); }))

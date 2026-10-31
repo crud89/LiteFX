@@ -192,7 +192,7 @@ DescriptorHeapAllocation DirectX12DescriptorSet::globalHeapAllocation(Descriptor
     return m_impl->globalHeapAllocation(heapType);
 }
 
-void DirectX12DescriptorSet::update(UInt32 index, const DescriptorBinding& binding) const
+void DirectX12DescriptorSet::updateBinding(UInt32 index, const DescriptorBinding& binding) const
 {
     m_impl->updateBinding(*this, index, binding);
 }

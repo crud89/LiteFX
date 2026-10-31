@@ -588,11 +588,12 @@ namespace LiteFX {
         /// @tparam TRange The type of the underlying range.
         /// @tparam enabled Disables the constructor, if @p TRange is equal to the current type, in which case the move constructor should be called.
         /// @param range A reference of the underlying range.
-        template <typename TRange> requires 
+        template <typename TRange> requires (
             !std::is_same_v<std::remove_cvref_t<TRange>, Enumerable> &&                                                                             // The source range must not be an enumerable as well
             std::ranges::viewable_range<TRange> && std::ranges::forward_range<TRange> &&                                                            // The source range must be viewable and forward iterable.
             std::convertible_to<std::ranges::range_reference_t<decltype(std::views::common(std::declval<TRange>()))>, T> &&                         // The elements of the source range must be convertible to the elements of the enumerable.
             !(std::is_reference_v<T> && !std::is_reference_v<std::ranges::range_reference_t<decltype(std::views::common(std::declval<TRange>()))>>) // The source range must not yield temporaries (they would dangle).
+        )
         inline Enumerable(TRange&& range) {
             auto view = std::views::common(std::forward<TRange>(range));
             _range = std::make_shared<range_holder<decltype(view)>>(std::move(view));
