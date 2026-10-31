@@ -67,6 +67,50 @@ public:
         return { m_staging->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(element), m_increment };
     }
 
+    void updateBinding(UInt32 element, DescriptorType bindingType, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 elementsPerDescriptor, Format texelFormat, UInt32 stride) const
+    {
+        auto [descriptors, rangeSize] = buffer.bufferDescriptorRange(bufferElement, elements, elementsPerDescriptor);
+        validate(element, descriptors, DescriptorHeapType::Resource);
+
+        writeBufferDescriptors(*m_device, bindingType, buffer, bufferElement, descriptors, rangeSize, texelFormat, stride, target(element));
+        flush(element, descriptors);
+    }
+
+    void updateBinding(UInt32 element, DescriptorType bindingType, const IDirectX12Image& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
+    {
+        validate(element, 1u, DescriptorHeapType::Resource);
+
+        writeImageDescriptor(*m_device, bindingType, image, firstLevel, levels, firstLayer, layers, target(element));
+        flush(element, 1u);
+    }
+
+    void updateBinding(UInt32 element, const IDirectX12Sampler& sampler) const
+    {
+        validate(element, 1u, DescriptorHeapType::Sampler);
+
+        writeSamplerDescriptor(*m_device, sampler, target(element));
+        flush(element, 1u);
+    }
+
+    void updateBinding(UInt32 element, const IDirectX12AccelerationStructure& accelerationStructure) const
+    {
+        validate(element, 1u, DescriptorHeapType::Resource);
+
+        writeAccelerationStructureDescriptor(*m_device, accelerationStructure, target(element));
+        flush(element, 1u);
+    }
+    
+    void updateBinding(DescriptorType type, const DescriptorBinding& binding) 
+    {
+        std::visit(type_switch {
+            [](const std::monostate&) {}, // Default: don't bind anything. Can be used to skip a descriptor in a set of bindings.
+            [&](const IBuffer& buffer) { this->updateBinding(binding.firstDescriptor, type, dynamic_cast<const IDirectX12Buffer&>(buffer), binding.firstElement, binding.elements, binding.elementsPerDescriptor, binding.texelFormat, binding.stride); },
+            [&](const IImage& image) { this->updateBinding(binding.firstDescriptor, type, dynamic_cast<const IDirectX12Image&>(image), binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
+            [&](const ISampler& sampler) { this->updateBinding(binding.firstDescriptor, dynamic_cast<const IDirectX12Sampler&>(sampler)); },
+            [&](const IAccelerationStructure& accelerationStructure) { this->updateBinding(binding.firstDescriptor, dynamic_cast<const IDirectX12AccelerationStructure&>(accelerationStructure)); }
+        }, binding.resource);
+    }
+
     void flush(UInt32 element, UInt32 count) const
     {
         m_device->copyGlobalDescriptorHeap(m_allocation.Heap, static_cast<UInt32>(m_allocation.Allocation.Offset) + element, this->target(element), count);
@@ -116,35 +160,7 @@ UInt32 DirectX12DescriptorRange::globalIndex(UInt32 element) const
     return static_cast<UInt32>(m_impl->m_allocation.Allocation.Offset) + element;
 }
 
-void DirectX12DescriptorRange::update(UInt32 element, DescriptorType bindingType, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat, UInt32 stride) const
+void DirectX12DescriptorRange::update(DescriptorType type, const DescriptorBinding& binding) const
 {
-    auto count = bufferElements(buffer, bufferElement, elements);
-    m_impl->validate(element, count, DescriptorHeapType::Resource);
-
-    writeBufferDescriptors(*m_impl->m_device, bindingType, buffer, bufferElement, count, texelFormat, stride, m_impl->target(element));
-    m_impl->flush(element, count);
-}
-
-void DirectX12DescriptorRange::update(UInt32 element, DescriptorType bindingType, const IDirectX12Image& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
-{
-    m_impl->validate(element, 1u, DescriptorHeapType::Resource);
-
-    writeImageDescriptor(*m_impl->m_device, bindingType, image, firstLevel, levels, firstLayer, layers, m_impl->target(element));
-    m_impl->flush(element, 1u);
-}
-
-void DirectX12DescriptorRange::update(UInt32 element, const IDirectX12Sampler& sampler) const
-{
-    m_impl->validate(element, 1u, DescriptorHeapType::Sampler);
-
-    writeSamplerDescriptor(*m_impl->m_device, sampler, m_impl->target(element));
-    m_impl->flush(element, 1u);
-}
-
-void DirectX12DescriptorRange::update(UInt32 element, const IDirectX12AccelerationStructure& accelerationStructure) const
-{
-    m_impl->validate(element, 1u, DescriptorHeapType::Resource);
-
-    writeAccelerationStructureDescriptor(*m_impl->m_device, accelerationStructure, m_impl->target(element));
-    m_impl->flush(element, 1u);
+    m_impl->updateBinding(type, binding);
 }

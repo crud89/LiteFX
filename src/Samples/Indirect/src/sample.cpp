@@ -216,8 +216,8 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto& objectsGeometryBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
     auto objectsStagingBuffer = m_device->factory().createBuffer(objectsGeometryBindingLayout, 0, ResourceHeap::Staging, sizeof(ObjectBuffer) * NUM_INSTANCES, 1);
     auto objectsBuffer = m_device->factory().createBuffer("Objects Buffer", objectsGeometryBindingLayout, 0, ResourceHeap::Resource, sizeof(ObjectBuffer) * NUM_INSTANCES, 1);
-    auto objectsCullBinding = objectsCullBindingLayout.allocate({ { .resource = *objectsBuffer, .stride = sizeof(ObjectBuffer) } });
-    auto objectsGeometryBinding = objectsGeometryBindingLayout.allocate({ { .resource = *objectsBuffer, .stride = sizeof(ObjectBuffer) } });
+    auto objectsCullBinding = objectsCullBindingLayout.allocate({ { .resource = *objectsBuffer } });
+    auto objectsGeometryBinding = objectsGeometryBindingLayout.allocate({ { .resource = *objectsBuffer } });
 
     objectsStagingBuffer->map(objects, sizeof(ObjectBuffer) * NUM_INSTANCES); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
     commandBuffer->transfer(std::move(objectsStagingBuffer), *objectsBuffer);
@@ -230,9 +230,9 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto indirectCounterBuffer = m_device->factory().createBuffer("Indirect Counter", BufferType::Indirect, ResourceHeap::Resource, sizeof(UInt32), 4, ResourceUsage::Default | ResourceUsage::AllowWrite);
     auto indirectCommandsBuffer = m_device->factory().createBuffer("Indirect Commands", BufferType::Indirect, ResourceHeap::Resource, sizeof(IndirectIndexedBatch) * NUM_INSTANCES, 3, ResourceUsage::AllowWrite);
     auto indirectBindings = indirectBindingLayout.allocate(3, {
-        { { .resource = *indirectCounterBuffer, .firstElement = 0, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 0, .elements = 1, .stride = sizeof(IndirectIndexedBatch) } },
-        { { .resource = *indirectCounterBuffer, .firstElement = 1, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 1, .elements = 1, .stride = sizeof(IndirectIndexedBatch) } },
-        { { .resource = *indirectCounterBuffer, .firstElement = 2, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 2, .elements = 1, .stride = sizeof(IndirectIndexedBatch) } }
+        { { .resource = *indirectCounterBuffer, .firstElement = 0, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 0, .elements = 1 } },
+        { { .resource = *indirectCounterBuffer, .firstElement = 1, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 1, .elements = 1 } },
+        { { .resource = *indirectCounterBuffer, .firstElement = 2, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 2, .elements = 1 } }
     }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 
     // End and submit the command buffer.

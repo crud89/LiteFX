@@ -105,8 +105,6 @@ namespace LiteFX::Rendering {
         std::derived_from<TAccelerationStructure, IAccelerationStructure>
     class DescriptorSet : public IDescriptorSet {
     public:
-        using IDescriptorSet::update;
-
         using buffer_type = TBuffer;
         using sampler_type = TSampler;
         using image_type = TImage;
@@ -121,36 +119,6 @@ namespace LiteFX::Rendering {
 
     public:
         ~DescriptorSet() noexcept override = default;
-
-    public:
-        /// @copydoc IDescriptorSet::update(UInt32, const IBuffer&, UInt32, UInt32, UInt32, Format, UInt32)
-        virtual void update(UInt32 binding, const buffer_type& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None, UInt32 stride = 0) const = 0;
-
-        /// @copydoc IDescriptorSet::update(UInt32, const IImage&, UInt32, UInt32, UInt32, UInt32, UInt32)
-        virtual void update(UInt32 binding, const image_type& texture, UInt32 descriptor = 0, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const = 0;
-
-        /// @copydoc IDescriptorSet::update(UInt32, const ISampler&, UInt32)
-        virtual void update(UInt32 binding, const sampler_type& sampler, UInt32 descriptor = 0) const = 0;
-
-        /// @copydoc IDescriptorSet::update(UInt32, const IAccelerationStructure&, UInt32)
-        virtual void update(UInt32 binding, const acceleration_structure_type& accelerationStructure, UInt32 descriptor = 0) const = 0;
-
-    private:
-        void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat, UInt32 stride) const override {
-            this->update(binding, dynamic_cast<const buffer_type&>(buffer), bufferElement, elements, firstDescriptor, texelFormat, stride);
-        }
-
-        void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const override {
-            this->update(binding, dynamic_cast<const image_type&>(texture), descriptor, firstLevel, levels, firstLayer, layers);
-        }
-
-        void doUpdate(UInt32 binding, const ISampler& sampler, UInt32 descriptor) const override {
-            this->update(binding, dynamic_cast<const sampler_type&>(sampler), descriptor);
-        }
-
-        void doUpdate(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor) const override {
-            this->update(binding, dynamic_cast<const acceleration_structure_type&>(accelerationStructure), descriptor);
-        }
     };
 
     /// @brief Describes the layout of a descriptor set.
@@ -195,13 +163,13 @@ namespace LiteFX::Rendering {
             return this->allocate(0, bindings);
         }
 
-        /// @copydoc IDescriptorSetLayout::allocate(Span<DescriptorBinding>)
-        inline UniquePtr<descriptor_set_type> allocate(Span<DescriptorBinding> bindings) const {
+        /// @copydoc IDescriptorSetLayout::allocate(Span<const DescriptorBinding>)
+        inline UniquePtr<descriptor_set_type> allocate(Span<const DescriptorBinding> bindings) const {
             return this->allocate(0, bindings);
         }
 
-        /// @copydoc IDescriptorSetLayout::allocate(Generator<DescriptorBinding>)
-        inline UniquePtr<descriptor_set_type> allocate(Generator<DescriptorBinding> bindings) const {
+        /// @copydoc IDescriptorSetLayout::allocate(Generator<const DescriptorBinding&>)
+        inline UniquePtr<descriptor_set_type> allocate(Generator<const DescriptorBinding&> bindings) const {
             return this->allocate(0, std::move(bindings));
         }
 
@@ -210,13 +178,13 @@ namespace LiteFX::Rendering {
             return this->allocateWithBindings(unboundedArraySize, bindings);
         }
 
-        /// @copydoc IDescriptorSetLayout::allocate(UInt32, Span<DescriptorBinding>)
-        inline UniquePtr<descriptor_set_type> allocate(UInt32 unboundedArraySize, Span<DescriptorBinding> bindings) const {
+        /// @copydoc IDescriptorSetLayout::allocate(UInt32, Span<const DescriptorBinding>)
+        inline UniquePtr<descriptor_set_type> allocate(UInt32 unboundedArraySize, Span<const DescriptorBinding> bindings) const {
             return this->allocateWithBindings(unboundedArraySize, bindings);
         }
 
-        /// @copydoc IDescriptorSetLayout::allocate(UInt32, Generator<DescriptorBinding>)
-        inline UniquePtr<descriptor_set_type> allocate(UInt32 unboundedArraySize, Generator<DescriptorBinding> bindings) const {
+        /// @copydoc IDescriptorSetLayout::allocate(UInt32, Generator<const DescriptorBinding&>)
+        inline UniquePtr<descriptor_set_type> allocate(UInt32 unboundedArraySize, Generator<const DescriptorBinding&> bindings) const {
             return this->allocateWithBindings(unboundedArraySize, std::move(bindings));
         }
 
@@ -226,14 +194,14 @@ namespace LiteFX::Rendering {
         }
 
 #ifdef __cpp_lib_mdspan
-        /// @copydoc IDescriptorSetLayout::allocate(UInt32, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>>)
-        inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
+        /// @copydoc IDescriptorSetLayout::allocate(UInt32, std::mdspan<const DescriptorBinding, std::dextents<size_t, 2>>)
+        inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::mdspan<const DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
             return this->allocate(descriptorSets, 0, bindings);
         }
 #endif
 
-        /// @copydoc IDescriptorSetLayout::allocate(UInt32, std::function<Generator<DescriptorBinding>(UInt32)>)
-        inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::function<Generator<DescriptorBinding>(UInt32)> bindings) const {
+        /// @copydoc IDescriptorSetLayout::allocate(UInt32, std::function<Generator<const DescriptorBinding&>(UInt32)>)
+        inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::function<Generator<const DescriptorBinding&>(UInt32)> bindings) const {
             return this->allocate(descriptorSets, 0, std::move(bindings));
         }
 
@@ -245,20 +213,20 @@ namespace LiteFX::Rendering {
         }
 
 #ifdef __cpp_lib_mdspan
-        /// @copydoc IDescriptorSetLayout::allocate(UInt32, UInt32, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>>)
-        Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
+        /// @copydoc IDescriptorSetLayout::allocate(UInt32, UInt32, std::mdspan<const DescriptorBinding, std::dextents<size_t, 2>>)
+        Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::mdspan<const DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
             auto self = this->shared_from_this();
 
             // TODO: With C++26 we can use submdspan here. Rows are contiguous, since `layout_right` is the default layout of the mdspan.
             for (size_t i{ 0 }; i < static_cast<size_t>(descriptorSets); ++i)
                 co_yield i < bindings.extent(0) ?
-                this->allocateWithBindings(unboundedArraySize, Span<DescriptorBinding>{ bindings.data_handle() + i * bindings.extent(1), bindings.extent(1) }) : // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+                this->allocateWithBindings(unboundedArraySize, Span<const DescriptorBinding>{ bindings.data_handle() + i * bindings.extent(1), bindings.extent(1) }) : // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
                 this->allocateDescriptorSet(unboundedArraySize);
         }
 #endif
 
-        /// @copydoc IDescriptorSetLayout::allocate(UInt32, UInt32, std::function<Generator<DescriptorBinding>(UInt32)>)
-        Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const {
+        /// @copydoc IDescriptorSetLayout::allocate(UInt32, UInt32, std::function<Generator<const DescriptorBinding&>(UInt32)>)
+        Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::function<Generator<const DescriptorBinding&>(UInt32)> bindingFactory) const {
             auto self = this->shared_from_this();
 
             for (UInt32 i{ 0 }; i < descriptorSets; ++i)
@@ -277,19 +245,7 @@ namespace LiteFX::Rendering {
         template <typename TBindings>
         inline UniquePtr<descriptor_set_type> allocateWithBindings(UInt32 unboundedArraySize, TBindings&& bindings) const {
             auto descriptorSet = this->allocateDescriptorSet(unboundedArraySize);
-
-            for (UInt32 i{ 0 }; const DescriptorBinding& binding : std::forward<TBindings>(bindings))
-            {
-                std::visit(type_switch {
-                    [](const std::monostate&) {}, // Default: don't bind anything.
-                    [&](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
-                    [&](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor, binding.texelFormat, binding.stride); },
-                    [&](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
-                    [&](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
-                }, binding.resource);
-
-                ++i;
-            }
+            descriptorSet->update(std::forward<TBindings>(bindings));
 
             return descriptorSet;
         }
@@ -298,7 +254,7 @@ namespace LiteFX::Rendering {
             auto self = this->shared_from_this();
 
             for (size_t i{ 0 }; i < static_cast<size_t>(descriptorSets); ++i)
-                co_yield i < bindings.size() ? this->allocateWithBindings(unboundedArraySize, bindings[i]) : this->allocateDescriptorSet(unboundedArraySize); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+                co_yield i < bindings.size() ? this->allocateWithBindings(unboundedArraySize, Span<const DescriptorBinding>{ bindings[i] }) : this->allocateDescriptorSet(unboundedArraySize); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         }
 
     private:
@@ -316,11 +272,11 @@ namespace LiteFX::Rendering {
             return this->allocate(unboundedArraySize, bindings);
         }
 
-        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, Span<DescriptorBinding> bindings) const override {
+        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, Span<const DescriptorBinding> bindings) const override {
             return this->allocate(unboundedArraySize, bindings);
         }
 
-        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, Generator<DescriptorBinding> bindings) const override {
+        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, Generator<const DescriptorBinding&> bindings) const override {
             return this->allocate(unboundedArraySize, std::move(bindings));
         }
 
@@ -329,12 +285,12 @@ namespace LiteFX::Rendering {
         }
 
 #ifdef __cpp_lib_mdspan
-        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const override {
+        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::mdspan<const DescriptorBinding, std::dextents<size_t, 2>> bindings) const override {
             return upcast(this->allocate(descriptorSets, unboundedArraySize, bindings));
         }
 #endif
 
-        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const override {
+        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::function<Generator<const DescriptorBinding&>(UInt32)> bindingFactory) const override {
             return upcast(this->allocate(descriptorSets, unboundedArraySize, std::move(bindingFactory)));
         }
 
@@ -463,6 +419,7 @@ namespace LiteFX::Rendering {
     class VertexBuffer : public virtual IVertexBuffer {
     public:
         using vertex_buffer_layout_type = TVertexBufferLayout;
+
     protected:
         VertexBuffer() noexcept = default;
         VertexBuffer(const VertexBuffer&) = default;

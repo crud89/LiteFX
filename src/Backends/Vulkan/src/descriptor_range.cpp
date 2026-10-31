@@ -63,6 +63,54 @@ public:
         if (count > m_size - element) [[unlikely]]
             throw ArgumentOutOfRangeException("element", "The descriptor range contains {0} descriptors, but {1} descriptors starting at {2} were requested.", m_size, count, element);
     }
+
+    void updateBinding(UInt32 element, DescriptorType bindingType, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 elementsPerDescriptor, Format texelFormat, UInt32 stride) const
+    {
+        auto [descriptors, rangeSize] = buffer.bufferDescriptorRange(bufferElement, elements, elementsPerDescriptor);
+        validate(element, descriptors, DescriptorHeapType::Resource);
+
+        auto targets = std::views::iota(element, element + descriptors)
+            | std::views::transform([this](UInt32 e) { return targetAddressRange(e); })
+            | std::ranges::to<Array<VkHostAddressRangeEXT>>();
+
+        writeBufferDescriptors(*m_device, bindingType, buffer, bufferElement, rangeSize, texelFormat, stride, targets);
+        flush(element, descriptors);
+    }
+
+    void updateBinding(UInt32 element, DescriptorType bindingType, const IVulkanImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
+    {
+        validate(element, 1u, DescriptorHeapType::Resource);
+
+        writeImageDescriptor(*m_device, bindingType, image, firstLevel, levels, firstLayer, layers, targetAddressRange(element));
+        flush(element, 1u);
+    }
+
+    void updateBinding(UInt32 element, const IVulkanSampler& sampler) const
+    {
+        validate(element, 1u, DescriptorHeapType::Sampler);
+
+        writeSamplerDescriptor(*m_device, sampler, targetAddressRange(element));
+        flush(element, 1u);
+    }
+
+    void updateBinding(UInt32 element, const IVulkanAccelerationStructure& accelerationStructure) const
+    {
+        validate(element, 1u, DescriptorHeapType::Resource);
+
+        writeAccelerationStructureDescriptor(*m_device, accelerationStructure, targetAddressRange(element));
+        flush(element, 1u);
+    }
+
+    void updateBinding(DescriptorType type, const DescriptorBinding& binding) 
+    {
+        std::visit(type_switch {
+            [](const std::monostate&) {}, // Default: don't bind anything. Can be used to skip a descriptor in a set of bindings.
+            [&](const IBuffer& buffer) { this->updateBinding(binding.firstDescriptor, type, dynamic_cast<const IVulkanBuffer&>(buffer), binding.firstElement, binding.elements, binding.elementsPerDescriptor, binding.texelFormat, binding.stride); },
+            [&](const IImage& image) { this->updateBinding(binding.firstDescriptor, type, dynamic_cast<const IVulkanImage&>(image), binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
+            [&](const ISampler& sampler) { this->updateBinding(binding.firstDescriptor, dynamic_cast<const IVulkanSampler&>(sampler)); },
+            [&](const IAccelerationStructure& accelerationStructure) { this->updateBinding(binding.firstDescriptor, dynamic_cast<const IVulkanAccelerationStructure&>(accelerationStructure)); }
+        }, binding.resource);
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -91,39 +139,7 @@ UInt32 VulkanDescriptorRange::globalIndex(UInt32 element) const
     return static_cast<UInt32>(m_impl->m_allocation.Allocation.Offset) + element;
 }
 
-void VulkanDescriptorRange::update(UInt32 element, DescriptorType bindingType, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat, UInt32 stride) const
+void VulkanDescriptorRange::update(DescriptorType type, const DescriptorBinding& binding) const
 {
-    auto count = bufferElements(buffer, bufferElement, elements);
-    m_impl->validate(element, count, DescriptorHeapType::Resource);
-
-    auto targets = std::views::iota(element, element + count) 
-        | std::views::transform([this](UInt32 e) { return m_impl->targetAddressRange(e); }) 
-        | std::ranges::to<Array<VkHostAddressRangeEXT>>();
-
-    writeBufferDescriptors(*m_impl->m_device, bindingType, buffer, bufferElement, texelFormat, stride, targets);
-    m_impl->flush(element, count);
-}
-
-void VulkanDescriptorRange::update(UInt32 element, DescriptorType bindingType, const IVulkanImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
-{
-    m_impl->validate(element, 1u, DescriptorHeapType::Resource);
-
-    writeImageDescriptor(*m_impl->m_device, bindingType, image, firstLevel, levels, firstLayer, layers, m_impl->targetAddressRange(element));
-    m_impl->flush(element, 1u);
-}
-
-void VulkanDescriptorRange::update(UInt32 element, const IVulkanSampler& sampler) const 
-{
-    m_impl->validate(element, 1u, DescriptorHeapType::Sampler);
-
-    writeSamplerDescriptor(*m_impl->m_device, sampler, m_impl->targetAddressRange(element));
-    m_impl->flush(element, 1u);
-}
-
-void VulkanDescriptorRange::update(UInt32 element, const IVulkanAccelerationStructure& accelerationStructure) const 
-{
-    m_impl->validate(element, 1u, DescriptorHeapType::Resource);
-
-    writeAccelerationStructureDescriptor(*m_impl->m_device, accelerationStructure, m_impl->targetAddressRange(element));
-    m_impl->flush(element, 1u);
+    m_impl->updateBinding(type, binding);
 }

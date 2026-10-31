@@ -643,7 +643,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         using base_type = DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler, IVulkanAccelerationStructure>;
-        using base_type::update;
+        using IDescriptorSet::update;
 
     private:
         /// @brief Initializes the descriptor set from a cached buffer. This is only called from the descriptor set layout.
@@ -693,17 +693,8 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc IDescriptorSet::globalHeapAllocation
         DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const override;
 
-        /// @copydoc DescriptorSet::update(UInt32, const buffer_type&, UInt32, UInt32, UInt32, Format, UInt32) const
-        void update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None, UInt32 stride = 0) const override;
-
-        /// @copydoc DescriptorSet::update(UInt32, const image_type&, UInt32, UInt32, UInt32, UInt32, UInt32) const
-        void update(UInt32 binding, const IVulkanImage& texture, UInt32 descriptor = 0, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const override;
-
-        /// @copydoc DescriptorSet::update(UInt32, const sampler_type&, UInt32) const
-        void update(UInt32 binding, const IVulkanSampler& sampler, UInt32 descriptor = 0) const override;
-
-        /// @copydoc DescriptorSet::update(UInt32, const acceleration_structure_type&, UInt32) const
-        void update(UInt32 binding, const IVulkanAccelerationStructure& accelerationStructure, UInt32 descriptor = 0) const override;
+    private:
+        void update(UInt32 index, const DescriptorBinding& binding) const override;
     };
 
     /// @brief Implements a Vulkan @ref IDescriptorRange.
@@ -712,7 +703,6 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         friend class VulkanDevice;
-
         using IDescriptorRange::update;
 
     private:
@@ -740,34 +730,8 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc IDescriptorRange::globalIndex
         UInt32 globalIndex(UInt32 element = 0) const override;
 
-        /// @copydoc IDescriptorRange::update(UInt32, DescriptorType, const IBuffer&, UInt32, UInt32, Format, UInt32)
-        void update(UInt32 element, DescriptorType bindingType, const IVulkanBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None, UInt32 stride = 0) const;
-        
-        /// @copydoc IDescriptorRange::update(UInt32, DescriptorType, const IImage&, UInt32, UInt32, UInt32, UInt32)
-        void update(UInt32 element, DescriptorType bindingType, const IVulkanImage& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const;
-        
-        /// @copydoc IDescriptorRange::update(UInt32, const ISampler&)
-        void update(UInt32 element, const IVulkanSampler& sampler) const;
-
-        /// @copydoc IDescriptorRange::update(UInt32, const IAccelerationStructure&)
-        void update(UInt32 element, const IVulkanAccelerationStructure& accelerationStructure) const;
-
-    private:
-        inline void doUpdate(UInt32 element, DescriptorType bindingType, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat, UInt32 stride) const override {
-            return this->update(element, bindingType, dynamic_cast<const IVulkanBuffer&>(buffer), bufferElement, elements, texelFormat, stride);
-        }
-
-        inline void doUpdate(UInt32 element, DescriptorType bindingType, const IImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const override {
-            return this->update(element, bindingType, dynamic_cast<const IVulkanImage&>(image), firstLevel, levels, firstLayer, layers);
-        }
-
-        inline void doUpdate(UInt32 element, const ISampler& sampler) const override {
-            return this->update(element, dynamic_cast<const IVulkanSampler&>(sampler));
-        }
-
-        inline void doUpdate(UInt32 element, const IAccelerationStructure& accelerationStructure) const override {
-            return this->update(element, dynamic_cast<const IVulkanAccelerationStructure&>(accelerationStructure));
-        }
+        /// @copydoc IDescriptorRange::update(const DescriptorBinding&)
+        void update(DescriptorType type, const DescriptorBinding& binding) const override;
     };
 
     /// @brief Implements a Vulkan @ref IDescriptorLayout

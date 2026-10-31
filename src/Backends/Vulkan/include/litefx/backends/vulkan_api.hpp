@@ -200,7 +200,7 @@ namespace LiteFX::Rendering::Backends {
         /// @brief Returns the limits of the physical device.
         ///
         /// @return The limits of the physical device.
-        VkPhysicalDeviceLimits limits() const noexcept;
+        const VkPhysicalDeviceLimits& limits() const noexcept;
 
         /// @brief Returns `true`, if all elements of @p are contained by the a list of available extensions.
         ///

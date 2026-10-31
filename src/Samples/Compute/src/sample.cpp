@@ -278,7 +278,9 @@ void SampleApp::onResize(const void* /*sender*/, const ResizeEventArgs& e)
         frameBuffer.resize(renderArea);
 
         // Update the post-processing bindings that reference the "opaque" frame buffer.
-        m_device->state().descriptorSet(std::format("Post Bindings {0}", i)).update(0, frameBuffer["Color Target"]); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+        m_device->state()
+            .descriptorSet(std::format("Post Bindings {0}", i))
+            .update(DescriptorBinding::texture(frameBuffer["Color Target"]).at(0)); // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
     }
 
     // Also resize viewport and scissor.
