@@ -53,31 +53,29 @@ public:
         return { heap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(slot), increment };
     }
 
-    UInt32 updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 firstDescriptor, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat, UInt32 stride)
+    void updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, UInt32 firstDescriptor, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 elementsPerDescriptor, Format texelFormat, UInt32 stride)
     {
         auto binding = descriptorLayout.binding();
-        auto elementCount = bufferElements(buffer, bufferElement, elements);
+        auto [descriptors, rangeSize] = buffer.bufferDescriptorRange(bufferElement, elements, elementsPerDescriptor);
 
-        if (firstDescriptor + elementCount > parent.capacity(binding)) [[unlikely]]
-            throw InvalidArgumentException("firstDescriptor", "The descriptor array only has {0} elements, however there are {1} elements starting at descriptor {2} specified.", parent.capacity(binding), elementCount, firstDescriptor);
-        
+        if (firstDescriptor + descriptors > parent.capacity(binding)) [[unlikely]]
+            throw InvalidArgumentException("binding", "The descriptor array at binding {0} only has {1} descriptors, however there are {2} descriptors starting at descriptor {3} specified.", binding, parent.capacity(binding), descriptors, firstDescriptor);
+
         // The reflected element size of a structured buffer is the shader's structure stride. A mismatch means that the shader reads the buffer with a different layout.
-        stride = stride > 0 ? stride : static_cast<UInt32>(buffer.elementSize());
+        stride = stride > 0 ? stride : static_cast<UInt32>(descriptorLayout.elementSize() > 0 ? descriptorLayout.elementSize() : buffer.elementSize());
 
-        if ((bindingType == DescriptorType::StructuredBuffer || bindingType == DescriptorType::RWStructuredBuffer) && 
+        if ((descriptorLayout.descriptorType() == DescriptorType::StructuredBuffer || descriptorLayout.descriptorType() == DescriptorType::RWStructuredBuffer) &&
             descriptorLayout.elementSize() > 0 && descriptorLayout.elementSize() != stride) [[unlikely]]
             throw InvalidArgumentException("structureStride", "The shader expects a structure stride of {0} bytes at binding {1}, but the buffer is bound with a stride of {2} bytes.", descriptorLayout.elementSize(), descriptorLayout.binding(), stride);
 
         auto device = m_layout->device();
         auto offset = m_layout->getDescriptorOffset(binding, firstDescriptor);
 
-        writeBufferDescriptors(*device, bindingType, buffer, bufferElement, elementCount, texelFormat, stride, this->localHandle(DescriptorHeapType::Resource, offset));
-        device->updateGlobalDescriptors(parent, binding, firstDescriptor, elementCount);
-
-        return static_cast<UInt32>(m_resourceHeap.Allocation.Allocation.Offset) + offset;
+        writeBufferDescriptors(*device, descriptorLayout.descriptorType(), buffer, bufferElement, descriptors, rangeSize, texelFormat, stride, this->localHandle(DescriptorHeapType::Resource, offset));
+        device->updateGlobalDescriptors(parent, binding, firstDescriptor, descriptors);
     }
 
-    UInt32 updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 descriptor, const IDirectX12Image& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers)
+    void updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, UInt32 descriptor, const IDirectX12Image& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers)
     {
         auto binding = descriptorLayout.binding();
 
@@ -87,13 +85,11 @@ public:
         auto device = m_layout->device();
         auto offset = m_layout->getDescriptorOffset(binding, descriptor);
 
-        writeImageDescriptor(*device, bindingType, image, firstLevel, levels, firstLayer, layers, this->localHandle(DescriptorHeapType::Resource, offset));
+        writeImageDescriptor(*device, descriptorLayout.descriptorType(), image, firstLevel, levels, firstLayer, layers, this->localHandle(DescriptorHeapType::Resource, offset));
         device->updateGlobalDescriptors(parent, binding, descriptor, 1u);
-
-        return static_cast<UInt32>(m_resourceHeap.Allocation.Allocation.Offset) + offset;
     }
 
-    UInt32 updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, UInt32 descriptor, const IDirectX12Sampler& sampler)
+    void updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, UInt32 descriptor, const IDirectX12Sampler& sampler)
     {
         sampler.validateBinding(descriptorLayout.descriptorType());
         auto binding = descriptorLayout.binding();
@@ -112,8 +108,42 @@ public:
 
         writeSamplerDescriptor(*device, sampler, this->localHandle(DescriptorHeapType::Sampler, offset));
         device->updateGlobalDescriptors(parent, binding, descriptor, 1u);
+    }
 
-        return static_cast<UInt32>(m_samplerHeap.Allocation.Allocation.Offset) + offset;
+    void updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, UInt32 descriptor, const IDirectX12AccelerationStructure& accelerationStructure)
+    {
+        auto binding = descriptorLayout.binding();
+
+        if (descriptor >= parent.capacity(binding)) [[unlikely]]
+            throw InvalidArgumentException("descriptor", "The descriptor array at binding {1} of descriptor set {0} does only contain {2} descriptors, but the descriptor {3} has been specified for binding.", m_layout->space(), binding, parent.capacity(binding), descriptor);
+
+        if (descriptorLayout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
+            throw InvalidArgumentException("descriptorLayout", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor, but rather a {1}.", binding, descriptorLayout.descriptorType());
+
+        auto device = m_layout->device();
+        auto offset = m_layout->getDescriptorOffset(binding, descriptor);
+
+        writeAccelerationStructureDescriptor(*device, accelerationStructure, localHandle(DescriptorHeapType::Resource, offset));
+        device->updateGlobalDescriptors(parent, binding, descriptor, 1u);
+    }
+
+    void updateBinding(const DirectX12DescriptorSet& parent, UInt32 index, const DescriptorBinding& binding) 
+    {
+        // Find the descriptor.
+        auto& descriptors = m_layout->descriptors();
+        auto bindingPoint = binding.binding.value_or(index);
+        auto descriptorLayout = std::ranges::find_if(descriptors, [bindingPoint](auto& layout) { return layout.binding() == bindingPoint; });
+
+        if (descriptorLayout == descriptors.end()) [[unlikely]]
+            throw InvalidArgumentException("binding", "The descriptor set {0} does not contain a descriptor at binding {1}.", m_layout->space(), bindingPoint);
+
+        std::visit(type_switch {
+            [](const std::monostate&) {}, // Default: don't bind anything. Can be used to skip a descriptor in a set of bindings.
+            [&](const IBuffer& buffer) { this->updateBinding(parent, *descriptorLayout, binding.firstDescriptor, dynamic_cast<const IDirectX12Buffer&>(buffer), binding.firstElement, binding.elements, binding.elementsPerDescriptor, binding.texelFormat, binding.stride); },
+            [&](const IImage& image) { this->updateBinding(parent, *descriptorLayout, binding.firstDescriptor, dynamic_cast<const IDirectX12Image&>(image), binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
+            [&](const ISampler& sampler) { this->updateBinding(parent, *descriptorLayout, binding.firstDescriptor, dynamic_cast<const IDirectX12Sampler&>(sampler)); },
+            [&](const IAccelerationStructure& accelerationStructure) { this->updateBinding(parent, *descriptorLayout, binding.firstDescriptor, dynamic_cast<const IDirectX12AccelerationStructure&>(accelerationStructure)); }
+        }, binding.resource);
     }
 };
 
@@ -162,83 +192,9 @@ DescriptorHeapAllocation DirectX12DescriptorSet::globalHeapAllocation(Descriptor
     return m_impl->globalHeapAllocation(heapType);
 }
 
-void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat, UInt32 stride) const
+void DirectX12DescriptorSet::update(UInt32 index, const DescriptorBinding& binding) const
 {
-    // Find the descriptor.
-    auto descriptors = m_impl->m_layout->descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
-
-    if (match == descriptors.end()) [[unlikely]]
-    {
-        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
-        return;
-    }
-
-    // Update the binding.
-    m_impl->updateBinding(*this, (*match), match->descriptorType(), firstDescriptor, buffer, bufferElement, elements, texelFormat, stride);
-}
-
-void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
-{
-    // TODO: Add LOD lower bound (for clamping) as parameter?
-    // Find the descriptor.
-    auto descriptors = m_impl->m_layout->descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
-
-    if (match == descriptors.end()) [[unlikely]]
-    {
-        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
-        return;
-    }
-
-    // Update the binding.
-    m_impl->updateBinding(*this, (*match), match->descriptorType(),descriptor, texture, firstLevel, levels, firstLayer, layers);
-}
-
-void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sampler, UInt32 descriptor) const
-{
-    // Find the descriptor.
-    auto descriptors = m_impl->m_layout->descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
-
-    if (match == descriptors.end()) [[unlikely]]
-    {
-        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
-        return;
-    }
-
-    // Update the binding.
-    m_impl->updateBinding(*this, (*match), descriptor, sampler);
-}
-
-void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12AccelerationStructure& accelerationStructure, UInt32 descriptor) const
-{
-    auto layout = m_impl->m_layout;
-    auto device = layout->device();
-
-    // Find the descriptor.
-    auto descriptors = layout->descriptors();
-    auto descriptorLayout = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
-
-    if (descriptorLayout == descriptors.end()) [[unlikely]]
-    {
-        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", layout->space(), binding);
-        return;
-    }
-
-    // Check if the descriptor type is valid for the requested operation.
-    if (descriptorLayout->descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
-        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.", binding);
-
-    // Check if all elements can be bound to a bounded array.
-    if (descriptor >= this->capacity(binding)) [[unlikely]]
-        throw ArgumentOutOfRangeException("descriptor", "The descriptor layout can only bind up to {0} descriptors at binding {3}, however the request was to bind {1} descriptors starting at {2}.", this->capacity(binding), 1, descriptor, binding);
-
-    // Setup the descriptor info.
-    writeAccelerationStructureDescriptor(*device, accelerationStructure, m_impl->localHandle(DescriptorHeapType::Resource, layout->getDescriptorOffset(binding, descriptor)));
-
-    // Update the invalidated range on the global descriptor heap.
-    device->updateGlobalDescriptors(*this, binding, descriptor, 1u);
+    m_impl->updateBinding(*this, index, binding);
 }
 
 const ComPtr<ID3D12DescriptorHeap> DirectX12DescriptorSet::localHeap(DescriptorHeapType heapType) const noexcept

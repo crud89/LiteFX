@@ -4215,6 +4215,16 @@ namespace LiteFX::Rendering {
 
     /// @brief Base interface for buffer objects.
     class LITEFX_RENDERING_API IBuffer : public virtual IDeviceMemory, public virtual IMappable, public virtual IStateResource, public IBindable, public SharedObject {
+    public:
+        /// @brief Describes how a range of buffer elements is distributed across descriptors.
+        struct BufferDescriptorRange {
+            /// @brief The number of descriptors to write.
+            UInt32 Descriptors{};
+
+            /// @brief The number of consecutive buffer elements viewed by each descriptor.
+            UInt32 ElementsPerDescriptor{ 1u };
+        };
+
     protected:
         IBuffer() noexcept = default;
         IBuffer(IBuffer&&) noexcept = default;
@@ -4277,9 +4287,13 @@ namespace LiteFX::Rendering {
 
         /// @copydoc IBindable::validateBinding
         /// 
+        /// @param elementsPerDescriptor The number of elements bound to a single descriptor. If this is greater than 1, @ref alignedElementSize must match @ref elementSize.
         /// @param stride The size of a single structure in bytes for structured buffers, or `0` to treat each buffer element as one structure.
-        inline void validateBinding(DescriptorType type, UInt32 stride) const {
+        inline void validateBinding(DescriptorType type, UInt32 elementsPerDescriptor, UInt32 stride) const {
             this->validateBinding(type);
+
+            if (elementsPerDescriptor > 1 && this->alignedElementSize() != this->elementSize()) [[unlikely]]
+                throw InvalidArgumentException("elementsPerDescriptor", "When binding more than a single element to a single descriptor, the element size must be aligned (aligned size {} mismatches size {}).", this->alignedElementSize(), this->elementSize());
 
             if (type != DescriptorType::StructuredBuffer && type != DescriptorType::RWStructuredBuffer)
                 return;
@@ -4292,6 +4306,32 @@ namespace LiteFX::Rendering {
 
             if (this->alignedElementSize() % stride != 0) [[unlikely]]
                 throw InvalidArgumentException("stride", "The aligned buffer element size of {0} bytes is not a multiple of the structure stride of {1} bytes, so elements cannot be addressed individually.", this->alignedElementSize(), stride);
+        }
+
+        /// @brief Resolves the number of buffer elements and descriptors described by a binding.
+        ///
+        /// @param firstElement The index of the first buffer element to bind.
+        /// @param elements The number of buffer elements to bind, or `0` to bind all remaining elements.
+        /// @param elementsPerDescriptor The number of elements viewed by each descriptor, or `0` to view all bound elements with a single descriptor.
+        /// @return The number of descriptors and the resolved number of elements per descriptor.
+        /// @throws ArgumentOutOfRangeException Thrown, if the element range exceeds the buffer.
+        /// @throws InvalidArgumentException Thrown, if the number of elements is not a multiple of the elements per descriptor.
+        inline BufferDescriptorRange bufferDescriptorRange(UInt32 firstElement, UInt32 elements, UInt32 elementsPerDescriptor) const
+        {
+            if (firstElement >= this->elements()) [[unlikely]]
+                throw ArgumentOutOfRangeException("firstElement", "The buffer only has {0} elements, but element {1} was requested.", this->elements(), firstElement);
+
+            const UInt32 count = elements > 0 ? elements : this->elements() - firstElement;
+
+            if (count > this->elements() - firstElement) [[unlikely]]
+                throw ArgumentOutOfRangeException("elements", "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", this->elements(), count, firstElement);
+
+            const UInt32 perDescriptor = elementsPerDescriptor > 0 ? elementsPerDescriptor : count;
+
+            if (count % perDescriptor != 0) [[unlikely]]
+                throw InvalidArgumentException("elementsPerDescriptor", "The number of bound elements ({0}) must be a multiple of the elements per descriptor ({1}).", count, perDescriptor);
+
+            return { .Descriptors = count / perDescriptor, .ElementsPerDescriptor = perDescriptor };
         }
     };
 
@@ -5245,101 +5285,17 @@ namespace LiteFX::Rendering {
         constexpr virtual void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
     };
 
-    /// @brief The interface for a descriptor set.
-    class LITEFX_RENDERING_API IDescriptorSet {
-    protected:
-        IDescriptorSet() noexcept = default;
-        IDescriptorSet(const IDescriptorSet&) = default;
-        IDescriptorSet(IDescriptorSet&&) noexcept = default;
-        IDescriptorSet& operator=(const IDescriptorSet&) = default;
-        IDescriptorSet& operator=(IDescriptorSet&&) noexcept = default;
-
-    public:
-        virtual ~IDescriptorSet() noexcept = default;
-
-    public:
-        /// @brief Returns the size of a descriptor array bound at @p binding.
-        /// 
-        /// @param binding The binding for which to obtain the descriptor count.
-        /// @return The size of the descriptor array bound at @p binding, or `0` if the descriptor set does not contain a binding at @p binding.
-        virtual UInt32 capacity(UInt32 binding) const noexcept = 0;
-
-        /// @brief Returns the allocation information for the descriptor set in the global descriptor heap indicated by @p heapType.
-        ///
-        /// @param heapType The type of the descriptor heap for which to obtain the heap allocation.
-        /// @return The allocation for the descriptor set in the global descriptor heap.
-        virtual DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const = 0;
-
-        /// @brief Updates one or more buffer descriptors within the current descriptor set.
-        ///
-        /// @param binding The buffer binding point.
-        /// @param buffer The buffer to write to the descriptor set.
-        /// @param bufferElement The index of the first element in the buffer to bind to the descriptor set.
-        /// @param elements The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at @p bufferElement.
-        /// @param firstDescriptor The index of the first descriptor in the descriptor array to update.
-        /// @param texelFormat The format used to read a texel buffer. Required if @p binding binds a texel buffer and ignored otherwise.
-        /// @param stride If @p binding binds a @ref DescriptorType::StructuredBuffer or @ref DescriptorType::RWStructuredBuffer, this value defines the size (in bytes) of a single structure within a buffer 
-        ///               element. A value of `0` treats each buffer element as a single structure. Must divide the buffer's element size.
-        inline void update(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None, UInt32 stride = 0) const {
-            this->doUpdate(binding, buffer, bufferElement, elements, firstDescriptor, texelFormat, stride);
-        }
-
-        /// @brief Updates one or more texture descriptors within the current descriptor set.
-        ///
-        /// The exact representation of the level and layer parameters depends on the dimension of the provided texture, as well as the type of the descriptor identified by the @p binding parameter.
-        ///
-        /// If the texture itself is not an array (i.e. the number of layers equals `1`), the parameters @p firstLayer and @p layers are ignored.
-        ///
-        /// The descriptor type dictates, how mip-maps can be provided. If the descriptor type identifies a *writable texture*, the @p firstLevel parameter specifies the mip-map level to write to (or read from).
-        /// Multiple levels are not allowed in this case, so the @p levels parameter is ignored. Instead, you have to bind them to separate descriptors. Furthermore, the @p firstLayer and @p layers parameter can
-        /// be used to specify the number of depth or W-slices of a writable 3D texture or the side(s) of a cube map.
-        ///
-        /// @param binding The texture binding point.
-        /// @param texture The texture to write to the descriptor set.
-        /// @param descriptor The index of the descriptor in the descriptor array to bind the texture to.
-        /// @param firstLevel The index of the first mip-map level to bind.
-        /// @param levels The number of mip-map levels to bind. A value of `0` binds all available levels, starting at @p firstLevel.
-        /// @param firstLayer The index of the first layer to bind.
-        /// @param layers The number of layers to bind. A value of `0` binds all available layers, starting at @p firstLayer.
-        inline void update(UInt32 binding, const IImage& texture, UInt32 descriptor = 0, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const {
-            this->doUpdate(binding, texture, descriptor, firstLevel, levels, firstLayer, layers);
-        }
-
-        /// @brief Updates one or more sampler descriptors within the current descriptor set.
-        ///
-        /// @param binding The sampler binding point.
-        /// @param sampler The sampler to write to the descriptor set.
-        /// @param descriptor The index of the descriptor in the descriptor array to bind the sampler to.
-        inline void update(UInt32 binding, const ISampler& sampler, UInt32 descriptor = 0) const {
-            this->doUpdate(binding, sampler, descriptor);
-        }
-
-        /// @brief Updates an acceleration structure within the current descriptor set.
-        ///
-        /// @param binding The acceleration structure binding point.
-        /// @param accelerationStructure The acceleration structure to write to the descriptor set.
-        /// @param descriptor The index of the descriptor in the descriptor array to bind the acceleration structure to.
-        inline void update(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor = 0) const {
-            this->doUpdate(binding, accelerationStructure, descriptor);
-        }
-
-    private:
-        virtual void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat, UInt32 stride) const = 0;
-        virtual void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
-        virtual void doUpdate(UInt32 binding, const ISampler& sampler, UInt32 descriptor) const = 0;
-        virtual void doUpdate(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor) const = 0;
-    };
-
-    /// @brief Describes a resource binding to a descriptor or descriptor set.
-    ///
+    /// @brief Describes how a resource is bound to one or more descriptors.
+    /// 
     /// @see @ref IDescriptorSet
     /// @see @ref IDescriptorSetLayout
+    /// @see @ref IDescriptorRange
     struct LITEFX_RENDERING_API DescriptorBinding {
     public:
         using resource_container = Variant<std::monostate, Ref<const IBuffer>, Ref<const IImage>, Ref<const ISampler>, Ref<const IAccelerationStructure>>;
-        
+
     public:
-        /// @brief The binding point to bind the resource at. If not provided (i.e., `std::nullopt`), the index within the collection of `DescriptorBindings` is used.
+        /// @brief The binding point to bind the resource at. If not provided (i.e., `std::nullopt`), the index within the collection of `DescriptorBindings` is used. Ignored when binding to a @ref IDescriptorRange.
         Optional<UInt32> binding = std::nullopt;
 
         /// @brief The resource to bind or `std::monostate` if no resource should be bound.
@@ -5360,6 +5316,12 @@ namespace LiteFX::Rendering {
         /// @see @ref firstElement
         /// @see @ref elements
         UInt32 firstDescriptor = 0;
+
+        /// @brief The number of consecutive buffer elements viewed by each descriptor.
+        ///
+        /// A value of `1` binds each element to its own descriptor. A value of `0` binds all elements to a single descriptor. Otherwise, the bound elements are distributed across `elements / elementsPerDescriptor` 
+        /// descriptors. Views over multiple elements require buffers without padding between elements. Ignored for resources other than @ref IBuffer.
+        UInt32 elementsPerDescriptor = 1;
 
         /// @brief The index of the first array element or image layer to bind, starting at @ref firstDescriptor.
         ///
@@ -5386,6 +5348,9 @@ namespace LiteFX::Rendering {
         UInt32 levels = 0;
 
         /// @brief The stride of a structure in a structured buffer.
+        /// 
+        /// Setting this value to `0` derives the stride from the element size, which is usually the desired purpose anyway. Only if you ever want to read a structure differently on the GPU then you write it on the CPU
+        /// would you want to set the stride to a different value.
         ///
         /// This property is ignored, if the resource binds to a descriptor other than @ref DescriptorType::StructuredBuffer or @ref DescriptorType::RWStructuredBuffer.
         UInt32 stride = 0;
@@ -5394,6 +5359,197 @@ namespace LiteFX::Rendering {
         ///
         /// This property is ignored, if the resource binds to a descriptor other than @ref DescriptorType::Buffer or @ref DescriptorType::RWBuffer.
         Format texelFormat = Format::None;
+
+    public:
+        /// @brief Creates a descriptor binding for a constant/uniform buffer.
+        /// 
+        /// For constant/uniform buffers, each element must be bound to their own descriptor. Arrays are expressed as descriptor arrays.
+        /// 
+        /// @param buffer The buffer to bind.
+        /// @param element The element to bind.
+        /// @param elements The number of elements to bind. Equals the number of descriptors to bind.
+        /// @return The descriptor binding.
+        [[nodiscard]] static constexpr DescriptorBinding constantBuffer(const IBuffer& buffer, UInt32 element = 0, UInt32 elements = 1) noexcept {
+            return { .resource = std::cref(buffer), .firstElement = element, .elements = elements };
+        }
+
+        /// @brief Creates a descriptor binding for a structured buffer.
+        /// 
+        /// @param buffer The buffer to bind.
+        /// @param firstElement The first element at which binding starts.
+        /// @param elements The number of elements in the buffer to bind.
+        /// @param elementsPerDescriptor The number of elements to bind to a single descriptor.
+        /// @param stride The stride between individual element offsets in a structured buffer on the GPU.
+        /// @return The descriptor binding.
+        [[nodiscard]] static constexpr DescriptorBinding structuredBuffer(const IBuffer& buffer, UInt32 firstElement = 0, UInt32 elements = 0, UInt32 elementsPerDescriptor = 1, UInt32 stride = 0) noexcept {
+            return { .resource = std::cref(buffer), .elementsPerDescriptor = elementsPerDescriptor, .firstElement = firstElement, .elements = elements, .stride = stride };
+        }
+
+        /// @brief Creates a descriptor binding for a byte address buffer.
+        /// 
+        /// @param buffer The buffer to bind.
+        /// @param firstElement The first element in the buffer to bind.
+        /// @param elements The number of elements in the buffer to bind.
+        /// @param elementsPerDescriptor The number of elements to bind to a single descriptor.
+        /// @return The descriptor binding.
+        [[nodiscard]] static constexpr DescriptorBinding byteAddressBuffer(const IBuffer& buffer, UInt32 firstElement = 0, UInt32 elements = 0, UInt32 elementsPerDescriptor = 1) noexcept {
+            return { .resource = std::cref(buffer), .elementsPerDescriptor = elementsPerDescriptor, .firstElement = firstElement, .elements = elements };
+        }
+
+        /// @brief Creates a descriptor binding for a texel buffer.
+        /// 
+        /// @param buffer The buffer to bind.
+        /// @param texelFormat The format used to read the buffer elements.
+        /// @param firstElement The first element in the buffer to bind.
+        /// @param elements The number of elements in the buffer to bind.
+        /// @param elementsPerDescriptor The number of elements to bind to a single descriptor.
+        /// @return The descriptor binding.
+        [[nodiscard]] static constexpr DescriptorBinding texelBuffer(const IBuffer& buffer, Format texelFormat, UInt32 firstElement = 0, UInt32 elements = 0, UInt32 elementsPerDescriptor = 1) noexcept {
+            return { .resource = std::cref(buffer), .elementsPerDescriptor = elementsPerDescriptor, .firstElement = firstElement, .elements = elements, .texelFormat = texelFormat };
+        }
+
+        /// @brief Creates a descriptor binding for an image.
+        /// 
+        /// @param image The image to bind.
+        /// @param firstLevel The index of the first level to bind.
+        /// @param levels The number of levels to bind.
+        /// @param firstLayer The index of the first layer to bind.
+        /// @param layers The number of layers to bind.
+        /// @return The descriptor binding.
+        [[nodiscard]] static constexpr DescriptorBinding texture(const IImage& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) noexcept {
+            return { .resource = std::cref(image), .firstElement = firstLayer, .elements = layers, .firstLevel = firstLevel, .levels = levels };
+        }
+
+        /// @brief Creates a descriptor binding for a writable image.
+        /// 
+        /// @param image The image to bind.
+        /// @param firstLevel The index of the first level to bind.
+        /// @param levels The number of levels to bind.
+        /// @param firstLayer The index of the first layer to bind.
+        /// @param layers The number of layers to bind.
+        /// @return The descriptor binding.
+        [[nodiscard]] static constexpr DescriptorBinding writableTexture(const IImage& image, UInt32 level = 0, UInt32 firstLayer = 0, UInt32 layers = 0) noexcept {
+            return { .resource = std::cref(image), .firstElement = firstLayer, .elements = layers, .firstLevel = level, .levels = 1 };
+        }
+
+        /// @brief Creates a descriptor binding for an input attachment.
+        /// 
+        /// @param image The image that stores the input attachment to bind.
+        /// @return The descriptor binding. 
+        [[nodiscard]] static constexpr DescriptorBinding inputAttachment(const IImage& image) noexcept {
+            return { .resource = std::cref(image) };
+        }
+
+        /// @brief Creates a descriptor binding for a sampler state.
+        /// 
+        /// @param sampler The sampler state to bind.
+        /// @return The descriptor binding. 
+        [[nodiscard]] static constexpr DescriptorBinding sampler(const ISampler& sampler) noexcept {
+            return { .resource = std::cref(sampler) };
+        }
+
+        /// @brief Creates a descriptor binding for an acceleration structure.
+        /// 
+        /// @param accelerationStructure The acceleration structure to bind.
+        /// @return The descriptor binding.
+        [[nodiscard]] static constexpr DescriptorBinding accelerationStructure(const IAccelerationStructure& accelerationStructure) noexcept {
+            return { .resource = std::cref(accelerationStructure) };
+        }
+
+    public:
+        /// @brief Returns a copy of the binding, targeting the descriptor range at binding point @p bindingPoint.
+        /// 
+        /// @param bindingPoint The binding point to target.
+        /// @return A copy of the descriptor binding, with the binding point set to @p bindingPoint.
+        /// @see @ref toDescriptor
+        [[nodiscard]] constexpr DescriptorBinding at(UInt32 bindingPoint) const noexcept {
+            auto copy = *this;
+            copy.binding = bindingPoint;
+
+            return copy;
+        }
+
+        /// @brief Returns a copy of the binding, starting at descriptor @p descriptor.
+        /// 
+        /// This is only required for descriptor arrays where you don't want to start binding at the first descriptor in the array. Specify the binding point by calling @ref at. If it is not set,
+        /// the index of the array element provided to the binding function will be used instead.
+        /// 
+        /// @param descriptor The index of the first descriptor in the descriptor array at binding point @ref binding to bind.
+        /// @return A copy of the binding with @ref firstDescriptor set to @p descriptor.
+        [[nodiscard]] constexpr DescriptorBinding toDescriptor(UInt32 descriptor) const noexcept {
+            auto copy = *this;
+            copy.firstDescriptor = descriptor;
+
+            return copy;
+        }
+    };
+
+    /// @brief The interface for a descriptor set.
+    class LITEFX_RENDERING_API IDescriptorSet {
+    protected:
+        IDescriptorSet() noexcept = default;
+        IDescriptorSet(const IDescriptorSet&) = default;
+        IDescriptorSet(IDescriptorSet&&) noexcept = default;
+        IDescriptorSet& operator=(const IDescriptorSet&) = default;
+        IDescriptorSet& operator=(IDescriptorSet&&) noexcept = default;
+
+    public:
+        virtual ~IDescriptorSet() noexcept = default;
+
+    public:
+        /// @brief Returns the size of a descriptor array bound at @p binding.
+        /// 
+        /// @param binding The binding for which to obtain the descriptor count.
+        /// @return The size of the descriptor array bound at @p binding, or `0` if the descriptor set does not contain a binding at @p binding.
+        virtual UInt32 capacity(UInt32 binding) const noexcept = 0;
+
+        /// @brief Returns the allocation information for the descriptor set in the global descriptor heap indicated by @p heapType.
+        ///
+        /// @param heapType The type of the descriptor heap for which to obtain the heap allocation.
+        /// @return The allocation for the descriptor set in the global descriptor heap.
+        virtual DescriptorHeapAllocation globalHeapAllocation(DescriptorHeapType heapType) const = 0;
+
+        /// @brief Updates a single descriptor binding.
+        /// 
+        /// @param binding The binding to update. If @ref DescriptorBinding::binding is not provided, `0` is assumed.
+        inline void update(const DescriptorBinding& binding) const {
+            this->update(0u, binding);
+        }
+
+        /// @brief Updates a series of descriptor bindings.
+        /// 
+        /// @param bindings The descriptor bindings to update. If @ref DescriptorBinding::binding is not provided, the index of the element is taken.
+        inline void update(Span<const DescriptorBinding> bindings) const {
+            for (UInt32 i{ 0u }; auto& binding : bindings)
+                this->update(i++, binding);
+        }
+
+        /// @brief Updates a series of descriptor bindings.
+        /// 
+        /// @param bindings The descriptor bindings to update. If @ref DescriptorBinding::binding is not provided, the index of the element is taken.
+        inline void update(std::initializer_list<DescriptorBinding> bindings) const {
+            for (UInt32 i{ 0u }; auto& binding : bindings)
+                this->update(i++, binding);
+        }
+
+        /// @brief Updates a series of descriptor bindings.
+        /// 
+        /// @param bindings The descriptor bindings to update. If @ref DescriptorBinding::binding is not provided, the index of the element is taken.
+        inline void update(Enumerable<const DescriptorBinding&> bindings) const {
+            for (UInt32 i{ 0u }; auto& binding : bindings)
+                this->update(i++, binding);
+        }
+
+        /// @brief Updates a series of descriptor bindings.
+        /// 
+        /// @param bindings The descriptor bindings to update. If @ref DescriptorBinding::binding is not provided, the index of the element is taken.
+        inline void update(Generator<const DescriptorBinding&> bindings) const {
+            for (UInt32 i{ 0u }; auto& binding : bindings)
+                this->update(i++, binding);
+        }
+
+    private:
+        virtual void update(UInt32 index, const DescriptorBinding& binding) const = 0;
     };
 
     /// @brief The interface for a descriptor set layout.
@@ -5519,12 +5675,12 @@ namespace LiteFX::Rendering {
         }
 
         /// @copydoc allocate(std::initializer_list)
-        inline UniquePtr<IDescriptorSet> allocate(Span<DescriptorBinding> bindings) const {
+        inline UniquePtr<IDescriptorSet> allocate(Span<const DescriptorBinding> bindings) const {
             return this->getDescriptorSet(0, bindings);
         }
 
         /// @copydoc allocate(std::initializer_list)
-        inline UniquePtr<IDescriptorSet> allocate(Generator<DescriptorBinding> bindings) const {
+        inline UniquePtr<IDescriptorSet> allocate(Generator<const DescriptorBinding&> bindings) const {
             return this->getDescriptorSet(0, std::move(bindings));
         }
 
@@ -5540,7 +5696,7 @@ namespace LiteFX::Rendering {
         }
 
         /// @copydoc allocate(UInt32, std::initializer_list)
-        inline UniquePtr<IDescriptorSet> allocate(UInt32 unboundedArraySize, Span<DescriptorBinding> bindings) const {
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 unboundedArraySize, Span<const DescriptorBinding> bindings) const {
             return this->getDescriptorSet(unboundedArraySize, bindings);
         }
 
@@ -5550,7 +5706,7 @@ namespace LiteFX::Rendering {
         /// @param bindings A generator that generates the optional default bindings for descriptors in each descriptor set.
         /// @return The instance of the descriptor set.
         /// @see @ref allocate(std::initializer_list)
-        inline UniquePtr<IDescriptorSet> allocate(UInt32 unboundedArraySize, Generator<DescriptorBinding> bindings) const {
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 unboundedArraySize, Generator<const DescriptorBinding&> bindings) const {
             return this->getDescriptorSet(unboundedArraySize, std::move(bindings));
         }
 
@@ -5566,7 +5722,7 @@ namespace LiteFX::Rendering {
 
 #ifdef __cpp_lib_mdspan
         /// @copydoc allocate(UInt32, std::initializer_list)
-        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
+        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, std::mdspan<const DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
             return this->getDescriptorSets(descriptorSets, 0, bindings);
         }
 #endif
@@ -5577,7 +5733,7 @@ namespace LiteFX::Rendering {
         /// @param bindingFactory A factory function that is called for each descriptor in each descriptor set in order to provide the default bindings.
         /// @return A generator that produces the descriptor set instances.
         /// @see @ref allocate(std::initializer_list)
-        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const {
+        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, std::function<Generator<const DescriptorBinding&>(UInt32)> bindingFactory) const {
             return this->getDescriptorSets(descriptorSets, 0, std::move(bindingFactory));
         }
 
@@ -5594,7 +5750,7 @@ namespace LiteFX::Rendering {
 
 #ifdef __cpp_lib_mdspan
         /// @copydoc allocate(UInt32, UInt32, std::initializer_list)
-        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
+        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::mdspan<const DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
             return this->getDescriptorSets(descriptorSets, unboundedArraySize, bindings);
         }
 #endif
@@ -5606,7 +5762,7 @@ namespace LiteFX::Rendering {
         /// @param bindingFactory A factory function that is called for each descriptor set in order to provide the default bindings.
         /// @return A generator that produces the descriptor set instances.
         /// @see @ref allocate(std::initializer_list)
-        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const {
+        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 unboundedArraySize, std::function<Generator<const DescriptorBinding&>(UInt32)> bindingFactory) const {
             return this->getDescriptorSets(descriptorSets, unboundedArraySize, std::move(bindingFactory));
         }
 
@@ -5620,13 +5776,13 @@ namespace LiteFX::Rendering {
     private:
         virtual Enumerable<const IDescriptorLayout&> getDescriptors() const noexcept = 0;
         virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, std::initializer_list<DescriptorBinding> bindings) const = 0;
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, Span<DescriptorBinding> bindings) const = 0;
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, Generator<DescriptorBinding> bindings) const = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, Span<const DescriptorBinding> bindings) const = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 unboundedArraySize, Generator<const DescriptorBinding&> bindings) const = 0;
         virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings) const = 0;
 #ifdef __cpp_lib_mdspan
-        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const = 0;
+        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::mdspan<const DescriptorBinding, std::dextents<size_t, 2>> bindings) const = 0;
 #endif
-        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
+        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 unboundedArraySize, std::function<Generator<const DescriptorBinding&>(UInt32)> bindingFactory) const = 0;
         virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const = 0;
     };
 
@@ -5730,62 +5886,47 @@ namespace LiteFX::Rendering {
         /// @return The index of @p element within the global descriptor heap underlying the range.
         virtual UInt32 globalIndex(UInt32 element = 0) const = 0;
 
-        /// @brief Updates one or more buffer descriptors within the descriptor range.
+        /// @brief Updates a single descriptor binding.
         /// 
-        /// @param element The index of the descriptor in the range to update.
-        /// @param bindingType The type of the resource to bind at @p element.
-        /// @param buffer The buffer to write to the descriptor set.
-        /// @param bufferElement The index of the first element in the buffer to bind to the descriptor set.
-        /// @param elements The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at @p bufferElement.
-        /// @param texelFormat The format used to read a texel buffer. Required if @p bindingType binds a texel buffer and ignored otherwise.
-        /// @param stride If @p binding binds a @ref DescriptorType::StructuredBuffer or @ref DescriptorType::RWStructuredBuffer, this value defines the size (in bytes) of a single structure within a buffer 
-        ///               element. A value of `0` treats each buffer element as a single structure. Must divide the buffer's element size.
-        inline void update(UInt32 element, DescriptorType bindingType, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None, UInt32 stride = 0) const {
-            this->doUpdate(element, bindingType, buffer, bufferElement, elements, texelFormat, stride);
-        }
+        /// @param type The type of the descriptor to bind.
+        /// @param binding The binding to update.
+        virtual void update(DescriptorType type, const DescriptorBinding& binding) const = 0;
 
-        /// @brief Updates one or more texture descriptors within the current descriptor range.
-        ///
-        /// The exact representation of the level and layer parameters depends on the dimension of the provided texture, as well as the type of the descriptor identified by the @p bindingType parameter.
-        ///
-        /// If the texture itself is not an array (i.e. the number of layers equals `1`), the parameters @p firstLayer and @p layers are ignored.
-        ///
-        /// The descriptor type dictates, how mip-maps can be provided. If the descriptor type identifies a *writable texture*, the @p firstLevel parameter specifies the mip-map level to write to (or read from).
-        /// Multiple levels are not allowed in this case, so the @p levels parameter is ignored. Instead, you have to bind them to separate descriptors. Furthermore, the @p firstLayer and @p layers parameter can
-        /// be used to specify the number of depth or W-slices of a writable 3D texture or the side(s) of a cube map.
-        ///
-        /// @param element The index of the descriptor in the range to update.
-        /// @param bindingType The type of the resource to bind at @p element.
-        /// @param image The texture to write to the descriptor range.
-        /// @param firstLevel The index of the first mip-map level to bind.
-        /// @param levels The number of mip-map levels to bind. A value of `0` binds all available levels, starting at @p firstLevel.
-        /// @param firstLayer The index of the first layer to bind.
-        /// @param layers The number of layers to bind. A value of `0` binds all available layers, starting at @p firstLayer.
-        inline void update(UInt32 element, DescriptorType bindingType, const IImage& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const {
-            this->doUpdate(element, bindingType, image, firstLevel, levels, firstLayer, layers);
-        }
-
-        /// @brief Updates a sampler descriptor within the current descriptor range.
-        ///
-        /// @param element The index of the descriptor in the range to update.
-        /// @param sampler The sampler to write to the descriptor range.
-        inline void update(UInt32 element, const ISampler& sampler) const {
-            this->doUpdate(element, sampler);
-        }
-
-        /// @brief Updates an acceleration structure descriptor within the current descriptor range.
+        /// @brief Updates a series of descriptor bindings.
         /// 
-        /// @param element The index of the descriptor in the range to update.
-        /// @param accelerationStructure The acceleration structure to write to the descriptor range.
-        inline void update(UInt32 element, const IAccelerationStructure& accelerationStructure) const {
-            this->doUpdate(element, accelerationStructure);
+        /// @param type The type of the descriptor to bind.
+        /// @param bindings The descriptor bindings to update.
+        inline void update(DescriptorType type, Span<const DescriptorBinding> bindings) const {
+            for (auto& binding : bindings)
+                this->update(type, binding);
         }
 
-    private:
-        virtual void doUpdate(UInt32 element, DescriptorType bindingType, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat, UInt32 stride) const = 0;
-        virtual void doUpdate(UInt32 element, DescriptorType bindingType, const IImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
-        virtual void doUpdate(UInt32 element, const ISampler& sampler) const = 0;
-        virtual void doUpdate(UInt32 element, const IAccelerationStructure& accelerationStructure) const = 0;
+        /// @brief Updates a series of descriptor bindings.
+        /// 
+        /// @param type The type of the descriptor to bind.
+        /// @param bindings The descriptor bindings to update.
+        inline void update(DescriptorType type, std::initializer_list<DescriptorBinding> bindings) const {
+            for (auto& binding : bindings)
+                this->update(type, binding);
+        }
+
+        /// @brief Updates a series of descriptor bindings.
+        /// 
+        /// @param type The type of the descriptor to bind.
+        /// @param bindings The descriptor bindings to update.
+        inline void update(DescriptorType type, Enumerable<const DescriptorBinding&> bindings) const {
+            for (auto& binding : bindings)
+                this->update(type, binding);
+        }
+
+        /// @brief Updates a series of descriptor bindings.
+        /// 
+        /// @param type The type of the descriptor to bind.
+        /// @param bindings The descriptor bindings to update.
+        inline void update(DescriptorType type, Generator<const DescriptorBinding&> bindings) const {
+            for (auto& binding : bindings)
+                this->update(type, binding);
+        }
     };
 
     /// @brief Describes a record within a shader binding table.

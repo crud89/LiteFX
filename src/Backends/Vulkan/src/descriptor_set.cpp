@@ -43,26 +43,24 @@ public:
         return { .address = descriptor.data(), .size = descriptor.size() };
     }
 
-    UInt32 updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 firstDescriptor, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat, UInt32 stride)
+    void updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, UInt32 firstDescriptor, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 elementsPerDescriptor, Format texelFormat, UInt32 stride)
     {
         auto binding = descriptorLayout.binding();
-        auto elementCount = bufferElements(buffer, bufferElement, elements);
+        auto [descriptors, rangeSize] = buffer.bufferDescriptorRange(bufferElement, elements, elementsPerDescriptor);
 
-        if (firstDescriptor + elementCount > parent.capacity(binding)) [[unlikely]]
-            throw InvalidArgumentException("firstDescriptor", "The descriptor array only has {0} elements, however there are {1} elements starting at descriptor {2} specified.", parent.capacity(binding), elementCount, firstDescriptor);
+        if (firstDescriptor + descriptors > parent.capacity(binding)) [[unlikely]]
+            throw InvalidArgumentException("binding", "The descriptor array at binding {0} only has {1} descriptors, however there are {2} descriptors starting at descriptor {3} specified.", binding, parent.capacity(binding), descriptors, firstDescriptor);
 
-        auto targets = std::views::iota(firstDescriptor, firstDescriptor + elementCount)
+        auto targets = std::views::iota(firstDescriptor, firstDescriptor + descriptors)
             | std::views::transform([&](UInt32 descriptor) { return this->targetAddressRange(DescriptorHeapType::Resource, m_layout->getDescriptorOffset(binding, descriptor)); })
             | std::ranges::to<Array<VkHostAddressRangeEXT>>();
 
         auto& device = m_layout->device();
-        writeBufferDescriptors(device, bindingType, buffer, bufferElement, texelFormat, stride, targets);
-        device.updateGlobalDescriptors(parent, binding, firstDescriptor, elementCount);
-
-        return static_cast<UInt32>(parent.globalHeapAllocation(DescriptorHeapType::Resource).Allocation.Offset + m_layout->getDescriptorOffset(binding, firstDescriptor));
+        writeBufferDescriptors(device, descriptorLayout.descriptorType(), buffer, bufferElement, rangeSize, texelFormat, stride, targets);
+        device.updateGlobalDescriptors(parent, binding, firstDescriptor, descriptors);
     }
 
-    UInt32 updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 descriptor, const IVulkanImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers)
+    void updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, UInt32 descriptor, const IVulkanImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers)
     {
         auto binding = descriptorLayout.binding();
 
@@ -71,13 +69,11 @@ public:
 
         auto& device = m_layout->device();
         auto descriptorOffset = m_layout->getDescriptorOffset(binding, descriptor);
-        writeImageDescriptor(device, bindingType, image, firstLevel, levels, firstLayer, layers, this->targetAddressRange(DescriptorHeapType::Resource, descriptorOffset));
+        writeImageDescriptor(device, descriptorLayout.descriptorType(), image, firstLevel, levels, firstLayer, layers, this->targetAddressRange(DescriptorHeapType::Resource, descriptorOffset));
         device.updateGlobalDescriptors(parent, binding, descriptor, 1u);
-
-        return static_cast<UInt32>(parent.globalHeapAllocation(DescriptorHeapType::Resource).Allocation.Offset + descriptorOffset);
     }
 
-    UInt32 updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, UInt32 descriptor, const IVulkanSampler& sampler)
+    void updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, UInt32 descriptor, const IVulkanSampler& sampler)
     {
         sampler.validateBinding(descriptorLayout.descriptorType());
         auto binding = descriptorLayout.binding();
@@ -96,8 +92,46 @@ public:
 
         writeSamplerDescriptor(device, sampler, this->targetAddressRange(DescriptorHeapType::Sampler, descriptorOffset));
         device.updateGlobalDescriptors(parent, binding, descriptor, 1u);
+    }
 
-        return static_cast<UInt32>(parent.globalHeapAllocation(DescriptorHeapType::Sampler).Allocation.Offset + descriptorOffset);
+    void updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, UInt32 descriptor, const IVulkanAccelerationStructure& accelerationStructure)
+    {
+        auto binding = descriptorLayout.binding();
+
+        if (descriptor >= parent.capacity(binding)) [[unlikely]]
+            throw InvalidArgumentException("descriptor", "The descriptor array at binding {1} of descriptor set {0} does only contain {2} descriptors, but the descriptor {3} has been specified for binding.", m_layout->space(), binding, parent.capacity(binding), descriptor);
+
+        if (descriptorLayout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
+            throw InvalidArgumentException("descriptorLayout", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor, but rather a {1}.", binding, descriptorLayout.descriptorType());
+
+        auto& device = m_layout->device();
+        auto descriptorOffset = m_layout->getDescriptorOffset(binding, descriptor);
+
+        // Setup the descriptor info.
+        auto addressRange = targetAddressRange(DescriptorHeapType::Resource, descriptorOffset);
+        writeAccelerationStructureDescriptor(device, accelerationStructure, addressRange);
+
+        // Update the invalidated range on the global descriptor heap.
+        device.updateGlobalDescriptors(parent, binding, descriptor, 1u);
+    }
+
+    void updateBinding(const VulkanDescriptorSet& parent, UInt32 index, const DescriptorBinding& binding)
+    {
+        // Find the descriptor.
+        auto& descriptors = m_layout->descriptors();
+        auto bindingPoint = binding.binding.value_or(index);
+        auto descriptorLayout = std::ranges::find_if(descriptors, [bindingPoint](auto& layout) { return layout.binding() == bindingPoint; });
+
+        if (descriptorLayout == descriptors.end()) [[unlikely]]
+            throw InvalidArgumentException("binding", "The descriptor set {0} does not contain a descriptor at binding {1}.", m_layout->space(), bindingPoint);
+
+        std::visit(type_switch {
+            [](const std::monostate&) {}, // Default: don't bind anything. Can be used to skip a descriptor in a set of bindings.
+            [&](const IBuffer& buffer) { this->updateBinding(parent, *descriptorLayout, binding.firstDescriptor, dynamic_cast<const IVulkanBuffer&>(buffer), binding.firstElement, binding.elements, binding.elementsPerDescriptor, binding.texelFormat, binding.stride); },
+            [&](const IImage& image) { this->updateBinding(parent, *descriptorLayout, binding.firstDescriptor, dynamic_cast<const IVulkanImage&>(image), binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
+            [&](const ISampler& sampler) { this->updateBinding(parent, *descriptorLayout, binding.firstDescriptor, dynamic_cast<const IVulkanSampler&>(sampler)); },
+            [&](const IAccelerationStructure& accelerationStructure) { this->updateBinding(parent, *descriptorLayout, binding.firstDescriptor, dynamic_cast<const IVulkanAccelerationStructure&>(accelerationStructure)); }
+        }, binding.resource);
     }
 };
 
@@ -190,81 +224,7 @@ DescriptorHeapAllocation VulkanDescriptorSet::globalHeapAllocation(DescriptorHea
     }
 }
 
-void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat, UInt32 stride) const
+void VulkanDescriptorSet::update(UInt32 index, const DescriptorBinding& binding) const
 {
-    // Find the descriptor.
-    auto descriptors = m_impl->m_layout->descriptors();
-    auto descriptorLayout = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
-
-    if (descriptorLayout == descriptors.end()) [[unlikely]]
-    {
-        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
-        return;
-    }
-
-    // Update the binding.
-    m_impl->updateBinding(*this, (*descriptorLayout), descriptorLayout->descriptorType(), firstDescriptor, buffer, bufferElement, elements, texelFormat, stride);
-}
-
-void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
-{
-    // Find the descriptor.
-    auto descriptors = m_impl->m_layout->descriptors();
-    auto descriptorLayout = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
-
-    if (descriptorLayout == descriptors.end()) [[unlikely]]
-    {
-        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
-        return;
-    }
-
-    // Update the binding.
-    m_impl->updateBinding(*this, (*descriptorLayout), descriptorLayout->descriptorType(), descriptor, texture, firstLevel, levels, firstLayer, layers);
-}
-
-void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, UInt32 descriptor) const
-{
-    // Find the descriptor.
-    auto descriptors = m_impl->m_layout->descriptors();
-    auto descriptorLayout = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
-
-    if (descriptorLayout == descriptors.end()) [[unlikely]]
-    {
-        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
-        return;
-    }
-
-    // Update the binding.
-    m_impl->updateBinding(*this, (*descriptorLayout), descriptor, sampler);
-}
-
-void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStructure& accelerationStructure, UInt32 descriptor) const
-{
-    auto layout = m_impl->m_layout;
-    auto& device = layout->device();
-
-    // Find the descriptor.
-    auto descriptors = layout->descriptors();
-    auto descriptorLayout = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
-
-    if (descriptorLayout == descriptors.end()) [[unlikely]]
-    {
-        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", layout->space(), binding);
-        return;
-    }
-
-    // Check if the descriptor type is valid for the requested operation.
-    if (descriptorLayout->descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
-        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.", binding);
-
-    // Check if all elements can be bound to a bounded array.
-    if (descriptor >= this->capacity(binding)) [[unlikely]]
-        throw ArgumentOutOfRangeException("descriptor", "The descriptor layout can only bind up to {0} descriptors at binding {3}, however the request was to bind {1} descriptors starting at {2}.", this->capacity(binding), 1, descriptor, binding);
-
-    // Setup the descriptor info.
-    auto addressRange = m_impl->targetAddressRange(DescriptorHeapType::Resource, layout->getDescriptorOffset(binding, descriptor));
-    writeAccelerationStructureDescriptor(device, accelerationStructure, addressRange);
-
-    // Update the invalidated range on the global descriptor heap.
-    device.updateGlobalDescriptors(*this, binding, descriptor, 1u);
+    m_impl->updateBinding(*this, index, binding);
 }

@@ -254,7 +254,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto& swapChain = m_device->swapChain();
     auto backBuffers = m_device->factory().createTexture("Back Buffers", swapChain.surfaceFormat(), swapChain.renderArea(), ImageDimensions::DIM_2, 1u, swapChain.buffers(), MultiSamplingLevel::x1, ResourceUsage::AllowWrite | ResourceUsage::TransferSource);
     auto& outputBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::FrameBuffer));
-    auto outputBindings = outputBindingsLayout.allocate(swapChain.buffers(), [backBuffers](UInt32 set) -> Generator<DescriptorBinding> { // NOLINT(cppcoreguidelines-avoid-capturing-lambda-coroutines)
+    auto outputBindings = outputBindingsLayout.allocate(swapChain.buffers(), [backBuffers](UInt32 set) -> Generator<const DescriptorBinding&> { // NOLINT(cppcoreguidelines-avoid-capturing-lambda-coroutines)
         co_yield { .resource = *backBuffers, .firstElement = set, .elements = 1 };
     }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 
@@ -449,10 +449,9 @@ void SampleApp::onResize(const void* /*sender*/, const ResizeEventArgs& e)
     auto backBuffers = m_device->factory().createTexture("Back Buffers", m_device->swapChain().surfaceFormat(), m_device->swapChain().renderArea(), ImageDimensions::DIM_2, 1u, m_device->swapChain().buffers(), MultiSamplingLevel::x1, ResourceUsage::AllowWrite | ResourceUsage::TransferSource);
     
     for (UInt32 i = 0; i < m_device->swapChain().buffers(); ++i)
-    {
-        auto& outputBindings = m_device->state().descriptorSet(std::format("Output Bindings {0}", i));
-        outputBindings.update(0, *backBuffers, 0, 0, 1, i, 1);
-    }
+        m_device->state()
+            .descriptorSet(std::format("Output Bindings {0}", i))
+            .update(DescriptorBinding::writableTexture(*backBuffers, 0, i, 1).at(0));
 
     m_device->state().release(m_device->state().image("Back Buffers"));
     m_device->state().add(std::move(backBuffers));

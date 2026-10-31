@@ -135,13 +135,13 @@ void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX1
 			auto resource = std::move(*resourceBinding);
 
 			// Update the invocation parameters.
-			resource->update(parametersLayout.binding(), *parameters, i, 1);
+			resource->update(DescriptorBinding::constantBuffer(*parameters, i, 1).at(parametersLayout.binding()));
 
 			// Bind the previous mip map level to the SRV at binding point 1.
-			resource->update(1, image, 0, i - 1, 1, l, 1);
+			resource->update(DescriptorBinding::texture(image, i - 1, 1, l, 1).at(1));
 
 			// Bind the current level to the UAV at binding point 2.
-			resource->update(2, image, 0, i, 1, l, 1);
+			resource->update(DescriptorBinding::writableTexture(image, i, l, 1).at(2));
 
 			// Dispatch the pipeline.
 			commandBuffer.bind(*resource, pipeline);
