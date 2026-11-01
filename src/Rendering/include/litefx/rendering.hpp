@@ -79,7 +79,7 @@ namespace LiteFX::Rendering {
     /// from GPU-visible memory, depending on how they are bound during the current draw call.
     ///
     /// From a CPU perspective, think of a descriptor set as an array of pointers to different buffers (i.e. descriptors) for the shader. A descriptor can be bound to a set by calling @ref
-    /// DescriptorSet::update. Note that this does not automatically ensure, that the buffer memory is visible for the GPU. Instead, a buffer may also require a transfer into GPU visible memory, depending on
+    /// IDescriptorSet::update. Note that this does not automatically ensure, that the buffer memory is visible for the GPU. Instead, a buffer may also require a transfer into GPU visible memory, depending on
     /// the @ref ResourceHeap. However, as long as a descriptor within a set is mapped to a buffer, modifying this buffer also reflects the change to the shader, without requiring to update the descriptor,
     /// similarly to how modifying the object behind a pointer does not require the pointer to change.
     ///

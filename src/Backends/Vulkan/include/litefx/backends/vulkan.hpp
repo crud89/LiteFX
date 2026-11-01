@@ -2699,7 +2699,7 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc GraphicsDevice::computeAccelerationStructureSizes(const top_level_acceleration_structure_type&, UInt64&, UInt64&, bool) const
         void computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
 
-        /// @copydoc GraphicsDevice::descriptorHeaps
+        /// @copydoc IGraphicsDevice::descriptorHeaps
         const GlobalDescriptorHeaps& descriptorHeaps() const noexcept override;
 
         /// @copydoc GraphicsDevice::allocateGlobalDescriptors(const IDescriptorSet&, DescriptorHeapType)

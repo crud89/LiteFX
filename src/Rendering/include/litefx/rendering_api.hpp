@@ -5425,8 +5425,7 @@ namespace LiteFX::Rendering {
         /// @brief Creates a descriptor binding for a writable image.
         /// 
         /// @param image The image to bind.
-        /// @param firstLevel The index of the first level to bind.
-        /// @param levels The number of levels to bind.
+        /// @param level The index of the level to bind.
         /// @param firstLayer The index of the first layer to bind.
         /// @param layers The number of layers to bind.
         /// @return The descriptor binding.
