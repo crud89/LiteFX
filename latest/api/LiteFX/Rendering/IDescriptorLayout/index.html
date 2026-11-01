@@ -742,6 +742,18 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -3068,6 +3080,30 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -3280,8 +3316,6 @@
       
         
           
-        
-      
         
       
         
@@ -4898,6 +4932,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -14261,6 +14299,90 @@
   
   
     <li class="md-nav__item">
+      <a href="../../is_enumerable-00/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    is_enumerable
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../is_enumerable-0ec/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    is_enumerable&lt;Enumerable&lt;T&gt;&gt;
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../is_enumerable_v/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    is_enumerable_v
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../Join/" class="md-nav__link">
         
   
@@ -14610,6 +14732,34 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../is_enumerable-01/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    owning_view&lt;Enumerable&lt;T&gt;&gt;&gt;
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -14743,6 +14893,62 @@
     
   
     Ref
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../is_enumerable-05/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ref_view&lt;Enumerable&lt;T&gt; const&gt;&gt;
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../is_enumerable-0ea/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ref_view&lt;Enumerable&lt;T&gt;&gt;&gt;
   
 
     
@@ -15648,14 +15854,14 @@
 <h1 id="litefxrenderingidescriptorlayout"><code>LiteFX::Rendering::IDescriptorLayout</code><a class="headerlink" href="#litefxrenderingidescriptorlayout" title="Permanent link">&para;</a></h1>
 <p>Describes a the layout of a single descriptor within a <a href="../DescriptorSet-09/"><code>DescriptorSet</code></a>.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/cd8015a2efe154ade49822a3b2a7eed5e7dfb3d1/src/Rendering/include/litefx/rendering_api.hpp#L3885">litefx/rendering_api.hpp</a>&gt;</code></p>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/6ff95ee13e3d810c1aa1db22ae2ab24fdc8e5036/src/Rendering/include/litefx/rendering_api.hpp#L3885">litefx/rendering_api.hpp</a>&gt;</code></p>
 <div class="language-cpp highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="p">[[</span><span class="na">dllimport</span><span class="p">,</span><span class="w"> </span><span class="na">dllexport</span><span class="p">]]</span><span class="w"> </span><span class="nc">IDescriptorLayout</span><span class="w">
 </span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><a href="../IBufferLayout/"><span class="n">IBufferLayout</span></a></code></pre></div>
 
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>A common metaphor for a descriptor to think of it as a "pointer for the GPU". Basically, a descriptor points to a buffer in a shader. A descriptor can have different types and sizes. The types a descriptor can have are described by the <a href="../DescriptorType/"><code>DescriptorType</code></a>.</p>
 <p>If the descriptor is a sampler, it can either be a dynamic or static sampler. A dynamic sampler needs to be bound during runtime just like any other descriptor by calling <a href="../IDescriptorSet/update-0a/"><code>IDescriptorSet::update</code></a>. A static sampler is defined alongside the descriptor layout and is automatically set when the pipeline that uses the descriptor layout gets bound. In this case, the descriptor must not be updated with another sampler. If a descriptor layout describes a static sampler, the <a href="staticSampler/"><code>IDescriptorLayout::staticSampler</code></a> returns a pointer to the static sampler state.</p>
-<p>Typically, a descriptor "points" to a singular buffer, i.e. a scalar. However, a descriptor can also resemble an array. In this case, <a href="descriptors/"><code>IDescriptorLayout::descriptors</code></a> returns the number of elements in the array. If the size of the array is not known beforehand, the descriptor can be defined as unbounded, causing the <a href="unbounded/"><code>IDescriptorLayout::unbounded</code></a> property to return <code>true</code>. In this case, the number of descriptors defines the upper limit for the actual descriptor count that can be allocated for the array when calling <a href="../IDescriptorSetLayout/allocate-055/"><code>IDescriptorSetLayout::allocate</code></a>.</p>
+<p>Typically, a descriptor "points" to a singular buffer, i.e. a scalar. However, a descriptor can also resemble an array. In this case, <a href="descriptors/"><code>IDescriptorLayout::descriptors</code></a> returns the number of elements in the array. If the size of the array is not known beforehand, the descriptor can be defined as unbounded, causing the <a href="unbounded/"><code>IDescriptorLayout::unbounded</code></a> property to return <code>true</code>. In this case, the number of descriptors defines the upper limit for the actual descriptor count that can be allocated for the array when calling <a href="../IDescriptorSetLayout/allocate-05/"><code>IDescriptorSetLayout::allocate</code></a>.</p>
 <h2 id="base-classes">Base Classes<a class="headerlink" href="#base-classes" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
 <thead><tr><th>Name</th><th>Description</th></tr></thead>

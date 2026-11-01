@@ -18,7 +18,7 @@
         <link rel="prev" href="../2constructor-00/">
       
       
-        <link rel="next" href="../2constructor-094/">
+        <link rel="next" href="../2constructor-08/">
       
       
         
@@ -620,6 +620,18 @@
       
         
           
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
         
       
         
@@ -2566,6 +2578,8 @@
       
         
       
+        
+      
     
     
     
@@ -2763,7 +2777,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../2constructor-094/" class="md-nav__link">
+      <a href="../2constructor-08/" class="md-nav__link">
         
   
   
@@ -2791,7 +2805,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../2constructor-098/" class="md-nav__link">
+      <a href="../2constructor-094/" class="md-nav__link">
         
   
   
@@ -2799,6 +2813,34 @@
     
   
     Enumerable (constructor 4)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../2constructor-098/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Enumerable (constructor 5)
   
 
     
@@ -3727,6 +3769,90 @@
   
   
     <li class="md-nav__item">
+      <a href="../../is_enumerable-00/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    is_enumerable
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../is_enumerable-0ec/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    is_enumerable&lt;Enumerable&lt;T&gt;&gt;
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../is_enumerable_v/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    is_enumerable_v
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../Join/" class="md-nav__link">
         
   
@@ -4076,6 +4202,34 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../is_enumerable-01/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    owning_view&lt;Enumerable&lt;T&gt;&gt;&gt;
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -4209,6 +4363,62 @@
     
   
     Ref
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../is_enumerable-05/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ref_view&lt;Enumerable&lt;T&gt; const&gt;&gt;
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../is_enumerable-0ea/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ref_view&lt;Enumerable&lt;T&gt;&gt;&gt;
   
 
     
@@ -5112,19 +5322,18 @@
 
 
 <h1 id="litefxenumerableenumerable"><code>LiteFX::Enumerable::Enumerable</code><a class="headerlink" href="#litefxenumerableenumerable" title="Permanent link">&para;</a></h1>
-<p>Creates a new <code>Enumerable</code> instance from an underlying range.</p>
+<p>Initializes an enumerable from another enumerable with covariant elements, e.g. <code>Enumerable&lt;const Derived&amp;&gt;</code> to <code>Enumerable&lt;const Base&amp;&gt;</code>.</p>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
-<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/cd8015a2efe154ade49822a3b2a7eed5e7dfb3d1/src/Core/include/litefx/containers.hpp#L591">litefx/containers.hpp</a>&gt;</code></p>
-<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TRange</span><span class="o">&gt;</span><span class="w">
-</span><span class="k">requires</span><span class="w"> </span><span class="o">!</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">remove_cvref_t</span><span class="o">&lt;</span><span class="n">TRange</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">Enumerable</span><span class="o">&gt;</span><span class="w">
-</span><span class="n">Enumerable</span><span class="p">(</span><span class="n">TRange</span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">range</span><span class="p">)</span><span class="p">;</span></code></pre></div>
+<p>Declared in <code>&lt;<a href="https://github.com/crud89/LiteFX/blob/6ff95ee13e3d810c1aa1db22ae2ab24fdc8e5036/src/Core/include/litefx/containers.hpp#L615">litefx/containers.hpp</a>&gt;</code></p>
+<div class="language-cpp highlight"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">TOther</span><span class="o">&gt;</span><span class="w">
+</span><span class="k">requires</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">std</span><span class="o">:</span><span class="o">:</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">TOther</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="o">&amp;</span><span class="w"> </span><span class="n">is_covariant</span><span class="o">&lt;</span><span class="n">TOther</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="p">)</span><span class="w">
+</span><span class="n">Enumerable</span><span class="p">(</span><a href="../"><span class="n">Enumerable</span><span class="o">&lt;</span><span class="n">TOther</span><span class="o">&gt;</span></a><span class="w"> </span><span class="n">other</span><span class="p">)</span><span class="p">;</span></code></pre></div>
 
 <h2 id="template-parameters">Template Parameters<a class="headerlink" href="#template-parameters" title="Permanent link">&para;</a></h2>
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
 <thead><tr><th>Name</th><th>Description</th></tr></thead>
 <tbody>
-<tr><td><b>TRange</b></td><td>The type of the underlying range.</td></tr>
-<tr><td><b>enabled</b></td><td>Disables the constructor, if <code>TRange</code> is equal to the current type, in which case the move constructor should be called.</td></tr>
+<tr><td><b>TOther</b></td><td>The value type of the other enumerable.</td></tr>
 </tbody>
 </table></div>
 
@@ -5132,7 +5341,7 @@
 <div class="mrdocs-table-wrap" markdown="0"><table class="mrdocs-table">
 <thead><tr><th>Name</th><th>Description</th></tr></thead>
 <tbody>
-<tr><td><b>range</b></td><td>A reference of the underlying range.</td></tr>
+<tr><td><b>other</b></td><td>The other enumerable.</td></tr>
 </tbody>
 </table></div>
 
@@ -5190,7 +5399,7 @@
         
         
           
-          <a href="../2constructor-094/" class="md-footer__link md-footer__link--next" aria-label="Next: Enumerable (constructor 3)">
+          <a href="../2constructor-08/" class="md-footer__link md-footer__link--next" aria-label="Next: Enumerable (constructor 3)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
