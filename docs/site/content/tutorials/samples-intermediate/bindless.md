@@ -68,7 +68,7 @@ commandBuffer->transfer(instances, sizeof(InstanceBuffer), *instanceBuffer, 0);
 ```
 
 Copying the whole array at once would only work as long as the element size happens to match the alignment, which differs between
-backends and devices (see [buffer layout](../../guides/descriptor-bindings.md#buffer-layout)).
+backends and devices (see [buffer layout](../../guides/resource-management/buffers-textures-samplers.md#buffer-layout)).
 
 The array occupies a contiguous range of the global descriptor heap, so its size is only limited by the heap's capacity. The set is allocated
 once and bound to every command buffer, because the instance buffer never changes. If it did, the sample would either need one set per frame

@@ -54,8 +54,7 @@ DEFINE_TEST("device_resizes_vk_frame_buffer" FOLDER "Tests/Backends/Vk" EXECUTAB
 	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
-# TODO: Test occasionally times out in CI and may fail on some drivers, if the render area is not supported. Disabled for now, 
-#       but we should look for a proper fix.
+# NOTE: Mesa3D/llvmpipe does only support FIFO present mode and the test switches present modes, which fails in CI.
 #DEFINE_TEST("device_resets_vk_swap_chain" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_reset_swap_chain_test" 
 #	SOURCES "common.h" "reset_swap_chain.cpp"
 #	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
@@ -120,6 +119,11 @@ TARGET_LINK_SHADERS(vk_alloc_descriptor_set_test
     SHADERS Tests.Vk.Shaders.VS Tests.Vk.Shaders.FS
 )
 
+DEFINE_TEST("device_updates_vk_descriptors" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_update_descriptor_test" 
+	SOURCES "common.h" "update_descriptors.cpp"
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
+)
+
 DEFINE_TEST("device_sets_up_vk_ray_tracing_pipeline" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_ray_tracing_test" 
 	SOURCES "common.h" "setup_raytracing_pipeline.cpp"
 	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
@@ -165,12 +169,11 @@ DEFINE_TEST("device_allocates_vk_images" FOLDER "Tests/Backends/Vk" EXECUTABLE_N
 	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 )
 
-# Unfortunately, VK_EXT_conservative_rasterization is currently unsupported by llvmpipe, so we'll disable it for now.
 #DEFINE_TEST("vk_backend_sets_up_conservative_rasterization" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_conservative_rasterization_test" 
 #	SOURCES "common.h" "conservative_rasterization.cpp"
 #	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::Vulkan
 #)
-
+#
 #TARGET_LINK_SHADERS(vk_conservative_rasterization_test
 #    SHADERS Tests.Vk.Shaders.VS Tests.Vk.Shaders.CR.FS
 #)

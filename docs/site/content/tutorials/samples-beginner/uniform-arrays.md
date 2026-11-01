@@ -57,7 +57,7 @@ auto cameraBuffer = m_device->factory().createBuffer("Camera", staticBindingLayo
 auto lightsBuffer = m_device->factory().createBuffer("Lights", staticBindingLayout, 1, ResourceHeap::Resource, LIGHT_SOURCES);
 ```
 
-The elements of such a buffer are aligned to the GPU's requirements (see [buffer layout](../../guides/descriptor-bindings.md#buffer-layout)),
+The elements of such a buffer are aligned to the GPU's requirements (see [buffer layout](../../guides/resource-management/buffers-textures-samplers.md#buffer-layout)),
 so they are not necessarily packed as tightly as in a C++ array.
 Therefore the elements are transferred as a list of pointers, with the size of a single element, instead of as one block:
 

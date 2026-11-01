@@ -411,7 +411,7 @@ public:
 						LITEFX_WARNING(VULKAN_LOG, "The image multi sampling level {0} does not match the render pipeline multi sampling state {1}.", image.samples(), m_samples);
 
 					// Attach the image from the right frame buffer to the descriptor set.
-					binding->update(dependency.binding().Register, image);
+					binding->update(DescriptorBinding::inputAttachment(image).at(dependency.binding().Register));
 					break;
 				}
 			}
@@ -426,7 +426,7 @@ public:
 			{
 				if (binding->layout().space() == inputAttachmentSamplerBinding.value().Space)
 				{
-					binding->update(inputAttachmentSamplerBinding.value().Register, *m_inputAttachmentSampler);
+					binding->update(DescriptorBinding::sampler(*m_inputAttachmentSampler).at(inputAttachmentSamplerBinding.value().Register));
 					break;
 				}
 			}

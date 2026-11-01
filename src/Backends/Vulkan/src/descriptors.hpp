@@ -10,66 +10,51 @@ extern PFN_vkWriteSamplerDescriptorsEXT vkWriteSamplerDescriptors;
 
 namespace LiteFX::Rendering::Backends {
 
-    inline UInt32 bufferElements(const IBuffer& buffer, UInt32 firstElement, UInt32 elements)
+    inline void writeBufferDescriptors(const VulkanDevice& device, DescriptorType type, const IVulkanBuffer& buffer, UInt32 firstElement, UInt32 elementsPerDescriptor, Format texelFormat, UInt32 structureStride, Span<const VkHostAddressRangeEXT> addressRanges)
     {
-        if (firstElement >= buffer.elements()) [[unlikely]]
-            throw ArgumentOutOfRangeException("firstElement", "The buffer only has {0} elements, but element {1} was requested.", buffer.elements(), firstElement);
+        auto descriptors = static_cast<UInt32>(addressRanges.size());
+        UInt64 elements = static_cast<UInt64>(descriptors) * elementsPerDescriptor;
 
-        UInt32 count = elements > 0 ? elements : buffer.elements() - firstElement;
+        if (firstElement + elements > buffer.elements()) [[unlikely]]
+            throw ArgumentOutOfRangeException("addressRanges", "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), elements, firstElement);
 
-        if (firstElement + count > buffer.elements()) [[unlikely]]
-            throw ArgumentOutOfRangeException("elements", "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), count, firstElement);
+        // Validate the descriptor binding.The stride itself is defined by the shader on Vulkan.
+        buffer.validateBinding(type, elementsPerDescriptor, structureStride);
 
-        return count;
-    }
-
-    inline void writeBufferDescriptors(const VulkanDevice& device, DescriptorType type, const IVulkanBuffer& buffer, UInt32 firstElement, Format texelFormat, UInt32 structureStride, Span<const VkHostAddressRangeEXT> addressRanges)
-    {
-        auto count = static_cast<UInt32>(addressRanges.size());
-
-        if (firstElement + count > buffer.elements()) [[unlikely]]
-            throw ArgumentOutOfRangeException("targets", "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), count, firstElement);
-
-        // Validate the descriptor binding.
-        buffer.validateBinding(type, structureStride);
-
-        // Validate additional buffer rules.
-        const auto& limits = device.adapter().limits();
-        size_t alignedSize = buffer.alignedElementSize();
-        size_t elementSize = buffer.elementSize();
-        bool texelBuffer{ false };
-        VkDescriptorType descriptorType{};
+        auto& limits = device.adapter().limits();
+        auto alignedSize = buffer.alignedElementSize();
+        auto elementSize = buffer.elementSize();
+        auto viewSize = (elementsPerDescriptor - 1) * alignedSize + elementSize;
 
         auto requireAlignment = [&](UInt64 alignment) {
             if (alignment > 1 && (buffer.virtualAddress() % alignment != 0 || alignedSize % alignment != 0)) [[unlikely]]
-                throw InvalidArgumentException("buffer", "{0} descriptors require an offset alignment of {1} bytes, but the buffer uses an element size of {2} bytes.", type, alignment, alignedSize);
+                throw InvalidArgumentException("buffer", "{0} descriptors require an offset alignment of {1} bytes, but the buffer uses an aligned element size of {2} bytes.", type, alignment, alignedSize);
         };
+
+        VkDescriptorType descriptorType{};
+        bool texelBuffer = false;
 
         switch (type)
         {
         case DescriptorType::ConstantBuffer:
-        {
             requireAlignment(limits.minUniformBufferOffsetAlignment);
 
-            if (elementSize > limits.maxUniformBufferRange) [[unlikely]]
-                throw InvalidArgumentException("buffer", "Constant buffer descriptors must not exceed {0} bytes, but the buffer uses an element size of {1} bytes.", limits.maxUniformBufferRange, elementSize);
+            if (viewSize > limits.maxUniformBufferRange) [[unlikely]]
+                throw InvalidArgumentException("buffer", "Constant buffer views must not exceed {0} bytes, but the view spans {1} bytes.", limits.maxUniformBufferRange, viewSize);
 
             descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             break;
-        }
         case DescriptorType::StructuredBuffer:
         case DescriptorType::RWStructuredBuffer:
         case DescriptorType::ByteAddressBuffer:
         case DescriptorType::RWByteAddressBuffer:
-        {
             requireAlignment(limits.minStorageBufferOffsetAlignment);
 
-            if (elementSize > limits.maxStorageBufferRange) [[unlikely]]
-                throw InvalidArgumentException("buffer", "Storage buffer descriptors must not exceed {0} bytes, but the buffer uses an element size of {1} bytes.", limits.maxStorageBufferRange, elementSize);
+            if (viewSize > limits.maxStorageBufferRange) [[unlikely]]
+                throw InvalidArgumentException("buffer", "Storage buffer views must not exceed {0} bytes, but the view spans {1} bytes.", limits.maxStorageBufferRange, viewSize);
 
             descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
             break;
-        }
         case DescriptorType::Buffer:
         case DescriptorType::RWBuffer:
         {
@@ -84,8 +69,8 @@ namespace LiteFX::Rendering::Backends {
             if (elementSize % texelSize != 0 || alignedSize % texelSize != 0) [[unlikely]]
                 throw InvalidArgumentException("texelFormat", "The buffer element size of {0} bytes (aligned: {1} bytes) is not a multiple of the texel size of {2} bytes.", elementSize, alignedSize, texelSize);
 
-            if (elementSize / texelSize > limits.maxTexelBufferElements) [[unlikely]]
-                throw InvalidArgumentException("buffer", "The buffer elements contain more texels than supported by the device ({1} > {0}).", limits.maxTexelBufferElements, static_cast<size_t>(elementSize) / texelSize);
+            if (viewSize / texelSize > limits.maxTexelBufferElements) [[unlikely]]
+                throw InvalidArgumentException("buffer", "The view spans more texels than supported by the device ({1} > {0}).", limits.maxTexelBufferElements, viewSize / texelSize);
 
             requireAlignment(limits.minTexelBufferOffsetAlignment);
 
@@ -101,23 +86,27 @@ namespace LiteFX::Rendering::Backends {
         Array<VkDeviceAddressRangeEXT> ranges;
         Array<VkTexelBufferDescriptorInfoEXT> texelInfos;
         Array<VkResourceDescriptorInfoEXT> infos;
-        ranges.reserve(count);
-        texelInfos.reserve(count);
-        infos.reserve(count);
+        ranges.reserve(descriptors);
+        texelInfos.reserve(descriptors);
+        infos.reserve(descriptors);
 
-        for (UInt32 i{ 0 }; i < count; ++i)
+        for (UInt32 d{ 0 }; d < descriptors; ++d)
         {
-            const UInt64 offset = static_cast<UInt64>(firstElement + i) * alignedSize;
-            auto& range = ranges.emplace_back(static_cast<VkDeviceAddress>(buffer.virtualAddress() + offset), static_cast<VkDeviceSize>(elementSize));
-            auto& info = infos.emplace_back(static_cast<VkStructureType>(VK_STRUCTURE_TYPE_RESOURCE_DESCRIPTOR_INFO_EXT), nullptr, descriptorType, VkResourceDescriptorDataEXT{});
+            UInt64 offset = (static_cast<UInt64>(firstElement) + static_cast<UInt64>(d) * elementsPerDescriptor) * alignedSize;
+            auto& range = ranges.emplace_back(static_cast<VkDeviceAddress>(buffer.virtualAddress() + offset), static_cast<VkDeviceSize>(viewSize));
+            auto& info = infos.emplace_back(VkResourceDescriptorInfoEXT{ .sType = VK_STRUCTURE_TYPE_RESOURCE_DESCRIPTOR_INFO_EXT, .type = descriptorType });
 
             if (texelBuffer)
-                info.data.pTexelBuffer = &texelInfos.emplace_back(static_cast<VkStructureType>(VK_STRUCTURE_TYPE_TEXEL_BUFFER_DESCRIPTOR_INFO_EXT), nullptr, Vk::getFormat(texelFormat), range);
+                info.data.pTexelBuffer = &texelInfos.emplace_back(VkTexelBufferDescriptorInfoEXT {
+                    .sType = VK_STRUCTURE_TYPE_TEXEL_BUFFER_DESCRIPTOR_INFO_EXT,
+                    .format = Vk::getFormat(texelFormat),
+                    .addressRange = range
+                });
             else
                 info.data.pAddressRange = &range;
         }
 
-        raiseIfFailed(vkWriteResourceDescriptors(device.handle(), count, infos.data(), addressRanges.data()), "Unable to write buffer descriptors.");
+        raiseIfFailed(vkWriteResourceDescriptors(device.handle(), descriptors, infos.data(), addressRanges.data()), "Unable to write buffer descriptors.");
     }
 
     inline void writeImageDescriptor(const VulkanDevice& device, DescriptorType type, const IVulkanImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers, VkHostAddressRangeEXT addressRange)

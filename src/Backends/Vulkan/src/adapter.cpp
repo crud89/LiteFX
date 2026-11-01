@@ -134,7 +134,7 @@ UInt32 VulkanGraphicsAdapter::apiVersion() const noexcept
     return m_impl->m_apiVersion;
 }
 
-VkPhysicalDeviceLimits VulkanGraphicsAdapter::limits() const noexcept
+const VkPhysicalDeviceLimits& VulkanGraphicsAdapter::limits() const noexcept
 {
     return m_impl->m_limits;
 }

@@ -119,6 +119,11 @@ TARGET_LINK_SHADERS(d3d12_alloc_descriptor_set_test
     SHADERS Tests.Dx.Shaders.VS Tests.Dx.Shaders.PS
 )
 
+DEFINE_TEST("device_updates_d3d12_descriptors" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_update_descriptors_test" WITH_WARP
+	SOURCES "common.h" "update_descriptors.cpp"
+	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::DirectX12
+)
+
 DEFINE_TEST("device_sets_up_d3d12_ray_tracing_pipeline" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_ray_tracing_test" WITH_WARP
 	SOURCES "common.h" "setup_raytracing_pipeline.cpp"
 	DEPENDENCIES LiteFX::AppModel LiteFX::Rendering LiteFX::Logging LiteFX::DirectX12

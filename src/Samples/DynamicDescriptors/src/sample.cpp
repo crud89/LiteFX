@@ -173,7 +173,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // Since we are using an unstructured storage buffer, we need to specify the element size manually. Binding the buffer to the descriptor range works similar to 
     // descriptor sets.
     auto instanceBuffer = m_device->factory().createBuffer("Instance Buffer", BufferType::Storage, ResourceHeap::Resource, sizeof(InstanceBuffer), NUM_INSTANCES);
-    m_instanceDescriptors->update(0u, DescriptorType::StructuredBuffer, *instanceBuffer, 0u, NUM_INSTANCES);
+    m_instanceDescriptors->update(DescriptorType::StructuredBuffer, DescriptorBinding::structuredBuffer(*instanceBuffer, 0u, NUM_INSTANCES));
 
     // We store the base index of the first instance buffer here and supply it later as a base offset for the draw call. This way, we do not need to pass the resource 
     // index by other means (e.g., a push constant or buffer).

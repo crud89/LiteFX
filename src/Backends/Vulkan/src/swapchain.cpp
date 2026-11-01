@@ -447,10 +447,8 @@ private:
 
 public:
 	VulkanSwapChainImpl(const VulkanDevice& device) :
-		m_device(device.weak_from_this())
+		m_device(device.weak_from_this()), m_supportsTiming(device.adapter().limits().timestampComputeAndGraphics)
 	{
-		m_supportsTiming = device.adapter().limits().timestampComputeAndGraphics;
-
 		if (!m_supportsTiming)
 			LITEFX_WARNING(VULKAN_LOG, "Timestamp queries are not supported and will be disabled. Reading timestamps will always return 0.");
 

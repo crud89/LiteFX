@@ -1018,7 +1018,7 @@ SharedPtr<VulkanFrameBuffer> VulkanDevice::makeFrameBuffer(StringView name, cons
 
 MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(Format format) const
 {
-    auto limits = m_impl->m_adapter->limits();
+    auto& limits = m_impl->m_adapter->limits();
     VkSampleCountFlags sampleCounts = limits.framebufferColorSampleCounts;
 
     if (::hasDepth(format) && ::hasStencil(format))

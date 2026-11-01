@@ -31,9 +31,11 @@ when binding:
 { .resource = *indirectCommandsBuffer, .firstElement = 0, .elements = 1, .stride = sizeof(IndirectIndexedBatch) }
 ```
 
-Without a stride, the whole element would be treated as one structure. The objects buffer is bound the same way, with
-`.stride = sizeof(ObjectBuffer)`, as it also holds an array that the shader indexes. See [structured
-buffers](../../guides/descriptor-bindings.md#structured-buffers) for the rules a stride has to follow.
+Without a stride, the stride defaults to the element size, so on DirectX 12 the descriptor would only cover the first command of each
+element (Vulkan takes the stride from the shader and is not affected). The objects buffer needs the same, with
+`.stride = sizeof(ObjectBuffer)`, as it also holds all objects in a single element. See [structured
+buffers](../../guides/resource-management/descriptor-bindings.md#structured-buffers) for the rules a stride has to follow, and an
+alternative that stores one structure per element.
 
 Indirect drawing is an optional device feature:
 

@@ -105,7 +105,30 @@
 			<Item Name="Space">Space</Item>
 		</Expand>
 	</Type>
-	
+
+	<!-- Descriptor Binding -->
+	<Type Name="LiteFX::Rendering::DescriptorBinding">
+		<DisplayString Condition="resource._Which == 0">DescriptorBinding {{ No Resource }}</DisplayString>
+		<DisplayString Condition="binding._Has_value">DescriptorBinding {{ Binding = { binding._Value }, First Descriptor = { firstDescriptor }, Elements = { elements } from { firstElement } }}</DisplayString>
+		<DisplayString>DescriptorBinding {{ Binding = Implicit, First Descriptor = { firstDescriptor }, Elements = { elements } from { firstElement } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Binding">binding</Item>
+			<Item Name="Resource">resource</Item>
+			<Item Name="First Descriptor">firstDescriptor</Item>
+			<Item Name="Elements per Descriptor" Condition="elementsPerDescriptor != 0">elementsPerDescriptor</Item>
+			<Synthetic Name="Elements per Descriptor" Condition="elementsPerDescriptor == 0">
+				<DisplayString>All</DisplayString>
+			</Synthetic>
+			<Item Name="First Element/Layer">firstElement</Item>
+			<Item Name="Elements/Layers">elements</Item>
+			<Item Name="First Level">firstLevel</Item>
+			<Item Name="Levels">levels</Item>
+			<Item Name="Stride" Condition="stride != 0">stride</Item>
+			<Item Name="Texel Format" Condition="texelFormat != LiteFX::Rendering::Format::None">texelFormat,en</Item>
+		</Expand>
+	</Type>
+
 	<!-- Render Pass Dependency -->
 	<Type Name="LiteFX::Rendering::RenderPassDependency">
 		<Intrinsic Name="impl" Expression="m_impl.m_ptr._Ptr" />

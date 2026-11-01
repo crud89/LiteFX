@@ -55,11 +55,13 @@ The buffer is created without a layout, and written into the range much like int
 
 ```cpp
 auto instanceBuffer = m_device->factory().createBuffer("Instance Buffer", BufferType::Storage, ResourceHeap::Resource, sizeof(InstanceBuffer), NUM_INSTANCES);
-m_instanceDescriptors->update(0u, DescriptorType::StructuredBuffer, *instanceBuffer, 0u, NUM_INSTANCES);
+m_instanceDescriptors->update(DescriptorType::StructuredBuffer, DescriptorBinding::structuredBuffer(*instanceBuffer, 0u, NUM_INSTANCES));
 m_instanceBaseIndex = m_instanceDescriptors->globalIndex();
 ```
 
-`update` writes one descriptor per element of the buffer, starting at the first descriptor of the range. The descriptor type is passed here
+`update` writes one descriptor per element of the buffer, starting at the first descriptor of the range, since
+`DescriptorBinding::structuredBuffer` binds each element to its own descriptor by default (see [elements and
+descriptors](../../guides/resource-management/descriptor-bindings.md#elements-and-descriptors)). The descriptor type is passed here
 rather than taken from a pipeline layout, which is what makes these descriptors *dynamic*. `globalIndex` returns the position of the range's
 first descriptor on the heap, which is the index the shader needs.
 
