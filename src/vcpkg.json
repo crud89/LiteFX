@@ -1,7 +1,7 @@
 {
   "name": "litefx",
   "version-string": "source",
-  "builtin-baseline": "9e593bb18ea69cc5095e012465dcd675a822ed0d",
+  "builtin-baseline": "9eec002df1cd109f8f104cd966a763daf9751489",
   "maintainers": [
     "Carsten Rudolph <18394207+crud89@users.noreply.github.com>"
   ],
@@ -14,7 +14,9 @@
     {
       "name": "spdlog",
       "default-features": false,
-      "features": [ "tz-offset" ]
+      "features": [
+        "tz-offset"
+      ]
     },
     "cli11",
     "directxmath",
@@ -34,7 +36,9 @@
     "pix-support": {
       "description": "Adds support for PIX runtime in the DirectX 12 backend.",
       "supports": "windows & x64",
-      "dependencies": [ "winpixevent" ]
+      "dependencies": [
+        "winpixevent"
+      ]
     },
     "imgui": {
       "description": "Adds a dependency to DearImGui, that is only used in the samples though.",
@@ -42,7 +46,11 @@
       "dependencies": [
         {
           "name": "imgui",
-          "features": [ "dx12-binding", "vulkan-binding", "glfw-binding" ]
+          "features": [
+            "dx12-binding",
+            "vulkan-binding",
+            "glfw-binding"
+          ]
         }
       ]
     }
