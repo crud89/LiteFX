@@ -3,15 +3,18 @@
 using namespace LiteFX::Rendering::Backends;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
-extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure;
-extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructures;
-extern PFN_vkCmdCopyAccelerationStructureKHR vkCmdCopyAccelerationStructure;
-extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure;
-extern PFN_vkCmdTraceRaysKHR vkCmdTraceRays;
-extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks;
-extern PFN_vkCmdDrawMeshTasksIndirectEXT vkCmdDrawMeshTasksIndirect;
-extern PFN_vkCmdDrawMeshTasksIndirectCountEXT vkCmdDrawMeshTasksIndirectCount;
-extern PFN_vkCmdPushDataEXT vkCmdPushData;
+extern PFN_vkCreateAccelerationStructureKHR		vkCreateAccelerationStructure;
+extern PFN_vkCmdBuildAccelerationStructuresKHR	vkCmdBuildAccelerationStructures;
+extern PFN_vkCmdCopyAccelerationStructureKHR	vkCmdCopyAccelerationStructure;
+extern PFN_vkDestroyAccelerationStructureKHR	vkDestroyAccelerationStructure;
+extern PFN_vkCmdTraceRaysKHR					vkCmdTraceRays;
+extern PFN_vkCmdDrawMeshTasksEXT				vkCmdDrawMeshTasks;
+extern PFN_vkCmdDrawMeshTasksIndirectEXT		vkCmdDrawMeshTasksIndirect;
+extern PFN_vkCmdDrawMeshTasksIndirectCountEXT	vkCmdDrawMeshTasksIndirectCount;
+extern PFN_vkCmdPushDataEXT						vkCmdPushData;
+extern PFN_vkCmdBeginDebugUtilsLabelEXT			vkCmdBeginDebugUtilsLabel;
+extern PFN_vkCmdEndDebugUtilsLabelEXT			vkCmdEndDebugUtilsLabel;
+extern PFN_vkCmdInsertDebugUtilsLabelEXT		vkCmdInsertDebugUtilsLabel;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
@@ -359,6 +362,38 @@ void VulkanCommandBuffer::end() const
 {
 	m_impl->end();
 }
+
+#ifdef LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
+void VulkanCommandBuffer::beginDebugRegion(const String& label, const Vectors::ByteVector3& color) const
+{
+	VkDebugUtilsLabelEXT labelInfo{
+		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
+		.pLabelName = label.c_str(),
+		.color = { static_cast<float>(color.x()) / static_cast<float>(std::numeric_limits<UInt8>::max()), static_cast<float>(color.y()) / static_cast<float>(std::numeric_limits<UInt8>::max()), static_cast<float>(color.z()) / static_cast<float>(std::numeric_limits<UInt8>::max()), 1.0f }
+	};
+
+	if (::vkCmdBeginDebugUtilsLabel)
+		::vkCmdBeginDebugUtilsLabel(this->handle(), &labelInfo);
+}
+
+void VulkanCommandBuffer::endDebugRegion() const
+{
+	if (::vkCmdEndDebugUtilsLabel)
+		::vkCmdEndDebugUtilsLabel(this->handle());
+}
+
+void VulkanCommandBuffer::setDebugMarker(const String& label, const Vectors::ByteVector3& color) const
+{
+	VkDebugUtilsLabelEXT labelInfo{
+		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
+		.pLabelName = label.c_str(),
+		.color = { static_cast<float>(color.x()) / static_cast<float>(std::numeric_limits<UInt8>::max()), static_cast<float>(color.y()) / static_cast<float>(std::numeric_limits<UInt8>::max()), static_cast<float>(color.z()) / static_cast<float>(std::numeric_limits<UInt8>::max()), 1.0f }
+	};
+
+	if (::vkCmdInsertDebugUtilsLabel)
+		::vkCmdInsertDebugUtilsLabel(this->handle(), &labelInfo);
+}
+#endif // LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
 
 SharedPtr<const VulkanQueue> VulkanCommandBuffer::queue() const noexcept
 {

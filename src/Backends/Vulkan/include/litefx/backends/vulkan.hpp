@@ -1403,6 +1403,18 @@ namespace LiteFX::Rendering::Backends {
     private:
         void end() const;
 
+#ifdef LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
+    public:
+        /// @copydoc ICommandBuffer::beginDebugRegion
+        void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const override;
+
+        /// @copydoc ICommandBuffer::endDebugRegion
+        void endDebugRegion() const override;
+
+        /// @copydoc ICommandBuffer::setDebugMarker
+        void setDebugMarker(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const override;
+#endif // LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
+
         // CommandBuffer interface.
     public:
         /// @copydoc ICommandBuffer::queue

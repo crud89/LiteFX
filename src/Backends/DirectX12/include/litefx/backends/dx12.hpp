@@ -1341,6 +1341,18 @@ namespace LiteFX::Rendering::Backends {
 
         Enumerable<ID3D12CommandList*> commandLists() const;
 
+#if defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
+    public:
+        /// @copydoc ICommandBuffer::beginDebugRegion
+        void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const override;
+
+        /// @copydoc ICommandBuffer::endDebugRegion
+        void endDebugRegion() const override;
+
+        /// @copydoc ICommandBuffer::setDebugMarker
+        void setDebugMarker(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const override;
+#endif // defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
+
         // CommandBuffer interface.
     public:
         /// @copydoc ICommandBuffer::queue

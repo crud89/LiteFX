@@ -314,8 +314,8 @@ public:
                 | std::ranges::to<Array<SharedPtr<VulkanCommandBuffer>>>();
 
             // Begin a debug region, if we're not using an external command buffer, since those are grouped per submission on the queue.
-            if (!external && !renderPass.name().empty())
-                m_queue->beginDebugRegion(std::format("{0} Render Pass", renderPass.name()));
+            if (!renderPass.name().empty())
+                primaryCommandBuffer.beginDebugRegion(std::format("{0} Render Pass", renderPass.name()));
 
             // Begin the render pass on the primary command buffer.
             ::vkCmdBeginRendering(primaryCommandBuffer.handle(), &renderingInfo);
@@ -556,11 +556,11 @@ UInt64 VulkanRenderPass::end() const
         // NOTE: D3D12 transitions the render targets and input attachments here, but in Vulkan we don't need to do this, as the layout is already `Common` and accesses
         //       are synchronized through command buffer submission order (see the queue implementation for details).
 
+        if (!this->name().empty())
+            m_impl->m_activeCommandBuffer->endDebugRegion();
+
         // Submit and store the fence.
         fence = m_impl->m_queue->submit(primaryCommandBuffer);
-
-        if (!this->name().empty())
-            m_impl->m_queue->endDebugRegion();
 
         // If one render target is a present target, we can present it on the swap chain.
         if (m_impl->m_presentTarget != nullptr)

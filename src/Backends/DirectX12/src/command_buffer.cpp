@@ -1,5 +1,9 @@
 #include <litefx/backends/dx12.hpp>
 
+#if defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
+#include <pix3.h>
+#endif
+
 using namespace LiteFX::Rendering::Backends;
 
 // ------------------------------------------------------------------------------------------------
@@ -290,6 +294,23 @@ Enumerable<ID3D12CommandList*> DirectX12CommandBuffer::commandLists() const
 		| std::views::join
 		| std::views::transform([](const list_type& list) -> ID3D12CommandList* { return list.Get(); });
 }
+
+#if defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
+void DirectX12CommandBuffer::beginDebugRegion(const String& label, const Vectors::ByteVector3& color) const
+{
+	::PIXBeginEvent(this->handle().Get(), PIX_COLOR(color.x(), color.y(), color.z()), label.c_str());
+}
+
+void DirectX12CommandBuffer::endDebugRegion() const
+{
+	::PIXEndEvent(this->handle().Get());
+}
+
+void DirectX12CommandBuffer::setDebugMarker(const String& label, const Vectors::ByteVector3& color) const
+{
+	::PIXSetMarker(this->handle().Get(), PIX_COLOR(color.x(), color.y(), color.z()), label.c_str());
+}
+#endif // defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
 
 const ICommandBuffer::TrackedResources& DirectX12CommandBuffer::trackedResources() const noexcept
 {

@@ -14,6 +14,9 @@ PFN_vkDestroyDebugUtilsMessengerEXT         vkDestroyDebugUtilsMessenger{ nullpt
 PFN_vkQueueBeginDebugUtilsLabelEXT          vkQueueBeginDebugUtilsLabel{ nullptr };
 PFN_vkQueueEndDebugUtilsLabelEXT            vkQueueEndDebugUtilsLabel{ nullptr };
 PFN_vkQueueInsertDebugUtilsLabelEXT         vkQueueInsertDebugUtilsLabel{ nullptr };
+PFN_vkCmdBeginDebugUtilsLabelEXT            vkCmdBeginDebugUtilsLabel{ nullptr };
+PFN_vkCmdEndDebugUtilsLabelEXT              vkCmdEndDebugUtilsLabel{ nullptr };
+PFN_vkCmdInsertDebugUtilsLabelEXT           vkCmdInsertDebugUtilsLabel{ nullptr };
 PFN_vkSetDebugUtilsObjectNameEXT            vkSetDebugUtilsObjectName{ nullptr };
 PFN_vkGetPhysicalDeviceDescriptorSizeEXT    vkGetPhysicalDeviceDescriptorSize{ nullptr };
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
@@ -196,6 +199,9 @@ public:
         vkQueueBeginDebugUtilsLabel         = reinterpret_cast<PFN_vkQueueBeginDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueBeginDebugUtilsLabelEXT"));
         vkQueueEndDebugUtilsLabel           = reinterpret_cast<PFN_vkQueueEndDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueEndDebugUtilsLabelEXT"));
         vkQueueInsertDebugUtilsLabel        = reinterpret_cast<PFN_vkQueueInsertDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueInsertDebugUtilsLabelEXT"));
+        vkCmdBeginDebugUtilsLabel           = reinterpret_cast<PFN_vkCmdBeginDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkCmdBeginDebugUtilsLabelEXT"));
+        vkCmdEndDebugUtilsLabel             = reinterpret_cast<PFN_vkCmdEndDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkCmdEndDebugUtilsLabelEXT"));
+        vkCmdInsertDebugUtilsLabel          = reinterpret_cast<PFN_vkCmdInsertDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkCmdInsertDebugUtilsLabelEXT"));
         vkSetDebugUtilsObjectName           = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(::vkGetInstanceProcAddr(instance, "vkSetDebugUtilsObjectNameEXT"));
         // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
 

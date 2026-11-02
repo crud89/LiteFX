@@ -250,8 +250,8 @@ public:
             // Publish beginning event.
             renderPass.beginning(&renderPass, { frameBuffer });
 
-            if (!external && !renderPass.name().empty())
-                m_queue->beginDebugRegion(std::format("{0} Render Pass", renderPass.name()));
+            if (!renderPass.name().empty())
+                m_activeCommandBuffer->beginDebugRegion(std::format("{0} Render Pass", renderPass.name()));
         }
         catch (...)
         {
@@ -502,11 +502,11 @@ UInt64 DirectX12RenderPass::end() const
 
     if (!m_impl->m_external)
     {
+        if (!this->name().empty())
+            m_impl->m_activeCommandBuffer->endDebugRegion();
+
         // Submit and store the fence.
         fence = m_impl->m_queue->submit(commandBuffer);
-
-        if (!this->name().empty())
-            m_impl->m_queue->endDebugRegion();
 
         // NOTE: No need to wait for the fence here, since `Present` will wait for the back buffer to be ready. If we have multiple frames in flight, this will block until the first
         //       frame in the queue has been drawn and the back buffer can be written again.

@@ -6766,6 +6766,34 @@ namespace LiteFX::Rendering {
         ~ICommandBuffer() noexcept override = default;
 
     public:
+        /// @brief The default color value for a debug region or marker, if no other has been specified.
+        ///
+        /// @see @ref beginDebugRegion
+        /// @see @ref setDebugMarker
+        static constexpr Vectors::ByteVector3 DEFAULT_DEBUG_COLOR = { 111_ui8, 122_ui8, 150_ui8 };
+
+        /// @brief Starts a new debug region.
+        ///
+        /// This method is a debug helper, that is not required to be implemented. In the built-in backends, it will no-op by default in non-debug builds.
+        ///
+        /// @param label The name of the debug region.
+        /// @param color The color of the debug region.
+        virtual void beginDebugRegion([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const {};
+
+        /// @brief Ends the current debug region.
+        ///
+        /// This is a debug helper, that is not required to be implemented. In the built-in backends, it will no-op by default in non-debug builds.
+        virtual void endDebugRegion() const {};
+
+        /// @brief Inserts a debug marker.
+        ///
+        /// This method is a debug helper, that is not required to be implemented. In the built-in backends, it will no-op by default in non-debug builds.
+        ///
+        /// @param label The name of the debug marker.
+        /// @param color The color of the debug marker.
+        virtual void setDebugMarker([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const {};
+
+    public:
         /// @brief Returns `true`, if the command buffer is a secondary command buffer, or `false` otherwise.
         ///
         /// @return `true`, if the command buffer is a secondary command buffer, or `false` otherwise.
