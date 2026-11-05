@@ -550,6 +550,9 @@ UInt64 VulkanRenderPass::end() const
         // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
         primaryCommandBuffer->barrier(endBarrier);
+
+        if (!this->name().empty())
+            primaryCommandBuffer->endDebugRegion();
     }
     else
     {
@@ -557,7 +560,7 @@ UInt64 VulkanRenderPass::end() const
         //       are synchronized through command buffer submission order (see the queue implementation for details).
 
         if (!this->name().empty())
-            m_impl->m_activeCommandBuffer->endDebugRegion();
+            primaryCommandBuffer->endDebugRegion();
 
         // Submit and store the fence.
         fence = m_impl->m_queue->submit(primaryCommandBuffer);

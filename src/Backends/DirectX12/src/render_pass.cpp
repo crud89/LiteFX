@@ -497,14 +497,14 @@ UInt64 DirectX12RenderPass::end() const
     if (m_impl->m_presentTarget != nullptr)
         swapChain.resolveQueryHeaps(*commandBuffer);
 
+    if (!this->name().empty())
+        m_impl->m_activeCommandBuffer->endDebugRegion();
+
     // The external path does not submit the command buffer, nor does it present.
     UInt64 fence{ 0ull };
 
     if (!m_impl->m_external)
     {
-        if (!this->name().empty())
-            m_impl->m_activeCommandBuffer->endDebugRegion();
-
         // Submit and store the fence.
         fence = m_impl->m_queue->submit(commandBuffer);
 
