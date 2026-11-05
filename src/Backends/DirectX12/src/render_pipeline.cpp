@@ -469,9 +469,6 @@ public:
 					// Resolve the image and update the binding.
 					auto& image = frameBuffer[dependency.renderTarget()]; // NOLINT(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
-					if (image.samples() != m_samples) [[unlikely]]
-						LITEFX_WARNING(DIRECTX12_LOG, "The image multi sampling level {0} does not match the render pipeline multi sampling state {1}.", image.samples(), m_samples);
-
 					// Attach the image from the right frame buffer to the descriptor set.
 					binding->update(DescriptorBinding::inputAttachment(image).at(dependency.binding().Register));
 					break;
