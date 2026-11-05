@@ -27,6 +27,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/backend.cpp"
     "src/adapter.cpp"
     "src/device.cpp"
+    "src/packing.hpp"
     "src/factory.cpp"
     "src/queue.cpp"
     "src/surface.cpp"

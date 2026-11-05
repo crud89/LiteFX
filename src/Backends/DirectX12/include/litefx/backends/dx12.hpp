@@ -1424,6 +1424,9 @@ namespace LiteFX::Rendering::Backends {
         /// @copydoc CommandBuffer::transfer(const buffer_type&, const image_type&, UInt32, UInt32, UInt32) const
         void transfer(const IDirectX12Buffer& source, const IDirectX12Image& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
 
+        /// @copydoc CommandBuffer::transfer(const buffer_type&, UInt64, const image_type&, UInt32) const
+        void transfer(const IDirectX12Buffer& source, UInt64 sourceOffset, const IDirectX12Image& target, UInt32 subresource) const override;
+
         /// @copydoc CommandBuffer::transfer(const void* const, size_t, const image_type&, UInt32) const
         void transfer(const void* const data, size_t size, const IDirectX12Image& target, UInt32 subresource = 0) const override;
 
@@ -2300,6 +2303,7 @@ namespace LiteFX::Rendering::Backends {
         using base_type::createSampler;
         using base_type::createSamplers;
         using base_type::allocate;
+        using base_type::imageCopyLayout;
 
     private:
         /// @brief Creates a new graphics factory.
@@ -2342,6 +2346,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// @copydoc IGraphicsFactory::canAlias
         bool canAlias(Enumerable<const ResourceAllocationInfo&> allocationInfos) const override;
+
+        /// @copydoc IGraphicsFactory::imageCopyLayout
+        ImageCopyLayout imageCopyLayout(Format format, const Size3d& size, ImageDimensions dimensions, UInt32 levels, UInt32 layers, UInt32 subresource) const override;
 
         /// @copydoc GraphicsFactory::createBuffer(BufferType, ResourceHeap, size_t, UInt32, ResourceUsage, AllocationBehavior) const
         SharedPtr<IDirectX12Buffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;

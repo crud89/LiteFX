@@ -6996,6 +6996,23 @@ namespace LiteFX::Rendering {
             this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
         }
 
+        /// @brief Performs a buffer-to-image transfer from a byte offset within a buffer into a single sub-resource of an image.
+        ///
+        /// Unlike the element-based overload, the source data does not need to occupy a whole buffer element. This allows multiple sub-resources of varying size to be packed into a single buffer. The data at 
+        /// @p sourceOffset must be laid out as described by @ref IGraphicsFactory::imageCopyLayout.
+        ///
+        /// Note that you have to manually ensure that @p source and @p target are in the proper state for transfer operations.
+        ///
+        /// @param source The source buffer to transfer data from.
+        /// @param sourceOffset The offset of the sub-resource data within the source buffer in bytes. Must be aligned to the layout's alignment.
+        /// @param target The target image to transfer data to.
+        /// @param subresource The sub-resource of the target image to receive the data.
+        /// @throws InvalidArgumentException Thrown, if @p sourceOffset is not properly aligned.
+        /// @throws ArgumentOutOfRangeException Thrown, if @p subresource is out of range, or the source buffer is too small for the sub-resource data at @p sourceOffset.
+        inline void transfer(const IBuffer& source, UInt64 sourceOffset, const IImage& target, UInt32 subresource) const {
+            this->cmdTransfer(source, sourceOffset, target, subresource);
+        }
+
         /// @brief Performs a buffer-to-buffer transfer from a temporary buffer into @p target.
         ///
         /// This method creates a temporary buffer and maps @p data into it, before transferring it into @p target. A reference of the temporary buffer is stored until the parent command queue finished using the
@@ -7610,6 +7627,7 @@ namespace LiteFX::Rendering {
         virtual void cmdBarrier(const IBarrier& barrier) const noexcept = 0;
         virtual void cmdTransfer(const IBuffer& source, const IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const = 0;
         virtual void cmdTransfer(const IBuffer& source, const IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const = 0;
+        virtual void cmdTransfer(const IBuffer& source, UInt64 sourceOffset, const IImage& target, UInt32 subresource) const = 0;
         virtual void cmdTransfer(const IImage& source, const IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const = 0;
         virtual void cmdTransfer(const IImage& source, const IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const = 0;
         virtual void cmdTransfer(const SharedPtr<const IBuffer>& source, const IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const = 0;
@@ -8842,6 +8860,42 @@ namespace LiteFX::Rendering {
         StatisticsBlock total{};
     };
 
+    /// @brief Describes how a sub-resource of an image must be laid out in a buffer for buffer-to-image copies.
+    ///
+    /// @see @ref IGraphicsFactory::imageCopyLayout
+    /// @see @ref ICommandBuffer::transfer
+    struct LITEFX_RENDERING_API ImageCopyLayout {
+
+        /// @brief The required sub-resource alignment within the buffer.
+        UInt64 Alignment{ 1u };
+
+        /// @brief The distance between two rows of the image in the buffer.
+        UInt64 RowPitch{ 0u };
+
+        /// @brief The number of bytes in a tightly packed row (pixels or blocks).
+        UInt64 RowSize{ 0u };
+
+        /// @brief The number of rows per depth slice.
+        UInt32 Rows{ 0u };
+
+        /// @brief The number of depth slices.
+        UInt32 Slices{ 1u };
+
+        /// @brief Returns the total number of tightly packed rows (pixels or blocks) in the image.
+        /// @return 
+        constexpr UInt64 rowCount() const noexcept { 
+            return static_cast<UInt64>(Rows) * Slices; 
+        }
+
+        /// @brief Returns the overall size of the image in the buffer in bytes.
+        /// 
+        /// @return The overall size of the image in the buffer in bytes.
+        constexpr UInt64 size() const noexcept { 
+            return this->rowCount() == 0 ? 0 : RowPitch * (this->rowCount() - 1) + RowSize; 
+        }
+
+    };
+
     /// @brief The interface for a graphics factory.
     class LITEFX_RENDERING_API IGraphicsFactory : public SharedObject {
     protected:
@@ -8972,6 +9026,26 @@ namespace LiteFX::Rendering {
         /// @see @ref allocate
         /// @see @ref ResourceAllocationInfo::AliasingOffset
         virtual bool canAlias(Enumerable<const ResourceAllocationInfo&> allocationInfos) const = 0;
+
+        /// @brief Queries the image copy layout from an image description.
+        /// 
+        /// @param format The format of the image.
+        /// @param size The size of the image.
+        /// @param dimensions The dimensions of the image.
+        /// @param levels The number of mip-map levels in the image.
+        /// @param layers The number of layers in the image.
+        /// @param subresource The image sub-resource.
+        /// @return The image copy layout.
+        virtual ImageCopyLayout imageCopyLayout(Format format, const Size3d& size, ImageDimensions dimensions, UInt32 levels, UInt32 layers, UInt32 subresource) const = 0;
+
+        /// @brief Queries the image copy layout from an image description.
+        /// 
+        /// @param imageInfo The image resource description.
+        /// @param subresource The image sub-resource.
+        /// @return The image copy layout.
+        inline ImageCopyLayout imageCopyLayout(const ResourceAllocationInfo::ImageInfo& imageInfo, UInt32 subresource) const {
+            return imageCopyLayout(imageInfo.Format, imageInfo.Size, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, subresource);
+        }
 
         /// @brief Creates a buffer of type @p type.
         ///

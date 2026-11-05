@@ -620,6 +620,9 @@ namespace LiteFX::Rendering {
         /// @copydoc ICommandBuffer::transfer(const IBuffer&, const IImage&, UInt32, UInt32, UInt32)
         virtual void transfer(const buffer_type& source, const image_type& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const = 0;
 
+        /// @copydoc ICommandBuffer::transfer(const IBuffer&, UInt64, const IImage&, UInt32)
+        virtual void transfer(const buffer_type& source, UInt64 sourceOffset, const image_type& target, UInt32 subresource) const = 0;
+
         /// @copydoc ICommandBuffer::transfer(const void* const, size_t, const IImage&, UInt32)
         virtual void transfer(const void* const data, size_t size, const image_type& target, UInt32 subresource = 0) const = 0;
 
@@ -755,6 +758,10 @@ namespace LiteFX::Rendering {
         
         inline void cmdTransfer(const IBuffer& source, const IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const override {
             this->transfer(dynamic_cast<const buffer_type&>(source), dynamic_cast<const image_type&>(target), sourceElement, firstSubresource, elements);
+        }
+
+        inline void cmdTransfer(const IBuffer& source, UInt64 sourceOffset, const IImage& target, UInt32 subresource) const override {
+            this->transfer(dynamic_cast<const buffer_type&>(source), sourceOffset, dynamic_cast<const image_type&>(target), subresource);
         }
         
         inline void cmdTransfer(const IImage& source, const IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const override {

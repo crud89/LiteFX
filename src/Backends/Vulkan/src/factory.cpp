@@ -2,6 +2,9 @@
 #include "buffer.h"
 #include "image.h"
 #include "virtual_allocator.hpp"
+#include "packing.hpp"
+
+#include <numeric>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -932,6 +935,34 @@ bool VulkanGraphicsFactory::canAlias(Enumerable<const ResourceAllocationInfo&> a
 			| std::ranges::to<std::vector>(), std::bit_and{});
 
 	return memoryType.value_or(0) != 0;
+}
+
+ImageCopyLayout VulkanGraphicsFactory::imageCopyLayout(Format format, const Size3d& size, ImageDimensions dimensions, UInt32 levels, UInt32 layers, UInt32 subresource) const
+{
+	// Sub-resources are ordered by level, then layer, then plane (see `IImage::subresourceId`).
+	UInt32 planes = ::hasDepth(format) && ::hasStencil(format) ? 2u : 1u;
+
+	if (levels == 0u || layers == 0u || subresource >= levels * layers * planes) [[unlikely]]
+		throw ArgumentOutOfRangeException("subresource", std::make_pair(0u, levels * layers * planes), subresource, "The sub-resource index is out of range for the described image.");
+
+	UInt32 level = subresource % levels;
+
+	// Compute the extent of the level, as `IVulkanImage::extent(level)` does.
+	auto levelExtent = [level](size_t extent) { return std::max<UInt64>(1u, static_cast<UInt64>(extent) >> level); };
+	UInt64 width = levelExtent(size.width());
+	UInt64 height = levelExtent(size.height());
+	UInt64 depth = dimensions == ImageDimensions::DIM_3 ? levelExtent(size.depth()) : 1u;
+
+	// Vulkan copies tightly packed rows of texel blocks (`bufferRowLength = 0`), so the row pitch equals the row size.
+	auto [blockWidth, blockHeight] = getBlockExtent(format);
+	UInt64 blocksX = (width + blockWidth - 1u) / blockWidth;
+	UInt64 blocksY = (height + blockHeight - 1u) / blockHeight;
+	UInt64 rowSize = blocksX * ::getSize(format);
+
+	// Offsets must be a multiple of the texel block size, and of 4 bytes on queues without graphics or compute support.
+	UInt64 alignment = std::lcm(getCopyAlignment(format), UInt64{ 4u });
+
+	return { alignment, rowSize, rowSize, static_cast<UInt32>(blocksY), static_cast<UInt32>(depth) };
 }
 
 SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const

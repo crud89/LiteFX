@@ -733,6 +733,33 @@ bool DirectX12GraphicsFactory::canAlias(Enumerable<const ResourceAllocationInfo&
 	return resourceTypes.count() <= 1;
 }
 
+ImageCopyLayout DirectX12GraphicsFactory::imageCopyLayout(Format format, const Size3d& size, ImageDimensions dimensions, UInt32 levels, UInt32 layers, UInt32 subresource) const
+{
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr)
+		throw RuntimeException("Cannot query image copy layout from a released device.");
+
+	// Sub-resources are ordered by level, then layer, then plane (see `IImage::subresourceId`).
+	const UInt32 planes = ::hasDepth(format) && ::hasStencil(format) ? 2u : 1u;
+
+	if (levels == 0u || layers == 0u || subresource >= levels * layers * planes) [[unlikely]]
+		throw ArgumentOutOfRangeException("subresource", std::make_pair(0u, levels * layers * planes), subresource, "The sub-resource index is out of range for the described image.");
+
+	ResourceAllocationInfo::ImageInfo imageInfo{ format, dimensions, size, levels, layers, MultiSamplingLevel::x1 };
+	auto resourceDesc = getResourceDesc(imageInfo, ResourceUsage::Default);
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
+	UInt32 rows{};
+	UInt64 rowSize{};
+	device->handle()->GetCopyableFootprints1(&resourceDesc, subresource, 1u, 0u, &footprint, &rows, &rowSize, nullptr);
+
+	if (rowSize == std::numeric_limits<UInt64>::max()) [[unlikely]]
+		throw InvalidArgumentException("format", "The copy layout for the described image could not be determined.");
+
+	return { D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT, footprint.Footprint.RowPitch, rowSize, rows, footprint.Footprint.Depth };
+}
+
 SharedPtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
 	return this->createBuffer("", type, heap, elementSize, elements, usage, allocationBehavior);

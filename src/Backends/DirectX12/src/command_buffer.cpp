@@ -560,6 +560,39 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDir
 	}
 }
 
+void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, UInt64 sourceOffset, const IDirectX12Image& target, UInt32 subresource) const
+{
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers that have ended cannot record any more commands.");
+
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot transfer buffers on a released device instance.");
+
+	if (!LITEFX_FLAG_IS_SET(source.usage(), ResourceUsage::TransferSource)) [[unlikely]]
+		throw InvalidArgumentException("source", "The source buffer's usage does not allow for it to be used as a transfer source.");
+
+	if (!LITEFX_FLAG_IS_SET(target.usage(), ResourceUsage::TransferDestination)) [[unlikely]]
+		throw InvalidArgumentException("target", "The target image's usage does not allow for it to be used as a transfer destination.");
+
+	if (subresource >= target.elements()) [[unlikely]]
+		throw ArgumentOutOfRangeException("subresource", "The target image has only {0} sub-resources, but sub-resource {1} has been requested.", target.elements(), subresource);
+
+	if (sourceOffset % D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT != 0) [[unlikely]]
+		throw InvalidArgumentException("sourceOffset", "The source offset {0} is not aligned to {1} bytes, as required for copies into images.", sourceOffset, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
+
+	auto [layouts, totalSize] = SubresourceLayout::getLayouts(*device, target, subresource, 1, sourceOffset);
+	auto& layout = layouts.front();
+	auto bufferSize = static_cast<UInt64>(source.alignedElementSize()) * source.elements();
+
+	if (sourceOffset + layout.alignedSize() > bufferSize) [[unlikely]]
+		throw ArgumentOutOfRangeException("sourceOffset", "The source buffer has {0} bytes, but sub-resource {1} of the target image requires {2} bytes starting at offset {3}.", bufferSize, subresource, layout.alignedSize(), sourceOffset);
+
+	CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), layout.Footprint), targetLocation(std::as_const(target).handle().Get(), subresource);
+	this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
+}
+
 void DirectX12CommandBuffer::transfer(const void* const data, size_t size, const IDirectX12Image& target, UInt32 subresource) const
 {
 	if (!m_impl->m_recording)
